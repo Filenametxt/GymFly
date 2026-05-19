@@ -1,0 +1,24 @@
+{
+    "name": "univaq/gym-fly",
+    "authors": [
+        {
+            "name": "Filenametxt",
+            "email": "fabio.angelucci04@gmail.com"
+        },
+        {
+            "name": "alessiavicoli",
+            "email": "alessiavicoli@gmail.com"
+        },
+        {
+            "name": "francescaquaciari",
+            "email": "francescaq04@gmail.com"
+        },
+        {
+            "name": "Mattia0604",
+            "email": "mattiadr200@gmail.com"
+        }
+    ],
+    "require": {
+        "doctrine/orm": "^3.6"
+    }
+}
