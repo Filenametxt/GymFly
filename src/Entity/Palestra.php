@@ -10,12 +10,11 @@ class Palestra {
         $this->indirizzo = $indirizzo;
         $this->email = $email;
         $this->recapito_telefonico = $recapito_telefonico;
-
     }
 
     public function get_nome() {
         return $this->nome;
-        }
+    }
     
     public function get_indirizzo() {
         return $this->indirizzo;
@@ -30,16 +29,20 @@ class Palestra {
     }
 
     public function set_nome($nome){
-        $this->nome = $nome;}
+        $this->nome = $nome;
+    }
 
     public function set_indirizzo($indirizzo){
-        $this->indirizzo = $indirizzo;}
+        $this->indirizzo = $indirizzo;
+    }
 
     public function set_email($email){
-        $this->email = $email;}
+        $this->email = $email;
+    }
 
     public function set_recapito_telefonico($recapito_telefonico){
-        $this->recapito_telefonico = $recapito_telefonico;}
+        $this->recapito_telefonico = $recapito_telefonico;
+    }
 
 }
 ?>
