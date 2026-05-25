@@ -11,12 +11,6 @@ class Scheda{
         $this->data_fine = $data_fine;
         $this->obiettivo = $obiettivo;
     }
-    public function __construct($nome_scheda, $data_inizio, $obiettivo){
-        $this->nome_scheda = $nome_scheda;
-        $this->data_inizio = $data_inizio;
-        $this->data_fine = $data_fine;
-        $this->obiettivo = $obiettivo;
-    }
     public function getNome_scheda(){
         return $this->nome_scheda;
     }
