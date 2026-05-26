@@ -16,10 +16,12 @@ class Messaggio {
     private ?int $id = null;
     private Utente $mittente;
     private string $oggetto;
+    private string $contenuto;
     private Collection $destinatario;
-    public function __construct(Utente $mittente, string $oggetto) {
+    public function __construct(Utente $mittente, string $oggetto, string $contenuto) {
         $this->mittente = $mittente;
         $this->oggetto = $oggetto;
+        $this->contenuto = $contenuto;
     }
     public function getId(): ?int{
         return $this->id;
@@ -33,8 +35,13 @@ class Messaggio {
     public function getOggetto(): string{
         return $this->oggetto;
     }
+    public function getContenuto(): string{
+        return $this->contenuto;
+    }
     public function setMittente(Utente $mittente): self{
-        $this->mittente = $mittente;
+        if ($mittente->mssAllowed()) {
+            $this->mittente = $mittente;
+        }
         return $this;
     }
     public function setDestinatario(Collection $destinatario): self{
@@ -43,6 +50,10 @@ class Messaggio {
     }
     public function setOggetto(string $oggetto): self{ 
         $this->oggetto = $oggetto;
+        return $this;
+    }
+    public function setContenuto(string $contenuto): self{
+        $this->contenuto = $contenuto;
         return $this;
     }
 }

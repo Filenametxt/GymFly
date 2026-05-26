@@ -1,6 +1,7 @@
 <?php
 use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity]
+//TODO: Aggiungere relazione amministratore, cliente e allenatore
 class Palestra {
     #[ORM\Id]
     #[ORM\GeneratedValue]

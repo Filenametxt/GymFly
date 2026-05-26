@@ -1,6 +1,7 @@
 <?php
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\Collection;
+use GymFly\Enum\Sesso;
 class Cliente extends Utente{
     private int $data_di_nascita;   //REVIEW da definire il tipo di dato quando passiamo al database
     private string $luogo_di_nascita;
@@ -13,7 +14,7 @@ class Cliente extends Utente{
     private Parametri $parametri;
     private Collection $progressi;
 
-    public function __construct(string $nome, string $cognome, string $email, string $CF, $profile_picture, int $telefono, string $indirizzo, string $sesso, int $data_di_nascita, string $luogo_di_nascita, string $indirizzo_di_domicilio, CertificatoMedico $certificato_medico, Abbonamento $abbonamento, string $metodo_di_pagamento, Scheda $scheda, Iscrizione $iscrizione, Parametri $parametri){
+    public function __construct(string $nome, string $cognome, string $email, string $CF, $profile_picture, int $telefono, string $indirizzo, Sesso $sesso, int $data_di_nascita, string $luogo_di_nascita, string $indirizzo_di_domicilio, CertificatoMedico $certificato_medico, Abbonamento $abbonamento, string $metodo_di_pagamento, Scheda $scheda, Iscrizione $iscrizione, Parametri $parametri){
         parent::__construct($nome, $cognome, $email, $CF, $profile_picture, $telefono, $indirizzo, $sesso);
         $this->data_di_nascita = $data_di_nascita;
         $this->luogo_di_nascita = $luogo_di_nascita;
@@ -24,6 +25,10 @@ class Cliente extends Utente{
         $this->scheda = $scheda;
         $this->iscrizione = $iscrizione;
         $this->parametri = $parametri;
+    }
+
+    public function mssAllowed(): bool{
+        return false;
     }
 
     public function getData_di_nascita(): int{
