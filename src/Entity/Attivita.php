@@ -5,7 +5,7 @@ class Attivita{
     private string $descrizione;
     private int $max_partecipanti;
     private AttivitaPianificata $attivitapianificata;
-    private Allenatore $allenatore; //TODO creare classe Allenatore
+    private Allenatore $allenatore;
 
     public function __construct(string $nome, string $descrizione, int $max_partecipanti, AttivitaPianificata $attivitapianificata, Allenatore $allenatore){
         $this->nome = $nome;
