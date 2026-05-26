@@ -6,7 +6,7 @@ class AttivitaPIanificata {
     private int $prenotati;
     private Sala $sala;
     private Allenatore $allenatore;
-    private Attivita $attivita_di_referimento;
+    private Attivita $attivita_di_riferimento;
 
     public function __construct(int $giorno, int $orario, int $prenotati, Sala $sala, Allenatore $allenatore, Attivita $attivita_di_riferimento) {
         $this->giorno = $giorno;
@@ -14,7 +14,7 @@ class AttivitaPIanificata {
         $this->prenotati = $prenotati;
         $this->sala = $sala;
         $this->allenatore = $allenatore;
-        $this->attivita_di_referimento = $attivita_di_referimento;
+        $this->attivita_di_riferimento = $attivita_di_riferimento;
     }
     public function getId(): ?int{
         return $this->id;
@@ -35,7 +35,7 @@ class AttivitaPIanificata {
         return $this-> allenatore;
     }
     public function getAttivita(): Attivita {
-        return $this->attivita_di_referimento;
+        return $this->attivita_di_riferimento;
     }
     public function setGiorno(int $giorno): void {    //REVIEW da capire il tipo di dato quando si passa al database
         $this->giorno = $giorno;
