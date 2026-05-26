@@ -1,35 +1,35 @@
 <?php
 class Sala{
-    private $id;
-   private $nome;
-   private $max_partecipanti;
+    private ?int $id = null;
+   private string $nome;
+   private int $max_partecipanti;
    private Palestra $palestra;
 
-public function __construct($id, $nome, $max_partecipanti, $palestra) {
-    $this->id = $id;
+public function __construct(string $nome, int $max_partecipanti, Palestra $palestra) {
     $this->nome = $nome;
     $this->max_partecipanti = $max_partecipanti;
     $this->palestra = $palestra;
 }
-public function getId() {
+public function getId(): ?int {
     return $this->id;
 }
-public function get_nome(){
+public function getNome(): string{
     return $this->nome;
 }
-public function get_max_partecipanti(){
+public function getMax_partecipanti(): int{
     return $this->max_partecipanti;
 }
-public function get_palestra(){
+public function getPalestra(): Palestra{
     return $this->palestra;
 }
-public function set_nome($nome){
+public function setNome(string $nome): void{
     $this->nome = $nome;
 }
-public function set_max_partecipanti($max_partecipanti){
+public function setMax_partecipanti(int $max_partecipanti): void{
     $this->max_partecipanti = $max_partecipanti;
 }
-public function set_palestra($palestra){
+public function setPalestra(Palestra $palestra): void{
     $this->palestra = $palestra;
 }
 }
+?>
