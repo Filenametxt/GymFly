@@ -45,7 +45,6 @@ class Abbonamento{
         $this->cliente = $cliente;
         return $this;
     }
-
 }
 
 ?>

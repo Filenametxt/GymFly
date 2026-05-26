@@ -5,7 +5,7 @@ class CertificatoMedico{
     private int $data_scadenza; //REVIEW da capire il tipo di dato quando si passa al database
     private string $medico;
     private $file; //REVIEW da capire il tipo di dato quando si passa al database
-    private Cliente $cliente; //TODO
+    private Cliente $cliente;
 
     public function __construct(int $data_emissione, int $data_scadenza, string $medico, $file, Cliente $cliente) {
         $this->data_emissione = $data_emissione;
@@ -32,20 +32,24 @@ class CertificatoMedico{
     public function getCliente(): Cliente {
         return $this->cliente;
     }
-    public function setData_emissione(int $data_emissione): void{
+    public function setData_emissione(int $data_emissione): self{
         $this->data_emissione = $data_emissione;
+        return $this;
     }
-    public function setData_scadenza(int $data_scadenza): void{
+    public function setData_scadenza(int $data_scadenza): self{
         $this->data_scadenza = $data_scadenza;
+        return $this;
     }
-    public function setMedico(string $medico): void{
+    public function setMedico(string $medico): self{
         $this->medico = $medico;
+        return $this;
     }
     public function setFile($file){ //REVIEW da capire il tipo di dato quando si passa al database
         $this->file = $file;
     }
-    public function setCliente(Cliente $cliente): void{
+    public function setCliente(Cliente $cliente): self{
         $this->cliente = $cliente;
+        return $this;
     }
 }
 ?>

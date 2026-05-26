@@ -47,29 +47,37 @@ class Utente{
     public function getSesso(): string{
         return $this->sesso;
     }
-    public function setNome(string $nome): void{
+    public function setNome(string $nome): self{
         $this->nome = $nome;
+        return $this;
     }
-    public function setCognome(string $cognome): void{
+    public function setCognome(string $cognome): self{
         $this-> cognome = $cognome;
+        return $this;
     }
-    public function setEmail (string $email): void{
+    public function setEmail (string $email): self{
         $this->email = $email;
+        return $this;
     }
-    public function setCF(string $CF): void{
+    public function setCF(string $CF): self{
         $this->CF = $CF;
+        return $this;
     }
-    public function setProfilePicture(string $profilePicture): void{
+    public function setProfilePicture(string $profilePicture): self{
         $this->profile_picture = $profilePicture;
+        return $this;
     }
-    public function setTelefono(int $telefono): void{
+    public function setTelefono(int $telefono): self{
         $this->telefono = $telefono;
+        return $this;
     }
-    public function setIndirizzo(string $indirizzo): void{
+    public function setIndirizzo(string $indirizzo): self{
         $this->indirizzo = $indirizzo;
+        return $this;
     }
-    public function setSesso(string $sesso): void{
+    public function setSesso(string $sesso): self{
         $this->sesso = $sesso;
+        return $this;
     }
 }
 ?>
