@@ -24,18 +24,22 @@ class Scheda{
         return $this->obiettivo;
     }
 
-    public function setNome_scheda($nome_scheda){
+    public function setNome_scheda($nome_scheda):self{
         $this->nome_scheda = $nome_scheda;
+        return $this;
     }
-    public function setData_inizio($data_inizio){
+    public function setData_inizio($data_inizio): self{
         $this->data_inizio = $data_inizio;
+        return $this;
     }
 
-    public function setData_fine($data_fine){
+    public function setData_fine($data_fine): self{
         $this->data_fine = $data_fine;
+        return $this;
     }
-    public function setObiettivo($obiettivo){
+    public function setObiettivo($obiettivo):self{
         $this->obiettivo = $obiettivo;
+        return $this;
     }
 
 

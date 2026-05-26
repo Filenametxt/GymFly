@@ -11,7 +11,7 @@ class DettaglioAllenamento {
     private ?int $id = null;
 
     #[ORM\Column]
-    private $esercizio;  //TODO: Classe Esercizio
+    private Esercizio $esercizio;  
 
     #[ORM\Column]
     private int $serie;
@@ -25,7 +25,7 @@ class DettaglioAllenamento {
     #[ORM\JoinColumn(nullable: false)] // La FK non può essere vuota (un dettaglio deve avere un allenamento)
     private Allenamento $allenamento;
 
-    public function __construct(string $esercizio, int $serie, int $ripetizioni) {
+    public function __construct(Esercizio $esercizio, int $serie, int $ripetizioni) {
         $this->esercizio = $esercizio;
         $this->serie = $serie;
         $this->ripetizioni = $ripetizioni;
@@ -45,7 +45,7 @@ class DettaglioAllenamento {
         $this->allenamento = $allenamento;
         return $this;
     }
-    public function getEsercizio() {   //TODO: Classe Esercizio
+    public function getEsercizio(): Esercizio {   
         return $this->esercizio;
     }
     public function getSerie(): int {
@@ -62,10 +62,10 @@ class DettaglioAllenamento {
         $this->ripetizioni = $ripetizioni;  
         return $this;
     }
-    public function setEsercizio( $esercizio): self { //TODO: Classe Esercizio
+    public function setEsercizio(Esercizio $esercizio): self { 
         $this->esercizio = $esercizio;
         return $this;
     }
-
+    
 }
 ?>
