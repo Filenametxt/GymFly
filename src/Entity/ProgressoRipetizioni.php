@@ -5,8 +5,8 @@ class ProgressoRipetizioni extends Progresso{
 
     private int $new_ripetizioni;
     
-    public function __construct(Cliente $cliente_riferito, int $new_ripetizioni, \DateTimeImmutable $data) {
-        parent::__construct($cliente_riferito, $new_ripetizioni, $data);
+    public function __construct(Cliente $cliente_riferito, int $new_ripetizioni, \DateTimeImmutable $data,Esercizio $esercizio_riferito) {
+        parent::__construct($cliente_riferito,$data,$esercizio_riferito);
         $this->new_ripetizioni = $new_ripetizioni;
     }
 
