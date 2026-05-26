@@ -17,19 +17,19 @@ class Abbonamento{
         $this->tipologia = $tipologia;
     }
 
-    public function getId(){
+    public function getId(): ?int{
         return $this->id;
     }
 
-    public function getData_inizio(){
+    public function getData_inizio(): int{
         return $this->data_inizio;
     }
 
-    public function getTipologia(){
+    public function getTipologia(): string{
         return $this->tipologia;
     }
 
-    public function getCliente(){
+    public function getCliente(): Collection{
         return $this->cliente;
     }
 

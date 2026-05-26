@@ -10,7 +10,7 @@ class AbbonamentoMensile extends Abbonamento{
         $this->durata = $durata;
     }
 
-    public function getDurata(){
+    public function getDurata(): int{
         return $this->durata;
     }
     public function setDurata(int $durata):self{
