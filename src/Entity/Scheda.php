@@ -4,12 +4,14 @@ class Scheda{
     private $data_inizio;
     private $data_fine;
     private $obiettivo;
+    private Cliente $cliente;
 
-    public function __construct($nome_scheda, $data_inizio, $data_fine, $obiettivo){
+    public function __construct($nome_scheda, $data_inizio, $data_fine, $obiettivo, Cliente $cliente){
         $this->nome_scheda = $nome_scheda;
         $this->data_inizio = $data_inizio;
         $this->data_fine = $data_fine;
         $this->obiettivo = $obiettivo;
+        $this->cliente = $cliente;
     }
     public function getNome_scheda(){
         return $this->nome_scheda;
@@ -22,6 +24,13 @@ class Scheda{
     }
     public function getObiettivo(){
         return $this->obiettivo;
+    }
+    public function getCliente(){
+        return $this->cliente;
+    }
+    public function setCliente(Cliente $cliente): self{
+        $this->cliente = $cliente;
+        return $this;
     }
 
     public function setNome_scheda($nome_scheda):self{
