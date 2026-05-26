@@ -50,7 +50,4 @@ class Scheda{
         $this->obiettivo = $obiettivo;
         return $this;
     }
-
-
-
 }

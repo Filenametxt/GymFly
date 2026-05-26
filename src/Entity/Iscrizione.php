@@ -21,14 +21,17 @@ class Iscrizione{
     public function getCliente(): Cliente{
         return $this->cliente;
     }
-    public function setData_inizio(int $data_inizio): void{
+    public function setData_inizio(int $data_inizio): self{
         $this->data_inizio = $data_inizio;
+        return $this;
     }
-    public function setData_fine(int $data_fine): void{
+    public function setData_fine(int $data_fine): self{
         $this->data_fine = $data_fine;
+        return $this;
     }
-    public function setCliente(Cliente $cliente): void{
+    public function setCliente(Cliente $cliente): self{
         $this->cliente = $cliente;
+        return $this;
     }
 }
 ?>

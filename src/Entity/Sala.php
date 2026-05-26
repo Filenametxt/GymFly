@@ -1,9 +1,9 @@
 <?php
 class Sala{
-   private ?int $id = null;
-   private string $nome;
-   private int $max_partecipanti;
-   private Palestra $palestra;
+    private ?int $id = null;
+    private string $nome;
+    private int $max_partecipanti;
+    private Palestra $palestra;
 
     public function __construct(string $nome, int $max_partecipanti, Palestra $palestra) {
         $this->nome = $nome;
@@ -22,14 +22,17 @@ class Sala{
     public function getPalestra(): Palestra{
         return $this->palestra;
     }
-    public function setNome(string $nome): void{
+    public function setNome(string $nome): self{
         $this->nome = $nome;
+        return $this;
     }
-    public function setMax_partecipanti(int $max_partecipanti): void{
+    public function setMax_partecipanti(int $max_partecipanti): self{
         $this->max_partecipanti = $max_partecipanti;
+        return $this;
     }
-    public function setPalestra(Palestra $palestra): void{
+    public function setPalestra(Palestra $palestra): self{
         $this->palestra = $palestra;
+        return $this;
     }
 }
 ?>

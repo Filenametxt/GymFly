@@ -32,20 +32,25 @@ class Attivita{
     public function getAllenatore(): Allenatore{
         return $this->allenatore;
     }
-    public function setNome(string $nome): void{
+    public function setNome(string $nome): self{
         $this->nome = $nome;
+        return $this;
     }
-    public function setDescrizione(string $descrizione): void{
+    public function setDescrizione(string $descrizione): self{
         $this->descrizione = $descrizione;
+        return $this;
     }
-    public function setMax_partecipanti(int $max_partecipanti): void{
+    public function setMax_partecipanti(int $max_partecipanti): self{
         $this->max_partecipanti = $max_partecipanti;
+        return $this;
     }
-    public function setAttivitaPianificata(AttivitaPianificata $attivitapianificata): void{
+    public function setAttivitaPianificata(AttivitaPianificata $attivitapianificata): self{
         $this->attivitapianificata = $attivitapianificata;
+        return $this;
     }
-    public function setAllenatore(Allenatore $allenatore): void{
+    public function setAllenatore(Allenatore $allenatore): self{
         $this->allenatore = $allenatore;
+        return $this;
     }
 }
 ?>
