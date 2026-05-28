@@ -14,8 +14,8 @@ class Allenamento {
     private ?int $id = null;
 
     // 2. Proprietà del dominio
-    #[ORM\Column(type: 'datetime')]
-    private \DateTimeInterface $data;
+    private string $nome;
+    private ?string $descrizione=null;
 
     // 3. Relazione 1:N (Un allenamento ha molti dettagli)
     #[ORM\OneToMany(targetEntity: DettaglioAllenamento::class, mappedBy: 'allenamento', cascade: ['persist', 'remove'])]
@@ -26,10 +26,11 @@ class Allenamento {
     #[ORM\ManyToOne(targetEntity: Scheda::class, inversedBy: 'allenamenti')] //TODO: Classe Scheda da aggiornare con doctrine
     #[ORM\JoinColumn(nullable: false)] // La FK non può essere vuota (un dettaglio deve avere un allenamento)
     private Scheda $scheda;
-    public function __construct() {
+    public function __construct(string $nome,Scheda $scheda) {
+        $this->nome = $nome;
+        $this->scheda=$scheda;
         // Inizializziamo la collezione come ArrayCollection
         $this->dettagli = new ArrayCollection();
-        $this->data = new \DateTime();
     }
 
     // Metodi di accesso (Getter/Setter)
@@ -37,8 +38,19 @@ class Allenamento {
         return $this->id;
     }
 
-    public function getData(): \DateTimeInterface {
-        return $this->data;
+    public function getNome(): ?string {
+        return $this->nome;
+    }
+    public function setNome(string $nome): self {
+        $this->nome = $nome;
+        return $this;
+    }
+    public function getDescrizione(): ?string {
+        return $this->descrizione;
+    }
+    public function setDescrizione(string $descrizione): self {
+        $this->descrizione = $descrizione;
+        return $this;
     }
 
     /**

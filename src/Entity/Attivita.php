@@ -1,18 +1,20 @@
 <?php
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 class Attivita{
     private ?int $id = null;
     private string $nome;
     private string $descrizione;
     private int $max_partecipanti;
     private AttivitaPianificata $attivitapianificata;
-    private Allenatore $allenatore;
+    private Collection $allenatori;
 
-    public function __construct(string $nome, string $descrizione, int $max_partecipanti, AttivitaPianificata $attivitapianificata, Allenatore $allenatore){
+    public function __construct(string $nome, string $descrizione, int $max_partecipanti, AttivitaPianificata $attivitapianificata){
         $this->nome = $nome;
         $this->descrizione = $descrizione;
         $this->max_partecipanti = $max_partecipanti;
         $this->attivitapianificata = $attivitapianificata;
-        $this->allenatore = $allenatore;
+        $this->allenatori = new ArrayCollection();
     }
     public function getId(): ?int{
         return $this->id;
@@ -29,8 +31,8 @@ class Attivita{
     public function getAttivitapianificata(): AttivitaPianificata{
         return $this->attivitapianificata;
     }
-    public function getAllenatore(): Allenatore{
-        return $this->allenatore;
+    public function getAllenatore(): Collection{
+        return $this->allenatori;
     }
     public function setNome(string $nome): self{
         $this->nome = $nome;
@@ -48,8 +50,8 @@ class Attivita{
         $this->attivitapianificata = $attivitapianificata;
         return $this;
     }
-    public function setAllenatore(Allenatore $allenatore): self{
-        $this->allenatore = $allenatore;
+    public function setAllenatore(Collection $allenatori): self{
+        $this->allenatori = $allenatori;
         return $this;
     }
 }

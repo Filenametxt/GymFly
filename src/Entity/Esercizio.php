@@ -3,8 +3,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\Collection;
 
 class Esercizio{
-    
-
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -12,13 +10,13 @@ class Esercizio{
     private ?int $id = null;
 
     private ?string  $nome_esercizio;
+    private ?string $descrizione;
     private Collection $gruppiMuscolari; 
     private Attrezzatura $attrezzatura_necessaria; 
 
-    private ?string $descrizione;
     private Tipologia $tipologia;        
 
-    private ?Allenatore $creatore;
+    private ?Allenatore $creatore=null;
 
     public function __construct( ?string $nome_esercizio, Attrezzatura $attrezzatura_necessaria, ?string $descrizione, Tipologia $tipologia){
         $this->nome_esercizio = $nome_esercizio;

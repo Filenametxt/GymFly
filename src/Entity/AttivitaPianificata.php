@@ -8,10 +8,10 @@ class AttivitaPIanificata {
     private Allenatore $allenatore;
     private Attivita $attivita_di_riferimento;
 
-    public function __construct(int $giorno, int $orario, int $prenotati, Sala $sala, Allenatore $allenatore, Attivita $attivita_di_riferimento) {
+    public function __construct(int $giorno, int $orario, Sala $sala, Allenatore $allenatore, Attivita $attivita_di_riferimento) {
         $this->giorno = $giorno;
         $this->orario = $orario;
-        $this->prenotati = $prenotati;
+        $this->prenotati = min([$attivita_di_riferimento->getMax_partecipanti(), $sala->getMax_partecipanti()]);
         $this->sala = $sala;
         $this->allenatore = $allenatore;
         $this->attivita_di_riferimento = $attivita_di_riferimento;
