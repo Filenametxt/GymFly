@@ -1,7 +1,12 @@
 <?php
+use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+#[ORM\Entity]
 class Attivita{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
     private ?int $id = null;
     private string $nome;
     private string $descrizione;

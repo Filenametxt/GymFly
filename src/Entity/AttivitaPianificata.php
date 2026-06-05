@@ -1,20 +1,28 @@
 <?php
+
+use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 class AttivitaPIanificata {
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
     private ?int $id = null;
     private int $giorno;
     private int $orario;
-    private int $prenotati;
+    private int $prenotati=0;
     private Sala $sala;
     private Allenatore $allenatore;
     private Attivita $attivita_di_riferimento;
 
+    private Collection $utenti;
+
     public function __construct(int $giorno, int $orario, Sala $sala, Allenatore $allenatore, Attivita $attivita_di_riferimento) {
         $this->giorno = $giorno;
         $this->orario = $orario;
-        $this->prenotati = min([$attivita_di_riferimento->getMax_partecipanti(), $sala->getMax_partecipanti()]);
-        $this->sala = $sala;
         $this->allenatore = $allenatore;
         $this->attivita_di_riferimento = $attivita_di_riferimento;
+        $this->utenti = new ArrayCollection();
     }
     public function getId(): ?int{
         return $this->id;
@@ -36,6 +44,10 @@ class AttivitaPIanificata {
     }
     public function getAttivita(): Attivita {
         return $this->attivita_di_riferimento;
+    }
+
+    public function getMaxPartecipanti(){
+        return min([$this->attivita_di_riferimento->getMax_partecipanti(), $this->sala->getMax_partecipanti()]);
     }
     public function setGiorno(int $giorno): void {    //REVIEW da capire il tipo di dato quando si passa al database
         $this->giorno = $giorno;

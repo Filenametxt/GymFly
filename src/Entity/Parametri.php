@@ -9,7 +9,7 @@ class Parametri{
 
     private float $peso;
     private float $altezza;
-    private int $data;  //REVIEW: revisione per la data
+    private \DateTimeImmutable $data;
     private ?float $bicipite_destro;
     private ?float $bicipite_sinistro;
     private ?float $tricipite_destro;
@@ -25,7 +25,7 @@ class Parametri{
 
     private Cliente $cliente;
 
-    function __construct($peso, $altezza, $bicipite_destro, $bicipite_sinistro, $tricipite_destro, $data, $tricipite_sinistro, $coscia_destra, $coscia_sinistra,$polpaccio_destro, $polpaccio_sinistro, $misura_fianchi, $misura_petto, $misura_spalle, $misura_vita){
+    function __construct(float $peso, float $altezza,\DateTimeImmutable $data, ?float $bicipite_destro, ?float $bicipite_sinistro,?float $tricipite_destro, ?float $tricipite_sinistro, ?float $coscia_destra, ?float $coscia_sinistra,?float $polpaccio_destro, ?float $polpaccio_sinistro, ?float $misura_fianchi,?float $misura_petto, ?float $misura_spalle, $misura_vita){
         $this->peso=$peso;
         $this->altezza=$altezza;
         $this->data=$data;
@@ -47,7 +47,7 @@ class Parametri{
     public function getId(): ?int{
         return $this->id;
     }
-    public function getData(): int{
+    public function getData(): \DateTimeImmutable{
         return $this->data;
     }
     public function getPeso(): float{
@@ -102,7 +102,7 @@ class Parametri{
         $this->peso=$peso;
         return $this;
     }
-    public function setData(int $data):self{
+    public function setData(\DateTimeImmutable $data):self{
         $this->data=$data;
         return $this;
     }

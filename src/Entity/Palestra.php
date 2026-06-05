@@ -73,7 +73,7 @@ class Palestra {
         $recapito_telefonico = str_replace([' ', '-', '.'], '', $recapito_telefonico);
         //NOTE: Regex: ^\d{9,10}$
         // ^          : Inizio stringa
-        // \d{9,10}   : Esattamente 9 o 10 o 11 cifre numeriche
+        // \d{9,10,11}   : Esattamente 9 o 10 o 11 cifre numeriche
         // $          : Fine stringa
         if (preg_match('/^\d{9,10,11}$/', $recapito_telefonico)) {
             $this->recapito_telefonico = $recapito_telefonico;

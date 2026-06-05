@@ -2,12 +2,11 @@
 class Iscrizione{
     private ?int $id = null;
     private int $data_inizio;
-    private int $data_fine;
+    private int $data_fine;     //TODO: pure qua 1 anno dopo la data inizio
     private Cliente $cliente;
 
-    public function __construct(int $data_inizio, int $data_fine, Cliente $cliente){
+    public function __construct(int $data_inizio, Cliente $cliente){
         $this->data_inizio = $data_inizio;
-        $this->data_fine = $data_fine;
     }
     public function getId(): ?int{
         return $this->id;

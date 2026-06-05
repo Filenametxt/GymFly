@@ -1,27 +1,30 @@
 <?php
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use GymFly\Enum\Sesso;
 class Cliente extends Utente{
     private int $data_di_nascita;   //REVIEW da definire il tipo di dato quando passiamo al database
     private string $luogo_di_nascita;
     private string $indirizzo_di_domicilio;
-    private CertificatoMedico $certificato_medico;
+    private ?CertificatoMedico $certificato_medico=null;
     private ?AbbonamentoAttivo $abbonamento=null;
     private string $metodo_di_pagamento;
     private Scheda $scheda;
     private Iscrizione $iscrizione;
     private Collection $progressi;
 
-    public function __construct(string $nome, string $cognome, string $email, string $CF, $profile_picture, int $telefono, string $indirizzo, Sesso $sesso, int $data_di_nascita, string $luogo_di_nascita, string $indirizzo_di_domicilio, CertificatoMedico $certificato_medico, string $metodo_di_pagamento, Scheda $scheda, Iscrizione $iscrizione){
+    private Collection $attivitaP;
+
+    public function __construct(string $nome, string $cognome, string $email, string $CF, $profile_picture, int $telefono, string $indirizzo, Sesso $sesso, int $data_di_nascita, string $luogo_di_nascita, string $indirizzo_di_domicilio, string $metodo_di_pagamento, Scheda $scheda, Iscrizione $iscrizione){
         parent::__construct($nome, $cognome, $email, $CF, $profile_picture, $telefono, $indirizzo, $sesso);
         $this->data_di_nascita = $data_di_nascita;
         $this->luogo_di_nascita = $luogo_di_nascita;
         $this->indirizzo_di_domicilio = $indirizzo_di_domicilio;
-        $this->certificato_medico = $certificato_medico;
         $this->metodo_di_pagamento = $metodo_di_pagamento;
         $this->scheda = $scheda;
         $this->iscrizione = $iscrizione;
+        $this->attivitaP = new ArrayCollection();
     }
 
     public function mssAllowed(): bool{

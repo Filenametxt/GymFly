@@ -1,7 +1,7 @@
 <?php
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\Collection;
-
+#[ORM\Entity]
 class Esercizio{
 
     #[ORM\Id]
@@ -12,15 +12,14 @@ class Esercizio{
     private ?string  $nome_esercizio;
     private ?string $descrizione;
     private Collection $gruppiMuscolari; 
-    private Attrezzatura $attrezzatura_necessaria; 
+    private ?Attrezzatura $attrezzatura_necessaria=null; 
 
     private Tipologia $tipologia;        
 
-    private ?Allenatore $creatore=null;
+    private ?Allenatore $creatore=null; //NOTE: Se l'esercizio deriva da un json esterno, nessuno lo ha effettivamente creato  
 
-    public function __construct( ?string $nome_esercizio, Attrezzatura $attrezzatura_necessaria, ?string $descrizione, Tipologia $tipologia){
+    public function __construct( ?string $nome_esercizio, ?string $descrizione, Tipologia $tipologia){
         $this->nome_esercizio = $nome_esercizio;
-        $this->attrezzatura_necessaria = $attrezzatura_necessaria;
         $this->descrizione = $descrizione;
         $this->tipologia = $tipologia;
     }

@@ -1,15 +1,21 @@
 <?php
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Entity]
 class CertificatoMedico{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
     private ?int $id = null;
     private int $data_emissione; //REVIEW da capire il tipo di dato quando si passa al database
     private int $data_scadenza; //REVIEW da capire il tipo di dato quando si passa al database
+                                //TODO: Da calcolare in automatico 1 anno dopo la data emissione
     private string $medico;
     private $file; //REVIEW da capire il tipo di dato quando si passa al database
     private Cliente $cliente;
 
-    public function __construct(int $data_emissione, int $data_scadenza, string $medico, $file, Cliente $cliente) {
+    public function __construct(int $data_emissione, string $medico, $file, Cliente $cliente) {
         $this->data_emissione = $data_emissione;
-        $this->data_scadenza = $data_scadenza;
         $this->medico = $medico;
         $this->file = $file;
         $this->cliente = $cliente;

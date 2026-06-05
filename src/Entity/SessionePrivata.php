@@ -3,13 +3,13 @@
 class SessionePrivata{
 
 //NOTE: la chiave primaria è Allenatore,ora_inizio e ora_fine
-    private $data;
+    private \DateTimeImmutable $data;
     private \DateTimeImmutable $ora_inizio;
     private \DateTimeImmutable $ora_fine;
     private Cliente $atleta;
     private Allenatore $allenatore;
 
-    public function __construct($data, \DateTimeImmutable $ora_inizio,  \DateTimeImmutable $ora_fine, Cliente $atleta, Allenatore $allenatore){
+    public function __construct(\DateTimeImmutable $data, \DateTimeImmutable $ora_inizio,  \DateTimeImmutable $ora_fine, Cliente $atleta, Allenatore $allenatore){
         $this->data = $data;
         $this->ora_inizio = $ora_inizio;
         $this->ora_fine = $ora_fine;
@@ -18,7 +18,7 @@ class SessionePrivata{
     }
 
 
-    public function getData(){
+    public function getData(): \DateTimeImmutable{
         return $this->data;
     }
     public function getOra_inizio(){
@@ -34,7 +34,7 @@ class SessionePrivata{
         return $this->allenatore;
     }
 
-    public function setData($data):self{
+    public function setData(\DateTimeImmutable $data):self{
         $this->data = $data;
         return $this;
     }
@@ -47,7 +47,7 @@ class SessionePrivata{
         }
         return $this;
     }
-    public function setOra_fine($ora_fine):self{
+    public function setOra_fine(\DateTimeImmutable $ora_fine):self{
         if ($this->ora_inizio < $ora_fine){
             $this->ora_fine = $ora_fine;
         }
@@ -56,7 +56,7 @@ class SessionePrivata{
         }
         return $this;
     }
-    public function setAtleta($atleta):self{
+    public function setAtleta(Cliente $atleta):self{
         $this->atleta = $atleta;
         return $this;
     }

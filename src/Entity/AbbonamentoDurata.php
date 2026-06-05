@@ -5,8 +5,8 @@ class AbbonamentoDurata extends Abbonamento{
 
     private int $durata; //REVIEW: revisione per la durata
     
-    public function __construct(int $data_inizio, string $tipologia, int $durata){
-        parent::__construct($data_inizio, $tipologia);
+    public function __construct(string $tipologia, int $durata){
+        parent::__construct($tipologia);
         $this->durata = $durata;
     }
 

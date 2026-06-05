@@ -7,8 +7,6 @@ class Allenatore extends Utente{
     private Collection $attivita_abilitate;   //REVIEW da capire se inserire anche le attività pinaificate
 
     
-
-
     public function __construct(string $nome, string $cognome, string $email, string $CF, $profile_picture, int $telefono, string $indirizzo, Sesso $sesso, Palestra $palestra){
         parent::__construct($nome, $cognome, $email, $CF, $profile_picture, $telefono, $indirizzo, $sesso);
         $this->palestra = $palestra;

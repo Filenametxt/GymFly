@@ -19,16 +19,20 @@ class DettaglioAllenamento {
     #[ORM\Column]           
     private int $ripetizioni;
 
+    #[ORM\Column] 
+    private float $carico;
+
     // Questa è la "chiave" della bidirezionalità
     // 'inversedBy' punta alla proprietà 'dettagli' dentro la classe Allenamento
     #[ORM\ManyToOne(targetEntity: Allenamento::class, inversedBy: 'dettagli')]
     #[ORM\JoinColumn(nullable: false)] // La FK non può essere vuota (un dettaglio deve avere un allenamento)
     private Allenamento $allenamento;
 
-    public function __construct(Esercizio $esercizio, int $serie, int $ripetizioni) {
+    public function __construct(Esercizio $esercizio, int $serie, int $ripetizioni, float $carico) {
         $this->esercizio = $esercizio;
         $this->serie = $serie;
         $this->ripetizioni = $ripetizioni;
+        $this->carico = $carico;
     }
 
     // Getter e Setter
@@ -54,6 +58,14 @@ class DettaglioAllenamento {
     public function getRipetizioni(): int {
         return $this->ripetizioni;
     }
+
+    public function getCarico(): int {
+        return $this->carico;
+    }
+
+
+
+
     public function setSerie(int $serie): self {
         $this->serie = $serie;
         return $this;
@@ -64,6 +76,10 @@ class DettaglioAllenamento {
     }
     public function setEsercizio(Esercizio $esercizio): self { 
         $this->esercizio = $esercizio;
+        return $this;
+    }
+    public function setCarico(int $carico): self {
+        $this->carico=$carico;
         return $this;
     }
     

@@ -25,7 +25,7 @@ class Allenamento {
     //4.Relazione N:1 (Un allenamento è associato a una Scheda)
     #[ORM\ManyToOne(targetEntity: Scheda::class, inversedBy: 'allenamenti')] //TODO: Classe Scheda da aggiornare con doctrine
     #[ORM\JoinColumn(nullable: false)] // La FK non può essere vuota (un dettaglio deve avere un allenamento)
-    private Scheda $scheda;
+    private ?Scheda $scheda;
     public function __construct(string $nome,Scheda $scheda) {
         $this->nome = $nome;
         $this->scheda=$scheda;
