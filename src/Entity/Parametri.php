@@ -22,7 +22,8 @@ class Parametri{
     private ?float $misura_vita;
     private ?float $misura_spalle;
     private ?float $misura_fianchi;  
-  
+
+    private Cliente $cliente;
 
     function __construct($peso, $altezza, $bicipite_destro, $bicipite_sinistro, $tricipite_destro, $data, $tricipite_sinistro, $coscia_destra, $coscia_sinistra,$polpaccio_destro, $polpaccio_sinistro, $misura_fianchi, $misura_petto, $misura_spalle, $misura_vita){
         $this->peso=$peso;
@@ -91,6 +92,9 @@ class Parametri{
     public function getMisura_fianchi(): ?float{
         return $this->misura_fianchi;
     }
+    public function getCliente(): ?Cliente{
+        return $this->cliente;
+    }
 
     //setter
 
@@ -154,5 +158,9 @@ class Parametri{
         $this->misura_fianchi=$misura_fianchi;
         return $this;
     }
+    public function setCliente(Cliente $c):self{
+        $this->cliente=$c;
+        return $this;
+    }   
 }
 ?>

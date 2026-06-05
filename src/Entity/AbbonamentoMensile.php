@@ -1,7 +1,7 @@
 <?php
 use Doctrine\ORM\Mapping as ORM;
 
-class AbbonamentoMensile extends Abbonamento{
+class AbbonamentoDurata extends Abbonamento{
 
     private int $durata; //REVIEW: revisione per la durata
     
