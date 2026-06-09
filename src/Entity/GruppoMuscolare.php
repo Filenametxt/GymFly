@@ -31,5 +31,4 @@ class GruppoMuscolare{
         return $this;
     }
 }
-
 ?>

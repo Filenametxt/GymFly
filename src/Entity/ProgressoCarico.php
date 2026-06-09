@@ -18,5 +18,4 @@ class ProgressoRipetizioni extends Progresso{
         return $this;
     }
 }
-
 ?>

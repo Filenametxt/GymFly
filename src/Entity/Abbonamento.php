@@ -41,5 +41,4 @@ abstract class Abbonamento{
 
     //TODO: gestionde dell'abbonamento scaduto
 }
-
 ?>
