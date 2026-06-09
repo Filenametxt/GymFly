@@ -42,11 +42,10 @@
         </one-to-many>
 
         <!-- Molti-Molti: Utente RICEVE molti Messaggi (tabella RICEVE) -->
-        <many-to-many field="messaggiRicevuti"
-                      target-entity="App\Entity\Messaggio">
+        <many-to-many field="messaggiRicevuti" target-entity="App\Entity\Messaggio"inversed-by="destinatari">
             <join-table name="riceve">
                 <join-columns>
-                    <join-column name="id_utente" referenced-column-name="id"/>
+                    <join-column name="id_utente"    referenced-column-name="id"/>
                 </join-columns>
                 <inverse-join-columns>
                     <join-column name="id_messaggio" referenced-column-name="id"/>

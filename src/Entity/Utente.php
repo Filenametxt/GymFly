@@ -1,4 +1,5 @@
 <?php
+namespace App\Entity;
 use GymFly\Enum\Sesso;
 
 abstract class Utente
