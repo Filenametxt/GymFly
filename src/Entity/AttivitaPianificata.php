@@ -12,7 +12,7 @@ use GymFly\Enum\Giorno;
 class AttivitaPianificata
 {
     private ?int $id = null;
-    private Giorno $giorno;
+    private \DateTimeImmutable $giorno;
     private int $orario;
     private int $prenotati = 0;
     private Sala $sala;
@@ -23,7 +23,7 @@ class AttivitaPianificata
     private array $utenti = [];
 
     public function __construct(
-        Giorno     $giorno,
+        \DateTimeImmutable     $giorno,
         int        $orario,
         Sala       $sala,
         Allenatore $allenatore,
@@ -41,7 +41,7 @@ class AttivitaPianificata
         return $this->id;
     }
 
-    public function getGiorno(): Giorno
+    public function getGiorno(): \DateTimeImmutable
     {
         return $this->giorno;
     }
@@ -79,7 +79,7 @@ class AttivitaPianificata
         );
     }
 
-    public function setGiorno(Giorno $giorno): void
+    public function setGiorno(\DateTimeImmutable $giorno): void
     {
         $this->giorno = $giorno;
     }

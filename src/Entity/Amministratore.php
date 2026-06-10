@@ -12,16 +12,17 @@ use GymFly\Enum\Sesso;
 class Amministratore extends Utente
 {
     public function __construct(
-        string   $nome,
-        string   $cognome,
-        string   $email,
-        string   $CF,
-        mixed    $profile_picture,
-        int      $telefono,
-        string   $indirizzo,
-        Sesso    $sesso,
+    string $nome,
+    string $cognome,
+    string $email,
+    string $CF,
+    string $indirizzo,
+    Sesso $sesso,
+    string $password = '',
+    ?string $profilePicture = null,
+    ?string $telefono = null
     ) {
-        parent::__construct($nome, $cognome, $email, $CF, $profile_picture, $telefono, $indirizzo, $sesso);
+        parent::__construct($nome, $cognome, $email, $CF, $indirizzo, $sesso, $password, $profilePicture, $telefono);
     }
     public function mssAllowed(): bool
     {
