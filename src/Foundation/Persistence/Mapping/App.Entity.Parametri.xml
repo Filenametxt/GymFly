@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                  https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+    <entity name="App\Entity\Parametri" table="parametro">
+
+        <id name="id" type="integer" column="id">
+            <generator strategy="AUTO"/>
+        </id>
+
+        <field name="peso"              type="float" column="peso"/>
+        <field name="altezza"           type="float" column="altezza"/>
+        <field name="data"              type="date"  column="data"/>
+        <field name="bicipiteDestro"    type="float" column="bicipite_destro"    nullable="true"/>
+        <field name="bicipiteSinistro"  type="float" column="bicipite_sinistro"  nullable="true"/>
+        <field name="tricipiteDestro"   type="float" column="tricipite_destro"   nullable="true"/>
+        <field name="tricipiteSinistro" type="float" column="tricipite_sinistro" nullable="true"/>
+        <field name="casciaDestro"      type="float" column="coscia_destra"      nullable="true"/>
+        <field name="cosciaSinistra"    type="float" column="coscia_sinistra"    nullable="true"/>
+        <field name="polpaccioDestro"   type="float" column="polpaccio_destro"   nullable="true"/>
+        <field name="polpaccioSinistro" type="float" column="polpaccio_sinistro" nullable="true"/>
+        <field name="misuraPetto"       type="float" column="misura_petto"       nullable="true"/>
+        <field name="misuraVita"        type="float" column="misura_vita"        nullable="true"/>
+        <field name="misuraSpalle"      type="float" column="misura_spalle"      nullable="true"/>
+        <field name="misuraFianchi"     type="float" column="misura_fianchi"     nullable="true"/>
+
+        <!--
+            M-1 con Cliente — NO BIUNIVOCITÀ
+            Parametri conosce Cliente, Cliente non ha array di Parametri nel PHP
+            (la relazione inversa è gestita solo nel mapping XML di Cliente)
+        -->
+        <many-to-one field="cliente"
+                     target-entity="App\Entity\Cliente"
+                     inversed-by="parametri">
+            <join-column name="id_cliente"
+                         referenced-column-name="id"
+                         nullable="false"/>
+        </many-to-one>
+
+    </entity>
+
+</doctrine-mapping>

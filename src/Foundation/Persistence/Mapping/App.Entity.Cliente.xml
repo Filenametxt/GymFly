@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                  https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+    <!--
+        Cliente estende Utente con strategia JOINED.
+        Doctrine fa automaticamente JOIN tra tabella "utente" e "cliente".
+        Qui si dichiarano solo i campi e relazioni aggiuntivi di Cliente.
+    -->
+    <entity name="App\Entity\Cliente" table="cliente">
+
+        <!-- Campi aggiuntivi rispetto a Utente -->
+        <field name="dataDiNascita"        type="date"   column="data_di_nascita"/>
+        <field name="luogoDiNascita"       type="string" column="luogo_di_nascita"/>
+        <field name="indirizzoDiDomicilio" type="string" column="indirizzo_di_domicilio" nullable="true"/>
+        <field name="metodoDiPagamento"    type="string" column="metodo_di_pagamento"    nullable="true"/>
+
+        <!--
+            1-1 con CertificatoMedico — BIUNIVOCA
+            Cliente è owner (ha la FK), CertificatoMedico ha mapped-by
+        -->
+        <one-to-one field="certificatoMedico"
+                    target-entity="App\Entity\CertificatoMedico"
+                    inversed-by="cliente">
+            <join-column name="id_certificato_medico"
+                         referenced-column-name="id"
+                         nullable="true"/>
+        </one-to-one>
+
+        <!--
+            1-1 con AbbonamentoAttivo — NO BIUNIVOCITÀ
+            Solo Cliente conosce AbbonamentoAttivo → unidirezionale
+            Non serve inversed-by
+        -->
+        <one-to-one field="abbonamento"
+                    target-entity="App\Entity\AbbonamentoAttivo">
+            <join-column name="id_abbonamento_attivo"
+                         referenced-column-name="id"
+                         nullable="true"/>
+        </one-to-one>
+
+        <!--
+            1-1 con Iscrizione — BIUNIVOCA
+            Cliente è owner (ha la FK), Iscrizione ha mapped-by
+        -->
+        <one-to-one field="iscrizione"
+                    target-entity="App\Entity\Iscrizione"
+                    inversed-by="cliente">
+            <join-column name="id_iscrizione"
+                         referenced-column-name="id"
+                         nullable="true"/>
+        </one-to-one>
+
+        <!--
+            1-1 con Scheda — BIUNIVOCA
+            Cliente è owner, Scheda ha mapped-by
+        -->
+        <one-to-one field="scheda"
+                    target-entity="App\Entity\Scheda"
+                    inversed-by="cliente">
+            <join-column name="id_scheda"
+                         referenced-column-name="id"
+                         nullable="true"/>
+        </one-to-one>
+
+        <!--
+            M-1 con Palestra — NO BIUNIVOCITÀ
+            Molti clienti appartengono a una Palestra
+            Solo Cliente conosce Palestra → unidirezionale
+        -->
+        <many-to-one field="palestra"
+                     target-entity="App\Entity\Palestra">
+            <join-column name="id_palestra"
+                         referenced-column-name="id"
+                         nullable="true"/>
+        </many-to-one>
+
+        <!--
+            1-N con Progresso — BIUNIVOCA
+            Cliente è il lato "uno", Progresso ha la FK verso Cliente
+            mapped-by indica che Progresso è owner della relazione
+        -->
+        <one-to-many field="progressi"
+                     target-entity="App\Entity\Progresso"
+                     mapped-by="cliente">
+            <cascade>
+                <cascade-persist/>
+                <cascade-remove/>
+            </cascade>
+        </one-to-many>
+
+        <!--
+            N-N con AttivitaPianificata — tabella ISCRITTO — BIUNIVOCA
+            Cliente è owner della relazione (ha la join-table)
+        -->
+        <many-to-many field="attivitaPianificate"
+                      target-entity="App\Entity\AttivitaPianificata"
+                      inversed-by="clienti">
+            <join-table name="iscritto">
+                <join-columns>
+                    <join-column name="id_cliente"             referenced-column-name="id"/>
+                </join-columns>
+                <inverse-join-columns>
+                    <join-column name="id_attivita_pianificata" referenced-column-name="id"/>
+                </inverse-join-columns>
+            </join-table>
+        </many-to-many>
+
+    </entity>
+
+</doctrine-mapping>

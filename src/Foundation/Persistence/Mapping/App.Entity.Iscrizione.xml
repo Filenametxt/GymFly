@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                  https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+    <entity name="App\Entity\Iscrizione" table="iscrizione">
+
+        <id name="id" type="integer" column="id">
+            <generator strategy="AUTO"/>
+        </id>
+
+        <field name="dataInizio" type="date" column="data_inizio"/>
+        <field name="dataFine"   type="date" column="data_fine"/>
+
+        <!--
+            1-1 lato INVERSO — Cliente è owner.
+            mapped-by punta al campo "iscrizione" in Cliente.
+        -->
+        <one-to-one field="cliente"
+                    target-entity="App\Entity\Cliente"
+                    mapped-by="iscrizione"/>
+
+    </entity>
+
+</doctrine-mapping>
+
+
+

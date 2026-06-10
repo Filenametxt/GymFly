@@ -1,99 +1,298 @@
 <?php
-use Doctrine\ORM\Mapping as ORM;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+
+namespace App\Entity;
+
 use GymFly\Enum\Sesso;
-class Cliente extends Utente{
-    private int $data_di_nascita;   //REVIEW da definire il tipo di dato quando passiamo al database
-    private string $luogo_di_nascita;
-    private string $indirizzo_di_domicilio;
-    private ?CertificatoMedico $certificato_medico=null;
-    private ?AbbonamentoAttivo $abbonamento=null;
-    private string $metodo_di_pagamento;
-    private Scheda $scheda;
-    private Iscrizione $iscrizione;
-    private Collection $progressi;
 
-    private Collection $attivitaP;
+class Cliente extends Utente
+{
+    private \DateTimeImmutable $dataDiNascita;
+    private string $luogoDiNascita;
+    private string $indirizzoDiDomicilio;
+    private string $metodoDiPagamento;
 
-    public function __construct(string $nome, string $cognome, string $email, string $CF, $profile_picture, int $telefono, string $indirizzo, Sesso $sesso, int $data_di_nascita, string $luogo_di_nascita, string $indirizzo_di_domicilio, string $metodo_di_pagamento, Scheda $scheda, Iscrizione $iscrizione){
-        parent::__construct($nome, $cognome, $email, $CF, $profile_picture, $telefono, $indirizzo, $sesso);
-        $this->data_di_nascita = $data_di_nascita;
-        $this->luogo_di_nascita = $luogo_di_nascita;
-        $this->indirizzo_di_domicilio = $indirizzo_di_domicilio;
-        $this->metodo_di_pagamento = $metodo_di_pagamento;
-        $this->scheda = $scheda;
-        $this->iscrizione = $iscrizione;
-        $this->attivitaP = new ArrayCollection();
+    // 1-1 con CertificatoMedico — Cliente owner, biunivoca
+    private ?CertificatoMedico $certificatoMedico = null;
+
+    // 1-1 con AbbonamentoAttivo — Cliente owner, NO biunivocità
+    private ?AbbonamentoAttivo $abbonamento = null;
+
+    // 1-1 con Iscrizione — biunivoca
+    private ?Iscrizione $iscrizione = null;
+
+    // 1-1 con Scheda — biunivoca
+    private ?Scheda $scheda = null;
+
+    // M-1 con Palestra — NO biunivocità, Cliente conosce Palestra
+    private ?Palestra $palestra = null;
+
+    // 1-N con Progresso — biunivoca, Cliente ha array di progressi
+    private array $progressi = [];
+
+    // N-N con AttivitaPianificata — tabella ISCRITTO
+    private array $attivitaPianificate = [];
+
+    public function __construct(
+        string $nome,
+        string $cognome,
+        string $email,
+        string $CF,
+        string $indirizzo,
+        Sesso $sesso,
+        \DateTimeImmutable $dataDiNascita,
+        string $luogoDiNascita,
+        string $indirizzoDiDomicilio,
+        string $metodoDiPagamento,
+        string $password = "",
+        ?string $profilePicture = null,
+        ?string $telefono = null,
+    ) {
+        parent::__construct(
+            $nome,
+            $cognome,
+            $email,
+            $CF,
+            $indirizzo,
+            $sesso,
+            $password,
+            $profilePicture,
+            $telefono
+        );
+
+        $this->dataDiNascita = $dataDiNascita;
+        $this->luogoDiNascita = $luogoDiNascita;
+        $this->indirizzoDiDomicilio = $indirizzoDiDomicilio;
+        $this->metodoDiPagamento = $metodoDiPagamento;
     }
 
-    public function mssAllowed(): bool{
+    // -------------------------------------------------------------------------
+    // Metodi astratti ereditati da Utente
+    // -------------------------------------------------------------------------
+
+    public function mssAllowed(): bool
+    {
         return false;
     }
 
-    public function getData_di_nascita(): int{
-        return $this->data_di_nascita;
+    public function getRuolo(): string
+    {
+        return 'cliente';
     }
-    public function getLuogo_di_nascita(): string{
-        return $this->luogo_di_nascita;
+
+    // -------------------------------------------------------------------------
+    // Getter
+    // -------------------------------------------------------------------------
+
+    public function getDataDiNascita(): \DateTimeImmutable
+    {
+        return $this->dataDiNascita;
     }
-    public function getIndirizzo_di_domicilio(): string{
-        return $this->indirizzo_di_domicilio;
+    public function getLuogoDiNascita(): string
+    {
+        return $this->luogoDiNascita;
     }
-    public function getCertificato_medico(): CertificatoMedico{
-        return $this->certificato_medico;
+    public function getIndirizzoDiDomicilio(): string
+    {
+        return $this->indirizzoDiDomicilio;
     }
-    public function getAbbonamento(): AbbonamentoAttivo{
+    public function getMetodoDiPagamento(): string
+    {
+        return $this->metodoDiPagamento;
+    }
+    public function getCertificatoMedico(): ?CertificatoMedico
+    {
+        return $this->certificatoMedico;
+    }
+    public function getAbbonamento(): ?AbbonamentoAttivo
+    {
         return $this->abbonamento;
     }
-    public function getMetodo_di_pagamento(): string{
-        return $this->metodo_di_pagamento;
-    }
-    public function getScheda(): Scheda{
-        return $this->scheda;
-    }
-    public function getIscrizione(): Iscrizione{
+    public function getIscrizione(): ?Iscrizione
+    {
         return $this->iscrizione;
     }
-    public function getProgressi(): Collection{
+    public function getScheda(): ?Scheda
+    {
+        return $this->scheda;
+    }
+    public function getPalestra(): ?Palestra
+    {
+        return $this->palestra;
+    }
+
+    /** @return Progresso[] */
+    public function getProgressi(): array
+    {
         return $this->progressi;
     }
-    public function setData_di_nascita(int $data_di_nascita): self{
-        $this->data_di_nascita = $data_di_nascita;
-        return $this;
+
+    /** @return AttivitaPianificata[] */
+    public function getAttivitaPianificate(): array
+    {
+        return $this->attivitaPianificate;
     }
-    public function setLuogo_di_nascita(string $luogo_di_nascita): self{
-        $this->luogo_di_nascita = $luogo_di_nascita;
-        return $this;
-    }
-    public function setIndirizzo_di_domicilio(string $indirizzo_di_domicilio): self{
-        $this->indirizzo_di_domicilio = $indirizzo_di_domicilio;
-        return $this;
-    }
-    public function setCertificato_medico (CertificatoMedico $certificato_medico): self{
-        $this->certificato_medico = $certificato_medico;
-        return $this;
-    }
-    public function setAbbonamento (AbbonamentoAttivo $abbonamento):self{
-        $this->abbonamento = $abbonamento;
-        return $this;
-    }
-    public function setMetodo_di_pagamento(string $metodo_di_pagamento): self{
-        $this->metodo_di_pagamento = $metodo_di_pagamento;
-        return $this;
-    }
-    public function setScheda (Scheda $scheda): self{
-        $this->scheda = $scheda;
-        return $this;
-    }
-    public function setIscrizione (Iscrizione $iscrizione): self{
-        $this->iscrizione = $iscrizione;
+
+    // -------------------------------------------------------------------------
+    // Setter
+    // -------------------------------------------------------------------------
+
+    public function setDataDiNascita(\DateTimeImmutable $data): self
+    {
+        if ($data > new \DateTimeImmutable()) {
+            throw new \InvalidArgumentException('La data di nascita non può essere nel futuro.');
+        }
+        $this->dataDiNascita = $data;
         return $this;
     }
 
-    public function setProgressi(Collection $progressi): self{
-        $this->progressi = $progressi;
+    public function setLuogoDiNascita(string $luogo): self
+    {
+        $this->luogoDiNascita = $luogo;
         return $this;
+    }
+
+    public function setIndirizzoDiDomicilio(string $indirizzo): self
+    {
+        $this->indirizzoDiDomicilio = $indirizzo;
+        return $this;
+    }
+
+    public function setMetodoDiPagamento(string $metodo): self
+    {
+        $this->metodoDiPagamento = $metodo;
+        return $this;
+    }
+
+    public function setPalestra(?Palestra $palestra): self
+    {
+        $this->palestra = $palestra;
+        return $this;
+    }
+
+    // -------------------------------------------------------------------------
+    // Gestione relazioni biunivoche
+    // -------------------------------------------------------------------------
+
+    /**
+     * 1-1 con CertificatoMedico — biunivoca.
+     * Aggiorna anche il lato CertificatoMedico.
+     */
+    public function setCertificatoMedico(?CertificatoMedico $cert): self
+    {
+        $this->certificatoMedico = $cert;
+        if ($cert !== null && $cert->getCliente() !== $this) {
+            $cert->setCliente($this);
+        }
+        return $this;
+    }
+
+    /**
+     * 1-1 con AbbonamentoAttivo — NO biunivocità, solo Cliente conosce.
+     */
+    public function setAbbonamento(?AbbonamentoAttivo $abbonamento): self
+    {
+        $this->abbonamento = $abbonamento;
+        return $this;
+    }
+
+    /**
+     * 1-1 con Iscrizione — biunivoca.
+     * Aggiorna anche il lato Iscrizione.
+     */
+    public function setIscrizione(?Iscrizione $iscrizione): self
+    {
+        $this->iscrizione = $iscrizione;
+        if ($iscrizione !== null && $iscrizione->getCliente() !== $this) {
+            $iscrizione->setCliente($this);
+        }
+        return $this;
+    }
+
+    /**
+     * 1-1 con Scheda — biunivoca.
+     * Aggiorna anche il lato Scheda.
+     */
+    public function setScheda(?Scheda $scheda): self
+    {
+        $this->scheda = $scheda;
+        if ($scheda !== null && $scheda->getCliente() !== $this) {
+            $scheda->setCliente($this);
+        }
+        return $this;
+    }
+
+    /**
+     * 1-N con Progresso — biunivoca.
+     * Aggiorna anche il lato Progresso.
+     */
+    public function aggiungiProgresso(Progresso $progresso): self
+    {
+        $this->progressi[] = $progresso;
+        if ($progresso->getCliente() !== $this) {
+            $progresso->setCliente($this);
+        }
+        return $this;
+    }
+
+    /**
+     * N-N con AttivitaPianificata — tabella ISCRITTO.
+     * Aggiorna anche il lato AttivitaPianificata.
+     */
+    public function iscriviAAttivita(AttivitaPianificata $attivita): self
+    {
+        foreach ($this->attivitaPianificate as $a) {
+            if ($a === $attivita)
+                return $this;
+        }
+        $this->attivitaPianificate[] = $attivita;
+        $attivita->aggiungiCliente($this);
+        return $this;
+    }
+
+    public function cancellaIscrizioneAttivita(AttivitaPianificata $attivita): self
+    {
+        // 1. Cerca l'indice esatto dell'attività (il 'true' garantisce che sia lo stesso identico oggetto)
+        $indice = array_search($attivita, $this->attivitaPianificate, true);
+        
+        if ($indice !== false) {
+            // 2. Rimuove l'attività dall'array
+            unset($this->attivitaPianificate[$indice]);
+            
+            // 3. Aggiorna il lato inverso della relazione
+            $attivita->rimuoviCliente($this);
+        }
+        return $this;
+    }
+
+    // -------------------------------------------------------------------------
+    // Regole di dominio
+    // -------------------------------------------------------------------------
+
+    /**
+     * Verifica se l'abbonamento del cliente è attivo.
+     */
+    public function isAbbonamentoAttivo(): bool
+    {
+        return $this->abbonamento !== null
+            && !$this->abbonamento->isScaduto();
+    }
+
+    /**
+     * Verifica se il certificato medico è valido.
+     */
+    public function isCertificatoValido(): bool
+    {
+        return $this->certificatoMedico !== null
+            && $this->certificatoMedico->isValido();
+    }
+
+    /**
+     * Verifica se il cliente può prenotare un'attività.
+     * Richiede abbonamento attivo e certificato medico valido.
+     */
+    public function puoPrenotareAttivita(): bool
+    {
+        return $this->isAbbonamentoAttivo() && $this->isCertificatoValido();
     }
 }
 ?>

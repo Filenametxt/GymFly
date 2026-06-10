@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                                      https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+    <entity name="App\Entity\Abbonamento" table="ABBONAMENTO" inheritance-type="SINGLE_TABLE">
+        
+        <discriminator-column name="tipo_abbonamento" type="string" length="50"/>
+        <discriminator-map>
+            <discriminator-mapping value="durata" class="App\Entity\AbbonamentoDurata"/>
+            </discriminator-map>
+
+        <id name="id" type="integer" column="id">
+            <generator strategy="AUTO"/>
+        </id>
+
+        <field name="tipologia" type="string" column="tipologia" length="255"/>
+        <field name="categoria" type="string" column="categoria" length="255"/>
+
+        <sub-classes>
+            <class name="App\Entity\AbbonamentoDurata">
+                <field name="durata" type="integer" column="durata" nullable="true"/>
+            </class>
+        </sub-classes>
+
+    </entity>
+</doctrine-mapping>

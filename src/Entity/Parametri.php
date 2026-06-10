@@ -1,166 +1,227 @@
 <?php
-use Doctrine\ORM\Mapping as ORM;
 
-class Parametri{
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
+namespace App\Entity;
+
+class Parametri
+{
     private ?int $id = null;
-
     private float $peso;
     private float $altezza;
     private \DateTimeImmutable $data;
-    private ?float $bicipite_destro;
-    private ?float $bicipite_sinistro;
-    private ?float $tricipite_destro;
-    private ?float $tricipite_sinistro;
-    private ?float $coscia_destra;
-    private ?float $coscia_sinistra;
-    private ?float $polpaccio_destro;
-    private ?float $polpaccio_sinistro;
-    private ?float $misura_petto;
-    private ?float $misura_vita;
-    private ?float $misura_spalle;
-    private ?float $misura_fianchi;  
+    private ?float $bicipiteDestro = null;
+    private ?float $bicipiteSinistro = null;
+    private ?float $tricipiteDestro = null;
+    private ?float $tricipiteSinistro = null;
+    private ?float $casciaDestro = null;
+    private ?float $cosciaSinistra = null;
+    private ?float $polpaccioDestro = null;
+    private ?float $polpaccioSinistro = null;
+    private ?float $misuraPetto = null;
+    private ?float $misuraVita = null;
+    private ?float $misuraSpalle = null;
+    private ?float $misuraFianchi = null;
 
+    // M-1 con Cliente — NO biunivocità, Parametri conosce Cliente
     private Cliente $cliente;
 
-    function __construct(float $peso, float $altezza,\DateTimeImmutable $data, ?float $bicipite_destro, ?float $bicipite_sinistro,?float $tricipite_destro, ?float $tricipite_sinistro, ?float $coscia_destra, ?float $coscia_sinistra,?float $polpaccio_destro, ?float $polpaccio_sinistro, ?float $misura_fianchi,?float $misura_petto, ?float $misura_spalle, $misura_vita){
-        $this->peso=$peso;
-        $this->altezza=$altezza;
-        $this->data=$data;
-        $this->bicipite_destro=$bicipite_destro;
-        $this->bicipite_sinistro=$bicipite_sinistro;
-        $this->tricipite_destro=$bicipite_destro;
-        $this->coscia_destra=$coscia_destra;
-        $this->coscia_sinistra=$coscia_sinistra;
-        $this->polpaccio_destro=$polpaccio_destro;
-        $this->polpaccio_sinistro=$polpaccio_sinistro;
-        $this->misura_petto=$misura_petto;
-        $this->misura_fianchi=$misura_fianchi;
-        $this->misura_spalle=$misura_spalle;
-        $this->misura_fianchi=$misura_fianchi;
+    public function __construct(
+        float $peso,
+        float $altezza,
+        \DateTimeImmutable $data,
+        Cliente $cliente,
+        ?float $bicipiteDestro = null,
+        ?float $bicipiteSinistro = null,
+        ?float $tricipiteDestro = null,
+        ?float $tricipiteSinistro = null,
+        ?float $cosciaDestro = null,
+        ?float $cosciaSinistra = null,
+        ?float $polpaccioDestro = null,
+        ?float $polpaccioSinistro = null,
+        ?float $misuraPetto = null,
+        ?float $misuraVita = null,
+        ?float $misuraSpalle = null,
+        ?float $misuraFianchi = null,
+    ) {
+        $this->peso = $peso;
+        $this->altezza = $altezza;
+        $this->data = $data;
+        $this->cliente = $cliente;
+        $this->bicipiteDestro = $bicipiteDestro;
+        $this->bicipiteSinistro = $bicipiteSinistro;
+        $this->tricipiteDestro = $tricipiteDestro;   // BUGFIX: era assegnato $bicipiteDestro
+        $this->tricipiteSinistro = $tricipiteSinistro;
+        $this->casciaDestro = $cosciaDestro;
+        $this->cosciaSinistra = $cosciaSinistra;
+        $this->polpaccioDestro = $polpaccioDestro;
+        $this->polpaccioSinistro = $polpaccioSinistro;
+        $this->misuraPetto = $misuraPetto;
+        $this->misuraVita = $misuraVita;        // BUGFIX: era non assegnato
+        $this->misuraSpalle = $misuraSpalle;
+        $this->misuraFianchi = $misuraFianchi;     // BUGFIX: era assegnato due volte
     }
 
-    //getter
+    // -------------------------------------------------------------------------
+    // Getter
+    // -------------------------------------------------------------------------
 
-    public function getId(): ?int{
+    public function getId(): ?int
+    {
         return $this->id;
     }
-    public function getData(): \DateTimeImmutable{
-        return $this->data;
-    }
-    public function getPeso(): float{
+    public function getPeso(): float
+    {
         return $this->peso;
     }
-    public function getAltezza(): float{
+    public function getAltezza(): float
+    {
         return $this->altezza;
     }
-    public function getBicipite_destro(): ?float{
-        return $this->bicipite_destro;
+    public function getData(): \DateTimeImmutable
+    {
+        return $this->data;
     }
-    public function getBicipite_sinistro(): ?float{
-        return $this->bicipite_sinistro;
-    }
-    public function getTricipite_destro(): ?float{
-        return $this->tricipite_destro;
-    }
-    public function getTricipite_sinistro(): ?float{
-        return $this->tricipite_sinistro;
-    }
-    public function getCoscia_destra(): ?float{
-        return $this->coscia_destra;
-    }
-    public function getCoscia_sinistra(): ?float{
-        return $this->coscia_sinistra;
-    }
-    public function getPolpaccio_destro(): ?float{
-        return $this->polpaccio_destro;
-    }
-    public function getPolpaccio_sinistro(): ?float{
-        return $this->polpaccio_sinistro;
-    }
-    public function getMisura_petto(): ?float{
-        return $this->misura_petto;
-    }
-    public function getMisura_vita(): ?float{
-        return $this->misura_vita;
-    }
-    public function getMisura_spalle(): ?float{
-        return $this->misura_spalle;
-    }
-    public function getMisura_fianchi(): ?float{
-        return $this->misura_fianchi;
-    }
-    public function getCliente(): ?Cliente{
+    public function getCliente(): Cliente
+    {
         return $this->cliente;
     }
+    public function getBicipiteDestro(): ?float
+    {
+        return $this->bicipiteDestro;
+    }
+    public function getBicipiteSinistro(): ?float
+    {
+        return $this->bicipiteSinistro;
+    }
+    public function getTricipiteDestro(): ?float
+    {
+        return $this->tricipiteDestro;
+    }
+    public function getTricipiteSinistro(): ?float
+    {
+        return $this->tricipiteSinistro;
+    }
+    public function getCosciaDestro(): ?float
+    {
+        return $this->casciaDestro;
+    }
+    public function getCosciaSinistra(): ?float
+    {
+        return $this->cosciaSinistra;
+    }
+    public function getPolpaccioDestro(): ?float
+    {
+        return $this->polpaccioDestro;
+    }
+    public function getPolpaccioSinistro(): ?float
+    {
+        return $this->polpaccioSinistro;
+    }
+    public function getMisuraPetto(): ?float
+    {
+        return $this->misuraPetto;
+    }
+    public function getMisuraVita(): ?float
+    {
+        return $this->misuraVita;
+    }
+    public function getMisuraSpalle(): ?float
+    {
+        return $this->misuraSpalle;
+    }
+    public function getMisuraFianchi(): ?float
+    {
+        return $this->misuraFianchi;
+    }
 
-    //setter
+    // -------------------------------------------------------------------------
+    // Setter
+    // -------------------------------------------------------------------------
 
-    public function setPeso(float $peso):self{
-        $this->peso=$peso;
+    public function setPeso(float $peso): self
+    {
+        if ($peso <= 0)
+            throw new \InvalidArgumentException('Il peso deve essere positivo.');
+        $this->peso = $peso;
         return $this;
     }
-    public function setData(\DateTimeImmutable $data):self{
-        $this->data=$data;
+
+    public function setAltezza(float $altezza): self
+    {
+        if ($altezza <= 0)
+            throw new \InvalidArgumentException('L\'altezza deve essere positiva.');
+        $this->altezza = $altezza;
         return $this;
     }
-    public function setAltezza(float $altezza):self{
-        $this->altezza=$altezza;
+
+    public function setData(\DateTimeImmutable $data): self
+    {
+        $this->data = $data;
         return $this;
     }
-    public function setBicipite_destro(float $bicipite_destro):self{
-        $this->bicipite_destro=$bicipite_destro;
+    public function setCliente(Cliente $cliente): self
+    {
+        $this->cliente = $cliente;
         return $this;
     }
-    public function setBicipite_sinistro(float $bicipite_sinistro):self{
-        $this->bicipite_sinistro=$bicipite_sinistro;
+    public function setBicipiteDestro(?float $v): self
+    {
+        $this->bicipiteDestro = $v;
         return $this;
     }
-    public function setTricipite_destro(float $tricipite_destro):self{
-        $this->tricipite_destro=$tricipite_destro;
+    public function setBicipiteSinistro(?float $v): self
+    {
+        $this->bicipiteSinistro = $v;
         return $this;
     }
-    public function setTricipite_sinistro(float $tricipite_sinistro):self{
-        $this->tricipite_sinistro=$tricipite_sinistro;
+    public function setTricipiteDestro(?float $v): self
+    {
+        $this->tricipiteDestro = $v;
         return $this;
     }
-    public function setCoscia_destra(float $coscia_destra):self{
-        $this->coscia_destra=$coscia_destra;
+    public function setTricipiteSinistro(?float $v): self
+    {
+        $this->tricipiteSinistro = $v;
         return $this;
     }
-    public function setCoscia_sinistra(float $coscia_sinistra):self{
-        $this->coscia_sinistra=$coscia_sinistra;
+    public function setCosciaDestro(?float $v): self
+    {
+        $this->casciaDestro = $v;
         return $this;
     }
-    public function setPolpaccio_destro(float $polpaccio_destro):self{
-        $this->polpaccio_destro=$polpaccio_destro;
+    public function setCosciaSinistra(?float $v): self
+    {
+        $this->cosciaSinistra = $v;
         return $this;
     }
-    public function setPolpaccio_sinistro(float $polpaccio_sinistro):self{
-        $this->polpaccio_sinistro=$polpaccio_sinistro;
+    public function setPolpaccioDestro(?float $v): self
+    {
+        $this->polpaccioDestro = $v;
         return $this;
     }
-    public function setMisura_petto(float $misura_petto):self{
-        $this->misura_petto=$misura_petto;
-        return $this;
-    }   
-    public function setMisura_vita(float $misura_vita):self{
-        $this->misura_vita=$misura_vita;
+    public function setPolpaccioSinistro(?float $v): self
+    {
+        $this->polpaccioSinistro = $v;
         return $this;
     }
-    public function setMisura_spalle(float $misura_spalle):self{
-        $this->misura_spalle=$misura_spalle;
+    public function setMisuraPetto(?float $v): self
+    {
+        $this->misuraPetto = $v;
         return $this;
     }
-    public function setMisura_fianchi(float $misura_fianchi):self{
-        $this->misura_fianchi=$misura_fianchi;
+    public function setMisuraVita(?float $v): self
+    {
+        $this->misuraVita = $v;
         return $this;
     }
-    public function setCliente(Cliente $c):self{
-        $this->cliente=$c;
+    public function setMisuraSpalle(?float $v): self
+    {
+        $this->misuraSpalle = $v;
         return $this;
-    }   
+    }
+    public function setMisuraFianchi(?float $v): self
+    {
+        $this->misuraFianchi = $v;
+        return $this;
+    }
+
 }
-?>

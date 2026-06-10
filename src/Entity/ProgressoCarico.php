@@ -1,21 +1,24 @@
 <?php
-use Doctrine\ORM\Mapping as ORM;
 
-class ProgressoRipetizioni extends Progresso{
+namespace App\Entity;
 
-    private int $new_carico;
-    
-    public function __construct(Cliente $cliente_riferito, int $new_carico, \DateTimeImmutable $data,Esercizio $esercizio_riferito) {
-        parent::__construct($cliente_riferito,$data,$esercizio_riferito);
-        $this->new_carico = $new_carico;
+class ProgressoCarico extends Progresso
+{
+    private float $nuovoCarico;
+
+    public function __construct(\DateTimeImmutable $data, Cliente $cliente, Esercizio $esercizio, float $nuovoCarico)
+    {
+        parent::__construct($data, $cliente, $esercizio);
+        $this->nuovoCarico = $nuovoCarico;
     }
 
-    public function getnew_carico(): int{
-        return $this->new_carico;
+    public function getNuovoCarico(): float
+    {
+        return $this->nuovoCarico;
     }
-    public function setnew_carico(int $new_carico): self{
-        $this->new_carico = $new_carico;
+    public function setNuovoCarico(float $nuovoCarico): self
+    {
+        $this->nuovoCarico = $nuovoCarico;
         return $this;
     }
 }
-?>

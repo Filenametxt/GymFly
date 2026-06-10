@@ -1,79 +1,49 @@
 <?php
-use Doctrine\ORM\Mapping as ORM;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 
-#[ORM\Entity]
-#[ORM\Table(name: 'allenamenti')]
-class Allenamento {
-    
-    // 1. L'ID è necessario per Doctrine e il Database
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+namespace App\Entity;
 
-    // 2. Proprietà del dominio
-    private string $nome;
-    private ?string $descrizione=null;
+abstract class Abbonamento
+{
+    protected ?int $id = null;
+    protected string $tipologia;
+    protected string $categoria;
 
-    // 3. Relazione 1:N (Un allenamento ha molti dettagli)
-    #[ORM\OneToMany(targetEntity: DettaglioAllenamento::class, mappedBy: 'allenamento', cascade: ['persist', 'remove'])]
-    private Collection $dettagli;
-
-
-    //4.Relazione N:1 (Un allenamento è associato a una Scheda)
-    #[ORM\ManyToOne(targetEntity: Scheda::class, inversedBy: 'allenamenti')] //TODO: Classe Scheda da aggiornare con doctrine
-    #[ORM\JoinColumn(nullable: false)] // La FK non può essere vuota (un dettaglio deve avere un allenamento)
-    private ?Scheda $scheda;
-    public function __construct(string $nome,Scheda $scheda) {
-        $this->nome = $nome;
-        $this->scheda=$scheda;
-        // Inizializziamo la collezione come ArrayCollection
-        $this->dettagli = new ArrayCollection();
+    public function __construct(string $tipologia, string $categoria)
+    {
+        $this->tipologia = $tipologia;
+        $this->categoria = $categoria;
     }
 
-    // Metodi di accesso (Getter/Setter)
-    public function getId(): ?int {
+    public function getId(): ?int
+    {
         return $this->id;
     }
-
-    public function getNome(): ?string {
-        return $this->nome;
+    public function getTipologia(): string
+    {
+        return $this->tipologia;
     }
-    public function setNome(string $nome): self {
-        $this->nome = $nome;
-        return $this;
-    }
-    public function getDescrizione(): ?string {
-        return $this->descrizione;
-    }
-    public function setDescrizione(string $descrizione): self {
-        $this->descrizione = $descrizione;
-        return $this;
+    public function getCategoria(): string
+    {
+        return $this->categoria;
     }
 
-    /**
-     * @return Collection<int, DettaglioAllenamento>
-     */
-    public function getDettagli(): Collection {
-        return $this->dettagli;
+    public function setTipologia(string $tipologia): self
+    {
+        $this->tipologia = $tipologia;
+        return $this;
+    }
+    public function setCategoria(string $categoria): self
+    {
+        $this->categoria = $categoria;
+        return $this;
     }
 
-    // Metodo per gestire la relazione in modo coerente
-    public function addDettaglio(DettaglioAllenamento $dettaglio): self {
-        if (!$this->dettagli->contains($dettaglio)) {
-            $this->dettagli->add($dettaglio);
-            $dettaglio->setAllenamento($this); // Impostiamo il lato inverso
-        }
-        return $this;
-    }
-    public function getScheda(): Scheda {
-        return $this->scheda;
-    }
-    public function setScheda(Scheda $scheda): self {
-        $this->scheda = $scheda;
-        return $this;
-    }
+    // Forza le sottoclassi a definire se e come calcolare la data di fine temporale
+    abstract public function calcolaDataFine(\DateTimeImmutable $dataInizio): ?\DateTimeImmutable;
+
+    // Pattern Strategy: la sottoclasse valuta se il contesto (AbbonamentoAttivo) è scaduto
+    abstract public function isScaduto(AbbonamentoAttivo $context): bool;
+
+    // Genera la stringa descrittiva basandosi sullo stato del contesto
+    abstract public function descrizioneScadenza(AbbonamentoAttivo $context): string;
 }
-?>

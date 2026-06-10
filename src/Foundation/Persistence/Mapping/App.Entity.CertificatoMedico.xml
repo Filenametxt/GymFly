@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                  https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+    <entity name="App\Entity\CertificatoMedico" table="certificato_medico">
+
+        <id name="id" type="integer" column="id">
+            <generator strategy="AUTO"/>
+        </id>
+
+        <field name="dataEmissione" type="date"   column="data_emissione"/>
+        <field name="dataScadenza"  type="date"   column="data_scadenza"/>
+        <field name="medico"        type="string" column="medico"/>
+        <field name="filePath"      type="string" column="file" nullable="true"/>
+
+        <!--
+            1-1 lato INVERSO — Cliente è owner.
+            mapped-by punta al campo "certificatoMedico" in Cliente.
+        -->
+        <one-to-one field="cliente"
+                    target-entity="App\Entity\Cliente"
+                    mapped-by="certificatoMedico"/>
+
+    </entity>
+
+</doctrine-mapping>

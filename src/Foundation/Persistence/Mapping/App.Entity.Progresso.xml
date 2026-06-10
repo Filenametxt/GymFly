@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                                      https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+    <entity name="App\Entity\Progresso" table="PROGRESSO" inheritance-type="SINGLE_TABLE">
+        
+        <discriminator-column name="tipo" type="string" length="50"/>
+        <discriminator-map>
+            <discriminator-mapping value="carico" class="App\Entity\ProgressoCarico"/>
+            <discriminator-mapping value="durata" class="App\Entity\ProgressoDurata"/>
+            <discriminator-mapping value="ripetizioni" class="App\Entity\ProgressoRipetizioni"/>
+        </discriminator-map>
+
+        <id name="id" type="integer" column="id">
+            <generator strategy="AUTO"/>
+        </id>
+        <field name="data" type="datetime_immutable" column="data"/>
+
+        <many-to-one field="cliente" target-entity="App\Entity\Cliente">
+            <join-column name="id_cliente" referenced-column-name="id" nullable="false"/>
+        </many-to-one>
+        <many-to-one field="esercizio" target-entity="App\Entity\Esercizio">
+            <join-column name="id_esercizio" referenced-column-name="id" nullable="false"/>
+        </many-to-one>
+
+        <sub-classes>
+            <class name="App\Entity\ProgressoCarico">
+                <field name="nuovoCarico" type="float" column="nuovo_Carico" nullable="true"/>
+            </class>
+            <class name="App\Entity\ProgressoDurata">
+                <field name="nuovaDurata" type="float" column="nuovo_Durata" nullable="true"/>
+            </class>
+            <class name="App\Entity\ProgressoRipetizioni">
+                <field name="nuovoNRipetizioni" type="float" column="nuovo_N_ripetizioni" nullable="true"/>
+            </class>
+        </sub-classes>
+
+    </entity>
+</doctrine-mapping>

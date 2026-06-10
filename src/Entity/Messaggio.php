@@ -9,7 +9,6 @@ class Messaggio
     private string $oggetto;
     private string $contenuto;
 
-    // array nativo — zero dipendenze da Doctrine
     // un messaggio può avere più destinatari (relazione Molti-Molti con Utente)
     private array $destinatari = [];
 
@@ -119,7 +118,6 @@ class Messaggio
                 return $this;
             }
         }
-
         $this->destinatari[] = $utente;
 
         // aggiorna il lato Utente della relazione

@@ -1,61 +1,111 @@
 <?php
-use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity]
-class CertificatoMedico{
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
+namespace App\Entity;
+
+class CertificatoMedico
+{
     private ?int $id = null;
-    private int $data_emissione; //REVIEW da capire il tipo di dato quando si passa al database
-    private int $data_scadenza; //REVIEW da capire il tipo di dato quando si passa al database
-                                //TODO: Da calcolare in automatico 1 anno dopo la data emissione
+    private \DateTimeImmutable $dataEmissione;
+    private \DateTimeImmutable $dataScadenza;   // calcolata automaticamente: +1 anno da emissione
     private string $medico;
-    private $file; //REVIEW da capire il tipo di dato quando si passa al database
+    private ?string $filePath = null; // percorso del file sul server
     private Cliente $cliente;
 
-    public function __construct(int $data_emissione, string $medico, $file, Cliente $cliente) {
-        $this->data_emissione = $data_emissione;
+    public function __construct(
+        \DateTimeImmutable $dataEmissione,
+        string $medico,
+        Cliente $cliente,
+        ?string $filePath = null,
+    ) {
+        $this->dataEmissione = $dataEmissione;
+        // data scadenza calcolata automaticamente: 1 anno dopo l'emissione
+        $this->dataScadenza = $dataEmissione->modify('+1 year');
         $this->medico = $medico;
-        $this->file = $file;
         $this->cliente = $cliente;
+        $this->filePath = $filePath;
     }
-    public function getId(): ?int {
+
+    // -------------------------------------------------------------------------
+    // Getter
+    // -------------------------------------------------------------------------
+
+    public function getId(): ?int
+    {
         return $this->id;
     }
-    public function getData_emissione(): int {
-        return $this->data_emissione;
+    public function getDataEmissione(): \DateTimeImmutable
+    {
+        return $this->dataEmissione;
     }
-    public function getData_scadenza(): int {
-        return $this->data_scadenza;
+    public function getDataScadenza(): \DateTimeImmutable
+    {
+        return $this->dataScadenza;
     }
-    public function getMedico(): string {
+    public function getMedico(): string
+    {
         return $this->medico;
     }
-    public function getFile() { //REVIEW da capire il tipo di dato quando si passa al database
-        return $this->file;
+    public function getFilePath(): ?string
+    {
+        return $this->filePath;
     }
-    public function getCliente(): Cliente {
+    public function getCliente(): Cliente
+    {
         return $this->cliente;
     }
-    public function setData_emissione(int $data_emissione): self{
-        $this->data_emissione = $data_emissione;
+
+    // -------------------------------------------------------------------------
+    // Setter
+    // -------------------------------------------------------------------------
+
+    /**
+     * Aggiorna la data di emissione e ricalcola automaticamente la scadenza.
+     */
+    public function setDataEmissione(\DateTimeImmutable $dataEmissione): self
+    {
+        $this->dataEmissione = $dataEmissione;
+        $this->dataScadenza = $dataEmissione->modify('+1 year');
         return $this;
     }
-    public function setData_scadenza(int $data_scadenza): self{
-        $this->data_scadenza = $data_scadenza;
-        return $this;
-    }
-    public function setMedico(string $medico): self{
+
+    public function setMedico(string $medico): self
+    {
         $this->medico = $medico;
         return $this;
     }
-    public function setFile($file){ //REVIEW da capire il tipo di dato quando si passa al database
-        $this->file = $file;
+
+    public function setFilePath(?string $filePath): self
+    {
+        $this->filePath = $filePath;
+        return $this;
     }
-    public function setCliente(Cliente $cliente): self{
+
+    public function setCliente(Cliente $cliente): self
+    {
         $this->cliente = $cliente;
         return $this;
     }
+
+    // -------------------------------------------------------------------------
+    // Regole di dominio
+    // -------------------------------------------------------------------------
+
+    /**
+     * Verifica se il certificato medico è ancora valido alla data odierna.
+     */
+    public function isValido(): bool
+    {
+        return $this->dataScadenza > new \DateTimeImmutable();
+    }
+
+    /**
+     * Restituisce i giorni mancanti alla scadenza (negativo se già scaduto).
+     * %a: È il formato di DateInterval che restituisce i giorni totali di differenza tra le due date.
+     * %R: È il formato che aggiunge automaticamente il segno (+ se la data di scadenza è futura, - se la data di scadenza è passata).
+     * (int): Facendo il casting a intero, stringhe come "+10" o "-5" diventano istantaneamente i numeri interi.
+     */
+    public function giorniAllaScadenza(): int
+    {
+        return (int) (new \DateTimeImmutable())->diff($this->dataScadenza)->format('%R%a');
+    }
 }
-?>

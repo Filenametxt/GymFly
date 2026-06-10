@@ -1,44 +1,49 @@
 <?php
-use Doctrine\ORM\Mapping as ORM;
-use Doctrine\Common\Collections\Collection;
 
-abstract class Abbonamento{
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+namespace App\Entity;
 
+abstract class Abbonamento
+{
+    protected ?int $id = null;
+    protected string $tipologia;
+    protected string $categoria;
 
-    private string $categoria;
-    private Collection $cliente;
-
-    public function __construct(string $categoria){
+    public function __construct(string $tipologia, string $categoria)
+    {
+        $this->tipologia = $tipologia;
         $this->categoria = $categoria;
     }
 
-    public function getId(): ?int{
+    public function getId(): ?int
+    {
         return $this->id;
     }
-
-
-    public function getcategoria(): string{
+    public function getTipologia(): string
+    {
+        return $this->tipologia;
+    }
+    public function getCategoria(): string
+    {
         return $this->categoria;
     }
 
-    public function getCliente(): Collection{
-        return $this->cliente;
+    public function setTipologia(string $tipologia): self
+    {
+        $this->tipologia = $tipologia;
+        return $this;
     }
-
-    public function setcategoria(string $categoria):self{
+    public function setCategoria(string $categoria): self
+    {
         $this->categoria = $categoria;
         return $this;
     }
-    public function setCliente(Collection $cliente):self{
-        $this->cliente = $cliente;
-        return $this;
-    }
 
+    // Forza le sottoclassi a definire se e come calcolare la data di fine temporale
+    abstract public function calcolaDataFine(\DateTimeImmutable $dataInizio): ?\DateTimeImmutable;
 
-    //TODO: gestionde dell'abbonamento scaduto
+    // La sottoclasse valuta se il contesto (AbbonamentoAttivo) è scaduto
+    abstract public function isScaduto(AbbonamentoAttivo $context): bool;
+
+    // Genera la stringa descrittiva basandosi sullo stato del contesto
+    abstract public function descrizioneScadenza(AbbonamentoAttivo $context): string;
 }
-?>

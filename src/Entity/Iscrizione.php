@@ -1,36 +1,83 @@
 <?php
-class Iscrizione{
+
+namespace App\Entity;
+
+class Iscrizione
+{
     private ?int $id = null;
-    private int $data_inizio;
-    private int $data_fine;     //TODO: pure qua 1 anno dopo la data inizio
+    private \DateTimeImmutable $dataInizio;
+    private \DateTimeImmutable $dataFine;   // calcolata: +1 anno da dataInizio
     private Cliente $cliente;
 
-    public function __construct(int $data_inizio, Cliente $cliente){
-        $this->data_inizio = $data_inizio;
+    public function __construct(
+        \DateTimeImmutable $dataInizio,
+        Cliente $cliente,
+    ) {
+        $this->dataInizio = $dataInizio;
+        $this->dataFine = $dataInizio->modify('+1 year');
+        $this->cliente = $cliente;
     }
-    public function getId(): ?int{
+
+    // -------------------------------------------------------------------------
+    // Getter
+    // -------------------------------------------------------------------------
+
+    public function getId(): ?int
+    {
         return $this->id;
     }
-    public function getData_inizio(): int{
-        return $this->data_inizio;
+    public function getDataInizio(): \DateTimeImmutable
+    {
+        return $this->dataInizio;
     }
-    public function getData_fine(): int{
-        return $this->data_fine;
+    public function getDataFine(): \DateTimeImmutable
+    {
+        return $this->dataFine;
     }
-    public function getCliente(): Cliente{
+    public function getCliente(): Cliente
+    {
         return $this->cliente;
     }
-    public function setData_inizio(int $data_inizio): self{
-        $this->data_inizio = $data_inizio;
+
+    // -------------------------------------------------------------------------
+    // Setter
+    // -------------------------------------------------------------------------
+
+    /**
+     * Aggiorna la data di inizio e ricalcola automaticamente la data di fine.
+     */
+    public function setDataInizio(\DateTimeImmutable $dataInizio): self
+    {
+        $this->dataInizio = $dataInizio;
+        $this->dataFine = $dataInizio->modify('+1 year');
         return $this;
     }
-    public function setData_fine(int $data_fine): self{
-        $this->data_fine = $data_fine;
-        return $this;
-    }
-    public function setCliente(Cliente $cliente): self{
+
+    public function setCliente(Cliente $cliente): self
+    {
         $this->cliente = $cliente;
         return $this;
     }
+
+    // -------------------------------------------------------------------------
+    // Regole di dominio
+    // -------------------------------------------------------------------------
+
+    /**
+     * Verifica se l'iscrizione è ancora attiva.
+     */
+    public function isAttiva(): bool
+    {
+        return $this->dataFine > new \DateTimeImmutable();
+    }
+
+    /**
+     * Restituisce i giorni rimanenti all'iscrizione (0 se scaduta).
+     */
+    public function giorniRimanenti(): int
+    {
+        if (!$this->isAttiva())
+            return 0;
+        return (new \DateTimeImmutable())->diff($this->dataFine)->days;
+    }
 }
-?>
