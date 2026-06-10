@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping
+    xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+    https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+    <entity name="App\Entity\SessionePrivata" 
+            table="sessione_privata">
+
+        <!--
+            Chiave primaria composta: allenatore + ora_inizio + ora_fine.
+            Tutti e tre i campi sono dichiarati con <id>.
+        -->
+        <id name="allenatore"
+            association-key="true"/>
+
+        <id name="oraInizio"
+            type="time_immutable"
+            column="ora_inizio"/>
+
+        <id name="oraFine"
+            type="time_immutable"
+            column="ora_fine"/>
+
+        <field name="data" type="date_immutable" column="data"/>
+
+        <!-- ================================================================
+             RELAZIONI
+             ================================================================ -->
+
+        <!--
+            1-1  →  Allenatore  (SessionePrivata "è tenuta" da un Allenatore)
+            Lato proprietario: fa parte della PK composita.
+            FK: sessione_privata.id_allenatore → allenatore.id_utente
+        -->
+        <one-to-one field="allenatore"
+                    target-entity="App\Entity\Allenatore"
+                    inversed-by="sessionePrivata"
+                    fetch="LAZY">
+            <join-column name="id_allenatore"
+                         referenced-column-name="id_utente"
+                         nullable="false"/>
+        </one-to-one>
+
+        <!--
+            1-1  →  Cliente  (SessionePrivata "partecipa" un Cliente)
+            FK: sessione_privata.id_cliente → cliente.id_utente
+        -->
+        <one-to-one field="atleta"
+                    target-entity="App\Entity\Cliente"
+                    fetch="LAZY">
+            <join-column name="id_cliente"
+                         referenced-column-name="id_utente"
+                         nullable="false"/>
+        </one-to-one>
+
+    </entity>
+
+</doctrine-mapping>

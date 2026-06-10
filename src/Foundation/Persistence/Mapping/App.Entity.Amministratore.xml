@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping
+    xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+    https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+    <!--
+        Strategia di ereditarietà: Class Table Inheritance (JOINED)
+        Amministratore è figlio di Utente.
+        L'<id> non viene ridichiarato: è ereditato dalla root Utente.
+    -->
+    <entity name="App\Entity\Amministratore" 
+            table="amministratore"
+            inheritance-type="JOINED">
+
+        <!-- ================================================================
+             RELAZIONI
+             ================================================================ -->
+
+        <!--
+            1-1  →  Palestra  (Amministratore "gestisce" una Palestra)
+            Lato proprietario: la FK id_palestra risiede nella tabella amministratore.
+        -->
+        <one-to-one field="palestra"
+                    target-entity="App\Entity\Palestra"
+                    fetch="LAZY">
+            <join-column name="id_palestra"
+                         referenced-column-name="id"
+                         nullable="false"
+                         unique="true"/>
+        </one-to-one>
+
+    </entity>
+
+</doctrine-mapping>

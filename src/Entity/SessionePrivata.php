@@ -1,65 +1,99 @@
 <?php
 
-class SessionePrivata{
+namespace App\Entity;
 
-//NOTE: la chiave primaria è Allenatore,ora_inizio e ora_fine
+/**
+ * Classe SessionePrivata.
+ * La chiave primaria è composta da: allenatore, ora_inizio, ora_fine.
+ * Il mapping ORM è definito esternamente in:
+ *   foundation/App.Entity.SessionePrivata.dcm.xml
+ */
+class SessionePrivata
+{
     private \DateTimeImmutable $data;
-    private \DateTimeImmutable $ora_inizio;
-    private \DateTimeImmutable $ora_fine;
+    private \DateTimeImmutable $oraInizio;
+    private \DateTimeImmutable $oraFine;
     private Cliente $atleta;
     private Allenatore $allenatore;
 
-    public function __construct(\DateTimeImmutable $data, \DateTimeImmutable $ora_inizio,  \DateTimeImmutable $ora_fine, Cliente $atleta, Allenatore $allenatore){
-        $this->data = $data;
-        $this->ora_inizio = $ora_inizio;
-        $this->ora_fine = $ora_fine;
-        $this->atleta = $atleta;
+    public function __construct(
+        \DateTimeImmutable $data,
+        \DateTimeImmutable $oraInizio,
+        \DateTimeImmutable $oraFine,
+        Cliente            $atleta,
+        Allenatore         $allenatore
+    ) {
+        if ($oraInizio >= $oraFine) {
+            throw new \InvalidArgumentException("L'ora di inizio non può essere maggiore o uguale all'ora di fine.");
+        }
+        $this->data       = $data;
+        $this->oraInizio  = $oraInizio;
+        $this->oraFine    = $oraFine;
+        $this->atleta     = $atleta;
         $this->allenatore = $allenatore;
     }
 
-
-    public function getData(): \DateTimeImmutable{
+    public function getData(): \DateTimeImmutable
+    {
         return $this->data;
     }
-    public function getOra_inizio(){
-        return $this->ora_inizio;
+
+    
+
+    public function getOraInizio(): \DateTimeImmutable
+    {
+        return $this->oraInizio;
     }
-    public function getOra_fine(){
-        return $this->ora_fine;
+
+    public function getOraFine(): \DateTimeImmutable
+    {
+        return $this->oraFine;
     }
-    public function getAtleta(){
+
+    public function getAtleta(): Cliente
+    {
         return $this->atleta;
     }
-    public function getAllenatore(){
+
+    public function getAllenatore(): Allenatore
+    {
         return $this->allenatore;
     }
 
-    public function setData(\DateTimeImmutable $data):self{
+    public function setData(\DateTimeImmutable $data): self
+    {
         $this->data = $data;
         return $this;
     }
-    public function setOra_inizio(\DateTimeImmutable $ora_inizio):self{
-        if ($ora_inizio < $this->ora_fine){
-            $this->ora_inizio = $ora_inizio;
+
+    public function setOraInizio(\DateTimeImmutable $oraInizio): self
+    {
+        if ($oraInizio >= $this->oraFine) {
+            throw new \InvalidArgumentException("L'ora di inizio non può essere maggiore o uguale all'ora di fine.");
         }
-        else{
-            throw new Exception("L'ora inizio non può essere maggiore della ora fine");
-        }
+        $this->oraInizio = $oraInizio;
         return $this;
     }
-    public function setOra_fine(\DateTimeImmutable $ora_fine):self{
-        if ($this->ora_inizio < $ora_fine){
-            $this->ora_fine = $ora_fine;
+
+    public function setOraFine(\DateTimeImmutable $oraFine): self
+    {
+        if ($this->oraInizio >= $oraFine) {
+            throw new \InvalidArgumentException("L'ora di fine non può essere minore o uguale all'ora di inizio.");
         }
-        else{
-            throw new Exception("L'ora fine non può essere maggiore della ora inizio");
-        }
+        $this->oraFine = $oraFine;
         return $this;
     }
-    public function setAtleta(Cliente $atleta):self{
+
+    public function setAtleta(Cliente $atleta): self
+    {
         $this->atleta = $atleta;
         return $this;
     }
-    
+
+    public function setAllenatore(Allenatore $allenatore): self
+    {
+        $this->allenatore = $allenatore;
+        return $this;
+    }
 }
 ?>

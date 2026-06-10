@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping
+    xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+    https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+    <entity name="App\Entity\Sala" 
+            table="sala">
+
+        <id name="id" type="integer" column="id">
+            <generator strategy="AUTO"/>
+        </id>
+
+        <field name="nome"            type="string"  column="nome"/>
+        <field name="maxPartecipanti" type="integer" column="max_partecipanti"/>
+
+        <!-- ================================================================
+             RELAZIONI
+             ================================================================ -->
+
+        <!--
+            Molti-1  →  Palestra  (Sala "contiene" è dentro una Palestra)
+            FK: sala.id_palestra → palestra.id
+        -->
+        <many-to-one field="palestra"
+                     target-entity="App\Entity\Palestra"
+                     fetch="LAZY">
+            <join-column name="id_palestra"
+                         referenced-column-name="id"
+                         nullable="false"/>
+        </many-to-one>
+
+        <!--
+            Relazione 1-Molti con AttivitaPianificata NON mappata:
+            Sala non conosce AttivitaPianificata (niente biunivocità).
+        -->
+
+    </entity>
+
+</doctrine-mapping>
