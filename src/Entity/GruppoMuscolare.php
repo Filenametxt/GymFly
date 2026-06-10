@@ -1,34 +1,70 @@
 <?php
-use Doctrine\ORM\Mapping as ORM;
-use Doctrine\Common\Collections\Collection;
+namespace App\Entity;
 
-class GruppoMuscolare{
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
+class GruppoMuscolare
+{
     private ?int $id = null;
-    private string $nome_gruppo_muscolare;
-    private Collection $esercizi; 
+    private string $nomeGruppoMuscolare;
 
-    public function __construct(string $nome_gruppo_muscolare){
-        $this->nome_gruppo_muscolare = $nome_gruppo_muscolare;
+    // lato inverso della N-N con Esercizio — biunivoca
+    private array $esercizi = [];
+
+    public function __construct(string $nomeGruppoMuscolare)
+    {
+        $this->nomeGruppoMuscolare = $nomeGruppoMuscolare;
     }
-    public function getId(): ?int{
+
+    // -------------------------------------------------------------------------
+    // Getter
+    // -------------------------------------------------------------------------
+
+    public function getId(): ?int
+    {
         return $this->id;
     }
-    public function getNomeGruppoMuscolare(): string{
-        return $this->nome_gruppo_muscolare;
+    public function getNomeGruppoMuscolare(): string
+    {
+        return $this->nomeGruppoMuscolare;
     }
-    public function getEsercizi(): Collection {
+
+    /** @return Esercizio[] */
+    public function getEsercizi(): array
+    {
         return $this->esercizi;
     }
-    public function setNomeGruppoMuscolare(string $nome_gruppo_muscolare): self{
-        $this->nome_gruppo_muscolare = $nome_gruppo_muscolare;
+
+    // -------------------------------------------------------------------------
+    // Setter
+    // -------------------------------------------------------------------------
+
+    public function setNomeGruppoMuscolare(string $nome): self
+    {
+        $this->nomeGruppoMuscolare = $nome;
         return $this;
     }
-    public function setEsercizi(Collection $esercizi): self{
-        $this->esercizi = $esercizi;
+
+    // -------------------------------------------------------------------------
+    // Gestione relazione N-N con Esercizio — lato inverso
+    // -------------------------------------------------------------------------
+
+    public function aggiungiEsercizio(Esercizio $esercizio): self
+    {
+        //Controlla per evitare un duplicato
+        foreach ($this->esercizi as $e) {
+            if ($e === $esercizio)
+                return $this;
+        }
+        $this->esercizi[] = $esercizio;
+        return $this;
+    }
+
+    public function rimuoviEsercizio(Esercizio $esercizio): self
+    {
+        $indice = array_search($esercizio, $this->esercizi, true);
+        if ($indice !== false) {
+            unset($this->esercizi[$indice]);
+            $this->esercizi = array_values($this->esercizi); // Re-indicizza l'array
+        }
         return $this;
     }
 }
-?>

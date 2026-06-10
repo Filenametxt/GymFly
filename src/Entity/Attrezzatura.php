@@ -1,27 +1,30 @@
 <?php
-use Doctrine\ORM\Mapping as ORM;
 
-class Attrezzatura{
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
+namespace App\Entity;
+
+class Attrezzatura
+{
     private ?int $id = null;
-    private string $nome_attrezzatura;
-    
-    public function __construct(string $nome_attrezzatura){
-        $this->nome_attrezzatura = $nome_attrezzatura;
+    private string $nomeAttrezzatura;
+
+    public function __construct(string $nomeAttrezzatura)
+    {
+        $this->nomeAttrezzatura = $nomeAttrezzatura;
     }
-    public function getId(){
+
+    public function getId(): ?int
+    {
         return $this->id;
     }
 
-    public function getNomeAttrezzatura(){
-        return $this->nome_attrezzatura;
+    public function getNomeAttrezzatura(): string
+    {
+        return $this->nomeAttrezzatura;
     }
-    public function setNomeAttrezzatura($nome_attrezzatura):self{
-        $this->nome_attrezzatura = $nome_attrezzatura;
+
+    public function setNomeAttrezzatura(string $nomeAttrezzatura): self
+    {
+        $this->nomeAttrezzatura = $nomeAttrezzatura;
         return $this;
     }
-    
 }
-?>

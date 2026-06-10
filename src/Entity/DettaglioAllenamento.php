@@ -1,87 +1,100 @@
 <?php
-use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity]
-#[ORM\Table(name: 'dettagli_allenamento')]
-class DettaglioAllenamento {
+namespace App\Entity;
 
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
+class DettaglioAllenamento
+{
     private ?int $id = null;
-
-    #[ORM\Column]
-    private Esercizio $esercizio;  
-
-    #[ORM\Column]
     private int $serie;
-
-    #[ORM\Column]           
     private int $ripetizioni;
-
-    #[ORM\Column] 
     private float $carico;
 
-    // Questa è la "chiave" della bidirezionalità
-    // 'inversedBy' punta alla proprietà 'dettagli' dentro la classe Allenamento
-    #[ORM\ManyToOne(targetEntity: Allenamento::class, inversedBy: 'dettagli')]
-    #[ORM\JoinColumn(nullable: false)] // La FK non può essere vuota (un dettaglio deve avere un allenamento)
+    // N-1 con Esercizio — NO biunivocità, DettaglioAllenamento conosce Esercizio
+    private Esercizio $esercizio;
+
+    // N-1 con Allenamento — biunivoca (Allenamento ha array di dettagli)
     private Allenamento $allenamento;
 
-    public function __construct(Esercizio $esercizio, int $serie, int $ripetizioni, float $carico) {
+    public function __construct(
+        Esercizio $esercizio,
+        Allenamento $allenamento,
+        int $serie,
+        int $ripetizioni,
+        float $carico,
+    ) {
         $this->esercizio = $esercizio;
+        $this->allenamento = $allenamento;
         $this->serie = $serie;
         $this->ripetizioni = $ripetizioni;
         $this->carico = $carico;
     }
 
-    // Getter e Setter
-    public function getId(): ?int {
+    // -------------------------------------------------------------------------
+    // Getter
+    // -------------------------------------------------------------------------
+
+    public function getId(): ?int
+    {
         return $this->id;
     }
-
-    public function getAllenamento(): Allenamento {
-        return $this->allenamento;
-    }
-
-    // Questo metodo viene chiamato dal metodo 'addDettaglio' nell'Allenamento
-    public function setAllenamento(Allenamento $allenamento): self {
-        $this->allenamento = $allenamento;
-        return $this;
-    }
-    public function getEsercizio(): Esercizio {   
+    public function getEsercizio(): Esercizio
+    {
         return $this->esercizio;
     }
-    public function getSerie(): int {
+    public function getAllenamento(): Allenamento
+    {
+        return $this->allenamento;
+    }
+    public function getSerie(): int
+    {
         return $this->serie;
     }
-    public function getRipetizioni(): int {
+    public function getRipetizioni(): int
+    {
         return $this->ripetizioni;
     }
-
-    public function getCarico(): int {
+    public function getCarico(): float
+    {
         return $this->carico;
-    }
+    }  // BUGFIX: era int
 
+    // -------------------------------------------------------------------------
+    // Setter
+    // -------------------------------------------------------------------------
 
-
-
-    public function setSerie(int $serie): self {
-        $this->serie = $serie;
-        return $this;
-    }
-    public function setRipetizioni(int $ripetizioni): self {
-        $this->ripetizioni = $ripetizioni;  
-        return $this;
-    }
-    public function setEsercizio(Esercizio $esercizio): self { 
+    public function setEsercizio(Esercizio $esercizio): self
+    {
         $this->esercizio = $esercizio;
         return $this;
     }
-    public function setCarico(int $carico): self {
-        $this->carico=$carico;
+
+    public function setAllenamento(Allenamento $allenamento): self
+    {
+        $this->allenamento = $allenamento;
         return $this;
     }
-    
+
+    public function setSerie(int $serie): self
+    {
+        if ($serie <= 0)
+            throw new \InvalidArgumentException('Le serie devono essere maggiori di 0.');
+        $this->serie = $serie;
+        return $this;
+    }
+
+    public function setRipetizioni(int $ripetizioni): self
+    {
+        if ($ripetizioni <= 0)
+            throw new \InvalidArgumentException('Le ripetizioni devono essere maggiori di 0.');
+        $this->ripetizioni = $ripetizioni;
+        return $this;
+    }
+
+    public function setCarico(float $carico): self
+    {
+        if ($carico < 0)
+            throw new \InvalidArgumentException('Il carico non può essere negativo.');
+        $this->carico = $carico;
+        return $this;
+    }
 }
-?>

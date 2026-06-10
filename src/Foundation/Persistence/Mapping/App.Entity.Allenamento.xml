@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                                      https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+    <entity name="App\Entity\Allenamento" table="ALLENAMENTO">
+
+        <id name="id" type="integer" column="id">
+            <generator strategy="AUTO"/>
+        </id>
+
+        <field name="nome" type="string" column="nome" length="255" nullable="false"/>
+        <field name="descrizione" type="text" column="descrizione" nullable="true"/>
+
+        <many-to-one field="scheda" target-entity="App\Entity\Scheda">
+            <join-column name="id_scheda" referenced-column-name="id" nullable="true" on-delete="SET NULL"/>
+        </many-to-one>
+
+        <one-to-many field="dettagli" 
+                     target-entity="App\Entity\DettaglioAllenamento" 
+                     mapped-by="allenamento">
+            <cascade>
+                <cascade-persist/>
+                <cascade-remove/>
+            </cascade>
+        </one-to-many>
+
+    </entity>
+</doctrine-mapping>

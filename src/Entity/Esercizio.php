@@ -1,80 +1,129 @@
 <?php
+
 namespace App\Entity;
 
-use Doctrine\ORM\Mapping as ORM;
-use Doctrine\Common\Collections\Collection;
-#[ORM\Entity]
-class Esercizio{
-
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
+class Esercizio
+{
     private ?int $id = null;
-
-    private ?string  $nome_esercizio;
+    private ?string $nomeEsercizio;
     private ?string $descrizione;
-    private Collection $gruppiMuscolari; 
-    private ?Attrezzatura $attrezzatura_necessaria=null; 
+    // 1-1 con Attrezzatura — NO biunivocità, Esercizio ha una attrezzatura necessaria
+    private ?Attrezzatura $attrezzaturaNecessaria = null;
 
-    private Tipologia $tipologia;        
+    // N-1 con Tipologia — NO biunivocità, Esercizio conosce Tipologia
+    private Tipologia $tipologia;   
 
-    private ?Allenatore $creatore=null; //NOTE: Se l'esercizio deriva da un json esterno, nessuno lo ha effettivamente creato  
+    // N-1 con Allenatore — NO biunivocità, Esercizio conosce Allenatore
+    // nullable: se l'esercizio viene importato da API esterna non ha creatore
+    private ?Allenatore $creatore = null;
 
-    public function __construct( ?string $nome_esercizio, ?string $descrizione, Tipologia $tipologia){
-        $this->nome_esercizio = $nome_esercizio;
+    // N-N con GruppoMuscolare — tabella ALLENA, biunivoca
+    private array $gruppiMuscolari = [];
+
+    public function __construct(
+        ?string $nomeEsercizio,
+        ?string $descrizione,
+        Tipologia $tipologia,
+        ?Attrezzatura $attrezzaturaNecessaria = null,
+        ?Allenatore $creatore = null,
+    ) {
+        $this->nomeEsercizio = $nomeEsercizio;
         $this->descrizione = $descrizione;
         $this->tipologia = $tipologia;
+        $this->attrezzaturaNecessaria = $attrezzaturaNecessaria;
+        $this->creatore = $creatore;
     }
-    public function getId(){
+
+    // -------------------------------------------------------------------------
+    // Getter
+    // -------------------------------------------------------------------------
+
+    public function getId(): ?int
+    {
         return $this->id;
     }
-
-    public function getNome_esercizio(): ?string {
-        return $this->nome_esercizio;
+    public function getNomeEsercizio(): ?string
+    {
+        return $this->nomeEsercizio;
     }
-    public function getGruppo_muscolare(): Collection{
-        return $this->gruppiMuscolari;
-    }
-
-    public function getAttrezzatura_necessaria(){
-        return $this->attrezzatura_necessaria;
-    }
-    public function getDescrizione(){
+    public function getDescrizione(): ?string
+    {
         return $this->descrizione;
     }
-    public function getTipologia(){
+    public function getAttrezzaturaNecessaria(): ?Attrezzatura
+    {
+        return $this->attrezzaturaNecessaria;
+    }
+    public function getTipologia(): Tipologia
+    {
         return $this->tipologia;
     }
-    public function getCreatore():?Allenatore{
+    public function getCreatore(): ?Allenatore
+    {
         return $this->creatore;
     }
 
-    public function setNome_esercizio(?string $nome_esercizio){
-        $this->nome_esercizio = $nome_esercizio;
+    /** @return GruppoMuscolare[] */
+    public function getGruppiMuscolari(): array
+    {
+        return $this->gruppiMuscolari;
     }
 
-    public function setGruppo_muscolare(Collection $gruppiMuscolari) :self{
-        $this->gruppiMuscolari = $gruppiMuscolari;
+    // -------------------------------------------------------------------------
+    // Setter
+    // -------------------------------------------------------------------------
+
+    public function setNomeEsercizio(?string $nome): self
+    {
+        $this->nomeEsercizio = $nome;
         return $this;
     }
-    public function setAttrezzatura_necessaria($attrezzatura_necessaria):self{
-        $this->attrezzatura_necessaria = $attrezzatura_necessaria;
-        return $this;
-    }
-    public function setDescrizione($descrizione):self{
+
+    public function setDescrizione(?string $descrizione): self
+    {
         $this->descrizione = $descrizione;
         return $this;
     }
-    public function setTipologia($tipologia):self{
+
+    public function setAttrezzaturaNecessaria(?Attrezzatura  $attrezzatura): self
+    {
+        $this->attrezzaturaNecessaria = $attrezzatura;
+        return $this;
+    }
+
+    public function setTipologia(Tipologia $tipologia): self
+    {
         $this->tipologia = $tipologia;
         return $this;
     }
-    public function setCreatore(?Allenatore $creatore):self{
+
+    public function setCreatore(?Allenatore $creatore): self
+    {
         $this->creatore = $creatore;
         return $this;
     }
-    
 
+    // -------------------------------------------------------------------------
+    // Gestione relazione N-N con GruppoMuscolare — biunivoca
+    // -------------------------------------------------------------------------
 
+    public function aggiungiGruppoMuscolare(GruppoMuscolare $gruppo): self
+    {
+        foreach ($this->gruppiMuscolari as $g) {
+            if ($g === $gruppo)
+                return $this;
+        }
+        $this->gruppiMuscolari[] = $gruppo;
+        // aggiorna lato inverso
+        $gruppo->aggiungiEsercizio($this);
+        return $this;
+    }
+
+    public function rimuoviGruppoMuscolare(GruppoMuscolare $gruppo): self
+    {
+        $this->gruppiMuscolari = array_values(
+            array_filter($this->gruppiMuscolari, fn($g) => $g !== $gruppo)
+        );
+        return $this;
+    }
 }
-?>

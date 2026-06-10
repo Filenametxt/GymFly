@@ -2,48 +2,69 @@
 
 namespace App\Entity;
 
-abstract class Abbonamento
+class Allenamento
 {
-    protected ?int $id = null;
-    protected string $tipologia;
-    protected string $categoria;
+    private ?int $id = null;
+    private string $nome;
+    private ?string $descrizione = null;
+    private ?Scheda $scheda = null;
 
-    public function __construct(string $tipologia, string $categoria)
+
+    //Si riferisce alla relazione con Dettagli, biunivocità
+    private array $dettagli = [];
+
+    public function __construct(string $nome, ?string $descrizione = null)
     {
-        $this->tipologia = $tipologia;
-        $this->categoria = $categoria;
+        $this->nome = $nome;
+        $this->descrizione = $descrizione;
     }
 
     public function getId(): ?int
     {
         return $this->id;
     }
-    public function getTipologia(): string
+    public function getNome(): string
     {
-        return $this->tipologia;
+        return $this->nome;
     }
-    public function getCategoria(): string
+    public function setNome(string $nome): self
     {
-        return $this->categoria;
-    }
-
-    public function setTipologia(string $tipologia): self
-    {
-        $this->tipologia = $tipologia;
-        return $this;
-    }
-    public function setCategoria(string $categoria): self
-    {
-        $this->categoria = $categoria;
+        $this->nome = $nome;
         return $this;
     }
 
-    // Forza le sottoclassi a definire se e come calcolare la data di fine temporale
-    abstract public function calcolaDataFine(\DateTimeImmutable $dataInizio): ?\DateTimeImmutable;
+    public function getDescrizione(): ?string
+    {
+        return $this->descrizione;
+    }
+    public function setDescrizione(?string $descrizione): self
+    {
+        $this->descrizione = $descrizione;
+        return $this;
+    }
 
-    // Pattern Strategy: la sottoclasse valuta se il contesto (AbbonamentoAttivo) è scaduto
-    abstract public function isScaduto(AbbonamentoAttivo $context): bool;
+    public function getScheda(): ?Scheda
+    {
+        return $this->scheda;
+    }
+    public function setScheda(?Scheda $scheda): self
+    {
+        $this->scheda = $scheda;
+        return $this;
+    }
 
-    // Genera la stringa descrittiva basandosi sullo stato del contesto
-    abstract public function descrizioneScadenza(AbbonamentoAttivo $context): string;
+    public function getDettagli(): array
+    {
+        return $this->dettagli;
+    }
+
+    public function addDettaglio(DettaglioAllenamento $dettaglio): self
+    {
+        if (!in_array($dettaglio, $this->dettagli, true)) {
+            $this->dettagli[] = $dettaglio;
+            $dettaglio->setAllenamento($this);
+        }
+        return $this;
+    }
+    
 }
