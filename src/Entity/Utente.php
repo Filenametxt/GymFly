@@ -1,6 +1,6 @@
 <?php
 namespace App\Entity;
-use GymFly\Enum\Sesso;
+use App\Enum\Sesso;
 
 abstract class Utente
 {
@@ -28,7 +28,7 @@ abstract class Utente
         Sesso $sesso,
         string $password = "",
         ?string $profilePicture = null,
-        ?string $telefono = null,
+        ?string $telefono = null
     ) {
         $this->nome = $nome;
         $this->cognome = $cognome;

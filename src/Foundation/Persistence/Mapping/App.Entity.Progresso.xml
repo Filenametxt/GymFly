@@ -24,18 +24,5 @@
         <many-to-one field="esercizio" target-entity="App\Entity\Esercizio">
             <join-column name="id_esercizio" referenced-column-name="id" nullable="false"/>
         </many-to-one>
-
-        <sub-classes>
-            <class name="App\Entity\ProgressoCarico">
-                <field name="nuovoCarico" type="float" column="nuovo_Carico" nullable="true"/>
-            </class>
-            <class name="App\Entity\ProgressoDurata">
-                <field name="nuovaDurata" type="float" column="nuovo_Durata" nullable="true"/>
-            </class>
-            <class name="App\Entity\ProgressoRipetizioni">
-                <field name="nuovoNRipetizioni" type="float" column="nuovo_N_ripetizioni" nullable="true"/>
-            </class>
-        </sub-classes>
-
     </entity>
 </doctrine-mapping>

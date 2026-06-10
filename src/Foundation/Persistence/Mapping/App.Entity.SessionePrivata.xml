@@ -39,7 +39,7 @@
                     inversed-by="sessionePrivata"
                     fetch="LAZY">
             <join-column name="id_allenatore"
-                         referenced-column-name="id_utente"
+                         referenced-column-name="id"
                          nullable="false"/>
         </one-to-one>
 
@@ -51,7 +51,7 @@
                     target-entity="App\Entity\Cliente"
                     fetch="LAZY">
             <join-column name="id_cliente"
-                         referenced-column-name="id_utente"
+                         referenced-column-name="id"
                          nullable="false"/>
         </one-to-one>
 

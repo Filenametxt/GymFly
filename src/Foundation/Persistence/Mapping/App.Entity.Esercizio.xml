@@ -5,16 +5,16 @@
         <field name="nomeEsercizio" type="string" column="nome_esercizio" length="255" nullable="true"/>
         <field name="descrizione" type="text" column="descrizione" nullable="true"/>
 
-        <one-to-one field="attrezzaturaNecessaria" target-entity="App\Entity\Attrezzatura" nullable="true">
-            <join-column name="id_attrezzatura" referenced-column-name="id" on-delete="SET NULL"/>
+        <one-to-one field="attrezzaturaNecessaria" target-entity="App\Entity\Attrezzatura">
+            <join-column name="id_attrezzatura" referenced-column-name="id" on-delete="SET NULL" nullable="true"/>
         </one-to-one>
 
-        <many-to-one field="tipologia" target-entity="App\Entity\Tipologia" nullable="false">
-            <join-column name="id_tipologia" referenced-column-name="id"/>
+        <many-to-one field="tipologia" target-entity="App\Entity\Tipologia">
+            <join-column name="id_tipologia" referenced-column-name="id" nullable="false"/>
         </many-to-one>
 
-        <many-to-one field="creatore" target-entity="App\Entity\Allenatore" nullable="true">
-            <join-column name="id_allenatore" referenced-column-name="id" on-delete="SET NULL"/>
+        <many-to-one field="creatore" target-entity="App\Entity\Allenatore">
+            <join-column name="id_allenatore" referenced-column-name="id" on-delete="SET NULL" nullable="true"/>
         </many-to-one>
 
         <many-to-many field="gruppiMuscolari" target-entity="App\Entity\GruppoMuscolare" inversed-by="esercizi">

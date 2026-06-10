@@ -4,7 +4,7 @@
                   xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
                   https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
 
-    <entity name="Scheda" 
+    <entity name="App\Entity\Scheda" 
             table="scheda">
 
         <!-- Chiave primaria auto-generata -->

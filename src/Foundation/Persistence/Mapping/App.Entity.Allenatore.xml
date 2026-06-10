@@ -34,10 +34,7 @@
             1-1  →  SessionePrivata  (Allenatore "tiene" una SessionePrivata)
             FK lato SessionePrivata (mappedBy); lato proprietario è SessionePrivata.
         -->
-        <one-to-one field="sessionePrivata"
-                    target-entity="App\Entity\SessionePrivata"
-                    mapped-by="allenatore"
-                    fetch="LAZY"/>
+ 
 
         <!--
             Molti-Molti  →  Attività  (Allenatore "abilitato" per N Attività)
@@ -49,7 +46,7 @@
             <join-table name="abilitazione">
                 <join-columns>
                     <join-column name="id_allenatore"
-                                 referenced-column-name="id_utente"/>
+                                 referenced-column-name="id"/>
                 </join-columns>
                 <inverse-join-columns>
                     <join-column name="id_attivita"

@@ -18,11 +18,5 @@
         <field name="tipologia" type="string" column="tipologia" length="255"/>
         <field name="categoria" type="string" column="categoria" length="255"/>
 
-        <sub-classes>
-            <class name="App\Entity\AbbonamentoDurata">
-                <field name="durata" type="integer" column="durata" nullable="true"/>
-            </class>
-        </sub-classes>
-
     </entity>
 </doctrine-mapping>

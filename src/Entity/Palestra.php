@@ -8,20 +8,20 @@ class Palestra {
     private string $nome;
     private string $indirizzo;
     private string $email;
-    private string $recapito_telefonico;
+    private string $recapitoTelefonico;
     private Amministratore $amministratore;
 
     public function __construct(
         string $nome,
         string $indirizzo,
         string $email,
-        string $recapito_telefonico,
+        string $recapitoTelefonico,
         Amministratore $amministratore
     ) {
         $this->nome                = $nome;
         $this->indirizzo           = $indirizzo;
         $this->email               = $email;
-        $this->recapito_telefonico = $recapito_telefonico;
+        $this->recapitoTelefonico = $recapitoTelefonico;
         $this->amministratore      = $amministratore;
     }
 
@@ -42,7 +42,7 @@ class Palestra {
     }
 
     public function getRecapitoTelefonico(): string {
-        return $this->recapito_telefonico;
+        return $this->recapitoTelefonico;
     }
 
     public function getAmministratore(): Amministratore {
@@ -67,12 +67,12 @@ class Palestra {
         return $this;
     }
 
-    public function setRecapitoTelefonico(string $recapito_telefonico): self {
-        $recapito_telefonico = str_replace([' ', '-', '.'], '', $recapito_telefonico);
-        if (!preg_match('/^\d{9,11}$/', $recapito_telefonico)) {
+    public function setRecapitoTelefonico(string $recapitoTelefonico): self {
+        $recapitoTelefonico = str_replace([' ', '-', '.'], '', $recapitoTelefonico);
+        if (!preg_match('/^\d{9,11}$/', $recapitoTelefonico)) {
             throw new \InvalidArgumentException("Il numero di telefono deve essere composto da 9 a 11 cifre.");
         }
-        $this->recapito_telefonico = $recapito_telefonico;
+        $this->recapitoTelefonico = $recapitoTelefonico;
         return $this;
     }
 

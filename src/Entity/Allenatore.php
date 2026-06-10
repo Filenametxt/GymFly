@@ -2,7 +2,7 @@
 
 namespace App\Entity;
 
-use GymFly\Enum\Sesso;
+use App\Enum\Sesso;
 
 /**
  * Classe Allenatore – figlia di Utente (Class Table Inheritance).
@@ -18,17 +18,18 @@ class Allenatore extends Utente
 
 
     public function __construct(
-        string   $nome,
-        string   $cognome,
-        string   $email,
-        string   $CF,
-        mixed    $profile_picture,
-        int      $telefono,
-        string   $indirizzo,
-        Sesso    $sesso,
+        string $nome,
+        string $cognome,
+        string $email,
+        string $CF,
+        string $indirizzo,
+        Sesso $sesso,
+        string $password = "",
+        ?string $profilePicture = null,
+        ?string $telefono = null,
         Palestra $palestra
     ) {
-        parent::__construct($nome, $cognome, $email, $CF, $profile_picture, $telefono, $indirizzo, $sesso);
+        parent::__construct($nome, $cognome, $email, $CF,$indirizzo,$sesso,$password, $profilePicture, $telefono);
         $this->palestra = $palestra;
     }
 

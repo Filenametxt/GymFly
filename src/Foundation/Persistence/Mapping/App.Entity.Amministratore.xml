@@ -14,22 +14,6 @@
             table="amministratore"
             inheritance-type="JOINED">
 
-        <!-- ================================================================
-             RELAZIONI
-             ================================================================ -->
-
-        <!--
-            1-1  →  Palestra  (Amministratore "gestisce" una Palestra)
-            Lato proprietario: la FK id_palestra risiede nella tabella amministratore.
-        -->
-        <one-to-one field="palestra"
-                    target-entity="App\Entity\Palestra"
-                    fetch="LAZY">
-            <join-column name="id_palestra"
-                         referenced-column-name="id"
-                         nullable="false"
-                         unique="true"/>
-        </one-to-one>
 
     </entity>
 

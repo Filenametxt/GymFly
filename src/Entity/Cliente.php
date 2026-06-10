@@ -2,7 +2,7 @@
 
 namespace App\Entity;
 
-use GymFly\Enum\Sesso;
+use App\Enum\Sesso;
 
 class Cliente extends Utente
 {

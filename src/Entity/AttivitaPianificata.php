@@ -17,7 +17,7 @@ class AttivitaPianificata
     private int $prenotati = 0;
     private Sala $sala;
     private Allenatore $allenatore;
-    private Attivita $attivita_di_riferimento;
+    private Attivita $attivitaDiRiferimento;
 
     /** @var Cliente[] */
     private array $utenti = [];
@@ -33,7 +33,7 @@ class AttivitaPianificata
         $this->orario               = $orario;
         $this->sala                 = $sala;
         $this->allenatore           = $allenatore;
-        $this->attivita_di_riferimento = $attivitaDiRiferimento;
+        $this->attivitaDiRiferimento = $attivitaDiRiferimento;
     }
 
     public function getId(): ?int
@@ -68,13 +68,13 @@ class AttivitaPianificata
 
     public function getAttivita(): Attivita
     {
-        return $this->attivita_di_riferimento;
+        return $this->attivitaDiRiferimento;
     }
 
     public function getMaxPartecipanti(): int
     {
         return min(
-            $this->attivita_di_riferimento->getMaxPartecipanti(),
+            $this->attivitaDiRiferimento->getMaxPartecipanti(),
             $this->sala->getMaxPartecipanti()
         );
     }
@@ -106,7 +106,7 @@ class AttivitaPianificata
 
     public function setAttivita(Attivita $attivita): void
     {
-        $this->attivita_di_riferimento = $attivita;
+        $this->attivitaDiRiferimento = $attivita;
     }
 
     // -------------------------------------------------------------------------
@@ -119,14 +119,14 @@ class AttivitaPianificata
         return $this->utenti;
     }
 
-    public function addUtente(Cliente $cliente): void
+    public function aggiungiCliente(Cliente $cliente): void
     {
         if (!in_array($cliente, $this->utenti, true)) {
             $this->utenti[] = $cliente;
         }
     }
 
-    public function removeUtente(Cliente $cliente): void
+    public function rimuoviCliente(Cliente $cliente): void
     {
         $this->utenti = array_values(
             array_filter($this->utenti, fn(Cliente $c) => $c !== $cliente)

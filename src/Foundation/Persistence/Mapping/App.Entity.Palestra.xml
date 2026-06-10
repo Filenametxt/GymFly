@@ -19,21 +19,11 @@
 
         <!-- Relazione 1-1 con Amministratore (gestisce) -->
         <!-- Palestra possiede la FK id_amministratore -->
-        <one-to-one field="amministratore" target-entity="Entity\Amministratore">
-            <join-column name="id_amministratore" referenced-column-name="id_utente" nullable="false"/>
+        <one-to-one field="amministratore" target-entity="App\Entity\Amministratore">
+            <join-column name="id_amministratore" referenced-column-name="id" nullable="false"/>
         </one-to-one>
 
-        <!-- Relazione 1-N con Cliente (iscritto) -->
-        <!-- La FK id_palestra è sul lato Cliente -->
-        <one-to-many field="clienti" target-entity="Entity\Cliente" mapped-by="palestra"/>
-
-        <!-- Relazione 1-N con Allenatore (lavora) -->
-        <!-- La FK id_palestra è sul lato Allenatore -->
-        <one-to-many field="allenatori" target-entity="Entity\Allenatore" mapped-by="palestra"/>
-
-        <!-- Relazione 1-N con Sala (contiene) -->
-        <!-- La FK id_palestra è sul lato Sala -->
-        <one-to-many field="sale" target-entity="Entity\Sala" mapped-by="palestra"/>
+    
 
     </entity>
 

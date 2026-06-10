@@ -28,7 +28,7 @@
                      target-entity="App\Entity\Allenatore"
                      fetch="LAZY">
             <join-column name="id_allenatore"
-                         referenced-column-name="id_utente"
+                         referenced-column-name="id"
                          nullable="false"/>
         </many-to-one>
 
@@ -63,14 +63,14 @@
         <many-to-many field="utenti"
                       target-entity="App\Entity\Cliente"
                       fetch="LAZY">
-            <join-table name="iscrizione">
+            <join-table name="iscrizione_attivita">
                 <join-columns>
                     <join-column name="id_attivita_pianificata"
                                  referenced-column-name="id"/>
                 </join-columns>
                 <inverse-join-columns>
                     <join-column name="id_cliente"
-                                 referenced-column-name="id_utente"/>
+                                 referenced-column-name="id"/>
                 </inverse-join-columns>
             </join-table>
         </many-to-many>

@@ -6,12 +6,12 @@
         <field name="ripetizioni" type="integer" column="ripetizioni" nullable="false"/>
         <field name="carico" type="float" column="carico" nullable="false"/>
 
-        <many-to-one field="esercizio" target-entity="App\Entity\Esercizio" nullable="false">
-            <join-column name="id_esercizio" referenced-column-name="id"/>
+        <many-to-one field="esercizio" target-entity="App\Entity\Esercizio">
+            <join-column name="id_esercizio" referenced-column-name="id" nullable="false"/>
         </many-to-one>
 
-        <many-to-one field="allenamento" target-entity="App\Entity\Allenamento" inversed-by="dettagli" nullable="false">
-            <join-column name="id_allenamento" referenced-column-name="id" on-delete="CASCADE"/>
+        <many-to-one field="allenamento" target-entity="App\Entity\Allenamento" inversed-by="dettagli">
+            <join-column name="id_allenamento" referenced-column-name="id" on-delete="CASCADE" nullable="false"/>
         </many-to-one>
     </entity>
 </doctrine-mapping>

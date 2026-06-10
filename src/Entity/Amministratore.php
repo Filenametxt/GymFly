@@ -2,7 +2,7 @@
 
 namespace App\Entity;
 
-use GymFly\Enum\Sesso;
+use App\Enum\Sesso;
 
 /**
  * Classe Amministratore – figlia di Utente (Class Table Inheritance).
