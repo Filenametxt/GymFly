@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping
+    xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+    https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+    <entity name="App\Entity\AttivitaPianificata" 
+            table="attivita_pianificata">
+
+        <id name="id" type="integer" column="id">
+            <generator strategy="AUTO"/>
+        </id>
+
+        <field name="giorno"    type="string"  column="giorno"/>
+        <field name="orario"    type="integer" column="orario"/>
+        <field name="prenotati" type="integer" column="prenotati"/>
+
+        <!-- ================================================================
+             RELAZIONI
+             ================================================================ -->
+
+        <!--
+            Molti-1  →  Allenatore  (AttivitaPianificata "è tenuta" da un Allenatore)
+            FK: attivita_pianificata.id_allenatore → allenatore.id_utente
+        -->
+        <many-to-one field="allenatore"
+                     target-entity="App\Entity\Allenatore"
+                     fetch="LAZY">
+            <join-column name="id_allenatore"
+                         referenced-column-name="id_utente"
+                         nullable="false"/>
+        </many-to-one>
+
+        <!--
+            Molti-1  →  Sala  (AttivitaPianificata "ospita" in una Sala)
+            FK: attivita_pianificata.id_sala → sala.id
+        -->
+        <many-to-one field="sala"
+                     target-entity="App\Entity\Sala"
+                     fetch="LAZY">
+            <join-column name="id_sala"
+                         referenced-column-name="id"
+                         nullable="false"/>
+        </many-to-one>
+
+        <!--
+            Molti-1  →  Attivita  (AttivitaPianificata "si riferisce a" un'Attività)
+            FK: attivita_pianificata.id_attivita → attivita.id
+        -->
+        <many-to-one field="attivitaDiRiferimento"
+                     target-entity="App\Entity\Attivita"
+                     fetch="LAZY">
+            <join-column name="id_attivita"
+                         referenced-column-name="id"
+                         nullable="false"/>
+        </many-to-one>
+
+        <!--
+            Molti-Molti  →  Cliente  (Cliente "è iscritto a" N AttivitàPianificate)
+            Tabella di join: iscrizione(id_attivita_pianificata, id_cliente)
+        -->
+        <many-to-many field="utenti"
+                      target-entity="App\Entity\Cliente"
+                      fetch="LAZY">
+            <join-table name="iscrizione">
+                <join-columns>
+                    <join-column name="id_attivita_pianificata"
+                                 referenced-column-name="id"/>
+                </join-columns>
+                <inverse-join-columns>
+                    <join-column name="id_cliente"
+                                 referenced-column-name="id_utente"/>
+                </inverse-join-columns>
+            </join-table>
+        </many-to-many>
+
+    </entity>
+
+</doctrine-mapping>

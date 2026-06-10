@@ -1,62 +1,90 @@
 <?php
-use Doctrine\ORM\Mapping as ORM;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
-#[ORM\Entity]
-class Attivita{
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
+
+namespace App\Entity;
+
+/**
+ * Classe Attivita.
+ * Il mapping ORM è definito esternamente in:
+ *   foundation/App.Entity.Attivita.dcm.xml
+ */
+class Attivita
+{
     private ?int $id = null;
     private string $nome;
     private string $descrizione;
-    private int $max_partecipanti;
-    private AttivitaPianificata $attivitapianificata;
-    private Collection $allenatori;
+    private int $maxPartecipanti;
 
-    public function __construct(string $nome, string $descrizione, int $max_partecipanti, AttivitaPianificata $attivitapianificata){
-        $this->nome = $nome;
-        $this->descrizione = $descrizione;
-        $this->max_partecipanti = $max_partecipanti;
-        $this->attivitapianificata = $attivitapianificata;
-        $this->allenatori = new ArrayCollection();
+    /** @var Allenatore[] */
+    private array $allenatori = [];
+
+    public function __construct(string $nome, string $descrizione, int $maxPartecipanti)
+    {
+        $this->nome            = $nome;
+        $this->descrizione     = $descrizione;
+        $this->maxPartecipanti = $maxPartecipanti;
     }
-    public function getId(): ?int{
+
+    public function getId(): ?int
+    {
         return $this->id;
     }
-    public function getNome(): string{
+
+    public function getNome(): string
+    {
         return $this->nome;
     }
-    public function getDescrizione(): string{
+
+    public function getDescrizione(): string
+    {
         return $this->descrizione;
     }
-    public function getMax_partecipanti(): int{
-        return $this->max_partecipanti;
+
+    public function getMaxPartecipanti(): int
+    {
+        return $this->maxPartecipanti;
     }
-    public function getAttivitapianificata(): AttivitaPianificata{
-        return $this->attivitapianificata;
-    }
-    public function getAllenatore(): Collection{
-        return $this->allenatori;
-    }
-    public function setNome(string $nome): self{
+
+     public function setNome(string $nome): self
+    {
         $this->nome = $nome;
         return $this;
     }
-    public function setDescrizione(string $descrizione): self{
+
+     public function setDescrizione(string $descrizione): self
+    {
         $this->descrizione = $descrizione;
         return $this;
     }
-    public function setMax_partecipanti(int $max_partecipanti): self{
-        $this->max_partecipanti = $max_partecipanti;
+
+    public function setMaxPartecipanti(int $maxPartecipanti): self
+    {
+        $this->maxPartecipanti = $maxPartecipanti;
         return $this;
     }
-    public function setAttivitaPianificata(AttivitaPianificata $attivitapianificata): self{
-        $this->attivitapianificata = $attivitapianificata;
+
+    // -------------------------------------------------------------------------
+    // Allenatori abilitati  (N-N)
+    // -------------------------------------------------------------------------
+
+    /** @return Allenatore[] */
+    public function getAllenatori(): array
+    {
+        return $this->allenatori;
+    }
+
+    public function addAllenatore(Allenatore $allenatore): self
+    {
+        if (!in_array($allenatore, $this->allenatori, true)) {
+            $this->allenatori[] = $allenatore;
+        }
         return $this;
     }
-    public function setAllenatore(Collection $allenatori): self{
-        $this->allenatori = $allenatori;
+
+    public function removeAllenatore(Allenatore $allenatore): self
+    {
+        $this->allenatori = array_values(
+            array_filter($this->allenatori, fn(Allenatore $a) => $a !== $allenatore)
+        );
         return $this;
     }
 }

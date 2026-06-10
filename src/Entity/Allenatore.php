@@ -1,29 +1,93 @@
 <?php
-use GymFly\Enum\Sesso;
-use Doctrine\ORM\Mapping as ORM;
-use Doctrine\Common\Collections\Collection;
-class Allenatore extends Utente{
-    private Palestra $palestra;
-    private Collection $attivita_abilitate;   //REVIEW da capire se inserire anche le attività pinaificate
 
-    
-    public function __construct(string $nome, string $cognome, string $email, string $CF, $profile_picture, int $telefono, string $indirizzo, Sesso $sesso, Palestra $palestra){
+namespace App\Entity;
+
+use GymFly\Enum\Sesso;
+
+/**
+ * Classe Allenatore – figlia di Utente (Class Table Inheritance).
+ * Il mapping ORM è definito esternamente in:
+ *   foundation/GymFly.Entity.Allenatore.dcm.xml
+ */
+class Allenatore extends Utente
+{
+    private Palestra $palestra;
+
+    /** @var Attivita[] */
+    private array $attivitaAbilitate = [];
+
+
+    public function __construct(
+        string   $nome,
+        string   $cognome,
+        string   $email,
+        string   $CF,
+        mixed    $profile_picture,
+        int      $telefono,
+        string   $indirizzo,
+        Sesso    $sesso,
+        Palestra $palestra
+    ) {
         parent::__construct($nome, $cognome, $email, $CF, $profile_picture, $telefono, $indirizzo, $sesso);
         $this->palestra = $palestra;
     }
-    public function getAbilitazioni(): Collection{
-        return $this->attivita_abilitate;
+
+    // -------------------------------------------------------------------------
+    // Palestra
+    // -------------------------------------------------------------------------
+
+    public function getPalestra(): Palestra
+    {
+        return $this->palestra;
     }
-    public function setAbilitazioni(Collection $attivita_abilitate): self{
-        $this->attivita_abilitate = $attivita_abilitate;
+
+    public function setPalestra(Palestra $palestra): self
+    {
+        $this->palestra = $palestra;
         return $this;
     }
-    public function mssAllowed(): bool{
+
+    // -------------------------------------------------------------------------
+    // Attività Abilitate  (N-N: l'allenatore è "abilitato" per certe attività)
+    // -------------------------------------------------------------------------
+
+    /** @return Attivita[] */
+    public function getAttivitaAbilitate(): array
+    {
+        return $this->attivitaAbilitate;
+    }
+
+    public function addAbilitazione(Attivita $attivita): self
+    {
+        if (!in_array($attivita, $this->attivitaAbilitate, true)) {
+            $this->attivitaAbilitate[] = $attivita;
+        }
+        return $this;
+    }
+
+    public function removeAbilitazione(Attivita $attivita): self
+    {
+        $this->attivitaAbilitate = array_values(
+            array_filter($this->attivitaAbilitate, fn(Attivita $a) => $a !== $attivita)
+        );
+        return $this;
+    }
+
+    // -------------------------------------------------------------------------
+    // Permessi
+    // -------------------------------------------------------------------------
+
+    public function mssAllowed(): bool
+    {
         return true;
     }
 
-    public function getPalestra(): Palestra{
-        return $this->palestra;
+    // -------------------------------------------------------------------------
+    // Definizione del ruolo
+    // -------------------------------------------------------------------------
+
+    public function getRuolo(): string{
+        return "allenatore";
     }
 }
 ?>

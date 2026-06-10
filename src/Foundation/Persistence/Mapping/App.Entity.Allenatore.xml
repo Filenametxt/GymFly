@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping
+    xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+    https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+    <!--
+        Strategia di ereditarietà: Class Table Inheritance (CTI/JOINED)
+        Allenatore è figlio di Utente, che è la root dell'hierarchy.
+        Questa entity definisce solo le colonne/relazioni aggiuntive rispetto a Utente.
+    -->
+    <entity name="App\Entity\Allenatore" 
+            table="allenatore" 
+            inheritance-type="JOINED">
+
+        <!-- ================================================================
+             RELAZIONI
+             ================================================================ -->
+
+        <!--
+            Molti-1  →  Palestra  (Allenatore "lavora" in una Palestra)
+            FK: allenatore.id_palestra → palestra.id
+        -->
+        <many-to-one field="palestra"
+                     target-entity="App\Entity\Palestra"
+                     fetch="LAZY">
+            <join-column name="id_palestra"
+                         referenced-column-name="id"
+                         nullable="false"/>
+        </many-to-one>
+
+        <!--
+            1-1  →  SessionePrivata  (Allenatore "tiene" una SessionePrivata)
+            FK lato SessionePrivata (mappedBy); lato proprietario è SessionePrivata.
+        -->
+        <one-to-one field="sessionePrivata"
+                    target-entity="App\Entity\SessionePrivata"
+                    mapped-by="allenatore"
+                    fetch="LAZY"/>
+
+        <!--
+            Molti-Molti  →  Attività  (Allenatore "abilitato" per N Attività)
+            Tabella di join: abilitazione(id_allenatore, id_attività)
+        -->
+        <many-to-many field="attivitaAbilitate"
+                      target-entity="App\Entity\Attivita"
+                      fetch="LAZY">
+            <join-table name="abilitazione">
+                <join-columns>
+                    <join-column name="id_allenatore"
+                                 referenced-column-name="id_utente"/>
+                </join-columns>
+                <inverse-join-columns>
+                    <join-column name="id_attivita"
+                                 referenced-column-name="id"/>
+                </inverse-join-columns>
+            </join-table>
+        </many-to-many>
+
+    </entity>
+
+</doctrine-mapping>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping
+    xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+    https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+    <entity name="App\Entity\Attivita" table="attivita">
+
+        <id name="id" type="integer" column="id">
+            <generator strategy="AUTO"/>
+        </id>
+
+        <field name="nome"            type="string"  column="nome"/>
+        <field name="descrizione"     type="string"  column="descrizione"/>
+        <field name="maxPartecipanti" type="integer" column="max_partecipanti"/>
+
+        <!-- ================================================================
+             RELAZIONI
+             ================================================================ -->
+
+        <!--
+            Molti-Molti  →  Allenatore  (Allenatore "abilitato per" Attività)
+            Lato inverso: il lato proprietario è Allenatore (join-table dichiarata lì).
+        -->
+        <many-to-many field="allenatori"
+                      target-entity="App\Entity\Allenatore"
+                      mapped-by="attivitaAbilitate"
+                      fetch="LAZY"/>
+
+        <!--
+            Relazione 1-Molti con AttivitaPianificata NON mappata:
+            Attività non conosce AttivitaPianificata (niente biunivocità).
+        -->
+
+    </entity>
+
+</doctrine-mapping>
