@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                  https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+    <entity name="Scheda" 
+            table="scheda">
+
+        <!-- Chiave primaria auto-generata -->
+        <id name="id" type="integer" column="id">
+            <generator strategy="AUTO"/>
+        </id>
+
+        <!-- Attributi semplici -->
+        <field name="nome_scheda"  type="string"   column="nome_scheda"  length="255" nullable="false"/>
+        <field name="data_inizio"  type="date_immutable" column="data_inizio"  nullable="false"/>
+        <field name="data_fine"    type="date_immutable" column="data_fine"    nullable="false"/>
+        <field name="obiettivo"    type="string"   column="obiettivo"    length="500" nullable="false"/>
+
+        <!--
+            Relazione 1-1 (Scheda possiede Cliente).
+            La FK id_cliente risiede in questa tabella (join-column lato "possessore").
+            unique="true" garantisce che un cliente non possa appartenere a più schede.
+        -->
+        <one-to-one field="cliente" target-entity="Cliente" fetch="LAZY">
+            <join-column name="id_cliente" referenced-column-name="id"
+                         nullable="false" unique="true"/>
+        </one-to-one>
+
+        <!--
+            Relazione N-1 verso Allenatore (molte schede possono essere
+            assegnate allo stesso allenatore).
+        -->
+        <many-to-one field="allenatore" target-entity="Allenatore" fetch="LAZY">
+            <join-column name="id_allenatore" referenced-column-name="id"
+                         nullable="false"/>
+        </many-to-one>
+
+        <!--
+            Relazione 1-N (Scheda contiene Allenamento) — BIUNIVOCA.
+            mapped-by="scheda" indica che la FK id_scheda è dichiarata
+            nella entity Allenamento (lato "molti"), che è il lato
+            proprietario della relazione.
+            orphanRemoval="true": se un Allenamento viene rimosso dalla
+            collection, viene eliminato anche dal DB (coerente con la
+            biunivocità: un Allenamento esiste solo se ha una Scheda).
+        -->
+        <one-to-many field="allenamenti" target-entity="Allenamento"
+                     mapped-by="scheda" orphan-removal="true">
+            <cascade>
+                <cascade-persist/>
+                <cascade-remove/>
+            </cascade>
+        </one-to-many>
+
+    </entity>
+
+</doctrine-mapping>
