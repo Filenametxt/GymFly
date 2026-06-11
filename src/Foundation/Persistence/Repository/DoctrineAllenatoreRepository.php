@@ -3,38 +3,50 @@
 namespace App\Foundation\Persistence\Repository;
 
 use App\Entity\Allenatore;
-use App\Entity\Palestra;
 use App\Entity\Attivita;
+use App\Entity\Palestra;
 use App\Entity\Repository\AllenatoreRepositoryInterface;
-use Doctrine\ORM\EntityManagerInterface;
 
-class DoctrineAllenatoreRepository implements AllenatoreRepositoryInterface
+class DoctrineAllenatoreRepository extends AbstractDoctrineUtenteRepository
+    implements AllenatoreRepositoryInterface
 {
-    public function __construct(
-        private EntityManagerInterface $em
-    ) {}
+    protected function getEntityClass(): string
+    {
+        return Allenatore::class;
+    }
+
+    // -------------------------------------------------------------------------
+    // CRUD tipizzato
+    // -------------------------------------------------------------------------
 
     public function findById(int $id): ?Allenatore
     {
         return $this->em->find(Allenatore::class, $id);
     }
 
-    public function save(Allenatore $allenatore): void
+    public function save(Allenatore $entity): void
     {
-        $this->em->persist($allenatore);
+        $this->em->persist($entity);
         $this->em->flush();
     }
 
-    public function delete(Allenatore $allenatore): void
+    public function delete(Allenatore $entity): void
     {
-        $this->em->remove($allenatore);
+        $this->em->remove($entity);
         $this->em->flush();
     }
 
+    /** @return Allenatore[] */
     public function findAll(): array
     {
-        return $this->em->getRepository(Allenatore::class)->findAll();
+        return $this->em
+            ->getRepository(Allenatore::class)
+            ->findAll();
     }
+
+    // -------------------------------------------------------------------------
+    // Lookup anagrafico
+    // -------------------------------------------------------------------------
 
     public function findByEmail(string $email): ?Allenatore
     {
@@ -43,10 +55,16 @@ class DoctrineAllenatoreRepository implements AllenatoreRepositoryInterface
             ->from(Allenatore::class, 'a')
             ->where('a.email = :email')
             ->setParameter('email', $email)
+            ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
     }
 
+    // -------------------------------------------------------------------------
+    // Filtro per palestra
+    // -------------------------------------------------------------------------
+
+    /** @return Allenatore[] */
     public function findByPalestra(Palestra $palestra): array
     {
         return $this->em->createQueryBuilder()
@@ -59,6 +77,11 @@ class DoctrineAllenatoreRepository implements AllenatoreRepositoryInterface
             ->getResult();
     }
 
+    // -------------------------------------------------------------------------
+    // Abilitazioni
+    // -------------------------------------------------------------------------
+
+    /** @return Allenatore[] */
     public function findAbilitatiPerAttivita(Attivita $attivita): array
     {
         return $this->em->createQueryBuilder()

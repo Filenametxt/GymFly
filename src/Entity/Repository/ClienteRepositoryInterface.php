@@ -2,13 +2,15 @@
 
 namespace App\Entity\Repository;
 
+use App\Entity\AttivitaPianificata;
 use App\Entity\Cliente;
 use App\Entity\Palestra;
-use App\Entity\AttivitaPianificata;
 
-interface ClienteRepositoryInterface
+interface ClienteRepositoryInterface extends UtenteRepositoryInterface
 {
-    // --- CRUD base ---
+    // -------------------------------------------------------------------------
+    // CRUD tipizzato — override con tipo concreto
+    // -------------------------------------------------------------------------
 
     public function findById(int $id): ?Cliente;
 
@@ -19,17 +21,17 @@ interface ClienteRepositoryInterface
     /** @return Cliente[] */
     public function findAll(): array;
 
-    // --- Lookup anagrafico ---
+    // -------------------------------------------------------------------------
+    // Lookup anagrafico
+    // -------------------------------------------------------------------------
 
     public function findByEmail(string $email): ?Cliente;
 
     public function findByCF(string $CF): ?Cliente;
 
-    public function existsByEmail(string $email): bool;
-
-    public function existsByCF(string $CF): bool;
-
-    // --- Filtro per palestra ---
+    // -------------------------------------------------------------------------
+    // Filtro per palestra
+    // -------------------------------------------------------------------------
 
     /**
      * Tutti i clienti iscritti a una palestra.
@@ -38,7 +40,9 @@ interface ClienteRepositoryInterface
      */
     public function findByPalestra(Palestra $palestra): array;
 
-    // --- Stato abbonamento ---
+    // -------------------------------------------------------------------------
+    // Stato abbonamento
+    // -------------------------------------------------------------------------
 
     /**
      * Clienti con abbonamento attivo (AbbonamentoAttivo non scaduto).
@@ -54,11 +58,12 @@ interface ClienteRepositoryInterface
      */
     public function findSenzaAbbonamentoAttivo(): array;
 
-    // --- Stato certificato medico ---
+    // -------------------------------------------------------------------------
+    // Stato certificato medico
+    // -------------------------------------------------------------------------
 
     /**
      * Clienti il cui certificato medico è scaduto o assente.
-     * Utile per notifiche e blocco prenotazioni.
      *
      * @return Cliente[]
      */
@@ -66,13 +71,14 @@ interface ClienteRepositoryInterface
 
     /**
      * Clienti il cui certificato scade entro $giorni giorni.
-     * Utile per notifiche preventive.
      *
      * @return Cliente[]
      */
     public function findConCertificatoInScadenzaEntro(int $giorni): array;
 
-    // --- Attività pianificate ---
+    // -------------------------------------------------------------------------
+    // Attività pianificate
+    // -------------------------------------------------------------------------
 
     /**
      * Clienti iscritti a una specifica attività pianificata.

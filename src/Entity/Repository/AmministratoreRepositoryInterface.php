@@ -5,32 +5,30 @@ namespace App\Entity\Repository;
 use App\Entity\Amministratore;
 use App\Entity\Palestra;
 
-/**
- * Contratto dichiarato in Entity.
- * Zero import da Doctrine.
- */
-interface AmministratoreRepositoryInterface
+interface AmministratoreRepositoryInterface extends UtenteRepositoryInterface
 {
     // -------------------------------------------------------------------------
-    // CRUD base
+    // CRUD tipizzato — override con tipo concreto
     // -------------------------------------------------------------------------
 
     public function findById(int $id): ?Amministratore;
-    public function save(Amministratore $amministratore): void;
-    public function delete(Amministratore $amministratore): void;
+
+    public function save(Amministratore $entity): void;
+
+    public function delete(Amministratore $entity): void;
 
     /** @return Amministratore[] */
     public function findAll(): array;
 
     // -------------------------------------------------------------------------
-    // Metodi specifici del dominio
+    // Lookup anagrafico
     // -------------------------------------------------------------------------
 
-    /**
-     * Trova un amministratore dalla sua email.
-     * Caso d'uso: login amministratore.
-     */
     public function findByEmail(string $email): ?Amministratore;
+
+    // -------------------------------------------------------------------------
+    // Filtro per palestra
+    // -------------------------------------------------------------------------
 
     /**
      * Trova l'amministratore responsabile di una palestra.

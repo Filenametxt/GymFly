@@ -5,35 +5,47 @@ namespace App\Foundation\Persistence\Repository;
 use App\Entity\Amministratore;
 use App\Entity\Palestra;
 use App\Entity\Repository\AmministratoreRepositoryInterface;
-use Doctrine\ORM\EntityManagerInterface;
 
-class DoctrineAmministratoreRepository implements AmministratoreRepositoryInterface
+class DoctrineAmministratoreRepository extends AbstractDoctrineUtenteRepository
+    implements AmministratoreRepositoryInterface
 {
-    public function __construct(
-        private EntityManagerInterface $em
-    ) {}
+    protected function getEntityClass(): string
+    {
+        return Amministratore::class;
+    }
+
+    // -------------------------------------------------------------------------
+    // CRUD tipizzato
+    // -------------------------------------------------------------------------
 
     public function findById(int $id): ?Amministratore
     {
         return $this->em->find(Amministratore::class, $id);
     }
 
-    public function save(Amministratore $amministratore): void
+    public function save(Amministratore $entity): void
     {
-        $this->em->persist($amministratore);
+        $this->em->persist($entity);
         $this->em->flush();
     }
 
-    public function delete(Amministratore $amministratore): void
+    public function delete(Amministratore $entity): void
     {
-        $this->em->remove($amministratore);
+        $this->em->remove($entity);
         $this->em->flush();
     }
 
+    /** @return Amministratore[] */
     public function findAll(): array
     {
-        return $this->em->getRepository(Amministratore::class)->findAll();
+        return $this->em
+            ->getRepository(Amministratore::class)
+            ->findAll();
     }
+
+    // -------------------------------------------------------------------------
+    // Lookup anagrafico
+    // -------------------------------------------------------------------------
 
     public function findByEmail(string $email): ?Amministratore
     {
@@ -42,9 +54,14 @@ class DoctrineAmministratoreRepository implements AmministratoreRepositoryInterf
             ->from(Amministratore::class, 'a')
             ->where('a.email = :email')
             ->setParameter('email', $email)
+            ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    // -------------------------------------------------------------------------
+    // Filtro per palestra
+    // -------------------------------------------------------------------------
 
     public function findByPalestra(Palestra $palestra): ?Amministratore
     {
@@ -54,6 +71,7 @@ class DoctrineAmministratoreRepository implements AmministratoreRepositoryInterf
             ->join('App\Entity\Palestra', 'p', 'WITH', 'p.amministratore = a')
             ->where('p = :palestra')
             ->setParameter('palestra', $palestra)
+            ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
     }

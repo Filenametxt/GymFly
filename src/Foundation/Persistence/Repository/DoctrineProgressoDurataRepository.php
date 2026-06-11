@@ -2,10 +2,20 @@
 
 namespace App\Foundation\Persistence\Repository;
 
+use App\Entity\ProgressoDurata;
 use App\Entity\Repository\ProgressoDurataRepositoryInterface;
-use Doctrine\ORM\EntityRepository;
 
-class DoctrineProgressoDurataRepository extends EntityRepository implements ProgressoDurataRepositoryInterface
+class DoctrineProgressoDurataRepository extends AbstractDoctrineProgressoRepository
+    implements ProgressoDurataRepositoryInterface
 {
-    // Implementazione concreta tramite Doctrine
+    protected function getEntityClass(): string
+    {
+        return ProgressoDurata::class;
+    }
+
+    public function save(ProgressoDurata $entity): void
+    {
+        $this->em->persist($entity);
+        $this->em->flush();
+    }
 }

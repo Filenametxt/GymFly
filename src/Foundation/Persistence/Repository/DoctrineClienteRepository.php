@@ -6,15 +6,18 @@ use App\Entity\AttivitaPianificata;
 use App\Entity\Cliente;
 use App\Entity\Palestra;
 use App\Entity\Repository\ClienteRepositoryInterface;
-use Doctrine\ORM\EntityManagerInterface;
 
-class DoctrineClienteRepository implements ClienteRepositoryInterface
+class DoctrineClienteRepository extends AbstractDoctrineUtenteRepository
+    implements ClienteRepositoryInterface
 {
-    public function __construct(
-        private readonly EntityManagerInterface $em,
-    ) {}
+    protected function getEntityClass(): string
+    {
+        return Cliente::class;
+    }
 
-    // --- CRUD base ---
+    // -------------------------------------------------------------------------
+    // CRUD tipizzato
+    // -------------------------------------------------------------------------
 
     public function findById(int $id): ?Cliente
     {
@@ -41,7 +44,9 @@ class DoctrineClienteRepository implements ClienteRepositoryInterface
             ->findAll();
     }
 
-    // --- Lookup anagrafico ---
+    // -------------------------------------------------------------------------
+    // Lookup anagrafico
+    // -------------------------------------------------------------------------
 
     public function findByEmail(string $email): ?Cliente
     {
@@ -65,33 +70,9 @@ class DoctrineClienteRepository implements ClienteRepositoryInterface
             ->getOneOrNullResult();
     }
 
-    public function existsByEmail(string $email): bool
-    {
-        $count = (int) $this->em->createQueryBuilder()
-            ->select('COUNT(c.id)')
-            ->from(Cliente::class, 'c')
-            ->where('c.email = :email')
-            ->setParameter('email', $email)
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        return $count > 0;
-    }
-
-    public function existsByCF(string $CF): bool
-    {
-        $count = (int) $this->em->createQueryBuilder()
-            ->select('COUNT(c.id)')
-            ->from(Cliente::class, 'c')
-            ->where('c.CF = :cf')
-            ->setParameter('cf', $CF)
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        return $count > 0;
-    }
-
-    // --- Filtro per palestra ---
+    // -------------------------------------------------------------------------
+    // Filtro per palestra
+    // -------------------------------------------------------------------------
 
     /** @return Cliente[] */
     public function findByPalestra(Palestra $palestra): array
@@ -107,7 +88,9 @@ class DoctrineClienteRepository implements ClienteRepositoryInterface
             ->getResult();
     }
 
-    // --- Stato abbonamento ---
+    // -------------------------------------------------------------------------
+    // Stato abbonamento
+    // -------------------------------------------------------------------------
 
     /** @return Cliente[] */
     public function findConAbbonamentoAttivo(): array
@@ -137,7 +120,9 @@ class DoctrineClienteRepository implements ClienteRepositoryInterface
             ->getResult();
     }
 
-    // --- Stato certificato medico ---
+    // -------------------------------------------------------------------------
+    // Stato certificato medico
+    // -------------------------------------------------------------------------
 
     /** @return Cliente[] */
     public function findConCertificatoScadutoOAssente(): array
@@ -172,7 +157,9 @@ class DoctrineClienteRepository implements ClienteRepositoryInterface
             ->getResult();
     }
 
-    // --- Attività pianificate ---
+    // -------------------------------------------------------------------------
+    // Attività pianificate
+    // -------------------------------------------------------------------------
 
     /** @return Cliente[] */
     public function findByAttivitaPianificata(AttivitaPianificata $attivita): array

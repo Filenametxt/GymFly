@@ -2,8 +2,9 @@
 
 namespace App\Entity\Repository;
 
-interface ProgressoRipetizioniRepositoryInterface
+use App\Entity\ProgressoRipetizioni;
+
+interface ProgressoRipetizioniRepositoryInterface extends ProgressoRepositoryInterface
 {
-    public function find(int $id);
-    public function findAll();
+    public function save(ProgressoRipetizioni $entity): void;
 }

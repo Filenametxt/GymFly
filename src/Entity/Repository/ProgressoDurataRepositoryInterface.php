@@ -2,8 +2,9 @@
 
 namespace App\Entity\Repository;
 
-interface ProgressoDurataRepositoryInterface
+use App\Entity\ProgressoDurata;
+
+interface ProgressoDurataRepositoryInterface extends ProgressoRepositoryInterface
 {
-    public function find(int $id);
-    public function findAll();
+    public function save(ProgressoDurata $entity): void;
 }
