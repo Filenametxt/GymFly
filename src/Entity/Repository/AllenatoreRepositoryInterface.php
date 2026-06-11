@@ -6,6 +6,10 @@ use App\Entity\Allenatore;
 use App\Entity\Attivita;
 use App\Entity\Palestra;
 
+/**
+ * @method void save(\App\Entity\Utente $entity)
+ * @method void delete(\App\Entity\Utente $entity)
+ */
 interface AllenatoreRepositoryInterface extends UtenteRepositoryInterface
 {
     // -------------------------------------------------------------------------
@@ -13,13 +17,6 @@ interface AllenatoreRepositoryInterface extends UtenteRepositoryInterface
     // -------------------------------------------------------------------------
 
     public function findById(int $id): ?Allenatore;
-
-    public function save(Allenatore $entity): void;
-
-    public function delete(Allenatore $entity): void;
-
-    /** @return Allenatore[] */
-    public function findAll(): array;
 
     // -------------------------------------------------------------------------
     // Lookup anagrafico

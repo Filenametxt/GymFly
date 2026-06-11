@@ -24,26 +24,6 @@ class DoctrineAllenatoreRepository extends AbstractDoctrineUtenteRepository
         return $this->em->find(Allenatore::class, $id);
     }
 
-    public function save(Allenatore $entity): void
-    {
-        $this->em->persist($entity);
-        $this->em->flush();
-    }
-
-    public function delete(Allenatore $entity): void
-    {
-        $this->em->remove($entity);
-        $this->em->flush();
-    }
-
-    /** @return Allenatore[] */
-    public function findAll(): array
-    {
-        return $this->em
-            ->getRepository(Allenatore::class)
-            ->findAll();
-    }
-
     // -------------------------------------------------------------------------
     // Lookup anagrafico
     // -------------------------------------------------------------------------

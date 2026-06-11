@@ -5,6 +5,10 @@ namespace App\Entity\Repository;
 use App\Entity\Amministratore;
 use App\Entity\Palestra;
 
+/**
+ * @method void save(\App\Entity\Utente $entity)
+ * @method void delete(\App\Entity\Utente $entity)
+ */
 interface AmministratoreRepositoryInterface extends UtenteRepositoryInterface
 {
     // -------------------------------------------------------------------------
@@ -12,13 +16,6 @@ interface AmministratoreRepositoryInterface extends UtenteRepositoryInterface
     // -------------------------------------------------------------------------
 
     public function findById(int $id): ?Amministratore;
-
-    public function save(Amministratore $entity): void;
-
-    public function delete(Amministratore $entity): void;
-
-    /** @return Amministratore[] */
-    public function findAll(): array;
 
     // -------------------------------------------------------------------------
     // Lookup anagrafico

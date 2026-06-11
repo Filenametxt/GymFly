@@ -24,26 +24,6 @@ class DoctrineClienteRepository extends AbstractDoctrineUtenteRepository
         return $this->em->find(Cliente::class, $id);
     }
 
-    public function save(Cliente $entity): void
-    {
-        $this->em->persist($entity);
-        $this->em->flush();
-    }
-
-    public function delete(Cliente $entity): void
-    {
-        $this->em->remove($entity);
-        $this->em->flush();
-    }
-
-    /** @return Cliente[] */
-    public function findAll(): array
-    {
-        return $this->em
-            ->getRepository(Cliente::class)
-            ->findAll();
-    }
-
     // -------------------------------------------------------------------------
     // Lookup anagrafico
     // -------------------------------------------------------------------------

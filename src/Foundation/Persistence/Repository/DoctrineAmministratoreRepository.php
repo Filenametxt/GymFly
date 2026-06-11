@@ -23,26 +23,6 @@ class DoctrineAmministratoreRepository extends AbstractDoctrineUtenteRepository
         return $this->em->find(Amministratore::class, $id);
     }
 
-    public function save(Amministratore $entity): void
-    {
-        $this->em->persist($entity);
-        $this->em->flush();
-    }
-
-    public function delete(Amministratore $entity): void
-    {
-        $this->em->remove($entity);
-        $this->em->flush();
-    }
-
-    /** @return Amministratore[] */
-    public function findAll(): array
-    {
-        return $this->em
-            ->getRepository(Amministratore::class)
-            ->findAll();
-    }
-
     // -------------------------------------------------------------------------
     // Lookup anagrafico
     // -------------------------------------------------------------------------

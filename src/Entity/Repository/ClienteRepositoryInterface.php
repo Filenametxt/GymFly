@@ -6,6 +6,10 @@ use App\Entity\AttivitaPianificata;
 use App\Entity\Cliente;
 use App\Entity\Palestra;
 
+/**
+ * @method void save(\App\Entity\Utente $entity)
+ * @method void delete(\App\Entity\Utente $entity)
+ */
 interface ClienteRepositoryInterface extends UtenteRepositoryInterface
 {
     // -------------------------------------------------------------------------
@@ -13,13 +17,6 @@ interface ClienteRepositoryInterface extends UtenteRepositoryInterface
     // -------------------------------------------------------------------------
 
     public function findById(int $id): ?Cliente;
-
-    public function save(Cliente $entity): void;
-
-    public function delete(Cliente $entity): void;
-
-    /** @return Cliente[] */
-    public function findAll(): array;
 
     // -------------------------------------------------------------------------
     // Lookup anagrafico
