@@ -8,7 +8,7 @@ class Cliente extends Utente
 {
     private \DateTimeImmutable $dataDiNascita;
     private string $luogoDiNascita;
-    private string $indirizzoDiDomicilio;
+    private ?string $indirizzoDiDomicilio = null;
     private string $metodoDiPagamento;
 
     // 1-1 con CertificatoMedico — Cliente owner, biunivoca
@@ -41,7 +41,7 @@ class Cliente extends Utente
         Sesso $sesso,
         \DateTimeImmutable $dataDiNascita,
         string $luogoDiNascita,
-        string $indirizzoDiDomicilio,
+        ?string $indirizzoDiDomicilio=null,
         string $metodoDiPagamento,
         string $password = "",
         ?string $profilePicture = null,
@@ -61,7 +61,6 @@ class Cliente extends Utente
 
         $this->dataDiNascita = $dataDiNascita;
         $this->luogoDiNascita = $luogoDiNascita;
-        $this->indirizzoDiDomicilio = $indirizzoDiDomicilio;
         $this->metodoDiPagamento = $metodoDiPagamento;
     }
 

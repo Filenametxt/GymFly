@@ -12,7 +12,7 @@ class Parametri
     private ?float $bicipiteSinistro = null;
     private ?float $tricipiteDestro = null;
     private ?float $tricipiteSinistro = null;
-    private ?float $casciaDestro = null;
+    private ?float $cosciaDestra = null;
     private ?float $cosciaSinistra = null;
     private ?float $polpaccioDestro = null;
     private ?float $polpaccioSinistro = null;
@@ -33,7 +33,7 @@ class Parametri
         ?float $bicipiteSinistro = null,
         ?float $tricipiteDestro = null,
         ?float $tricipiteSinistro = null,
-        ?float $cosciaDestro = null,
+        ?float $cosciaDestra = null,
         ?float $cosciaSinistra = null,
         ?float $polpaccioDestro = null,
         ?float $polpaccioSinistro = null,
@@ -50,7 +50,7 @@ class Parametri
         $this->bicipiteSinistro = $bicipiteSinistro;
         $this->tricipiteDestro = $tricipiteDestro;   // BUGFIX: era assegnato $bicipiteDestro
         $this->tricipiteSinistro = $tricipiteSinistro;
-        $this->casciaDestro = $cosciaDestro;
+        $this->cosciaDestra = $cosciaDestra;
         $this->cosciaSinistra = $cosciaSinistra;
         $this->polpaccioDestro = $polpaccioDestro;
         $this->polpaccioSinistro = $polpaccioSinistro;
@@ -100,9 +100,9 @@ class Parametri
     {
         return $this->tricipiteSinistro;
     }
-    public function getCosciaDestro(): ?float
+    public function getCosciaDestra(): ?float
     {
-        return $this->casciaDestro;
+        return $this->cosciaDestra;
     }
     public function getCosciaSinistra(): ?float
     {
@@ -183,9 +183,9 @@ class Parametri
         $this->tricipiteSinistro = $v;
         return $this;
     }
-    public function setCosciaDestro(?float $v): self
+    public function setCosciaDestra(?float $v): self
     {
-        $this->casciaDestro = $v;
+        $this->cosciaDestra = $v;
         return $this;
     }
     public function setCosciaSinistra(?float $v): self
