@@ -62,17 +62,8 @@
         -->
         <many-to-many field="utenti"
                       target-entity="App\Entity\Cliente"
+                      mapped-by="attivitaPianificate" 
                       fetch="LAZY">
-            <join-table name="iscrizione_attivita">
-                <join-columns>
-                    <join-column name="id_attivita_pianificata"
-                                 referenced-column-name="id"/>
-                </join-columns>
-                <inverse-join-columns>
-                    <join-column name="id_cliente"
-                                 referenced-column-name="id"/>
-                </inverse-join-columns>
-            </join-table>
         </many-to-many>
 
     </entity>

@@ -97,10 +97,9 @@
         -->
         <many-to-many field="attivitaPianificate"
                       target-entity="App\Entity\AttivitaPianificata"
-                      inversed-by="clienti">
-            <join-table name="iscritto">
+                      inversed-by="utenti"> <join-table name="iscritto">
                 <join-columns>
-                    <join-column name="id_cliente"             referenced-column-name="id"/>
+                    <join-column name="id_cliente" referenced-column-name="id"/>
                 </join-columns>
                 <inverse-join-columns>
                     <join-column name="id_attivita_pianificata" referenced-column-name="id"/>
