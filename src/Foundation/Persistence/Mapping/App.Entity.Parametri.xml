@@ -17,7 +17,7 @@
         <field name="bicipiteSinistro"  type="float" column="bicipite_sinistro"  nullable="true"/>
         <field name="tricipiteDestro"   type="float" column="tricipite_destro"   nullable="true"/>
         <field name="tricipiteSinistro" type="float" column="tricipite_sinistro" nullable="true"/>
-        <field name="casciaDestro"      type="float" column="coscia_destra"      nullable="true"/>
+        <field name="cosciaDestra"      type="float" column="coscia_destra"      nullable="true"/>
         <field name="cosciaSinistra"    type="float" column="coscia_sinistra"    nullable="true"/>
         <field name="polpaccioDestro"   type="float" column="polpaccio_destro"   nullable="true"/>
         <field name="polpaccioSinistro" type="float" column="polpaccio_sinistro" nullable="true"/>
