@@ -5,7 +5,7 @@
                   https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
 
     <entity name="App\Entity\Utente"
-            table="utente"
+            table="Utente"
             inheritance-type="JOINED">
 
         <!-- discriminator: Doctrine capisce quale sottoclasse caricare -->

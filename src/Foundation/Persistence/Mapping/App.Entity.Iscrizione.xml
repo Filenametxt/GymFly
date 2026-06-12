@@ -4,7 +4,7 @@
                   xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
                   https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
 
-    <entity name="App\Entity\Iscrizione" table="iscrizione">
+    <entity name="App\Entity\Iscrizione" table="Iscrizione">
 
         <id name="id" type="integer" column="id">
             <generator strategy="AUTO"/>
