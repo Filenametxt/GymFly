@@ -17,6 +17,8 @@ use App\Entity\Cliente;
 use App\Entity\Attivita;
 use App\Entity\Palestra;
 use App\Entity\Abbonamento;
+use App\Entity\CertificatoMedico;
+use App\Entity\Messaggio;
 use App\Enum\Sesso;
 use App\Infrastructure\Doctrine\EntityManagerFactory;
 
@@ -77,7 +79,7 @@ try {
         Sesso::MALE,
         'AllenatorePass88!',
         null,      // 8° parametro (profilePicture, da Utente)
-        null,      // 9° parametro (telefono, da Utente)
+        '372-148-2574',      // 9° parametro (telefono, da Utente)
         $palestra  // 10° parametro: l'oggetto Palestra
     );
     $entityManager->persist($allenatore);
@@ -117,6 +119,33 @@ try {
         $entityManager->flush(); // Flush dell'aggiornamento della join table
     }
     echo "[OK] Attività salvata e collegata all'allenatore.\n";
+
+    // 6. Creazione Certificato Medico (Relazione 1-1 o N-1 con Cliente)
+    echo "[DEBUG] 9. Creazione Certificato Medico...\n";
+    $certificato = new CertificatoMedico(
+        new \DateTimeImmutable('2024-01-10'),
+        'Dr. Gregory House',
+        $cliente,
+        '/uploads/certificati/cert_chiara_2024.pdf'
+    );
+    $entityManager->persist($certificato);
+    $entityManager->flush();
+    echo "[OK] Certificato Medico salvato (Scadenza calcolata: " . $certificato->getDataScadenza()->format('d/m/Y') . ").\n";
+
+    // 7. Creazione Messaggio (Relazione Mittente -> N Destinatari)
+    echo "[DEBUG] 10. Invio Messaggio di benvenuto...\n";
+    $messaggio = new Messaggio(
+        $allenatore, // Mittente
+        'Benvenuta nel team!', // Oggetto
+        'Ciao Chiara, sono Luigi. Ho visto la tua iscrizione, quando vuoi iniziamo con il primo allenamento!' // Contenuto
+    );
+    // Aggiungiamo il cliente come destinatario
+    $messaggio->aggiungiDestinatario($cliente);
+    
+    // Salvataggio tramite EntityManager
+    $entityManager->persist($messaggio);
+    $entityManager->flush();
+    echo "[OK] Messaggio inviato correttamente dall'allenatore al cliente.\n";
 
     // NB: Abbonamento è una classe astratta. Se vuoi testarne la persistenza, 
     // istanzia una sua classe figlia (es: $abbonamento = new AbbonamentoDurata(...)).

@@ -43,8 +43,15 @@ abstract class Utente
         $this->indirizzo = $indirizzo;
         $this->sesso = $sesso;
         $this->profilePicture = $profilePicture;
-        $this->telefono = $telefono;
-
+        $this->sesso = $sesso;
+        $this->profilePicture = $profilePicture;
+        
+        // Se il telefono è stato passato (non è null), avvia il setter con la pulizia
+        if ($telefono !== null) {
+            $this->setTelefono($telefono);
+        } else {
+            $this->telefono = null;
+        }
         if ($password !== "") {
             $this->setPassword($password);
         }
