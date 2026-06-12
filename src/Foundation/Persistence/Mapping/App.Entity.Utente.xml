@@ -42,7 +42,7 @@
 
         <!-- Molti-Molti: Utente RICEVE molti Messaggi (tabella RICEVE) -->
         <many-to-many field="messaggiRicevuti" target-entity="App\Entity\Messaggio" inversed-by="destinatari">
-            <join-table name="riceve">
+            <join-table name="Riceve">
                 <join-columns>
                     <join-column name="id_utente"    referenced-column-name="id"/>
                 </join-columns>

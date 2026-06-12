@@ -6,7 +6,7 @@
     https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
 
     <entity name="App\Entity\AttivitaPianificata" 
-            table="attivita_pianificata">
+            table="AttivitaPianificata">
 
         <id name="id" type="integer" column="id">
             <generator strategy="AUTO"/>
