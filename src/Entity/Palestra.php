@@ -4,7 +4,7 @@ namespace App\Entity;
 
 class Palestra {
 
-    private int $id;
+    private ?int $id = null;
     private string $nome;
     private string $indirizzo;
     private string $email;

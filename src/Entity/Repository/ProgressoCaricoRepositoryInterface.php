@@ -2,8 +2,9 @@
 
 namespace App\Entity\Repository;
 
-interface ProgressoCaricoRepositoryInterface
+use App\Entity\ProgressoCarico;
+
+interface ProgressoCaricoRepositoryInterface extends ProgressoRepositoryInterface
 {
-    public function find(int $id);
-    public function findAll();
+    public function save(ProgressoCarico $entity): void;
 }

@@ -2,8 +2,49 @@
 
 namespace App\Entity\Repository;
 
-interface AllenatoreRepositoryInterface
+use App\Entity\Allenatore;
+use App\Entity\Attivita;
+use App\Entity\Palestra;
+
+/**
+ * @method void save(\App\Entity\Utente $entity)
+ * @method void delete(\App\Entity\Utente $entity)
+ */
+interface AllenatoreRepositoryInterface extends UtenteRepositoryInterface
 {
-    public function find(int $id);
-    public function findAll();
+    // -------------------------------------------------------------------------
+    // CRUD tipizzato — override con tipo concreto
+    // -------------------------------------------------------------------------
+
+    public function findById(int $id): ?Allenatore;
+
+    // -------------------------------------------------------------------------
+    // Lookup anagrafico
+    // -------------------------------------------------------------------------
+
+    public function findByEmail(string $email): ?Allenatore;
+
+    // -------------------------------------------------------------------------
+    // Filtro per palestra
+    // -------------------------------------------------------------------------
+
+    /**
+     * Tutti gli allenatori di una palestra.
+     * Caso d'uso: gestione staff palestra.
+     *
+     * @return Allenatore[]
+     */
+    public function findByPalestra(Palestra $palestra): array;
+
+    // -------------------------------------------------------------------------
+    // Abilitazioni
+    // -------------------------------------------------------------------------
+
+    /**
+     * Allenatori abilitati per una certa attività.
+     * Caso d'uso: assegnare un allenatore a un'attività pianificata.
+     *
+     * @return Allenatore[]
+     */
+    public function findAbilitatiPerAttivita(Attivita $attivita): array;
 }

@@ -2,8 +2,52 @@
 
 namespace App\Entity\Repository;
 
+use App\Entity\Palestra;
+use App\Entity\Sala;
+
 interface SalaRepositoryInterface
 {
-    public function find(int $id);
-    public function findAll();
+    // -------------------------------------------------------------------------
+    // CRUD base
+    // -------------------------------------------------------------------------
+
+    public function findById(int $id): ?Sala;
+
+    public function save(Sala $entity): void;
+
+    public function delete(Sala $entity): void;
+
+    /** @return Sala[] */
+    public function findAll(): array;
+
+    // -------------------------------------------------------------------------
+    // Query per palestra
+    // -------------------------------------------------------------------------
+
+    /**
+     * Tutte le sale di una palestra.
+     * Caso d'uso: elenco sale nella dashboard amministratore.
+     *
+     * @return Sala[]
+     */
+    public function findByPalestra(Palestra $palestra): array;
+
+    /**
+     * Sale di una palestra con capienza sufficiente per un dato numero
+     * di partecipanti.
+     * Caso d'uso: selezione sala durante la pianificazione di un'attività.
+     *
+     * @return Sala[]
+     */
+    public function findByPalestraConCapienzaMinima(Palestra $palestra, int $minPartecipanti): array;
+
+    // -------------------------------------------------------------------------
+    // Unicità
+    // -------------------------------------------------------------------------
+
+    /**
+     * Verifica se esiste già una sala con lo stesso nome nella palestra.
+     * Caso d'uso: validazione prima della creazione/modifica.
+     */
+    public function existsByNomeAndPalestra(string $nome, Palestra $palestra): bool;
 }
