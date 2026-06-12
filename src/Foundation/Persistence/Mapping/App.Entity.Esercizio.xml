@@ -18,7 +18,7 @@
         </many-to-one>
 
         <many-to-many field="gruppiMuscolari" target-entity="App\Entity\GruppoMuscolare" inversed-by="esercizi">
-            <join-table name="allena">
+            <join-table name="Allena">
                 <join-columns><join-column name="id_esercizio" referenced-column-name="id"/></join-columns>
                 <inverse-join-columns><join-column name="id_gruppo_muscolare" referenced-column-name="id"/></inverse-join-columns>
             </join-table>
