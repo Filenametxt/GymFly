@@ -12,7 +12,7 @@
     <entity name="App\Entity\Cliente" table="Cliente">
 
         <!-- Campi aggiuntivi rispetto a Utente -->
-        <field name="dataDiNascita"        type="date"   column="data_di_nascita"/>
+        <field name="dataDiNascita"        type="date_immutable"   column="data_di_nascita"/>
         <field name="luogoDiNascita"       type="string" column="luogo_di_nascita"/>
         <field name="indirizzoDiDomicilio" type="string" column="indirizzo_di_domicilio" nullable="true"/>
         <field name="metodoDiPagamento"    type="string" column="metodo_di_pagamento"/>

@@ -2,6 +2,9 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+
 class Esercizio
 {
     private ?int $id = null;
@@ -18,7 +21,8 @@ class Esercizio
     private ?Allenatore $creatore = null;
 
     // N-N con GruppoMuscolare — tabella ALLENA, biunivoca
-    private array $gruppiMuscolari = [];
+    /** @var Collection<int, GruppoMuscolare> */
+    private Collection $gruppiMuscolari;
 
     public function __construct(
         ?string $nomeEsercizio,
@@ -27,6 +31,7 @@ class Esercizio
         ?Attrezzatura $attrezzaturaNecessaria = null,
         ?Allenatore $creatore = null,
     ) {
+        $this->gruppiMuscolari = new ArrayCollection();
         $this->nomeEsercizio = $nomeEsercizio;
         $this->descrizione = $descrizione;
         $this->tipologia = $tipologia;
@@ -63,8 +68,8 @@ class Esercizio
         return $this->creatore;
     }
 
-    /** @return GruppoMuscolare[] */
-    public function getGruppiMuscolari(): array
+    /** @return Collection<int, GruppoMuscolare> */
+    public function getGruppiMuscolari(): Collection
     {
         return $this->gruppiMuscolari;
     }
@@ -109,21 +114,19 @@ class Esercizio
 
     public function aggiungiGruppoMuscolare(GruppoMuscolare $gruppo): self
     {
-        foreach ($this->gruppiMuscolari as $g) {
-            if ($g === $gruppo)
-                return $this;
+        if (!$this->gruppiMuscolari->contains($gruppo)) {
+            $this->gruppiMuscolari->add($gruppo);
+            // aggiorna lato inverso
+            $gruppo->aggiungiEsercizio($this);
         }
-        $this->gruppiMuscolari[] = $gruppo;
-        // aggiorna lato inverso
-        $gruppo->aggiungiEsercizio($this);
         return $this;
     }
 
     public function rimuoviGruppoMuscolare(GruppoMuscolare $gruppo): self
     {
-        $this->gruppiMuscolari = array_values(
-            array_filter($this->gruppiMuscolari, fn($g) => $g !== $gruppo)
-        );
+        if ($this->gruppiMuscolari->removeElement($gruppo)) {
+            $gruppo->rimuoviEsercizio($this);
+        }
         return $this;
     }
 }

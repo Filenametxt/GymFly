@@ -2,6 +2,9 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+
 class Scheda
 {
     private int $id;
@@ -12,8 +15,8 @@ class Scheda
     private Cliente $cliente;
     private Allenatore $allenatore;
 
-    /** @var Allenamento[] */
-    private array $allenamenti = [];
+    /** @var Collection<int, Allenamento> */
+    private Collection $allenamenti;
 
     public function __construct(
         string             $nome_scheda,
@@ -23,6 +26,8 @@ class Scheda
         Cliente            $cliente,
         Allenatore         $allenatore
     ) {
+        $this->allenamenti = new ArrayCollection();
+
         if ($data_inizio >= $data_fine) {
             throw new \InvalidArgumentException(
                 "La data di inizio deve essere precedente alla data di fine."
@@ -78,9 +83,9 @@ class Scheda
     /**
      * Restituisce gli allenamenti contenuti nella scheda.
      *
-     * @return Allenamento[]
+     * @return Collection<int, Allenamento>
      */
-    public function getAllenamenti(): array
+    public function getAllenamenti(): Collection
     {
         return $this->allenamenti;
     }
@@ -146,8 +151,8 @@ class Scheda
      */
     public function addAllenamento(Allenamento $allenamento): self
     {
-        if (!in_array($allenamento, $this->allenamenti, true)) {
-            $this->allenamenti[] = $allenamento;
+        if (!$this->allenamenti->contains($allenamento)) {
+            $this->allenamenti->add($allenamento);
             // Mantiene la biunivocità: il lato proprietario viene aggiornato
             $allenamento->setScheda($this);
         }
@@ -161,9 +166,7 @@ class Scheda
      */
     public function removeAllenamento(Allenamento $allenamento): self
     {
-        $key = array_search($allenamento, $this->allenamenti, true);
-        if ($key !== false) {
-            array_splice($this->allenamenti, $key, 1);
+        if ($this->allenamenti->removeElement($allenamento)) {
             // Rimuove il riferimento inverso sull'Allenamento
             $allenamento->setScheda(null);
         }

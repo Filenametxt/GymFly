@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Enum\Sesso;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 class Cliente extends Utente
 {
@@ -27,10 +29,12 @@ class Cliente extends Utente
     private ?Palestra $palestra = null;
 
     // 1-N con Progresso — biunivoca, Cliente ha array di progressi
-    private array $progressi = [];
+    /** @var Collection<int, Progresso> */
+    private Collection $progressi;
 
     // N-N con AttivitaPianificata — tabella ISCRITTO
-    private array $attivitaPianificate = [];
+    /** @var Collection<int, AttivitaPianificata> */
+    private Collection $attivitaPianificate;
 
     public function __construct(
         string $nome,
@@ -47,6 +51,9 @@ class Cliente extends Utente
         ?string $profilePicture = null,
         ?string $telefono = null,
     ) {
+        $this->progressi = new ArrayCollection();
+        $this->attivitaPianificate = new ArrayCollection();
+
         parent::__construct(
             $nome,
             $cognome,
@@ -119,14 +126,14 @@ class Cliente extends Utente
         return $this->palestra;
     }
 
-    /** @return Progresso[] */
-    public function getProgressi(): array
+    /** @return Collection<int, Progresso> */
+    public function getProgressi(): Collection
     {
         return $this->progressi;
     }
 
-    /** @return AttivitaPianificata[] */
-    public function getAttivitaPianificate(): array
+    /** @return Collection<int, AttivitaPianificata> */
+    public function getAttivitaPianificate(): Collection
     {
         return $this->attivitaPianificate;
     }
@@ -226,7 +233,9 @@ class Cliente extends Utente
      */
     public function aggiungiProgresso(Progresso $progresso): self
     {
-        $this->progressi[] = $progresso;
+        if (!$this->progressi->contains($progresso)) {
+            $this->progressi->add($progresso);
+        }
         if ($progresso->getCliente() !== $this) {
             $progresso->setCliente($this);
         }
@@ -239,25 +248,16 @@ class Cliente extends Utente
      */
     public function iscriviAAttivita(AttivitaPianificata $attivita): self
     {
-        foreach ($this->attivitaPianificate as $a) {
-            if ($a === $attivita)
-                return $this;
+        if (!$this->attivitaPianificate->contains($attivita)) {
+            $this->attivitaPianificate->add($attivita);
+            $attivita->aggiungiCliente($this);
         }
-        $this->attivitaPianificate[] = $attivita;
-        $attivita->aggiungiCliente($this);
         return $this;
     }
 
     public function cancellaIscrizioneAttivita(AttivitaPianificata $attivita): self
     {
-        // 1. Cerca l'indice esatto dell'attività (il 'true' garantisce che sia lo stesso identico oggetto)
-        $indice = array_search($attivita, $this->attivitaPianificate, true);
-        
-        if ($indice !== false) {
-            // 2. Rimuove l'attività dall'array
-            unset($this->attivitaPianificate[$indice]);
-            
-            // 3. Aggiorna il lato inverso della relazione
+        if ($this->attivitaPianificate->removeElement($attivita)) {
             $attivita->rimuoviCliente($this);
         }
         return $this;

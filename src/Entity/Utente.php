@@ -1,6 +1,8 @@
 <?php
 namespace App\Entity;
 use App\Enum\Sesso;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 abstract class Utente
 {
@@ -15,9 +17,10 @@ abstract class Utente
     private Sesso $sesso;
     private string $password;
 
-    // array nativi PHP — zero dipendenze da Doctrine
-    private array $messaggiInviati = [];
-    private array $messaggiRicevuti = [];
+    /** @var Collection<int, Messaggio> */
+    private Collection $messaggiInviati;
+    /** @var Collection<int, Messaggio> */
+    private Collection $messaggiRicevuti;
 
     public function __construct(
         string $nome,
@@ -30,6 +33,9 @@ abstract class Utente
         ?string $profilePicture = null,
         ?string $telefono = null
     ) {
+        $this->messaggiInviati = new ArrayCollection();
+        $this->messaggiRicevuti = new ArrayCollection();
+
         $this->nome = $nome;
         $this->cognome = $cognome;
         $this->email = $email;
@@ -93,12 +99,12 @@ abstract class Utente
         return $this->sesso;
     }
 
-    public function getMessaggiInviati(): array
+    public function getMessaggiInviati(): Collection
     {
         return $this->messaggiInviati;
     }
 
-    public function getMessaggiRicevuti(): array
+    public function getMessaggiRicevuti(): Collection
     {
         return $this->messaggiRicevuti;
     }
@@ -253,7 +259,9 @@ abstract class Utente
      */
     public function aggiungiMessaggioInviato(Messaggio $messaggio): self
     {
-        $this->messaggiInviati[] = $messaggio;
+        if (!$this->messaggiInviati->contains($messaggio)) {
+            $this->messaggiInviati->add($messaggio);
+        }
         return $this;
     }
 
@@ -262,7 +270,9 @@ abstract class Utente
      */
     public function aggiungiMessaggioRicevuto(Messaggio $messaggio): self
     {
-        $this->messaggiRicevuti[] = $messaggio;
+        if (!$this->messaggiRicevuti->contains($messaggio)) {
+            $this->messaggiRicevuti->add($messaggio);
+        }
         return $this;
     }
 

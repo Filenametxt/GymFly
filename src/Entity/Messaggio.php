@@ -2,6 +2,9 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+
 class Messaggio
 {
     private ?int $id = null;
@@ -10,13 +13,15 @@ class Messaggio
     private string $contenuto;
 
     // un messaggio può avere più destinatari (relazione Molti-Molti con Utente)
-    private array $destinatari = [];
+    /** @var Collection<int, Utente> */
+    private Collection $destinatari;
 
     public function __construct(
         Utente $mittente,
         string $oggetto,
         string $contenuto,
     ) {
+        $this->destinatari = new ArrayCollection();
         if (!$mittente->mssAllowed()) {
             throw new \InvalidArgumentException('Questo utente non è autorizzato ad inviare messaggi.');
         }
@@ -53,8 +58,8 @@ class Messaggio
         return $this->contenuto;
     }
 
-    /** @return Utente[] */
-    public function getDestinatari(): array
+    /** @return Collection<int, Utente> */
+    public function getDestinatari(): Collection
     {
         return $this->destinatari;
     }
@@ -112,16 +117,12 @@ class Messaggio
      */
     public function aggiungiDestinatario(Utente $utente): self
     {
-        // evita duplicati
-        foreach ($this->destinatari as $esistente) {
-            if ($esistente->getId() === $utente->getId()) {
-                return $this;
-            }
-        }
-        $this->destinatari[] = $utente;
+        if (!$this->destinatari->contains($utente)) {
+            $this->destinatari->add($utente);
 
-        // aggiorna il lato Utente della relazione
-        $utente->aggiungiMessaggioRicevuto($this);
+            // aggiorna il lato Utente della relazione
+            $utente->aggiungiMessaggioRicevuto($this);
+        }
 
         return $this;
     }
@@ -131,11 +132,7 @@ class Messaggio
      */
     public function rimuoviDestinatario(Utente $utente): self
     {
-        $this->destinatari = array_filter(
-            $this->destinatari,
-            fn(Utente $u) => $u->getId() !== $utente->getId()
-        );
-
+        $this->destinatari->removeElement($utente);
         return $this;
     }
 
@@ -144,11 +141,6 @@ class Messaggio
      */
     public function hasDestinatario(Utente $utente): bool
     {
-        foreach ($this->destinatari as $d) {
-            if ($d->getId() === $utente->getId()) {
-                return true;
-            }
-        }
-        return false;
+        return $this->destinatari->contains($utente);
     }
 }

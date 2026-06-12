@@ -2,6 +2,9 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+
 class Allenamento
 {
     private ?int $id = null;
@@ -11,10 +14,12 @@ class Allenamento
 
 
     //Si riferisce alla relazione con Dettagli, biunivocità
-    private array $dettagli = [];
+    /** @var Collection<int, DettaglioAllenamento> */
+    private Collection $dettagli;
 
     public function __construct(string $nome, ?string $descrizione = null)
     {
+        $this->dettagli = new ArrayCollection();
         $this->nome = $nome;
         $this->descrizione = $descrizione;
     }
@@ -53,15 +58,15 @@ class Allenamento
         return $this;
     }
 
-    public function getDettagli(): array
+    public function getDettagli(): Collection
     {
         return $this->dettagli;
     }
 
     public function addDettaglio(DettaglioAllenamento $dettaglio): self
     {
-        if (!in_array($dettaglio, $this->dettagli, true)) {
-            $this->dettagli[] = $dettaglio;
+        if (!$this->dettagli->contains($dettaglio)) {
+            $this->dettagli->add($dettaglio);
             $dettaglio->setAllenamento($this);
         }
         return $this;

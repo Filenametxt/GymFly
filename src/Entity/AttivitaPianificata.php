@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use GymFly\Enum\Giorno;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 /**
  * Classe AttivitaPianificata.
@@ -19,8 +21,8 @@ class AttivitaPianificata
     private Allenatore $allenatore;
     private Attivita $attivitaDiRiferimento;
 
-    /** @var Cliente[] */
-    private array $utenti = [];
+    /** @var Collection<int, Cliente> */
+    private Collection $utenti;
 
     public function __construct(
         \DateTimeImmutable     $giorno,
@@ -29,6 +31,7 @@ class AttivitaPianificata
         Allenatore $allenatore,
         Attivita   $attivitaDiRiferimento
     ) {
+        $this->utenti               = new ArrayCollection();
         $this->giorno               = $giorno;
         $this->orario               = $orario;
         $this->sala                 = $sala;
@@ -113,24 +116,22 @@ class AttivitaPianificata
     // Utenti / Clienti iscritti  (N-N)
     // -------------------------------------------------------------------------
 
-    /** @return Cliente[] */
-    public function getUtenti(): array
+    /** @return Collection<int, Cliente> */
+    public function getUtenti(): Collection
     {
         return $this->utenti;
     }
 
     public function aggiungiCliente(Cliente $cliente): void
     {
-        if (!in_array($cliente, $this->utenti, true)) {
-            $this->utenti[] = $cliente;
+        if (!$this->utenti->contains($cliente)) {
+            $this->utenti->add($cliente);
         }
     }
 
     public function rimuoviCliente(Cliente $cliente): void
     {
-        $this->utenti = array_values(
-            array_filter($this->utenti, fn(Cliente $c) => $c !== $cliente)
-        );
+        $this->utenti->removeElement($cliente);
     }
 }
 ?>

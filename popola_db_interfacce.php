@@ -7,6 +7,10 @@
  * Utilizza il pattern dell'Inversione delle Dipendenze: sfrutta le interfacce per salvare le Entity.
  */
 
+// Abilita la visualizzazione degli errori a livello di runtime
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+
 use App\Entity\Amministratore;
 use App\Entity\Allenatore;
 use App\Entity\Cliente;
@@ -14,16 +18,18 @@ use App\Entity\Attivita;
 use App\Entity\Palestra;
 use App\Entity\Abbonamento;
 use App\Enum\Sesso;
+use App\Infrastructure\Doctrine\EntityManagerFactory;
 
 
+echo "[DEBUG] 1. Caricamento autoload...\n";
 require_once __DIR__ . '/vendor/autoload.php';
 
 // 1. CARICAMENTO ENTITY MANAGER
-// Integra lo script con la tua architettura recuperando l'EntityManager dal tuo file bootstrap.
-// Sostituisci il percorso di require_once con quello esatto dove configuri Doctrine.
 /** @var \Doctrine\ORM\EntityManagerInterface $entityManager */
-$entityManager = require_once __DIR__ . '/src/Foundation/bootstrap.php';
+echo "[DEBUG] 2. Creazione EntityManager tramite Factory...\n";
+$entityManager = EntityManagerFactory::create();
 
+echo "[DEBUG] 3. Verifica istanza EntityManager...\n";
 if (!$entityManager instanceof \Doctrine\ORM\EntityManagerInterface) {
     die("Errore: Il file di bootstrap non ha restituito un'istanza valida di EntityManagerInterface.\n");
 }
@@ -32,6 +38,7 @@ echo "Inizio popolamento del database con dati Dummy...\n\n";
 
 try {
     // 1. Creazione Amministratore (Entità indipendente)
+    echo "[DEBUG] 4. Creazione Amministratore...\n";
     $admin = new Amministratore(
         'Mario',
         'Rossi',
@@ -46,11 +53,12 @@ try {
     echo "[OK] Amministratore salvato con successo.\n";
 
     // 2. Creazione Palestra (Dipende da Amministratore, passato nel costruttore)
+    echo "[DEBUG] 5. Creazione Palestra...\n";
     $palestra = new Palestra(
         'GymFly Central',
         'Via delle Palestre 10, Milano',
-        '0212345678',
         'info@gymflycentral.com',
+        '0212345678',
         $admin // 5° parametro: l'oggetto Amministratore
     );
     // Questo repository non ha un metodo save() custom, usiamo l'EntityManager
@@ -59,6 +67,7 @@ try {
     echo "[OK] Palestra salvata con successo.\n";
 
     // 3. Creazione Allenatore (Richiede obbligatoriamente una Palestra nel costruttore)
+    echo "[DEBUG] 6. Creazione Allenatore...\n";
     $allenatore = new Allenatore(
         'Luigi',
         'Verdi',
@@ -76,6 +85,7 @@ try {
     echo "[OK] Allenatore salvato e associato alla Palestra con successo.\n";
     
     // 4. Creazione Cliente (Usa il costruttore completo di Cliente)
+    echo "[DEBUG] 7. Creazione Cliente...\n";
     $cliente = new Cliente(
         'Chiara',
         'Bianchi',
@@ -96,6 +106,7 @@ try {
     echo "[OK] Cliente salvato con successo.\n";
 
     // 5. Creazione Attivita (Esempio aggiuntivo)
+    echo "[DEBUG] 8. Creazione Attività...\n";
     $attivita = new Attivita('Zumba Fitness', 'Corso intensivo di Zumba', 20); // Aggiunto maxPartecipanti
     $entityManager->persist($attivita);
     $entityManager->flush();
@@ -114,6 +125,6 @@ try {
 
 } catch (\InvalidArgumentException $e) {
     echo "\n[ERRORE DI DOMINIO] I dati forniti non rispettano le regole dell'Entity:\n" . $e->getMessage() . "\n";
-} catch (\Exception $e) {
-    echo "\n[ERRORE DI PERSISTENZA] Problema con il database:\n" . $e->getMessage() . "\n";
+} catch (\Throwable $e) {
+    echo "\n[ERRORE FATALE O DI PERSISTENZA] Rilevato un problema:\n" . $e->getMessage() . "\nIn file: " . $e->getFile() . " alla riga " . $e->getLine() . "\n";
 }

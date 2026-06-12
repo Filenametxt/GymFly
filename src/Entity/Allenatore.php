@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Enum\Sesso;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 /**
  * Classe Allenatore – figlia di Utente (Class Table Inheritance).
@@ -13,8 +15,8 @@ class Allenatore extends Utente
 {
     private Palestra $palestra;
 
-    /** @var Attivita[] */
-    private array $attivitaAbilitate = [];
+    /** @var Collection<int, Attivita> */
+    private Collection $attivitaAbilitate;
 
 
     public function __construct(
@@ -29,6 +31,7 @@ class Allenatore extends Utente
         ?string $telefono = null,
         Palestra $palestra
     ) {
+        $this->attivitaAbilitate = new ArrayCollection();
         parent::__construct($nome, $cognome, $email, $CF,$indirizzo,$sesso,$password, $profilePicture, $telefono);
         $this->palestra = $palestra;
     }
@@ -52,25 +55,23 @@ class Allenatore extends Utente
     // Attività Abilitate  (N-N: l'allenatore è "abilitato" per certe attività)
     // -------------------------------------------------------------------------
 
-    /** @return Attivita[] */
-    public function getAttivitaAbilitate(): array
+    /** @return Collection<int, Attivita> */
+    public function getAttivitaAbilitate(): Collection
     {
         return $this->attivitaAbilitate;
     }
 
     public function addAbilitazione(Attivita $attivita): self
     {
-        if (!in_array($attivita, $this->attivitaAbilitate, true)) {
-            $this->attivitaAbilitate[] = $attivita;
+        if (!$this->attivitaAbilitate->contains($attivita)) {
+            $this->attivitaAbilitate->add($attivita);
         }
         return $this;
     }
 
     public function removeAbilitazione(Attivita $attivita): self
     {
-        $this->attivitaAbilitate = array_values(
-            array_filter($this->attivitaAbilitate, fn(Attivita $a) => $a !== $attivita)
-        );
+        $this->attivitaAbilitate->removeElement($attivita);
         return $this;
     }
 

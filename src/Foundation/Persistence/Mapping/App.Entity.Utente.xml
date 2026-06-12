@@ -28,7 +28,7 @@
         <field name="profilePicture"  type="string"  column="profile_picture" nullable="true"/>
         <field name="telefono"        type="string"  column="telefono"        nullable="true"/>
         <field name="indirizzo"       type="string"  column="indirizzo"       nullable="true"/>
-        <field name="sesso"           type="string"  column="sesso"           nullable="true"/>
+        <field name="sesso"           type="string"  column="sesso"           nullable="true" enum-type="App\Enum\Sesso"/>
         <field name="password"        type="string"  column="password"/>
 
         <!-- 1-Molti: Utente INVIA molti Messaggi (come mittente) -->

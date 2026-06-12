@@ -7,11 +7,8 @@ use Doctrine\ORM\Tools\Console\ConsoleRunner;
 use Doctrine\ORM\Tools\Console\EntityManagerProvider\SingleManagerProvider;
 use App\Infrastructure\Doctrine\EntityManagerFactory;
 
-// 🔴 QUESTO è il tuo vero EM
 $entityManager = EntityManagerFactory::create();
 
-// 🔴 IMPORTANTISSIMO: provider esplicito
 $provider = new SingleManagerProvider($entityManager);
 
-// 🔴 bootstrap corretto CLI
 ConsoleRunner::run($provider);

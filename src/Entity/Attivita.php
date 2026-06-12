@@ -2,6 +2,9 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+
 /**
  * Classe Attivita.
  * Il mapping ORM è definito esternamente in:
@@ -14,11 +17,12 @@ class Attivita
     private string $descrizione;
     private int $maxPartecipanti;
 
-    /** @var Allenatore[] */
-    private array $allenatori = [];
+    /** @var Collection<int, Allenatore> */
+    private Collection $allenatori;
 
     public function __construct(string $nome, string $descrizione, int $maxPartecipanti)
     {
+        $this->allenatori      = new ArrayCollection();
         $this->nome            = $nome;
         $this->descrizione     = $descrizione;
         $this->maxPartecipanti = $maxPartecipanti;
@@ -66,25 +70,23 @@ class Attivita
     // Allenatori abilitati  (N-N)
     // -------------------------------------------------------------------------
 
-    /** @return Allenatore[] */
-    public function getAllenatori(): array
+    /** @return Collection<int, Allenatore> */
+    public function getAllenatori(): Collection
     {
         return $this->allenatori;
     }
 
     public function addAllenatore(Allenatore $allenatore): self
     {
-        if (!in_array($allenatore, $this->allenatori, true)) {
-            $this->allenatori[] = $allenatore;
+        if (!$this->allenatori->contains($allenatore)) {
+            $this->allenatori->add($allenatore);
         }
         return $this;
     }
 
     public function removeAllenatore(Allenatore $allenatore): self
     {
-        $this->allenatori = array_values(
-            array_filter($this->allenatori, fn(Allenatore $a) => $a !== $allenatore)
-        );
+        $this->allenatori->removeElement($allenatore);
         return $this;
     }
 }

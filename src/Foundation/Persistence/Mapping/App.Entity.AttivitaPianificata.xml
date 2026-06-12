@@ -12,7 +12,7 @@
             <generator strategy="AUTO"/>
         </id>
 
-        <field name="giorno"    type="string"  column="giorno"/>
+        <field name="giorno"    type="date_immutable"  column="giorno"/>
         <field name="orario"    type="integer" column="orario"/>
         <field name="prenotati" type="integer" column="prenotati"/>
 

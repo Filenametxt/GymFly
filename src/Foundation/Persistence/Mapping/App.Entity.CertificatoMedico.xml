@@ -10,8 +10,8 @@
             <generator strategy="AUTO"/>
         </id>
 
-        <field name="dataEmissione" type="date"   column="data_emissione"/>
-        <field name="dataScadenza"  type="date"   column="data_scadenza"/>
+        <field name="dataEmissione" type="date_immutable"   column="data_emissione"/>
+        <field name="dataScadenza"  type="date_immutable"   column="data_scadenza"/>
         <field name="medico"        type="string" column="medico"/>
         <field name="filePath"      type="string" column="file" nullable="true"/>
 

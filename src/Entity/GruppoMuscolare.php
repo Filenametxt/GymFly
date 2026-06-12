@@ -1,16 +1,21 @@
 <?php
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+
 class GruppoMuscolare
 {
     private ?int $id = null;
     private string $nomeGruppoMuscolare;
 
     // lato inverso della N-N con Esercizio — biunivoca
-    private array $esercizi = [];
+    /** @var Collection<int, Esercizio> */
+    private Collection $esercizi;
 
     public function __construct(string $nomeGruppoMuscolare)
     {
+        $this->esercizi = new ArrayCollection();
         $this->nomeGruppoMuscolare = $nomeGruppoMuscolare;
     }
 
@@ -27,8 +32,8 @@ class GruppoMuscolare
         return $this->nomeGruppoMuscolare;
     }
 
-    /** @return Esercizio[] */
-    public function getEsercizi(): array
+    /** @return Collection<int, Esercizio> */
+    public function getEsercizi(): Collection
     {
         return $this->esercizi;
     }
@@ -49,22 +54,15 @@ class GruppoMuscolare
 
     public function aggiungiEsercizio(Esercizio $esercizio): self
     {
-        //Controlla per evitare un duplicato
-        foreach ($this->esercizi as $e) {
-            if ($e === $esercizio)
-                return $this;
+        if (!$this->esercizi->contains($esercizio)) {
+            $this->esercizi->add($esercizio);
         }
-        $this->esercizi[] = $esercizio;
         return $this;
     }
 
     public function rimuoviEsercizio(Esercizio $esercizio): self
     {
-        $indice = array_search($esercizio, $this->esercizi, true);
-        if ($indice !== false) {
-            unset($this->esercizi[$indice]);
-            $this->esercizi = array_values($this->esercizi); // Re-indicizza l'array
-        }
+        $this->esercizi->removeElement($esercizio);
         return $this;
     }
 }

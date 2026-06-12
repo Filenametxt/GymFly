@@ -20,9 +20,11 @@ class Palestra {
     ) {
         $this->nome                = $nome;
         $this->indirizzo           = $indirizzo;
-        $this->email               = $email;
-        $this->recapitoTelefonico = $recapitoTelefonico;
         $this->amministratore      = $amministratore;
+        
+        // Sfruttiamo i setter per validare immediatamente le regole di dominio!
+        $this->setEmail($email);
+        $this->setRecapitoTelefonico($recapitoTelefonico);
     }
 
     public function getId(): ?int {
