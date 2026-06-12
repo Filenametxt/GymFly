@@ -5,7 +5,7 @@
                   https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
 
     <entity name="App\Entity\Scheda" 
-            table="scheda">
+            table="Scheda">
 
         <!-- Chiave primaria auto-generata -->
         <id name="id" type="integer" column="id">

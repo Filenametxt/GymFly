@@ -4,7 +4,7 @@
                   xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
                                       https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
 
-    <entity name="App\Entity\Progresso" table="PROGRESSO" inheritance-type="SINGLE_TABLE">
+    <entity name="App\Entity\Progresso" table="Progresso" inheritance-type="SINGLE_TABLE">
         
         <discriminator-column name="tipo" type="string" length="50"/>
         <discriminator-map>
