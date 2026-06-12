@@ -11,7 +11,7 @@
         Questa entity definisce solo le colonne/relazioni aggiuntive rispetto a Utente.
     -->
     <entity name="App\Entity\Allenatore" 
-            table="allenatore" 
+            table="Allenatore" 
             inheritance-type="JOINED">
 
         <!-- ================================================================
@@ -43,7 +43,7 @@
         <many-to-many field="attivitaAbilitate"
                       target-entity="App\Entity\Attivita"
                       fetch="LAZY">
-            <join-table name="abilitazione">
+            <join-table name="Abilitazione">
                 <join-columns>
                     <join-column name="id_allenatore"
                                  referenced-column-name="id"/>

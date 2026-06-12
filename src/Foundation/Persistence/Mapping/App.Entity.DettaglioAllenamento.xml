@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping">
-    <entity name="App\Entity\DettaglioAllenamento" table="DETTAGLIO_ALLENAMENTO">
+    <entity name="App\Entity\DettaglioAllenamento" table="DettaglioAllenamento">
         <id name="id" type="integer" column="id"><generator strategy="AUTO"/></id>
         <field name="serie" type="integer" column="serie" nullable="false"/>
         <field name="ripetizioni" type="integer" column="ripetizioni" nullable="false"/>

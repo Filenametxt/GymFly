@@ -6,7 +6,7 @@
     https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
 
     <entity name="App\Entity\SessionePrivata" 
-            table="sessione_privata">
+            table="SessionePrivata">
 
         <!--
             Chiave primaria composta: allenatore + ora_inizio + ora_fine.
