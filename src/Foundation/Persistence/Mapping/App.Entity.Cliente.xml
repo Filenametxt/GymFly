@@ -9,7 +9,7 @@
         Doctrine fa automaticamente JOIN tra tabella "utente" e "cliente".
         Qui si dichiarano solo i campi e relazioni aggiuntivi di Cliente.
     -->
-    <entity name="App\Entity\Cliente" table="cliente">
+    <entity name="App\Entity\Cliente" table="Cliente">
 
         <!-- Campi aggiuntivi rispetto a Utente -->
         <field name="dataDiNascita"        type="date"   column="data_di_nascita"/>

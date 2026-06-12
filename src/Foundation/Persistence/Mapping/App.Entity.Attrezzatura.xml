@@ -4,7 +4,7 @@
                   xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
                                       https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
 
-    <entity name="App\Entity\Attrezzatura" table="ATTREZZATURA">
+    <entity name="App\Entity\Attrezzatura" table="Attrezzatura">
 
         <id name="id" type="integer" column="id">
             <generator strategy="AUTO"/>

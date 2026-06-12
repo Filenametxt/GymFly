@@ -11,7 +11,7 @@
         Questa entity definisce solo le colonne/relazioni aggiuntive rispetto a Utente.
     -->
     <entity name="App\Entity\Allenatore" 
-            table="allenatore" 
+            table="Allenatore" 
             inheritance-type="JOINED">
 
         <!-- ================================================================
