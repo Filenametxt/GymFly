@@ -36,15 +36,19 @@ abstract class Utente
         $this->messaggiInviati = new ArrayCollection();
         $this->messaggiRicevuti = new ArrayCollection();
 
-        $this->nome = $nome;
-        $this->cognome = $cognome;
-        $this->email = $email;
-        $this->CF = $CF;
-        $this->indirizzo = $indirizzo;
-        $this->sesso = $sesso;
-        $this->profilePicture = $profilePicture;
-        $this->sesso = $sesso;
-        $this->profilePicture = $profilePicture;
+        $this->setNome($nome);
+        $this->setCognome($cognome);
+        $this->setEmail($email);
+        $this->setCF($CF);
+        $this->setIndirizzo($indirizzo);
+        $this->setSesso($sesso);
+
+        // Se la foto profilo è stata passata (non è null), usa il setter
+        if ($profilePicture !== null) {
+            $this->setProfilePicture($profilePicture);
+        } else {
+            $this->profilePicture = null;
+            }
         
         // Se il telefono è stato passato (non è null), avvia il setter con la pulizia
         if ($telefono !== null) {
@@ -52,9 +56,8 @@ abstract class Utente
         } else {
             $this->telefono = null;
         }
-        if ($password !== "") {
-            $this->setPassword($password);
-        }
+        $this->setPassword($password);
+    
     }
 
     // -------------------------------------------------------------------------
@@ -133,9 +136,17 @@ abstract class Utente
      */
     public function setNome(string $nome): self
     {
-        if (preg_match('/^[a-zA-ZàèéìòùÀÈÉÌÒÙ\s]+$/u', $nome)) {
-            $this->nome = $nome;
+        $nomePulito = trim($nome);
+
+        if ($nomePulito === '') {
+            throw new \InvalidArgumentException("Il nome non può essere vuoto.");
         }
+
+        if (!preg_match('/^[a-zA-ZàèéìòùÀÈÉÌÒÙ\s]+$/u', $nomePulito)) {
+            throw new \InvalidArgumentException("Il nome '$nome' contiene caratteri non validi. Sono ammesse solo lettere e spazi.");
+        }
+
+        $this->nome = $nomePulito;
         return $this;
     }
 
@@ -147,9 +158,17 @@ abstract class Utente
      */
     public function setCognome(string $cognome): self
     {
-        if (preg_match('/^[a-zA-ZàèéìòùÀÈÉÌÒÙ\s\']+$/u', $cognome)) {
-            $this->cognome = $cognome;
+        $cognomePulito = trim($cognome);
+
+        if ($cognomePulito === '') {
+            throw new \InvalidArgumentException("Il cognome non può essere vuoto.");
         }
+
+        if (!preg_match('/^[a-zA-ZàèéìòùÀÈÉÌÒÙ\s\']+$/u', $cognomePulito)) {
+            throw new \InvalidArgumentException("Il cognome '$cognome' contiene caratteri non validi. Sono ammesse solo lettere, spazi e apostrofi.");
+        }
+
+        $this->cognome = $cognomePulito;
         return $this;
     }
 
@@ -160,13 +179,24 @@ abstract class Utente
      * @throws \InvalidArgumentException se il formato non è valido
      */
     public function setEmail(string $email): self
-    {
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            throw new \InvalidArgumentException('Indirizzo email non valido.');
-        }
-        $this->email = $email;
-        return $this;
+{
+    // Rimuoviamo eventuali spazi vuoti accidentali all'inizio e alla fine
+    $emailPulita = trim($email);
+
+    // Controlliamo se il campo è vuoto
+    if ($emailPulita === '') {
+        throw new \InvalidArgumentException("L'email è obbligatoria e non può essere vuota.");
     }
+
+    // Validazione del formato tramite il filtro nativo di PHP
+    if (!filter_var($emailPulita, FILTER_VALIDATE_EMAIL)) {
+        throw new \InvalidArgumentException("L'indirizzo email '$email' non è nel formato corretto (es. nome@esempio.com).");
+    }
+
+    // Se passa i controlli, salviamo il dato pulito
+    $this->email = $emailPulita;
+    return $this;
+}
 
     /**
      * Imposta il codice fiscale dell'utente.
@@ -176,14 +206,25 @@ abstract class Utente
      *
      * @throws \InvalidArgumentException se il formato non è valido
      */
-    public function setCF(string $CF): self
-    {
-        if (!preg_match('/^[A-Z]{6}[0-9]{2}[A-Z][0-9]{2}[A-Z][0-9]{3}[A-Z]$/', strtoupper($CF))) {
-            throw new \InvalidArgumentException('Codice fiscale non valido.');
-        }
-        $this->CF = strtoupper($CF);
-        return $this;
+  public function setCF(string $CF): self
+{
+    // Rimuoviamo spazi bianchi accidentali e convertiamo tutto in maiuscolo
+    $cfPulito = strtoupper(trim($CF));
+
+    // Controlliamo se il campo è vuoto
+    if ($cfPulito === '') {
+        throw new \InvalidArgumentException("Il codice fiscale è obbligatorio e non può essere vuoto.");
     }
+
+    // Validazione del formato standard italiano a 16 caratteri
+    if (!preg_match('/^[A-Z]{6}[0-9]{2}[A-Z][0-9]{2}[A-Z][0-9]{3}[A-Z]$/', $cfPulito)) {
+        throw new \InvalidArgumentException("Il codice fiscale '$CF' non è valido. Deve essere composto da 16 caratteri alfanumerici nel formato standard.");
+    }
+
+    // Salviamo il dato pulito e formattato in maiuscolo
+    $this->CF = $cfPulito;
+    return $this;
+}
 
     /**
      * Imposta il percorso o URL della foto profilo.
@@ -219,10 +260,18 @@ abstract class Utente
      * Imposta l'indirizzo di residenza dell'utente.
      */
     public function setIndirizzo(string $indirizzo): self
-    {
-        $this->indirizzo = $indirizzo;
-        return $this;
+{
+    // Rimuoviamo spazi bianchi accidentali all'inizio e alla fine
+    $indirizzoPulito = trim($indirizzo);
+
+    // Essendo un campo obbligatorio, controlliamo che non sia vuoto dopo il trim
+    if ($indirizzoPulito === '') {
+        throw new \InvalidArgumentException("L'indirizzo è obbligatorio e non può essere vuoto.");
     }
+
+    $this->indirizzo = $indirizzoPulito;
+    return $this;
+}
 
     /**
      * Imposta il sesso dell'utente tramite enum Sesso.
@@ -240,13 +289,26 @@ abstract class Utente
      * @throws \InvalidArgumentException se la password è più corta di 8 caratteri
      */
     public function setPassword(string $plainPassword): self
-    {
-        if (strlen($plainPassword) < 8) {
-            throw new \InvalidArgumentException('La password deve contenere almeno 8 caratteri.');
-        }
-        $this->password = password_hash($plainPassword, PASSWORD_BCRYPT);
-        return $this;
+{
+    // Rimuoviamo eventuali spazi vuoti accidentali inseriti dall'utente
+    $passwordPulita = trim($plainPassword);
+
+    // 1. Controllo stringa vuota
+    if ($passwordPulita === '') {
+        throw new \InvalidArgumentException("La password è obbligatoria e non può essere vuota.");
     }
+
+    // 2. Controllo lunghezza minima (sulla password pulita)
+    if (strlen($passwordPulita) < 8) {
+        throw new \InvalidArgumentException("La password deve contenere almeno 8 caratteri.");
+    }
+
+    // 3. Generazione dell'hash sicuro (Bcrypt)
+    // La password in chiaro NON viene mai salvata nella proprietà!
+    $this->password = password_hash($passwordPulita, PASSWORD_BCRYPT);
+    
+    return $this;
+}
 
     /**
      * Verifica che la password in chiaro corrisponda all'hash salvato.

@@ -11,9 +11,9 @@ abstract class Progresso
 
     public function __construct(\DateTimeImmutable $data, Cliente $cliente, Esercizio $esercizio)
     {
-        $this->data = $data;
-        $this->cliente = $cliente;
-        $this->esercizio = $esercizio;
+        $this->setData($data);
+        $this->setCliente($cliente);
+        $this->setEsercizio($esercizio);
     }
 
     public function getId(): ?int
