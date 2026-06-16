@@ -37,6 +37,7 @@ if (!$entityManager instanceof \Doctrine\ORM\EntityManagerInterface) {
 }
 
 echo "Inizio popolamento del database con dati Dummy...\n\n";
+var_dump(preg_match('/^[a-zA-ZàèéìòùÀÈÉÌÒÙ\s\']+$/u', 'Mario'));
 
 try {
     // 1. Creazione Amministratore (Entità indipendente)

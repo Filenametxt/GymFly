@@ -28,17 +28,27 @@ class Scheda
     ) {
         $this->allenamenti = new ArrayCollection();
 
-        if ($data_inizio >= $data_fine) {
+        /*if ($data_inizio >= $data_fine) {
             throw new \InvalidArgumentException(
                 "La data di inizio deve essere precedente alla data di fine."
             );
-        }
-        $this->nome_scheda  = $nome_scheda;
+        }*/
+            
+        $this->setNome_scheda($nome_scheda);
+
+        // 1. Assegnazione diretta "grezza": inizializziamo le proprietà in memoria.
+        // Da questo momento in poi, $this->data_inizio e $this->data_fine ESISTONO e sono leggibili.
         $this->data_inizio  = $data_inizio;
         $this->data_fine    = $data_fine;
-        $this->obiettivo    = $obiettivo;
-        $this->cliente      = $cliente;
-        $this->allenatore   = $allenatore;
+
+        // 2. Chiamata ai setter: ora i metodi possono fare i controlli incrociati 
+        // senza mandare PHP in crash, perché guardano proprietà che esistono già!
+        $this->setData_inizio($data_inizio);
+        $this->setData_fine($data_fine);
+
+        $this->setObiettivo($obiettivo);
+        $this->setCliente($cliente);
+        $this->setAllenatore($allenatore);
     }
 
     // -------------------------------------------------------------------------
@@ -95,9 +105,16 @@ class Scheda
     // -------------------------------------------------------------------------
 
     public function setNome_scheda(string $nome_scheda): self
-    {
-        $this->nome_scheda = $nome_scheda;
+    { 
+        $nomePulito = trim($nome_scheda);
+
+        if ($nomePulito === '') {
+            throw new \InvalidArgumentException("Il nome non può essere vuoto.");
+        }
+
+        $this->nome_scheda = $nomePulito;
         return $this;
+
     }
 
     public function setData_inizio(\DateTimeImmutable $data_inizio): self
@@ -124,7 +141,9 @@ class Scheda
 
     public function setObiettivo(string $obiettivo): self
     {
-        $this->obiettivo = $obiettivo;
+        $obiettivoPulito = trim($obiettivo);
+
+        $this->obiettivo = $obiettivoPulito;
         return $this;
     }
 

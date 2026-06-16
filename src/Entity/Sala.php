@@ -16,9 +16,9 @@ class Sala
 
     public function __construct(string $nome, int $maxPartecipanti, Palestra $palestra)
     {
-        $this->nome             = $nome;
-        $this->maxPartecipanti  = $maxPartecipanti;
-        $this->palestra         = $palestra;
+        $this->setNome($nome);
+        $this->setMaxPartecipanti($maxPartecipanti);
+        $this->setPalestra($palestra);
     }
 
     public function getId(): ?int
@@ -43,12 +43,23 @@ class Sala
 
     public function setNome(string $nome): self
     {
-        $this->nome = $nome;
+        $nomePulito = trim($nome);
+
+        if ($nomePulito === '') {
+            throw new \InvalidArgumentException("Il nome non può essere vuoto.");
+        }
+
+        $this->nome = $nomePulito;
         return $this;
+
     }
 
     public function setMaxPartecipanti(int $maxPartecipanti): self
     {
+        if ($maxPartecipanti <= 0) {
+            throw new \InvalidArgumentException("Il numero massimo deve essere maggiore di 0.");
+        }
+
         $this->maxPartecipanti = $maxPartecipanti;
         return $this;
     }

@@ -20,25 +20,32 @@ class SessionePrivata
         \DateTimeImmutable $data,
         \DateTimeImmutable $oraInizio,
         \DateTimeImmutable $oraFine,
-        Cliente            $atleta,
-        Allenatore         $allenatore
+        Cliente $atleta,
+        Allenatore $allenatore
     ) {
         if ($oraInizio >= $oraFine) {
             throw new \InvalidArgumentException("L'ora di inizio non può essere maggiore o uguale all'ora di fine.");
         }
-        $this->data       = $data;
-        $this->oraInizio  = $oraInizio;
-        $this->oraFine    = $oraFine;
-        $this->atleta     = $atleta;
-        $this->allenatore = $allenatore;
+        $this->setData($data);
+
+        // 1. Assegnazione diretta "grezza": inizializziamo le proprietà in memoria.
+        // Da questo momento in poi, $this->oraInizio e $this->oraFine ESISTONO e sono leggibili.
+        $this->oraInizio = $oraInizio;
+        $this->oraFine = $oraFine;
+
+        // 2. Chiamata ai setter: ora i metodi possono fare i controlli incrociati 
+        // senza mandare PHP in crash, perché guardano proprietà che esistono già!
+        $this->setOraInizio($oraInizio);
+        $this->setOraFine($oraFine);
+
+        $this->setAtleta($atleta);              //in questo caso questa entità per esistere ha bisogno assoluto sia di atleta che di allenatore
+        $this->setAllenatore($allenatore);
     }
 
     public function getData(): \DateTimeImmutable
     {
         return $this->data;
     }
-
-    
 
     public function getOraInizio(): \DateTimeImmutable
     {

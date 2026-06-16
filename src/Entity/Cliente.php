@@ -66,9 +66,10 @@ class Cliente extends Utente
             $telefono
         );
 
-        $this->dataDiNascita = $dataDiNascita;
-        $this->luogoDiNascita = $luogoDiNascita;
-        $this->metodoDiPagamento = $metodoDiPagamento;
+        $this->setDataDiNascita($dataDiNascita);
+        $this->setLuogoDiNascita($luogoDiNascita);
+        $this->setIndirizzoDiDomicilio($indirizzoDiDomicilio);
+        $this->setMetodoDiPagamento($metodoDiPagamento);
     }
 
     // -------------------------------------------------------------------------
@@ -97,7 +98,7 @@ class Cliente extends Utente
     {
         return $this->luogoDiNascita;
     }
-    public function getIndirizzoDiDomicilio(): string
+    public function getIndirizzoDiDomicilio(): ?string
     {
         return $this->indirizzoDiDomicilio;
     }
@@ -153,19 +154,32 @@ class Cliente extends Utente
 
     public function setLuogoDiNascita(string $luogo): self
     {
-        $this->luogoDiNascita = $luogo;
+        $luogoPulito = trim($luogo);
+        if ($luogoPulito === '') {
+            throw new \InvalidArgumentException("Il luogo di nascita è obbligatorio.");
+        }
+        $this->luogoDiNascita = $luogoPulito;
         return $this;
     }
 
-    public function setIndirizzoDiDomicilio(string $indirizzo): self
+   public function setIndirizzoDiDomicilio(string $indirizzo): self
     {
-        $this->indirizzoDiDomicilio = $indirizzo;
+        $domicilioPulito = trim($indirizzo);
+        if ($domicilioPulito === '') {
+            $this->indirizzoDiDomicilio = null;
+        } else {
+            $this->indirizzoDiDomicilio = $domicilioPulito;
+        }
         return $this;
     }
 
     public function setMetodoDiPagamento(string $metodo): self
     {
-        $this->metodoDiPagamento = $metodo;
+        $metodoPulito = trim($metodo);
+        if ($metodoPulito === '') {
+            throw new \InvalidArgumentException("Il metodo di pagamento è obbligatorio.");
+        }
+        $this->metodoDiPagamento = $metodoPulito;
         return $this;
     }
 

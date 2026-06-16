@@ -9,7 +9,7 @@ class Tipologia
 
     public function __construct(string $nomeTipologia)
     {
-        $this->nomeTipologia = $nomeTipologia;
+        $this->setNomeTipologia($nomeTipologia);
     }
 
     public function getId(): ?int
@@ -23,7 +23,15 @@ class Tipologia
 
     public function setNomeTipologia(string $nomeTipologia): self
     {
-        $this->nomeTipologia = $nomeTipologia;
+        // 1. Pulizia con trim per rimuovere spazi bianchi all'inizio e alla fine
+        $nomePulito = trim($nomeTipologia);
+
+        // 2. Controllo stringa vuota (evita che il nome sia nullo o composto solo da spazi)
+        if ($nomePulito === '') {
+            throw new InvalidArgumentException("Il nome della tipologia è obbligatorio e non può essere vuoto.");
+        }
+
+        $this->nomeTipologia = $nomePulito;
         return $this;
     }
 }
