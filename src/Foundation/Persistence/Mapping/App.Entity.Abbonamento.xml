@@ -17,6 +17,6 @@
 
         <field name="tipologia" type="string" column="tipologia" length="255"/>
         <field name="categoria" type="string" column="categoria" length="255"/>
-
+        <field name="prezzo" type="decimal" column="prezzo" precision="10" scale="2" nullable="false"/>
     </entity>
 </doctrine-mapping>

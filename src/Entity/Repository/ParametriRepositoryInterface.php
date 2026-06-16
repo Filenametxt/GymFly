@@ -65,4 +65,11 @@ interface ParametriRepositoryInterface
      * Numero totale di misurazioni registrate per un cliente.
      */
     public function countByCliente(Cliente $cliente): int;
+
+
+    /**
+     * Salva le nuove misure dell'utente (I parametri) 
+     */
+    public function salvaMisure(Parametri $parametri): void;
+
 }

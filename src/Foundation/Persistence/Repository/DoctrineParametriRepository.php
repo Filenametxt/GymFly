@@ -128,4 +128,11 @@ class DoctrineParametriRepository implements ParametriRepositoryInterface
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+
+    public function salvaMisure(Parametri $parametri): void{
+        $this->em->persist($parametri);
+        $this->em->flush();
+    }
+
 }
