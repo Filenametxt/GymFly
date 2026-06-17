@@ -9,7 +9,7 @@ class ProgressoCarico extends Progresso
     public function __construct(\DateTimeImmutable $data, Cliente $cliente, Esercizio $esercizio, float $nuovoCarico)
     {
         parent::__construct($data, $cliente, $esercizio);
-        $this->nuovoCarico = $nuovoCarico;
+        $this->setNuovoCarico($nuovoCarico);
     }
 
     public function getNuovoCarico(): float
@@ -18,7 +18,13 @@ class ProgressoCarico extends Progresso
     }
     public function setNuovoCarico(float $nuovoCarico): self
     {
+
+        if ($nuovoCarico <=0) {
+            throw new \InvalidArgumentException("Il carico non può essere negativo.");
+        }
+
         $this->nuovoCarico = $nuovoCarico;
         return $this;
     }
-}
+
+    }

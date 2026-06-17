@@ -9,7 +9,7 @@ class ProgressoDurata extends Progresso
     public function __construct(\DateTimeImmutable $data, Cliente $cliente, Esercizio $esercizio, float $nuovaDurata)
     {
         parent::__construct($data, $cliente, $esercizio);
-        $this->nuovaDurata = $nuovaDurata;
+        $this->setNuovaDurata($nuovaDurata);
     }
 
     public function getNuovaDurata(): float
@@ -18,6 +18,10 @@ class ProgressoDurata extends Progresso
     }
     public function setNuovaDurata(float $nuovaDurata): self
     {
+        if ($nuovaDurata <= 0 ) {
+            throw new \InvalidArgumentException("La durata non può essere negativa.");
+        }
+
         $this->nuovaDurata = $nuovaDurata;
         return $this;
     }

@@ -9,7 +9,7 @@ class ProgressoRipetizioni extends Progresso
     public function __construct(\DateTimeImmutable $data, Cliente $cliente, Esercizio $esercizio, float $nuovoNRipetizioni)
     {
         parent::__construct($data, $cliente, $esercizio);
-        $this->nuovoNRipetizioni = $nuovoNRipetizioni;
+        $this->setNuovoNRipetizioni($nuovoNRipetizioni);
     }
 
     public function getNuovoNRipetizioni(): float
@@ -18,7 +18,12 @@ class ProgressoRipetizioni extends Progresso
     }
     public function setNuovoNRipetizioni(float $nuovoNRipetizioni): self
     {
+        if ($nuovoNRipetizioni <= 0) {
+            throw new \InvalidArgumentException("Il numero delle ripetizioni non può essere negativo.");
+        }
+
         $this->nuovoNRipetizioni = $nuovoNRipetizioni;
         return $this;
     }
+    
 }

@@ -33,14 +33,25 @@ abstract class Progresso
         return $this->esercizio;
     }
 
-    public function setData(\DateTimeImmutable $data): self
+   public function setData(\DateTimeImmutable $data): self
     {
+        //Un progresso non può essere registrato in una data futura
+        if ($data > new \DateTimeImmutable()) {
+            throw new \InvalidArgumentException("La data del progresso non può essere nel futuro.");
+        }
+        
         $this->data = $data;
         return $this;
     }
     public function setCliente(Cliente $cliente): self
     {
         $this->cliente = $cliente;
+        
+        // CORRETTO: Garantisce la biunivocità in memoria con la collection di Cliente
+        if (!$cliente->getProgressi()->contains($this)) {
+            $cliente->aggiungiProgresso($this);
+        }
+        
         return $this;
     }
     public function setEsercizio(Esercizio $esercizio): self
