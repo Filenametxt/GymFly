@@ -18,9 +18,9 @@ class Palestra {
         string $recapitoTelefonico,
         Amministratore $amministratore
     ) {
-        $this->nome                = $nome;
-        $this->indirizzo           = $indirizzo;
-        $this->amministratore      = $amministratore;
+        $this->setNome($nome);
+        $this->setIndirizzo($indirizzo);
+        $this->setAmministratore($amministratore);
         
         // Sfruttiamo i setter per validare immediatamente le regole di dominio!
         $this->setEmail($email);
@@ -52,12 +52,25 @@ class Palestra {
     }
 
     public function setNome(string $nome): self {
-        $this->nome = $nome;
+        $nomePulito = trim($nome);
+        if ($nomePulito === '') {
+            throw new \InvalidArgumentException("Il nome non può essere vuoto.");
+        }
+        $this->nome = $nomePulito;
         return $this;
     }
 
-    public function setIndirizzo(string $indirizzo): self {
-        $this->indirizzo = $indirizzo;
+    public function setIndirizzo(string $indirizzo): self
+    {
+        // Rimuoviamo spazi bianchi accidentali all'inizio e alla fine
+        $indirizzoPulito = trim($indirizzo);
+
+        // Essendo un campo obbligatorio, controlliamo che non sia vuoto dopo il trim
+        if ($indirizzoPulito === '') {
+            throw new \InvalidArgumentException("L'indirizzo è obbligatorio e non può essere vuoto.");
+        }
+
+        $this->indirizzo = $indirizzoPulito;
         return $this;
     }
 
@@ -69,12 +82,17 @@ class Palestra {
         return $this;
     }
 
-    public function setRecapitoTelefonico(string $recapitoTelefonico): self {
-        $recapitoTelefonico = str_replace([' ', '-', '.'], '', $recapitoTelefonico);
-        if (!preg_match('/^\d{9,11}$/', $recapitoTelefonico)) {
-            throw new \InvalidArgumentException("Il numero di telefono deve essere composto da 9 a 11 cifre.");
+    public function setRecapitoTelefonico(string $recapitoTelefonico): self 
+    {
+        // Sanitizzazione completa: rimuove spazi bianchi ed elementi di formattazione comuni
+        $telefonoPulito = trim($recapitoTelefonico);
+        $telefonoPulito = str_replace([' ', '-', '.'], '', $telefonoPulito);
+        
+        if (!preg_match('/^\d{9,11}$/', $telefonoPulito)) {
+            throw new \InvalidArgumentException("Il numero di telefono deve essere composto esclusivamente da un minimo di 9 a un massimo di 11 cifre numeriche.");
         }
-        $this->recapitoTelefonico = $recapitoTelefonico;
+        
+        $this->recapitoTelefonico = $telefonoPulito;
         return $this;
     }
 

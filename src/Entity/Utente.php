@@ -260,18 +260,18 @@ abstract class Utente
      * Imposta l'indirizzo di residenza dell'utente.
      */
     public function setIndirizzo(string $indirizzo): self
-{
-    // Rimuoviamo spazi bianchi accidentali all'inizio e alla fine
-    $indirizzoPulito = trim($indirizzo);
+    {
+        // Rimuoviamo spazi bianchi accidentali all'inizio e alla fine
+        $indirizzoPulito = trim($indirizzo);
 
-    // Essendo un campo obbligatorio, controlliamo che non sia vuoto dopo il trim
-    if ($indirizzoPulito === '') {
-        throw new \InvalidArgumentException("L'indirizzo è obbligatorio e non può essere vuoto.");
+        // Essendo un campo obbligatorio, controlliamo che non sia vuoto dopo il trim
+        if ($indirizzoPulito === '') {
+            throw new \InvalidArgumentException("L'indirizzo è obbligatorio e non può essere vuoto.");
+        }
+
+        $this->indirizzo = $indirizzoPulito;
+        return $this;
     }
-
-    $this->indirizzo = $indirizzoPulito;
-    return $this;
-}
 
     /**
      * Imposta il sesso dell'utente tramite enum Sesso.

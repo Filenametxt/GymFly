@@ -13,9 +13,8 @@ class Iscrizione
         \DateTimeImmutable $dataInizio,
         Cliente $cliente,
     ) {
-        $this->dataInizio = $dataInizio;
-        $this->dataFine = $dataInizio->modify('+1 year');
-        $this->cliente = $cliente;
+        $this->setDataInizio($dataInizio);
+        $this->setCliente($cliente);
     }
 
     // -------------------------------------------------------------------------
@@ -48,6 +47,12 @@ class Iscrizione
      */
     public function setDataInizio(\DateTimeImmutable $dataInizio): self
     {
+        $oggi = new \DateTimeImmutable();
+
+        // Controllo difensivo 1: Impedisce l'attivazione di iscrizioni nel futuro remoto
+        if ($dataInizio > $oggi->modify('+1 day')) { 
+            throw new \InvalidArgumentException("La data di inizio dell'iscrizione non può essere futura.");
+        }
         $this->dataInizio = $dataInizio;
         $this->dataFine = $dataInizio->modify('+1 year');
         return $this;
@@ -56,6 +61,12 @@ class Iscrizione
     public function setCliente(Cliente $cliente): self
     {
         $this->cliente = $cliente;
+
+        // BIUNIVOCITÀ: Se il cliente non punta ancora a questa iscrizione, sincronizzalo
+        if ($cliente->getIscrizione() !== $this) {
+            $cliente->setIscrizione($this);
+        }
+
         return $this;
     }
 

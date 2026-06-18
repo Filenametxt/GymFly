@@ -8,8 +8,8 @@ use Doctrine\Common\Collections\Collection;
 class Esercizio
 {
     private ?int $id = null;
-    private ?string $nomeEsercizio;
-    private ?string $descrizione;
+    private ?string $nomeEsercizio = null;
+    private ?string $descrizione = null;
     // 1-1 con Attrezzatura — NO biunivocità, Esercizio ha una attrezzatura necessaria
     private ?Attrezzatura $attrezzaturaNecessaria = null;
 
@@ -32,11 +32,11 @@ class Esercizio
         ?Allenatore $creatore = null,
     ) {
         $this->gruppiMuscolari = new ArrayCollection();
-        $this->nomeEsercizio = $nomeEsercizio;
-        $this->descrizione = $descrizione;
-        $this->tipologia = $tipologia;
-        $this->attrezzaturaNecessaria = $attrezzaturaNecessaria;
-        $this->creatore = $creatore;
+        $this->setNomeEsercizio($nomeEsercizio);
+        $this->setDescrizione($descrizione);
+        $this->setTipologia($tipologia);
+        $this->setAttrezzaturaNecessaria($attrezzaturaNecessaria);
+        $this->setCreatore($creatore);
     }
 
     // -------------------------------------------------------------------------
@@ -78,15 +78,34 @@ class Esercizio
     // Setter
     // -------------------------------------------------------------------------
 
-    public function setNomeEsercizio(?string $nome): self
+    public function setNomeEsercizio(?string $nomeEsercizio): self
     {
-        $this->nomeEsercizio = $nome;
+        // Se è null, lo salviamo direttamente come null
+        if ($nomeEsercizio === null) {
+            $this->nomeEsercizio = null;
+            return $this;
+        }
+
+        // Se non è null, facciamo il trim in totale sicurezza
+        $nomePulito = trim($nomeEsercizio);
+        
+        // Se l'utente ha inserito solo spazi, lo normalizziamo a null
+        $this->nomeEsercizio = ($nomePulito === "") ? null : $nomePulito;
         return $this;
     }
 
     public function setDescrizione(?string $descrizione): self
     {
-        $this->descrizione = $descrizione;
+        // Gestione sicura del null preventivo per evitare il crash di trim()
+        if ($descrizione === null) {
+            $this->descrizione = null;
+            return $this;
+        }
+
+        $descrizionePulita = trim($descrizione);
+
+        // Se la stringa è vuota dopo il trim, salviamo null nel database
+        $this->descrizione = ($descrizionePulita === "") ? null : $descrizionePulita;
         return $this;
     }
 

@@ -22,11 +22,11 @@ class DettaglioAllenamento
         int $ripetizioni,
         float $carico,
     ) {
-        $this->esercizio = $esercizio;
-        $this->allenamento = $allenamento;
-        $this->serie = $serie;
-        $this->ripetizioni = $ripetizioni;
-        $this->carico = $carico;
+        $this->setEsercizio($esercizio);
+        $this->setAllenamento($allenamento);
+        $this->setSerie($serie);
+        $this->setRipetizioni($ripetizioni);
+        $this->setCarico($carico);
     }
 
     // -------------------------------------------------------------------------
@@ -71,6 +71,13 @@ class DettaglioAllenamento
     public function setAllenamento(Allenamento $allenamento): self
     {
         $this->allenamento = $allenamento;
+
+        // BIUNIVOCITÀ: Se la collezione dei dettagli dell'allenamento non contiene questo dettaglio, aggiungilo
+        // Nota: Assicurati che in Allenamento.php il getter della collezione si chiami getDettagliAllenamenti() o similare
+        if (!$allenamento->getDettagli()->contains($this)) {
+            $allenamento->addDettaglio($this); 
+        }
+
         return $this;
     }
 

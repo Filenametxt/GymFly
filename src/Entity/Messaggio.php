@@ -26,9 +26,9 @@ class Messaggio
             throw new \InvalidArgumentException('Questo utente non è autorizzato ad inviare messaggi.');
         }
 
-        $this->mittente = $mittente;
-        $this->oggetto = $oggetto;
-        $this->contenuto = $contenuto;
+        $this->setMittente($mittente);
+        $this->setOggetto($oggetto);
+        $this->setContenuto($contenuto);
 
         // aggiorna anche il lato Utente della relazione
         $mittente->aggiungiMessaggioInviato($this);
@@ -87,10 +87,11 @@ class Messaggio
      */
     public function setOggetto(string $oggetto): self
     {
-        if (trim($oggetto) === '') {
+        $oggettoPulito = trim($oggetto);
+        if ($oggettoPulito === '') {
             throw new \InvalidArgumentException("L'oggetto del messaggio non può essere vuoto.");
         }
-        $this->oggetto = $oggetto;
+        $this->oggetto = $oggettoPulito;
         return $this;
     }
 
@@ -100,10 +101,11 @@ class Messaggio
      */
     public function setContenuto(string $contenuto): self
     {
-        if (trim($contenuto) === '') {
+        $contenutoPulito = trim($contenuto);
+        if ($contenutoPulito === '') {
             throw new \InvalidArgumentException('Il contenuto del messaggio non può essere vuoto.');
         }
-        $this->contenuto = $contenuto;
+        $this->contenuto = $contenutoPulito;
         return $this;
     }
 

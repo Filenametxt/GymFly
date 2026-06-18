@@ -16,7 +16,7 @@ class GruppoMuscolare
     public function __construct(string $nomeGruppoMuscolare)
     {
         $this->esercizi = new ArrayCollection();
-        $this->nomeGruppoMuscolare = $nomeGruppoMuscolare;
+        $this->setNomeGruppoMuscolare($nomeGruppoMuscolare);
     }
 
     // -------------------------------------------------------------------------
@@ -44,7 +44,11 @@ class GruppoMuscolare
 
     public function setNomeGruppoMuscolare(string $nome): self
     {
-        $this->nomeGruppoMuscolare = $nome;
+        $nomePulito = trim($nome);
+        if ($nomePulito === "") {
+            throw new \InvalidArgumentException("Il nome del gruppo muscolare non può essere vuoto.");
+        }
+        $this->nomeGruppoMuscolare = $nomePulito;
         return $this;
     }
 
@@ -52,17 +56,41 @@ class GruppoMuscolare
     // Gestione relazione N-N con Esercizio — lato inverso
     // -------------------------------------------------------------------------
 
+    // -------------------------------------------------------------------------
+    // Gestione relazione N-N con Esercizio — Sincronizzazione in memoria RAM
+    // -------------------------------------------------------------------------
+
+    /**
+     * Associa un esercizio a questo gruppo muscolare e garantisce
+     * che l'esercizio si associ a sua volta in modo bidirezionale.
+     */
     public function aggiungiEsercizio(Esercizio $esercizio): self
     {
         if (!$this->esercizi->contains($esercizio)) {
             $this->esercizi->add($esercizio);
+            
+            // BIUNIVOCITÀ: Controlla il lato proprietario (Esercizio)
+            // Assicurati che il metodo richiamato corrisponda a quello in Esercizio.php (es. addGruppoMuscolare o aggiungiGruppoMuscolare)
+            if (!$esercizio->getGruppiMuscolari()->contains($this)) {
+                $esercizio->aggiungiGruppoMuscolare($this);
+            }
         }
         return $this;
     }
 
+    /**
+     * Rimuove l'associazione con un esercizio in modo bidirezionale.
+     */
     public function rimuoviEsercizio(Esercizio $esercizio): self
     {
-        $this->esercizi->removeElement($esercizio);
+        if ($this->esercizi->contains($esercizio)) {
+            $this->esercizi->removeElement($esercizio);
+            
+            // BIUNIVOCITÀ: Rimuove lo specchio sul lato proprietario
+            if ($esercizio->getGruppiMuscolari()->contains($this)) {
+                $esercizio->rimuoviGruppoMuscolare($this);
+            }
+        }
         return $this;
     }
 }
