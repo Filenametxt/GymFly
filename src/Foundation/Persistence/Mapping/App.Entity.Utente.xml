@@ -24,8 +24,8 @@
         <field name="nome"            type="string"  column="nome"/>
         <field name="cognome"         type="string"  column="cognome"/>
         <field name="email"           type="string"  column="email"   unique="true"/>
-        <field name="CF"              type="string"  column="CF"      unique="true"/>
-        <field name="profilePicture"  type="string"  column="profile_picture" nullable="true"/>
+        <field name="CF"              type="string"  column="CF"      unique="true" length="16"/>
+        <field name="profilePicture"  type="blob"    column="profile_picture" nullable="true"/>
         <field name="telefono"        type="string"  column="telefono"        nullable="true"/>
         <field name="indirizzo"       type="string"  column="indirizzo"       nullable="true"/>
         <field name="sesso"           type="string"  column="sesso"           nullable="true" enum-type="App\Enum\Sesso"/>

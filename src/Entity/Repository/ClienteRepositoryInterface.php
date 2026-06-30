@@ -26,6 +26,14 @@ interface ClienteRepositoryInterface extends UtenteRepositoryInterface
 
     public function findByCF(string $CF): ?Cliente;
 
+    /**
+     * Ricerca clienti per nome, cognome o email.
+     * Usato dalla barra di ricerca generica.
+     *
+     * @return Cliente[]
+     */
+    public function findByStringa(string $query): array;
+
     // -------------------------------------------------------------------------
     // Filtro per palestra
     // -------------------------------------------------------------------------

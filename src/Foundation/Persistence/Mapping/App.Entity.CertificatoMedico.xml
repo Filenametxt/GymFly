@@ -13,7 +13,7 @@
         <field name="dataEmissione" type="date_immutable"   column="data_emissione"/>
         <field name="dataScadenza"  type="date_immutable"   column="data_scadenza"/>
         <field name="medico"        type="string" column="medico"/>
-        <field name="filePath"      type="string" column="file" nullable="true"/>
+        <field name="fileContent"   type="blob"   column="file_content" nullable="true"/>
 
         <!--
             1-1 lato INVERSO — Cliente è owner.

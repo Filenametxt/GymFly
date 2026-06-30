@@ -3,7 +3,7 @@
         'name' => 'univaq/gym-fly',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '1e9602c5ea3352d5c7cec083a5de1c97dd83d775',
+        'reference' => '4316c06f3861d04daf259528fe97c49f5cfdd551',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -370,6 +370,15 @@
             'aliases' => array(),
             'dev_requirement' => true,
         ),
+        'smarty/smarty' => array(
+            'pretty_version' => 'v5.8.4',
+            'version' => '5.8.4.0',
+            'reference' => '94a27cbbc7820198d7adc17a2be8d457fb267753',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../smarty/smarty',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'symfony/cache' => array(
             'pretty_version' => 'v7.4.13',
             'version' => '7.4.13.0',
@@ -505,7 +514,7 @@
         'univaq/gym-fly' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '1e9602c5ea3352d5c7cec083a5de1c97dd83d775',
+            'reference' => '4316c06f3861d04daf259528fe97c49f5cfdd551',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

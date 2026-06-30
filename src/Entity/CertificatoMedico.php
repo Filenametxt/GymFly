@@ -8,21 +8,21 @@ class CertificatoMedico
     private \DateTimeImmutable $dataEmissione;
     private \DateTimeImmutable $dataScadenza;   // calcolata automaticamente: +1 anno da emissione
     private string $medico;
-    private ?string $filePath = null; // percorso del file sul server
+    private ?string $fileContent = null; // contenuto binario del file (BLOB)
     private Cliente $cliente;
 
     public function __construct(
         \DateTimeImmutable $dataEmissione,
         string $medico,
         Cliente $cliente,
-        ?string $filePath = null,
+        ?string $fileContent = null,
     ) {
         $this->dataEmissione = $dataEmissione;
         // data scadenza calcolata automaticamente: 1 anno dopo l'emissione
         $this->dataScadenza = $dataEmissione->modify('+1 year');
         $this->medico = $medico;
         $this->cliente = $cliente;
-        $this->filePath = $filePath;
+        $this->fileContent = $fileContent;
     }
 
     // -------------------------------------------------------------------------
@@ -45,9 +45,9 @@ class CertificatoMedico
     {
         return $this->medico;
     }
-    public function getFilePath(): ?string
+    public function getFileContent(): ?string
     {
-        return $this->filePath;
+        return $this->fileContent;
     }
     public function getCliente(): Cliente
     {
@@ -74,9 +74,9 @@ class CertificatoMedico
         return $this;
     }
 
-    public function setFilePath(?string $filePath): self
+    public function setFileContent(?string $fileContent): self
     {
-        $this->filePath = $filePath;
+        $this->fileContent = $fileContent;
         return $this;
     }
 

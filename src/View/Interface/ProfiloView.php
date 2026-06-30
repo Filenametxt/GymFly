@@ -1,0 +1,8 @@
+<?php
+namespace App\View\Interface;
+
+interface ProfiloView {
+    public function mostraProfilo(array $datiCliente): void;
+    public function mostraConfermaModifica(string $messaggio): void;
+    public function mostraErrore(string $messaggio): void;
+}

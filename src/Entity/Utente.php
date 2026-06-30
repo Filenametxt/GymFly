@@ -227,7 +227,9 @@ abstract class Utente
 }
 
     /**
-     * Imposta il percorso o URL della foto profilo.
+     * Imposta il contenuto binario (BLOB) della foto profilo.
+     *
+     * @param string $profilePicture Contenuto binario dell'immagine.
      */
     public function setProfilePicture(string $profilePicture): self
     {
