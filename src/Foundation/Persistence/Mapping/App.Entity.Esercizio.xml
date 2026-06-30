@@ -4,6 +4,7 @@
         <id name="id" type="integer" column="id"><generator strategy="AUTO"/></id>
         <field name="nomeEsercizio" type="string" column="nome_esercizio" length="255" nullable="true"/>
         <field name="descrizione" type="text" column="descrizione" nullable="true"/>
+        <field name="immagine" type="blob" column="immagine" nullable="true"/>
 
         <one-to-one field="attrezzaturaNecessaria" target-entity="App\Entity\Attrezzatura">
             <join-column name="id_attrezzatura" referenced-column-name="id" on-delete="SET NULL" nullable="true"/>

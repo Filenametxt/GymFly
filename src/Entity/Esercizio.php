@@ -24,12 +24,16 @@ class Esercizio
     /** @var Collection<int, GruppoMuscolare> */
     private Collection $gruppiMuscolari;
 
+    // Contenuto binario (BLOB) dell'immagine (gif/png/jpg)
+    private ?string $immagine = null;
+
     public function __construct(
         ?string $nomeEsercizio,
         ?string $descrizione,
         Tipologia $tipologia,
         ?Attrezzatura $attrezzaturaNecessaria = null,
         ?Allenatore $creatore = null,
+        ?string $immagine = null
     ) {
         $this->gruppiMuscolari = new ArrayCollection();
         $this->setNomeEsercizio($nomeEsercizio);
@@ -37,6 +41,7 @@ class Esercizio
         $this->setTipologia($tipologia);
         $this->setAttrezzaturaNecessaria($attrezzaturaNecessaria);
         $this->setCreatore($creatore);
+        $this->setImmagine($immagine);
     }
 
     // -------------------------------------------------------------------------
@@ -72,6 +77,11 @@ class Esercizio
     public function getGruppiMuscolari(): Collection
     {
         return $this->gruppiMuscolari;
+    }
+
+    public function getImmagine(): ?string
+    {
+        return $this->immagine;
     }
 
     // -------------------------------------------------------------------------
@@ -124,6 +134,12 @@ class Esercizio
     public function setCreatore(?Allenatore $creatore): self
     {
         $this->creatore = $creatore;
+        return $this;
+    }
+
+    public function setImmagine(?string $immagine): self
+    {
+        $this->immagine = $immagine;
         return $this;
     }
 
