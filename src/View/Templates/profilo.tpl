@@ -61,7 +61,7 @@
           <span class="has-text-success">attivo</span>
         {else}
           <span class="has-text-danger">scaduto</span>
-        {if_end}
+        {/if}
       </h3>
       
       <p class="is-size-6">data inizio: <strong>{$abbonamento->getDataInizio()|date_format:"%d/%m/%Y"}</strong></p>

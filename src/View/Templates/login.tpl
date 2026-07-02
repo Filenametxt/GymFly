@@ -95,10 +95,10 @@
 
             <div class="navbar-end">
                 <div class="navbar-items is-flex is-align-items-flex-end" style="height: 100%;">
-                    <a class="navbar-item is-tab px-4 py-2" href="{$baseUrl|default:''}/signup" style="border-bottom: none;">
+                    <a class="navbar-item is-tab px-4 py-2" href="index.php?action=registrazione" style="border-bottom: none;">
                         SIGN IN
                     </a>
-                    <a class="navbar-item is-tab is-active-login px-4 py-2" href="{$baseUrl|default:''}/login">
+                    <a class="navbar-item is-tab is-active-login px-4 py-2" href="index.php?action=login">
                         LOG IN
                     </a>
                 </div>
@@ -126,8 +126,9 @@
                                 </div>
                             {/if}
 
-                            <form action="{$baseUrl|default:''}/login-process" method="POST">
-                                
+                            <form action="index.php" method="POST">
+                                <input type="hidden" name="action" value="login">
+
                                 <div class="field mb-4">
                                     <label class="label is-small">e-mail</label>
                                     <div class="control has-icons-left">
@@ -151,7 +152,7 @@
                                 <div class="level mt-6">
                                     <div class="level-left">
                                         <div class="level-item">
-                                            <a href="{$baseUrl|default:''}/forgot-password" class="is-size-7 has-text-grey-dark">Forgot password?</a>
+                                            <a href="#" class="is-size-7 has-text-grey-dark">Forgot password?</a>
                                         </div>
                                     </div>
                                     <div class="level-right">

@@ -9,7 +9,6 @@ use App\Infrastructure\Doctrine\EntityManagerFactory;
 use App\Foundation\Session;
 use App\Control\AutenticazioneController;
 use App\View\AutenticazioneViewSmarty;
-use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
 
 // Determina quale azione è stata richiesta (da GET o POST)
 $action = $_REQUEST['action'] ?? 'home'; // Se nessuna azione, mostra la home
@@ -21,9 +20,8 @@ $session = new Session();
 
 // --- Inizializzazione dei Controller ---
 // In un'applicazione complessa, questo verrebbe gestito in modo più dinamico
-$clienteRepo = new DoctrineClienteRepository($entityManager);
 $authView = new AutenticazioneViewSmarty();
-$authController = new AutenticazioneController($clienteRepo, $authView, $session);
+$authController = new AutenticazioneController($entityManager, $authView, $session);
 
 
 // --- ROUTING ---
@@ -44,7 +42,24 @@ switch ($action) {
         $authController->logout();
         break;
 
+    case 'registrazione':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $authController->registraAmministratore();
+        } else {
+            $authView->mostraFormRegistrazione();
+        }
+        break;
+
     // Aggiungi qui altri 'case' per 'registrazione', 'visualizzaProfilo', etc.
+    case 'dashboard-admin':
+        echo "<h1>Dashboard Amministratore</h1><p>Benvenuto!</p>";
+        break;
+    case 'dashboard-allenatore':
+        echo "<h1>Dashboard Allenatore</h1><p>Benvenuto!</p>";
+        break;
+    case 'dashboard-cliente':
+        echo "<h1>Dashboard Cliente</h1><p>Benvenuto!</p>";
+        break;
 
     default:
         // Azione di default: mostra una pagina di benvenuto o la dashboard

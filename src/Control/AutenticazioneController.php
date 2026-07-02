@@ -1,16 +1,18 @@
 <?php
 namespace App\Control;
 
-use App\Entity\Repository\ClienteRepositoryInterface;
 use App\View\Interface\AutenticazioneView;
 use App\Foundation\Session;
 use App\Enum\Sesso;
-use App\Entity\Cliente;
+use App\Entity\Amministratore;
+use App\Entity\Utente;
+use App\Entity\Palestra;
+use Doctrine\ORM\EntityManagerInterface;
 
 class AutenticazioneController 
 {
     public function __construct(
-        private ClienteRepositoryInterface $clienteRepo,
+        private EntityManagerInterface $entityManager,
         private AutenticazioneView $view,
         private Session $session
     ) {}
@@ -26,15 +28,16 @@ class AutenticazioneController
             return;
         }
 
-        $cliente = $this->clienteRepo->findByEmail($email);
+        $utente = $this->entityManager->getRepository(Utente::class)->findOneBy(['email' => $email]);
 
-        if ($cliente === null || !$cliente->verificaPassword($password)) {
+        if ($utente === null || !$utente->verificaPassword($password)) {
             $this->view->mostraStatoOperazione(false, "Credenziali errate.");
             return;
         }
 
-        $this->session->setUtenteLoggato($cliente); // Assume che setUtenteLoggato gestisca il ruolo
-        $this->view->mostraStatoOperazione(true, "Login effettuato con successo.");
+        $this->session->setUtenteLoggato($utente);
+        $ruolo = $utente->getRuolo();
+        $this->view->reindirizzaDopoLogin($ruolo);
     }
 
     public function logout(): void 
@@ -43,47 +46,63 @@ class AutenticazioneController
         $this->view->mostraFormLogin();
     }
 
-    public function registraCliente(): void
+    public function registraAmministratore(): void
     {
         // Richiede i dati di registrazione alla View
         $dati = $this->view->richiediDatiRegistrazione();
 
         // Validazione dei campi obbligatori
-        if (empty($dati['nome']) || empty($dati['cognome']) || empty($dati['email']) || empty($dati['cf']) || empty($dati['password']) || empty($dati['indirizzo']) || empty($dati['data_nascita']) || empty($dati['luogo_nascita']) || empty($dati['sesso']) || empty($dati['metodo_pagamento'])) {
-            $this->view->mostraStatoOperazione(false, "Dati obbligatori mancanti per la registrazione.");
-            return;
+        $campiObbligatori = [
+            'nome', 'cognome', 'email', 'cf', 'password', 'indirizzo', 'sesso', // Dati Amministratore
+            'nome_palestra', 'indirizzo_palestra', 'email_palestra', 'telefono_palestra' // Dati Palestra
+        ];
+
+        foreach ($campiObbligatori as $campo) {
+            if (empty($dati[$campo])) {
+                $this->view->mostraStatoOperazione(false, "Tutti i campi sono obbligatori per completare la registrazione.");
+                return;
+            }
         }
 
-        if ($this->clienteRepo->findByEmail($dati['email']) !== null) {
-            $this->view->mostraStatoOperazione(false, "Email già registrata.");
+        $existingUser = $this->entityManager->getRepository(Utente::class)->findOneBy(['email' => $dati['email']]);
+        if ($existingUser) {
+            $this->view->mostraStatoOperazione(false, "L'email dell'amministratore è già registrata.");
             return;
         }
 
         try {
+            $this->entityManager->beginTransaction();
+
             // Conversione dei dati grezzi nei tipi richiesti dall'entità
-            $dataDiNascita = new \DateTimeImmutable($dati['data_nascita']);
             $sesso = Sesso::from($dati['sesso']);
 
-            // Creazione dell'entità Cliente con il costruttore corretto
-            $nuovoCliente = new Cliente(
+            $nuovoAmministratore = new Amministratore(
                 $dati['nome'],
                 $dati['cognome'],
                 $dati['email'],
                 $dati['cf'],
                 $dati['indirizzo'],
                 $sesso,
-                $dataDiNascita,
-                $dati['luogo_nascita'],
-                $dati['indirizzo_domicilio'],
-                $dati['metodo_pagamento'],
                 $dati['password'],
                 null, // profilePicture
                 $dati['telefono']
             );
 
-            $this->clienteRepo->save($nuovoCliente);
-            $this->view->mostraStatoOperazione(true, "Registrazione effettuata con successo."); // Correzione: era una chiamata a un metodo obsoleto
+            // 2. Crea la Palestra, passando l'amministratore appena creato
+            $nuovaPalestra = new Palestra(
+                $dati['nome_palestra'],
+                $dati['indirizzo_palestra'],
+                $dati['email_palestra'],
+                $dati['telefono_palestra'],
+                $nuovoAmministratore // Associa l'amministratore
+            );
 
+            $this->entityManager->persist($nuovoAmministratore);
+            $this->entityManager->persist($nuovaPalestra);
+            $this->entityManager->flush(); // Salva tutto in una singola transazione
+            $this->entityManager->commit();
+
+            $this->view->mostraStatoOperazione(true, "Registrazione di amministratore e palestra effettuata con successo.");
         } catch (\InvalidArgumentException $e) {
             // Cattura errori di validazione dalle entità (es. CF malformato)
             $this->view->mostraStatoOperazione(false, "Dati non validi per la registrazione: " . $e->getMessage());
@@ -93,19 +112,4 @@ class AutenticazioneController
         }
     }
 
-    public function rimuoviUtente(): void
-    {
-        // La logica di autorizzazione (es. controllo del ruolo) andrebbe implementata qui.
-        // Dato che Session non fornisce il ruolo, per ora procediamo senza questo controllo.
-        $idDaRimuovere = $this->view->richiediIdUtenteDaRimuovere();
-        $utente = $this->clienteRepo->findById($idDaRimuovere);
-
-        if (!$utente) {
-            $this->view->mostraStatoOperazione(false, "Utente non trovato per la rimozione.");
-            return;
-        }
-
-        $this->clienteRepo->delete($utente);
-        $this->view->mostraStatoOperazione(true, "Utente rimosso con successo.");
-    }
 }

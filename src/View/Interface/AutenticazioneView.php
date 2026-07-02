@@ -19,6 +19,12 @@ interface AutenticazioneView
      */
     public function richiediDatiRegistrazione(): array;
 
-    public function richiediIdUtenteDaRimuovere(): int;
     public function mostraStatoOperazione(bool $successo, string $messaggio): void;
+
+    /**
+     * Esegue un reindirizzamento HTTP verso la dashboard appropriata
+     * in base al ruolo dell'utente.
+     * @param string $ruolo Il ruolo dell'utente (es. 'cliente', 'amministratore').
+     */
+    public function reindirizzaDopoLogin(string $ruolo): void;
 }

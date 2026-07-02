@@ -42,18 +42,16 @@ class AutenticazioneViewSmarty implements AutenticazioneView
             'cf' => $_POST['cf'] ?? null,
             'password' => $_POST['password'] ?? null,
             'indirizzo' => $_POST['indirizzo'] ?? null,
-            'metodo_pagamento' => $_POST['metodo_pagamento'] ?? null,
             'data_nascita' => $_POST['data_nascita'] ?? null,
             'luogo_nascita' => $_POST['luogo_nascita'] ?? null,
             'sesso' => $_POST['sesso'] ?? null,
-            'indirizzo_domicilio' => $_POST['indirizzo_domicilio'] ?? null,
             'telefono' => $_POST['telefono'] ?? null,
+            // Campi aggiuntivi per la palestra
+            'nome_palestra' => $_POST['nome_palestra'] ?? null,
+            'indirizzo_palestra' => $_POST['indirizzo_palestra'] ?? null,
+            'email_palestra' => $_POST['email_palestra'] ?? null,
+            'telefono_palestra' => $_POST['telefono_palestra'] ?? null,
         ];
-    }
-
-    public function richiediIdUtenteDaRimuovere(): int
-    {
-        return isset($_POST['id_utente']) ? (int)$_POST['id_utente'] : 0;
     }
 
     public function mostraStatoOperazione(bool $successo, string $messaggio): void
@@ -62,5 +60,24 @@ class AutenticazioneViewSmarty implements AutenticazioneView
         $this->smarty->assign('successo', $successo);
         $this->smarty->assign('messaggio', $messaggio);
         $this->smarty->display('stato_operazione.tpl');
+    }
+
+    public function reindirizzaDopoLogin(string $ruolo): void
+    {
+        $url = '/GymFly/index.php'; // Default
+
+        switch ($ruolo) {
+            case 'amministratore':
+                $url = '/GymFly/index.php?action=dashboard-admin';
+                break;
+            case 'allenatore':
+                $url = '/GymFly/index.php?action=dashboard-allenatore';
+                break;
+            case 'cliente':
+                $url = '/GymFly/index.php?action=dashboard-cliente';
+                break;
+        }
+        header('Location: ' . $url);
+        exit();
     }
 }

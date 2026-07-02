@@ -50,6 +50,23 @@ class DoctrineClienteRepository extends AbstractDoctrineUtenteRepository
             ->getOneOrNullResult();
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function findByStringa(string $query): array
+    {
+        return $this->em->createQueryBuilder()
+            ->select('c')
+            ->from(Cliente::class, 'c')
+            ->where('LOWER(c.nome) LIKE LOWER(:query)')
+            ->orWhere('LOWER(c.cognome) LIKE LOWER(:query)')
+            ->orWhere('LOWER(c.email) LIKE LOWER(:query)')
+            ->setParameter('query', '%' . $query . '%')
+            ->orderBy('c.cognome', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     // -------------------------------------------------------------------------
     // Filtro per palestra
     // -------------------------------------------------------------------------
