@@ -50,8 +50,8 @@ abstract class Utente
             $this->profilePicture = null;
             }
         
-        // Se il telefono è stato passato (non è null), avvia il setter con la pulizia
-        if ($telefono !== null) {
+        // Se il telefono è stato passato (non è null e non è vuoto), avvia il setter con la pulizia
+        if ($telefono !== null && trim($telefono) !== '') {
             $this->setTelefono($telefono);
         } else {
             $this->telefono = null;

@@ -28,7 +28,7 @@
                     <div class="notification {if $successo}is-success{else}is-danger{/if} is-light">
                         <p class="is-size-5">{$messaggio}</p>
                     </div>
-                    <a href="index.php?action=login" class="button is-link is-light mt-4">Torna al Login</a>
+                    <a href="login" class="button is-link is-light mt-4">Torna al Login</a>
                 </div>
             </div>
         </div>

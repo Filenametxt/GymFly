@@ -1,6 +1,8 @@
 <?php
 namespace App\Foundation;
 
+use App\Entity\Utente;
+
 class Session {
     public function __construct() {
         if (session_status() === PHP_SESSION_NONE) {
@@ -8,7 +10,7 @@ class Session {
         }
     }
 
-    public function setUtenteLoggato(\App\Entity\Utente $utente): void {
+    public function setUtenteLoggato(Utente $utente): void {
         $_SESSION['id_utente'] = $utente->getId();
         $_SESSION['ruolo_utente'] = $utente->getRuolo();
     }

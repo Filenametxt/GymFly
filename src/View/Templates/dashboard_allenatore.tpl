@@ -65,7 +65,7 @@
     <nav class="navbar" role="navigation" aria-label="main navigation">
         <div class="container">
             <div class="navbar-brand">
-                <a class="navbar-item" href="index.php">
+                <a class="navbar-item" href="./">
                     <strong class="is-size-4" style="color: #AFAFE2;">GymFly 🏋️‍♂️</strong>
                 </a>
             </div>
@@ -75,7 +75,7 @@
                         <span class="tag is-medium is-trainer-theme mr-3">
                             <i class="fas fa-user-ninja mr-2"></i> Allenatore
                         </span>
-                        <a href="index.php?action=logout" class="button is-danger is-light">
+                        <a href="logout" class="button is-danger is-light">
                             <i class="fas fa-sign-out-alt mr-2"></i> Log Out
                         </a>
                     </div>
@@ -161,7 +161,7 @@
                                             </td>
                                             <td class="has-text-right">
                                                 <div class="buttons is-right">
-                                                    <a href="index.php?action=visualizza-profilo&id={$cliente->getId()}" class="button is-small is-gymfly">
+                                                    <a href="visualizza-profilo?id={$cliente->getId()}" class="button is-small is-gymfly">
                                                         <i class="fas fa-folder-open mr-2"></i> Scheda & Progressi
                                                     </a>
                                                 </div>

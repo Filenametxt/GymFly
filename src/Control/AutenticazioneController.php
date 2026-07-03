@@ -19,6 +19,11 @@ class AutenticazioneController
 
     public function login(): void
     {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $this->view->mostraFormLogin();
+            return;
+        }
+
         // Richiede i dati di login alla View
         $loginData = $this->view->richiediCredenzialiLogin();
         $email = $loginData['email'] ?? '';
@@ -48,6 +53,11 @@ class AutenticazioneController
 
     public function registraAmministratore(): void
     {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $this->view->mostraFormRegistrazione();
+            return;
+        }
+
         // Richiede i dati di registrazione alla View
         $dati = $this->view->richiediDatiRegistrazione();
 

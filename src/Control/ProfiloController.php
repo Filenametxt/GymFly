@@ -9,6 +9,10 @@ use App\View\Interface\ProfiloView;
 use App\Foundation\Session;
 use App\Entity\Parametri;
 use App\Entity\CertificatoMedico;
+use App\Infrastructure\Doctrine\EntityManagerFactory;
+use App\Entity\Amministratore;
+use App\Entity\Palestra;
+use App\Entity\Allenatore;
 
 class ProfiloController 
 {
@@ -27,15 +31,45 @@ class ProfiloController
     public function visualizzaProfilo(): void 
     {
         $idUtente = $this->session->getLoggedUserId();
+        $ruolo = $this->session->getLoggedUserRole();
         if (!$idUtente) {
             $this->view->mostraErrore("Sessione non valida. Effettua il login.");
             return;
         }
 
-        $cliente = $this->clienteRepo->findById($idUtente);
+        // Determina l'ID del cliente da visualizzare
+        $targetId = $idUtente;
+        if ($ruolo === 'amministratore' || $ruolo === 'allenatore') {
+            $targetId = isset($_GET['id']) ? (int)$_GET['id'] : null;
+            if (!$targetId) {
+                $this->view->mostraErrore("ID cliente non specificato.");
+                return;
+            }
+        }
+
+        $cliente = $this->clienteRepo->findById($targetId);
         if (!$cliente) {
             $this->view->mostraErrore("Cliente non trovato.");
             return;
+        }
+
+        // Controllo di sicurezza (Anti-IDOR) per amministratore e allenatore
+        if ($ruolo === 'amministratore' || $ruolo === 'allenatore') {
+            $entityManager = EntityManagerFactory::create();
+            $palestraUtente = null;
+            if ($ruolo === 'amministratore') {
+                $adminObj = $entityManager->find(Amministratore::class, $idUtente);
+                $palestraUtente = $entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $adminObj]);
+            } else {
+                $allenatoreObj = $entityManager->find(Allenatore::class, $idUtente);
+                $palestraUtente = $allenatoreObj ? $allenatoreObj->getPalestra() : null;
+            }
+
+            // Verifica che il cliente appartenga alla stessa palestra dell'utente loggato
+            if (!$palestraUtente || !$cliente->getPalestra() || $cliente->getPalestra()->getId() !== $palestraUtente->getId()) {
+                $this->view->mostraErrore("Accesso negato. Non sei autorizzato a visualizzare questo profilo.");
+                return;
+            }
         }
 
         $ultimiParametri = $this->parametriRepo->findUltimaByCliente($cliente);

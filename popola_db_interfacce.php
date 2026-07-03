@@ -51,7 +51,7 @@ try {
         'admin@gymfly.com',
         'RSSMRA80A01H501U',
         'Via Roma 1, Milano',
-        Sesso::MALE, // NB: Assicurati che "MASCHIO" corrisponda al caso reale del tuo Enum Sesso
+        Sesso::MALE,
         'PasswordSicura123!'
     );
     $entityManager->persist($admin);
