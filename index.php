@@ -8,6 +8,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 use App\Infrastructure\Doctrine\EntityManagerFactory;
 use App\Foundation\Session;
 use App\Control\AutenticazioneController;
+use App\Control\VisualizzazioneController;
 use App\View\AutenticazioneViewSmarty;
 
 // Determina quale azione è stata richiesta (da GET o POST)
@@ -22,6 +23,7 @@ $session = new Session();
 // In un'applicazione complessa, questo verrebbe gestito in modo più dinamico
 $authView = new AutenticazioneViewSmarty();
 $authController = new AutenticazioneController($entityManager, $authView, $session);
+$visualizzazioneController = new VisualizzazioneController($entityManager, $authView, $session);
 
 
 // --- ROUTING ---
@@ -29,6 +31,11 @@ $authController = new AutenticazioneController($entityManager, $authView, $sessi
 
 switch ($action) {
     case 'login':
+        // Se l'utente è già loggato, reindirizzalo alla sua dashboard
+        if ($session->isLogged()) {
+            $authView->reindirizzaDopoLogin($session->getLoggedUserRole());
+        }
+        
         // L'utente ha inviato il form di login (method POST)
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $authController->login();
@@ -43,6 +50,11 @@ switch ($action) {
         break;
 
     case 'registrazione':
+        // Se l'utente è già loggato, reindirizzalo alla sua dashboard
+        if ($session->isLogged()) {
+            $authView->reindirizzaDopoLogin($session->getLoggedUserRole());
+        }
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $authController->registraAmministratore();
         } else {
@@ -50,18 +62,23 @@ switch ($action) {
         }
         break;
 
-    // Aggiungi qui altri 'case' per 'registrazione', 'visualizzaProfilo', etc.
     case 'dashboard-admin':
-        echo "<h1>Dashboard Amministratore</h1><p>Benvenuto!</p>";
+        $visualizzazioneController->mostraDashboardAdmin();
         break;
+
     case 'dashboard-allenatore':
-        echo "<h1>Dashboard Allenatore</h1><p>Benvenuto!</p>";
+        $visualizzazioneController->mostraDashboardAllenatore();
         break;
+
     case 'dashboard-cliente':
-        echo "<h1>Dashboard Cliente</h1><p>Benvenuto!</p>";
+        $visualizzazioneController->mostraDashboardCliente();
         break;
 
     default:
+        // Se l'utente è già loggato, portalo sulla sua dashboard
+        if ($session->isLogged()) {
+            $authView->reindirizzaDopoLogin($session->getLoggedUserRole());
+        }
         // Azione di default: mostra una pagina di benvenuto o la dashboard
         echo "<h1>Benvenuto in GymFly!</h1><p>Seleziona un'azione.</p>";
         break;

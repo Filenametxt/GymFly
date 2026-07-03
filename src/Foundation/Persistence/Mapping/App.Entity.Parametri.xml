@@ -12,7 +12,7 @@
 
         <field name="peso"              type="float" column="peso"/>
         <field name="altezza"           type="float" column="altezza"/>
-        <field name="data"              type="date"  column="data"/>
+        <field name="data"              type="date_immutable"  column="data"/>
         <field name="bicipiteDestro"    type="float" column="bicipite_destro"    nullable="true"/>
         <field name="bicipiteSinistro"  type="float" column="bicipite_sinistro"  nullable="true"/>
         <field name="tricipiteDestro"   type="float" column="tricipite_destro"   nullable="true"/>

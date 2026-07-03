@@ -10,8 +10,8 @@
             <generator strategy="AUTO"/>
         </id>
 
-        <field name="dataInizio" type="date" column="data_inizio"/>
-        <field name="dataFine"   type="date" column="data_fine"/>
+        <field name="dataInizio" type="date_immutable" column="data_inizio"/>
+        <field name="dataFine"   type="date_immutable" column="data_fine"/>
 
         <!--
             1-1 lato INVERSO — Cliente è owner.

@@ -64,20 +64,47 @@ class AutenticazioneViewSmarty implements AutenticazioneView
 
     public function reindirizzaDopoLogin(string $ruolo): void
     {
-        $url = '/GymFly/index.php'; // Default
+        $url = 'index.php'; // Default
 
         switch ($ruolo) {
             case 'amministratore':
-                $url = '/GymFly/index.php?action=dashboard-admin';
+                $url = 'index.php?action=dashboard-admin';
                 break;
             case 'allenatore':
-                $url = '/GymFly/index.php?action=dashboard-allenatore';
+                $url = 'index.php?action=dashboard-allenatore';
                 break;
             case 'cliente':
-                $url = '/GymFly/index.php?action=dashboard-cliente';
+                $url = 'index.php?action=dashboard-cliente';
                 break;
         }
         header('Location: ' . $url);
         exit();
+    }
+
+    public function mostraDashboardAdmin(array $dati): void
+    {
+        header('Content-Type: text/html; charset=utf-8');
+        foreach ($dati as $key => $value) {
+            $this->smarty->assign($key, $value);
+        }
+        $this->smarty->display('dashboard_admin.tpl');
+    }
+
+    public function mostraDashboardAllenatore(array $dati): void
+    {
+        header('Content-Type: text/html; charset=utf-8');
+        foreach ($dati as $key => $value) {
+            $this->smarty->assign($key, $value);
+        }
+        $this->smarty->display('dashboard_allenatore.tpl');
+    }
+
+    public function mostraDashboardCliente(array $dati): void
+    {
+        header('Content-Type: text/html; charset=utf-8');
+        foreach ($dati as $key => $value) {
+            $this->smarty->assign($key, $value);
+        }
+        $this->smarty->display('dashboard_cliente.tpl');
     }
 }

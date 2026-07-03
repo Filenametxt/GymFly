@@ -307,5 +307,13 @@ class Cliente extends Utente
     {
         return $this->isAbbonamentoAttivo() && $this->isCertificatoValido();
     }
+
+    /**
+     * Restituisce la data di scadenza dell'iscrizione.
+     */
+    public function getScadenzaIscrizione(): ?\DateTimeImmutable
+    {
+        return $this->iscrizione ? $this->iscrizione->getDataFine() : null;
+    }
 }
 ?>
