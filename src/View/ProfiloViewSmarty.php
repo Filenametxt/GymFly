@@ -26,6 +26,21 @@ class ProfiloViewSmarty implements ProfiloView
         $this->smarty->display('profilo.tpl');
     }
 
+    private function determinaRitorno(): string
+    {
+        if (isset($_SESSION['ruolo_utente'])) {
+            switch ($_SESSION['ruolo_utente']) {
+                case 'amministratore':
+                    return 'dashboard-admin';
+                case 'allenatore':
+                    return 'dashboard-allenatore';
+                case 'cliente':
+                    return 'dashboard-cliente';
+            }
+        }
+        return 'login';
+    }
+
     /**
      * Mostra un messaggio di conferma per una modifica andata a buon fine.
      */
@@ -34,6 +49,7 @@ class ProfiloViewSmarty implements ProfiloView
         header('Content-Type: text/html; charset=utf-8');
         $this->smarty->assign('successo', true);
         $this->smarty->assign('messaggio', $messaggio);
+        $this->smarty->assign('ritorno', $this->determinaRitorno());
         $this->smarty->display('stato_operazione.tpl');
     }
 
@@ -45,6 +61,34 @@ class ProfiloViewSmarty implements ProfiloView
         header('Content-Type: text/html; charset=utf-8');
         $this->smarty->assign('successo', false);
         $this->smarty->assign('messaggio', $messaggio);
+        $this->smarty->assign('ritorno', $this->determinaRitorno());
         $this->smarty->display('stato_operazione.tpl');
+    }
+
+    public function mostraFormModifica(array $dati): void
+    {
+        header('Content-Type: text/html; charset=utf-8');
+        foreach ($dati as $key => $value) {
+            $this->smarty->assign($key, $value);
+        }
+        $this->smarty->display('modifica_anagrafica.tpl');
+    }
+
+    public function mostraFormMisure(array $dati): void
+    {
+        header('Content-Type: text/html; charset=utf-8');
+        foreach ($dati as $key => $value) {
+            $this->smarty->assign($key, $value);
+        }
+        $this->smarty->display('aggiorna_misure.tpl');
+    }
+
+    public function mostraFormCertificato(array $dati): void
+    {
+        header('Content-Type: text/html; charset=utf-8');
+        foreach ($dati as $key => $value) {
+            $this->smarty->assign($key, $value);
+        }
+        $this->smarty->display('carica_certificato.tpl');
     }
 }

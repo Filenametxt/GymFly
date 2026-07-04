@@ -77,6 +77,8 @@ class ProfiloController
 
         // Costruiamo l'array con TUTTI i dati presenti nella schermata "PAGE 17"
         $datiProfilo = [
+            'utente' => $cliente,
+            'abbonamento' => $cliente->getAbbonamento(),
             // Anagrafica e Recapiti
             'nome' => $cliente->getNome(),
             'cognome' => $cliente->getCognome(),
@@ -137,25 +139,41 @@ class ProfiloController
             return;
         }
 
-        // Recupero dei campi input text come da form PAGE 18
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $this->view->mostForm = true; // a helper flag if needed, or simply render
+            $this->view->mostraFormModifica([
+                'utente' => $cliente
+            ]);
+            return;
+        }
+
+        // Recupero dei campi input text
+        $nuovoNome = $_POST['nome'] ?? null;
+        $nuovoCognome = $_POST['cognome'] ?? null;
         $nuovoIndirizzoResidenza = $_POST['indirizzo'] ?? null; // Ereditato da Utente
         $nuovoIndirizzoDomicilio = $_POST['indirizzo_domicilio'] ?? null; // Specifico di Cliente
         $nuovoMetodoPagamento = $_POST['metodo_pagamento'] ?? null;
 
-        if (empty($nuovoIndirizzoResidenza) || empty($nuovoMetodoPagamento)) {
-            $this->view->mostraErrore("I campi Residenza e Metodo di Pagamento sono obbligatori.");
+        if (empty($nuovoNome) || empty($nuovoCognome) || empty($nuovoIndirizzoResidenza) || empty($nuovoMetodoPagamento)) {
+            $this->view->mostraErrore("I campi Nome, Cognome, Residenza e Metodo di Pagamento sono obbligatori.");
             return;
         }
 
-        // Aggiorniamo l'entità
-        $cliente->setIndirizzo($nuovoIndirizzoResidenza);
-        if (method_exists($cliente, 'setIndirizzoDiDomicilio')) {
-            $cliente->setIndirizzoDiDomicilio($nuovoIndirizzoDomicilio);
-        }
-        $cliente->setMetodoDiPagamento($nuovoMetodoPagamento);
+        try {
+            // Aggiorniamo l'entità
+            $cliente->setNome($nuovoNome);
+            $cliente->setCognome($nuovoCognome);
+            $cliente->setIndirizzo($nuovoIndirizzoResidenza);
+            if (method_exists($cliente, 'setIndirizzoDiDomicilio')) {
+                $cliente->setIndirizzoDiDomicilio($nuovoIndirizzoDomicilio);
+            }
+            $cliente->setMetodoDiPagamento($nuovoMetodoPagamento);
 
-        $this->clienteRepo->save($cliente);
-        $this->view->mostraConfermaModifica("Modifiche salvate con successo.");
+            $this->clienteRepo->save($cliente);
+            $this->view->mostraConfermaModifica("Modifiche salvate con successo.");
+        } catch (\InvalidArgumentException $e) {
+            $this->view->mostraErrore("Errore di validazione: " . $e->getMessage());
+        }
     }
 
     /**
@@ -210,6 +228,13 @@ class ProfiloController
             return;
         }
 
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $this->view->mostraFormMisure([
+                'utente' => $cliente
+            ]);
+            return;
+        }
+
         $peso = isset($_POST['peso']) ? (float)$_POST['peso'] : 0.0;
         $altezza = isset($_POST['altezza']) ? (float)$_POST['altezza'] : 0.0;
 
@@ -219,40 +244,45 @@ class ProfiloController
         }
 
         // Raccolta completa delle misure antropometriche (PAGE 17)
-        $bicipiteD = (float)($_POST['bicipite_destro'] ?? 0);
-        $bicipiteS = (float)($_POST['bicipite_sinistro'] ?? 0);
-        $tricipiteD = (float)($_POST['tricipite_destro'] ?? 0);
-        $tricipiteS = (float)($_POST['tricipite_sinistro'] ?? 0);
-        $cosciaD = (float)($_POST['coscia_destra'] ?? 0);
-        $cosciaS = (float)($_POST['coscia_sinistra'] ?? 0);
-        $polpaccioD = (float)($_POST['polpaccio_destro'] ?? 0);
-        $polpaccioS = (float)($_POST['polpaccio_sinistro'] ?? 0);
-        $petto = (float)($_POST['misura_petto'] ?? 0);
-        $vita = (float)($_POST['misura_vita'] ?? 0);
-        $spalle = (float)($_POST['misura_spalle'] ?? 0);
-        $fianchi = (float)($_POST['misura_fianchi'] ?? 0);
+        // Se lasciati vuoti o impostati a 0, vengono considerati null (opzionali)
+        $bicipiteD = !empty($_POST['bicipite_destro']) ? (float)$_POST['bicipite_destro'] : null;
+        $bicipiteS = !empty($_POST['bicipite_sinistro']) ? (float)$_POST['bicipite_sinistro'] : null;
+        $tricipiteD = !empty($_POST['tricipite_destro']) ? (float)$_POST['tricipite_destro'] : null;
+        $tricipiteS = !empty($_POST['tricipite_sinistro']) ? (float)$_POST['tricipite_sinistro'] : null;
+        $cosciaD = !empty($_POST['coscia_destra']) ? (float)$_POST['coscia_destra'] : null;
+        $cosciaS = !empty($_POST['coscia_sinistra']) ? (float)$_POST['coscia_sinistra'] : null;
+        $polpaccioD = !empty($_POST['polpaccio_destro']) ? (float)$_POST['polpaccio_destro'] : null;
+        $polpaccioS = !empty($_POST['polpaccio_sinistro']) ? (float)$_POST['polpaccio_sinistro'] : null;
+        $petto = !empty($_POST['misura_petto']) ? (float)$_POST['misura_petto'] : null;
+        $vita = !empty($_POST['misura_vita']) ? (float)$_POST['misura_vita'] : null;
+        $spalle = !empty($_POST['misura_spalle']) ? (float)$_POST['misura_spalle'] : null;
+        $fianchi = !empty($_POST['misura_fianchi']) ? (float)$_POST['misura_fianchi'] : null;
 
-        $nuoviParametri = new Parametri(
-            $peso,
-            $altezza,
-            new \DateTimeImmutable(), 
-            $cliente,
-            $bicipiteD,
-            $bicipiteS,
-            $tricipiteD,
-            $tricipiteS,
-            $cosciaD,
-            $cosciaS,
-            $polpaccioD,
-            $polpaccioS,
-            $petto,
-            $vita,
-            $spalle,
-            $fianchi
-        );
+        try {
+            $nuoviParametri = new Parametri(
+                $peso,
+                $altezza,
+                new \DateTimeImmutable(), 
+                $cliente,
+                $bicipiteD,
+                $bicipiteS,
+                $tricipiteD,
+                $tricipiteS,
+                $cosciaD,
+                $cosciaS,
+                $polpaccioD,
+                $polpaccioS,
+                $petto,
+                $vita,
+                $spalle,
+                $fianchi
+            );
 
-        $this->parametriRepo->salvaMisure($nuoviParametri);
-        $this->view->mostraConfermaModifica("Misure aggiornate con successo nel tuo storico biometrico.");
+            $this->parametriRepo->salvaMisure($nuoviParametri);
+            $this->view->mostraConfermaModifica("Misure aggiornate con successo nel tuo storico biometrico.");
+        } catch (\InvalidArgumentException $e) {
+            $this->view->mostraErrore("Dati non validi: " . $e->getMessage());
+        }
     }
 
     /**
@@ -272,11 +302,24 @@ class ProfiloController
             return;
         }
 
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $this->view->mostraFormCertificato([
+                'utente' => $cliente
+            ]);
+            return;
+        }
+
+        // Controlla se l'upload ha superato il limite di post_max_size del server
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST) && empty($_FILES) && isset($_SERVER['CONTENT_LENGTH']) && $_SERVER['CONTENT_LENGTH'] > 0) {
+            $this->view->mostraErrore("La dimensione del file supera il limite massimo consentito dal server (post_max_size). Riduci le dimensioni del file PDF.");
+            return;
+        }
+
         $medico = $_POST['medico'] ?? null;
         $dataEmissioneStr = $_POST['data_emissione'] ?? null;
 
         if (empty($medico) || empty($dataEmissioneStr)) {
-            $this->view->mostraErrore("Dati del certificato incompleti.");
+            $this->view->mostraErrore("Dati del certificato incompleti. Assicurati di aver inserito il nome del medico e la data di emissione.");
             return;
         }
 
@@ -294,10 +337,22 @@ class ProfiloController
                 throw new \Exception("Impossibile leggere il file del certificato.");
             }
 
+            $vecchioCertificato = $cliente->getCertificatoMedico();
+
             $dataEmissione = new \DateTimeImmutable($dataEmissioneStr);
             $certificato = new CertificatoMedico($dataEmissione, $medico, $cliente, $fileContent);
             
+            // Salva il nuovo certificato
             $this->certificatoRepo->save($certificato);
+
+            // Associa il nuovo certificato al cliente (owner lato relazione)
+            $cliente->setCertificatoMedico($certificato);
+            $this->clienteRepo->save($cliente);
+
+            // Elimina il vecchio certificato se presente
+            if ($vecchioCertificato) {
+                $this->certificatoRepo->delete($vecchioCertificato);
+            }
             
             $this->view->mostraConfermaModifica("Certificato medico caricato correttamente. La nuova scadenza è il " . $certificato->getDataScadenza()->format('d/m/Y'));
         } catch (\Exception $e) {

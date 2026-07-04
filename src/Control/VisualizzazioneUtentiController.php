@@ -5,10 +5,16 @@ use App\Entity\Repository\ClienteRepositoryInterface;
 use App\Entity\Repository\AllenatoreRepositoryInterface;
 use App\View\Interface\VisualizzazioneUtentiView;
 use App\Foundation\Session;
+use Doctrine\ORM\EntityManagerInterface;
+use App\Entity\Amministratore;
+use App\Entity\Allenatore;
+use App\Entity\Palestra;
+use App\Entity\Cliente;
 
 class VisualizzazioneUtentiController 
 {
     public function __construct(
+        private EntityManagerInterface $entityManager,
         private ClienteRepositoryInterface $clienteRepo,
         private AllenatoreRepositoryInterface $allenatoreRepo,
         private VisualizzazioneUtentiView $view,
@@ -18,20 +24,50 @@ class VisualizzazioneUtentiController
     public function visualizzaClienti(): void 
     {
         $idUtente = $this->session->getLoggedUserId();
-        if (!$idUtente) {
+        $ruolo = $this->session->getLoggedUserRole();
+        if (!$idUtente || !$ruolo) {
             $this->view->mostraErrore("Sessione non valida. Effettua il login.");
             return;
         }
-        $utenteLoggato = $this->clienteRepo->findById($idUtente); // Assumendo che anche admin/allenatore siano trovabili qui
-        $ruolo = $utenteLoggato ? $utenteLoggato->getRuolo() : null;
 
-        if ($ruolo !== 'amministratore' && $ruolo !== 'allenatore') {
-            $this->view->mostraErrore("Permessi insufficienti.");
+        // Verifica permessi ed estrazione della palestra
+        $palestra = null;
+        if ($ruolo === 'amministratore') {
+            $admin = $this->entityManager->find(Amministratore::class, $idUtente);
+            if ($admin) {
+                $palestra = $this->entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $admin]);
+            }
+        } elseif ($ruolo === 'allenatore') {
+            $trainer = $this->entityManager->find(Allenatore::class, $idUtente);
+            if ($trainer) {
+                $palestra = $trainer->getPalestra();
+            }
+        } else {
+            $this->view->mostraErrore("Accesso negato. Questa area è riservata ad Amministratori ed Allenatori.");
             return;
         }
 
-        $query = $_POST['search_query'] ?? null;
-        $clienti = $query ? $this->clienteRepo->findByStringa($query) : $this->clienteRepo->findAll();
+        if (!$palestra) {
+            $this->view->mostraErrore("Palestra associata non trovata.");
+            return;
+        }
+
+        // Recupero dei clienti filtrati per palestra ed eventuale stringa di ricerca
+        $query = $_POST['search_query'] ?? $_GET['search_query'] ?? null;
+        if ($query !== null && trim($query) !== '') {
+            $clienti = $this->entityManager->createQueryBuilder()
+                ->select('c')
+                ->from(Cliente::class, 'c')
+                ->where('c.palestra = :palestra')
+                ->andWhere('(LOWER(c.nome) LIKE LOWER(:query) OR LOWER(c.cognome) LIKE LOWER(:query) OR LOWER(c.email) LIKE LOWER(:query))')
+                ->setParameter('palestra', $palestra)
+                ->setParameter('query', '%' . trim($query) . '%')
+                ->orderBy('c.cognome', 'ASC')
+                ->getQuery()
+                ->getResult();
+        } else {
+            $clienti = $this->clienteRepo->findByPalestra($palestra);
+        }
 
         $clientiData = [];
         foreach ($clienti as $c) {
@@ -50,26 +86,38 @@ class VisualizzazioneUtentiController
     public function visualizzaAllenatori(): void 
     {
         $idUtente = $this->session->getLoggedUserId();
-        if (!$idUtente) {
+        $ruolo = $this->session->getLoggedUserRole();
+        if (!$idUtente || !$ruolo) {
             $this->view->mostraErrore("Sessione non valida. Effettua il login.");
             return;
         }
-        $utenteLoggato = $this->clienteRepo->findById($idUtente);
-        $ruolo = $utenteLoggato ? $utenteLoggato->getRuolo() : null;
 
         if ($ruolo !== 'amministratore') {
             $this->view->mostraErrore("Accesso riservato all'Amministratore.");
             return;
         }
 
-        $allenatori = $this->allenatoreRepo->findAll();
+        $admin = $this->entityManager->find(Amministratore::class, $idUtente);
+        if (!$admin) {
+            $this->view->mostraErrore("Amministratore non trovato.");
+            return;
+        }
+
+        $palestra = $this->entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $admin]);
+        if (!$palestra) {
+            $this->view->mostraErrore("Palestra associata non trovata.");
+            return;
+        }
+
+        $allenatori = $this->allenatoreRepo->findByPalestra($palestra);
         $allenatoriData = [];
         foreach ($allenatori as $a) {
             $allenatoriData[] = [
                 'id' => $a->getId(),
                 'nome' => $a->getNome(),
                 'cognome' => $a->getCognome(),
-                'email' => $a->getEmail()
+                'email' => $a->getEmail(),
+                'cf' => $a->getCF()
             ];
         }
 

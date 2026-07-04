@@ -54,57 +54,36 @@ class AutenticazioneViewSmarty implements AutenticazioneView
         ];
     }
 
-    public function mostraStatoOperazione(bool $successo, string $messaggio): void
+    public function mostraStatoOperazione(bool $successo, string $messaggio, ?string $ritorno = null): void
     {
         header('Content-Type: text/html; charset=utf-8');
         $this->smarty->assign('successo', $successo);
         $this->smarty->assign('messaggio', $messaggio);
+        if ($ritorno !== null) {
+            $this->smarty->assign('ritorno', $ritorno);
+        }
         $this->smarty->display('stato_operazione.tpl');
     }
 
     public function reindirizzaDopoLogin(string $ruolo): void
     {
-        $url = 'index.php'; // Default
+        $url = './'; // Default
 
         switch ($ruolo) {
             case 'amministratore':
-                $url = 'index.php?action=dashboard-admin';
+                $url = 'dashboard-admin';
                 break;
             case 'allenatore':
-                $url = 'index.php?action=dashboard-allenatore';
+                $url = 'dashboard-allenatore';
                 break;
             case 'cliente':
-                $url = 'index.php?action=dashboard-cliente';
+                $url = 'dashboard-cliente';
+                break;
+            default:
+                $url = 'errore?msg=' . urlencode("Ruolo utente non riconosciuto.");
                 break;
         }
         header('Location: ' . $url);
         exit();
-    }
-
-    public function mostraDashboardAdmin(array $dati): void
-    {
-        header('Content-Type: text/html; charset=utf-8');
-        foreach ($dati as $key => $value) {
-            $this->smarty->assign($key, $value);
-        }
-        $this->smarty->display('dashboard_admin.tpl');
-    }
-
-    public function mostraDashboardAllenatore(array $dati): void
-    {
-        header('Content-Type: text/html; charset=utf-8');
-        foreach ($dati as $key => $value) {
-            $this->smarty->assign($key, $value);
-        }
-        $this->smarty->display('dashboard_allenatore.tpl');
-    }
-
-    public function mostraDashboardCliente(array $dati): void
-    {
-        header('Content-Type: text/html; charset=utf-8');
-        foreach ($dati as $key => $value) {
-            $this->smarty->assign($key, $value);
-        }
-        $this->smarty->display('dashboard_cliente.tpl');
     }
 }

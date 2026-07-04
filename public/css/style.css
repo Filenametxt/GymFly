@@ -1,0 +1,277 @@
+/* GymFly - Stili e Colori Unificati dell'Applicazione */
+:root {
+    --gymfly-bg: #F4F9F1;
+    --gymfly-card-bg: #FFFFFF;
+    --gymfly-primary: #AFAFE2;
+    --gymfly-secondary: #99CDEA;
+    --gymfly-accent: #C5E0FC;
+    --gymfly-text: #4B3F72;
+    --gymfly-header-gradient: linear-gradient(135deg, #AFAFE2 0%, #99CDEA 100%);
+    --gymfly-header-gradient-admin: linear-gradient(135deg, #AFAFE2 0%, #C5E0FC 100%);
+}
+
+/* Regole Globali di Base */
+html, body {
+    background-color: var(--gymfly-bg) !important;
+    min-height: 100%;
+}
+
+.style-theme-text {
+    color: var(--gymfly-text) !important;
+}
+
+/* Barra di Navigazione */
+.navbar {
+    background-color: var(--gymfly-bg) !important;
+    border-bottom: 2px solid var(--gymfly-secondary) !important;
+}
+
+/* Intestazioni (Dashboard Headers) */
+.dashboard-header {
+    background: var(--gymfly-header-gradient) !important;
+    color: white !important;
+    border-radius: 20px !important;
+    padding: 2.5rem !important;
+    margin-bottom: 2rem !important;
+    box-shadow: 0 10px 20px rgba(175, 175, 226, 0.2) !important;
+}
+
+.dashboard-header-admin {
+    background: var(--gymfly-header-gradient-admin) !important;
+    color: white !important;
+    border-radius: 20px !important;
+    padding: 2.5rem !important;
+    margin-bottom: 2rem !important;
+    box-shadow: 0 10px 20px rgba(175, 175, 226, 0.2) !important;
+}
+
+.dashboard-header-trainer {
+    background: linear-gradient(135deg, var(--gymfly-secondary) 0%, var(--gymfly-accent) 100%) !important;
+    color: white !important;
+    border-radius: 20px !important;
+    padding: 2.5rem !important;
+    margin-bottom: 2rem !important;
+    box-shadow: 0 10px 20px rgba(153, 205, 234, 0.2) !important;
+}
+
+/* Elementi di Contenuto (Cards e Boxes) */
+.box {
+    border: 2px solid var(--gymfly-primary) !important;
+    border-radius: 15px !important;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.03) !important;
+    background-color: var(--gymfly-card-bg) !important;
+}
+
+.card {
+    background-color: var(--gymfly-card-bg) !important;
+    border: 2px solid var(--gymfly-primary) !important;
+    border-radius: 15px !important;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.03) !important;
+}
+
+.info-box {
+    background-color: var(--gymfly-card-bg) !important;
+    border: 2px solid var(--gymfly-accent) !important;
+    border-radius: 20px !important;
+    padding: 2rem !important;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.03) !important;
+    margin-bottom: 2rem !important;
+    height: 100% !important;
+}
+
+.stat-card {
+    background-color: var(--gymfly-card-bg) !important;
+    border: 2px solid var(--gymfly-accent) !important;
+    border-radius: 15px !important;
+    padding: 1.5rem !important;
+    text-align: center !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.02) !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important;
+}
+
+.trainer-card {
+    background-color: var(--gymfly-card-bg) !important;
+    border: 2px solid var(--gymfly-secondary) !important;
+    border-radius: 15px !important;
+    padding: 1.5rem !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.02) !important;
+    margin-bottom: 1.5rem !important;
+}
+
+.control-box {
+    background-color: var(--gymfly-card-bg) !important;
+    border: 2px solid var(--gymfly-primary) !important;
+    border-radius: 20px !important;
+    padding: 2rem !important;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.03) !important;
+    margin-bottom: 2rem !important;
+}
+
+.activity-item {
+    border-left: 4px solid var(--gymfly-primary) !important;
+    padding-left: 1rem !important;
+    margin-bottom: 1.5rem !important;
+}
+
+.label {
+    color: var(--gymfly-text) !important;
+    font-size: 0.9rem !important;
+}
+
+.section-title {
+    border-bottom: 2px solid var(--gymfly-primary) !important;
+    padding-bottom: 5px !important;
+    margin-bottom: 15px !important;
+    color: var(--gymfly-text) !important;
+    font-weight: bold !important;
+}
+
+/* Pulsanti Personalizzati */
+.button.is-gymfly {
+    background-color: var(--gymfly-primary) !important;
+    color: #FFFFFF !important;
+    font-weight: bold !important;
+    transition: all 0.3s ease !important;
+}
+
+.button.is-gymfly:hover {
+    background-color: var(--gymfly-secondary) !important;
+    transform: translateY(-2px) !important;
+    color: #FFFFFF !important;
+}
+
+/* Form di Accesso e Registrazione */
+.hero.is-fullheight-with-navbar {
+    background: linear-gradient(rgba(244, 249, 241, 0.85), rgba(244, 249, 241, 0.85)), 
+                url('../assets/img/sfondo-palestra.jpg') no-repeat center center !important;
+    background-size: cover !important;
+}
+
+.login-card {
+    background-color: var(--gymfly-card-bg) !important;
+    border: 2px solid var(--gymfly-primary) !important;
+    border-radius: 20px !important;
+    padding: 2.5rem !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Centramento del corpo della Hero (es. errori) */
+.hero-body-centered {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+.tag.is-client-theme {
+    background-color: var(--gymfly-accent) !important;
+    color: #1e3a8a !important;
+    font-weight: bold !important;
+}
+
+.tag.is-admin-theme {
+    background-color: var(--gymfly-accent) !important;
+    color: #1e3a8a !important;
+    font-weight: bold !important;
+}
+
+.table-container-custom {
+    margin-top: 1rem !important;
+}
+
+.tag.is-trainer-theme {
+    background-color: var(--gymfly-primary) !important;
+    color: var(--gymfly-text) !important;
+    font-weight: bold !important;
+}
+
+/* Stile del tab login attivo */
+.navbar-item.is-tab.is-active-login {
+    background-color: var(--gymfly-accent) !important;
+    border-top: 2px solid var(--gymfly-secondary) !important;
+    border-left: 2px solid var(--gymfly-secondary) !important;
+    border-right: 2px solid var(--gymfly-secondary) !important;
+    border-bottom: none !important;
+    border-radius: 12px 12px 0 0 !important;
+    font-weight: bold !important;
+}
+
+/* Box centrale del Login */
+.login-box {
+    background-color: var(--gymfly-card-bg) !important;
+    border: 2px solid var(--gymfly-primary) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.05) !important;
+    padding: 2.5rem !important;
+}
+
+/* Avatar del profilo */
+.avatar-container {
+    width: 100px !important;
+    height: 100px !important;
+    margin: 0 auto 1.5rem auto !important;
+    overflow: hidden !important;
+    border-radius: 15px !important;
+    border: 2px solid var(--gymfly-primary) !important;
+}
+
+.avatar-container img {
+    object-fit: cover !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Stile del tab registrazione attivo */
+.navbar-item.is-tab.is-active-register {
+    background-color: var(--gymfly-accent) !important;
+    border-top: 2px solid var(--gymfly-secondary) !important;
+    border-left: 2px solid var(--gymfly-secondary) !important;
+    border-right: 2px solid var(--gymfly-secondary) !important;
+    border-bottom: none !important;
+    border-radius: 12px 12px 0 0 !important;
+    font-weight: bold !important;
+}
+
+/* Box centrale di Registrazione */
+.register-box {
+    background-color: var(--gymfly-card-bg) !important;
+    border: 2px solid var(--gymfly-primary) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.05) !important;
+    padding: 2.5rem !important;
+}
+
+/* Indicatori degli step */
+.step-indicator {
+    display: flex !important;
+    justify-content: space-between !important;
+    margin-bottom: 2rem !important;
+}
+
+.step-indicator .step {
+    flex: 1 !important;
+    text-align: center !important;
+    padding-bottom: 0.5rem !important;
+    border-bottom: 3px solid #dbdbdb !important;
+    color: #7a7a7a !important;
+    font-weight: bold !important;
+    transition: border-color 0.3s, color 0.3s !important;
+}
+
+.step-indicator .step.is-active {
+    border-bottom-color: var(--gymfly-primary) !important;
+    color: var(--gymfly-text) !important;
+}
+
+/* Visualizzazione condizionale step */
+.form-step {
+    display: none !important;
+}
+
+.form-step.is-active {
+    display: block !important;
+}

@@ -19,30 +19,7 @@ interface AutenticazioneView
      */
     public function richiediDatiRegistrazione(): array;
 
-    public function mostraStatoOperazione(bool $successo, string $messaggio): void;
+    public function mostraStatoOperazione(bool $successo, string $messaggio, ?string $ritorno = null): void;
 
-    /**
-     * Esegue un reindirizzamento HTTP verso la dashboard appropriata
-     * in base al ruolo dell'utente.
-     * @param string $ruolo Il ruolo dell'utente (es. 'cliente', 'amministratore').
-     */
     public function reindirizzaDopoLogin(string $ruolo): void;
-
-    /**
-     * Mostra la dashboard dell'amministratore.
-     * @param array $dati Array di dati da passare alla view.
-     */
-    public function mostraDashboardAdmin(array $dati): void;
-
-    /**
-     * Mostra la dashboard dell'allenatore.
-     * @param array $dati Array di dati da passare alla view.
-     */
-    public function mostraDashboardAllenatore(array $dati): void;
-
-    /**
-     * Mostra la dashboard del cliente.
-     * @param array $dati Array di dati da passare alla view.
-     */
-    public function mostraDashboardCliente(array $dati): void;
 }

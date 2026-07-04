@@ -4,31 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stato Operazione - GymFly</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
+    <link rel="stylesheet" href="css/bulma.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    {literal}
-    <style>
-        html, body {
-            background-color: #F4F9F1;
-            height: 100%;
-        }
-        .hero-body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-    </style>
-    {/literal}
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <section class="hero is-fullheight">
-        <div class="hero-body">
+        <div class="hero-body hero-body-centered">
             <div class="container has-text-centered">
                 <div class="column is-6 is-offset-3">
                     <div class="notification {if $successo}is-success{else}is-danger{/if} is-light">
                         <p class="is-size-5">{$messaggio}</p>
                     </div>
-                    <a href="login" class="button is-link is-light mt-4">Torna al Login</a>
+                    <a href="{if isset($ritorno)}{$ritorno}{else}login{/if}" class="button is-link is-light mt-4">
+                        {if isset($ritorno) && $ritorno !== 'login'}Torna alla Dashboard{else}Torna al Login{/if}
+                    </a>
                 </div>
             </div>
         </div>

@@ -8,6 +8,11 @@ use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
 use App\Foundation\Persistence\Repository\DoctrineParametriRepository;
 use App\Foundation\Persistence\Repository\DoctrineCertificatoMedicoRepository;
 use App\View\ProfiloViewSmarty;
+use App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository;
+use App\View\VisualizzazioneUtentiViewSmarty;
+use App\View\AbbonamentiViewSmarty;
+use App\View\VisualizzazioneViewSmarty;
+
 
 class FrontController
 {
@@ -26,6 +31,14 @@ class FrontController
             '/dashboard-cliente' => [VisualizzazioneController::class, 'mostraDashboardCliente'],
             '/profilo' => [ProfiloController::class, 'visualizzaProfilo'],
             '/visualizza-profilo' => [ProfiloController::class, 'visualizzaProfilo'],
+            '/modifica-anagrafica' => [ProfiloController::class, 'modificaAnagrafica'],
+            '/carica-foto' => [ProfiloController::class, 'caricaFotoProfilo'],
+            '/aggiorna-misure' => [ProfiloController::class, 'aggiornaMisureCorporee'],
+            '/carica-certificato' => [ProfiloController::class, 'caricaCertificato'],
+            '/errore' => [VisualizzazioneController::class, 'mostraErrore'],
+            '/clienti' => [VisualizzazioneUtentiController::class, 'visualizzaClienti'],
+            '/allenatori' => [VisualizzazioneUtentiController::class, 'visualizzaAllenatori'],
+            '/gestione-abbonamento' => [AbbonamentiController::class, 'gestisciAbbonamento'],
         ];
     }
 
@@ -64,6 +77,24 @@ class FrontController
                 $profiloView,
                 $session
             );
+        } elseif ($controllerClass === VisualizzazioneUtentiController::class) {
+            $clienteRepo = new DoctrineClienteRepository($entityManager);
+            $allenatoreRepo = new DoctrineAllenatoreRepository($entityManager);
+            $visualizzazioneUtentiView = new VisualizzazioneUtentiViewSmarty();
+
+            $controller = new VisualizzazioneUtentiController(
+                $entityManager,
+                $clienteRepo,
+                $allenatoreRepo,
+                $visualizzazioneUtentiView,
+                $session
+            );
+        } elseif ($controllerClass === VisualizzazioneController::class) {
+            $visualizzazioneView = new VisualizzazioneViewSmarty();
+            $controller = new VisualizzazioneController($entityManager, $visualizzazioneView, $session);
+        } elseif ($controllerClass === AbbonamentiController::class) {
+            $abbonamentiView = new AbbonamentiViewSmarty();
+            $controller = new AbbonamentiController($entityManager, $abbonamentiView, $session);
         } else {
             $controller = new $controllerClass($entityManager, $authView, $session);
         }

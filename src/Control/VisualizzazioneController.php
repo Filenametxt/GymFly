@@ -1,7 +1,7 @@
 <?php
 namespace App\Control;
 
-use App\View\Interface\AutenticazioneView;
+use App\View\Interface\VisualizzazioneView;
 use App\Foundation\Session;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Amministratore;
@@ -14,13 +14,12 @@ class VisualizzazioneController
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private AutenticazioneView $view,
+        private VisualizzazioneView $view,
         private Session $session
     ) {}
 
     /**
-     * Mostra la dashboora vorrei fare in modo che dopo il login a seconda che l'utente loggato sia un Amministratore, Cliente o
-  Allenatore devono essere registrati alle rispettive pagine, inoltre deve esserci una verifica: se Cliente prova ad accedere alla pagina di amministrazione il server deve rigettarloard dell'amministratore se autorizzato.
+     * Mostra la dashboard dell'amministratore se autorizzato.
      */
     public function mostraDashboardAdmin(): void
     {
@@ -108,8 +107,37 @@ class VisualizzazioneController
             $this->view->reindirizzaDopoLogin($this->session->getLoggedUserRole());
             return;
         }
-        header('Content-Type: text/html; charset=utf-8');
-        echo "<h1>Benvenuto in GymFly!</h1><p>Seleziona un'azione.</p>";
-        echo '<p><a href="login">Accedi al servizio</a> o <a href="registrazione">Registra la tua Palestra</a></p>';
+        $this->view->mostraHome();
+    }
+
+    /**
+     * Centralizza la pagina di errore dell'applicazione.
+     */
+    public function mostraErrore(): void
+    {
+        $messaggio = $_GET['msg'] ?? 'Si è verificato un errore imprevisto.';
+        $successo = isset($_GET['success']) && $_GET['success'] == 1;
+
+        // Determina il link di ritorno
+        $ritorno = 'login';
+        if ($this->session->isLogged()) {
+            $ruolo = $this->session->getLoggedUserRole();
+            switch ($ruolo) {
+                case 'amministratore':
+                    $ritorno = 'dashboard-admin';
+                    break;
+                case 'allenatore':
+                    $ritorno = 'dashboard-allenatore';
+                    break;
+                case 'cliente':
+                    $ritorno = 'dashboard-cliente';
+                    break;
+                default:
+                    $ritorno = 'login';
+                    break;
+            }
+        }
+
+        $this->view->mostraStatoOperazione($successo, $messaggio, $ritorno);
     }
 }

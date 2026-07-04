@@ -4,79 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GymFly - Registrazione Amministratore & Palestra</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
+    <link rel="stylesheet" href="css/bulma.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    {literal}
-    <style>
-        html, body {
-            background-color: #F4F9F1;
-            height: 100%;
-        }
-        .hero.is-fullheight-with-navbar {
-            background: linear-gradient(rgba(244, 249, 241, 0.85), rgba(244, 249, 241, 0.85)), 
-                        url('assets/img/sfondo-palestra.jpg') no-repeat center center;
-            background-size: cover;
-        }
-        .navbar {
-            background-color: #F4F9F1;
-            border-bottom: 2px solid #99CDEA;
-        }
-        .navbar-item.is-tab.is-active-register {
-            background-color: #C5E0FC;
-            border-top: 2px solid #99CDEA;
-            border-left: 2px solid #99CDEA;
-            border-right: 2px solid #99CDEA;
-            border-bottom: none !important;
-            border-radius: 12px 12px 0 0;
-            font-weight: bold;
-        }
-        .register-box {
-            background-color: #FFFFFF;
-            border: 2px solid #AFAFE2;
-            border-radius: 20px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.05);
-            padding: 2.5rem;
-        }
-        .button.is-gymfly {
-            background-color: #AFAFE2;
-            color: #FFFFFF;
-            border-radius: 12px;
-            transition: background 0.3s ease;
-        }
-        .button.is-gymfly:hover {
-            background-color: #D0D0F5;
-            color: #333333;
-        }
-        .input:focus, .select select:focus {
-            border-color: #99CDEA;
-            box-shadow: 0 0 0 0.125em rgba(153, 205, 234, 0.25);
-        }
-        .step-indicator {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 2rem;
-        }
-        .step-indicator .step {
-            flex: 1;
-            text-align: center;
-            padding-bottom: 0.5rem;
-            border-bottom: 3px solid #dbdbdb;
-            color: #7a7a7a;
-            font-weight: bold;
-            transition: border-color 0.3s, color 0.3s;
-        }
-        .step-indicator .step.is-active {
-            border-bottom-color: #AFAFE2;
-            color: #AFAFE2;
-        }
-        .form-step {
-            display: none;
-        }
-        .form-step.is-active {
-            display: block;
-        }
-    </style>
-    {/literal}
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 

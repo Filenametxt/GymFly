@@ -4,60 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GymFly - Dashboard Allenatore</title>
-    <link class="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
-    <link class="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    {literal}
-    <style>
-        html, body {
-            background-color: #F4F9F1;
-            min-height: 100%;
-        }
-        .navbar {
-            background-color: #F4F9F1;
-            border-bottom: 2px solid #99CDEA;
-        }
-        .dashboard-header {
-            background: linear-gradient(135deg, #99CDEA 0%, #C5E0FC 100%);
-            color: white;
-            border-radius: 20px;
-            padding: 2.5rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 10px 20px rgba(153, 205, 234, 0.2);
-        }
-        .trainer-card {
-            background-color: #FFFFFF;
-            border: 2px solid #99CDEA;
-            border-radius: 15px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-            margin-bottom: 1.5rem;
-        }
-        .control-box {
-            background-color: #FFFFFF;
-            border: 2px solid #AFAFE2;
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.03);
-            margin-bottom: 2rem;
-        }
-        .button.is-gymfly {
-            background-color: #99CDEA;
-            color: #FFFFFF;
-            border-radius: 12px;
-            font-weight: bold;
-            transition: background 0.3s ease;
-        }
-        .button.is-gymfly:hover {
-            background-color: #C5E0FC;
-            color: #1e3a8a;
-        }
-        .tag.is-trainer-theme {
-            background-color: #D0D0F5;
-            color: #4a4a8a;
-            font-weight: bold;
-        }
-    </style>
-    {/literal}
+    <link rel="stylesheet" href="css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
@@ -89,7 +38,7 @@
         <div class="container">
             
             <!-- HEADER -->
-            <div class="dashboard-header">
+            <div class="dashboard-header-trainer">
                 <div class="columns is-vcentered">
                     <div class="column">
                         <h1 class="title is-2 has-text-white mb-2">Ciao, Coach {$utente->getNome()}!</h1>
@@ -174,6 +123,11 @@
                                     {/foreach}
                                 </tbody>
                             </table>
+                        </div>
+                        <div class="has-text-right mt-3">
+                            <a href="clienti" class="button is-small is-link is-light">
+                                <span>Vedi Tutti i Clienti</span> <span class="icon"><i class="fas fa-arrow-right"></i></span>
+                            </a>
                         </div>
                     </div>
                 </div>
