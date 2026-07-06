@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
     <title>GymFly - Registrazione Amministratore & Palestra</title>
     <link rel="stylesheet" href="css/bulma.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=1.3">
 </head>
 <body>
 
@@ -20,12 +21,18 @@
             </div>
 
             <div class="navbar-end">
-                <div class="navbar-items is-flex is-align-items-flex-end" style="height: 100%;">
-                    <a class="navbar-item is-tab is-active-register px-4 py-2" href="registrazione" style="border-bottom: none;">
-                        SIGN IN
+                <div class="navbar-items is-flex is-align-items-center" style="height: 100%;">
+                    <a class="navbar-item is-tab is-active-register px-4 py-2 mr-2" href="registrazione">
+                        <span>SIGN IN</span>
+                        <span class="icon is-small ml-2">
+                            <i class="fas fa-user-plus"></i>
+                        </span>
                     </a>
                     <a class="navbar-item is-tab px-4 py-2" href="login">
-                        LOG IN
+                        <span>LOG IN</span>
+                        <span class="icon is-small ml-2">
+                            <i class="fas fa-user"></i>
+                        </span>
                     </a>
                 </div>
             </div>
