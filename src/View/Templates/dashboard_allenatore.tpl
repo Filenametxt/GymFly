@@ -24,6 +24,9 @@
                         <span class="tag is-medium is-trainer-theme mr-3">
                             <i class="fas fa-user-ninja mr-2"></i> Allenatore
                         </span>
+                        <a href="cambia-password" class="button is-link is-light mr-2">
+                            <i class="fas fa-key mr-2"></i> Password
+                        </a>
                         <a href="logout" class="button is-danger is-light">
                             <i class="fas fa-sign-out-alt mr-2"></i> Log Out
                         </a>

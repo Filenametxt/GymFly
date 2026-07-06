@@ -157,6 +157,15 @@
         <span class="icon"><i class="fas fa-chevron-right"></i></span>
       </a>
 
+      {if $smarty.session.id_utente === $utente->getId()}
+        <a href="cambia-password" class="box py-3 px-4 mb-2 is-flex is-justify-content-between is-align-items-center" style="border: 1px solid #000;">
+          <span class="is-flex is-align-items-center">
+            <span class="icon mr-3"><i class="fas fa-key fa-lg"></i></span>
+            <span class="has-text-weight-semibold is-size-5">cambia password</span>
+          </span>
+          <span class="icon"><i class="fas fa-chevron-right"></i></span>
+        </a>
+      {/if}
     </div>
 
     </div>

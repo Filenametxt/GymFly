@@ -8,4 +8,5 @@ interface ProfiloView {
     public function mostraFormModifica(array $dati): void;
     public function mostraFormMisure(array $dati): void;
     public function mostraFormCertificato(array $dati): void;
+    public function mostraFormCambioPassword(): void;
 }

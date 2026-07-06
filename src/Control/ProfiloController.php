@@ -13,6 +13,7 @@ use App\Infrastructure\Doctrine\EntityManagerFactory;
 use App\Entity\Amministratore;
 use App\Entity\Palestra;
 use App\Entity\Allenatore;
+use App\Entity\Utente;
 
 class ProfiloController 
 {
@@ -140,7 +141,6 @@ class ProfiloController
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            $this->view->mostForm = true; // a helper flag if needed, or simply render
             $this->view->mostraFormModifica([
                 'utente' => $cliente
             ]);
@@ -357,6 +357,54 @@ class ProfiloController
             $this->view->mostraConfermaModifica("Certificato medico caricato correttamente. La nuova scadenza è il " . $certificato->getDataScadenza()->format('d/m/Y'));
         } catch (\Exception $e) {
             $this->view->mostraErrore("Errore nell'elaborazione del certificato: " . $e->getMessage());
+        }
+    }
+
+    public function cambiaPassword(): void
+    {
+        $idUtente = $this->session->getLoggedUserId();
+        if (!$idUtente) {
+            $this->view->mostraErrore("Sessione scaduta o non valida.");
+            return;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $this->view->mostraFormCambioPassword();
+            return;
+        }
+
+        $oldPassword = $_POST['vecchia_password'] ?? '';
+        $newPassword = $_POST['nuova_password'] ?? '';
+        $confirmPassword = $_POST['conferma_password'] ?? '';
+
+        if ($oldPassword === '' || $newPassword === '' || $confirmPassword === '') {
+            $this->view->mostraErrore("Tutti i campi password sono obbligatori.");
+            return;
+        }
+
+        if ($newPassword !== $confirmPassword) {
+            $this->view->mostraErrore("La nuova password e la password di conferma non coincidono.");
+            return;
+        }
+
+        $entityManager = EntityManagerFactory::create();
+        $utente = $entityManager->find(Utente::class, $idUtente);
+        if (!$utente) {
+            $this->view->mostraErrore("Utente non trovato.");
+            return;
+        }
+
+        if (!$utente->verificaPassword($oldPassword)) {
+            $this->view->mostraErrore("La vecchia password inserita non è corretta.");
+            return;
+        }
+
+        try {
+            $utente->setPassword($newPassword);
+            $entityManager->flush();
+            $this->view->mostraConfermaModifica("Password aggiornata con successo.");
+        } catch (\InvalidArgumentException $e) {
+            $this->view->mostraErrore("Errore di validazione: " . $e->getMessage());
         }
     }
 }

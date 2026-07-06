@@ -39,6 +39,7 @@ class FrontController
             '/clienti' => [VisualizzazioneUtentiController::class, 'visualizzaClienti'],
             '/allenatori' => [VisualizzazioneUtentiController::class, 'visualizzaAllenatori'],
             '/gestione-abbonamento' => [AbbonamentiController::class, 'gestisciAbbonamento'],
+            '/cambia-password' => [ProfiloController::class, 'cambiaPassword'],
         ];
     }
 
@@ -64,41 +65,51 @@ class FrontController
 
         // Inizializza il controller richiesto in base alle dipendenze
         $controller = null;
-        if ($controllerClass === ProfiloController::class) {
-            $clienteRepo = new DoctrineClienteRepository($entityManager);
-            $parametriRepo = new DoctrineParametriRepository($entityManager);
-            $certificatoRepo = new DoctrineCertificatoMedicoRepository($entityManager);
-            $profiloView = new ProfiloViewSmarty();
+        switch ($controllerClass) {
+            case ProfiloController::class:
+                $clienteRepo = new DoctrineClienteRepository($entityManager);
+                $parametriRepo = new DoctrineParametriRepository($entityManager);
+                $certificatoRepo = new DoctrineCertificatoMedicoRepository($entityManager);
+                $profiloView = new ProfiloViewSmarty();
 
-            $controller = new ProfiloController(
-                $clienteRepo,
-                $parametriRepo,
-                $certificatoRepo,
-                $profiloView,
-                $session
-            );
-        } elseif ($controllerClass === VisualizzazioneUtentiController::class) {
-            $clienteRepo = new DoctrineClienteRepository($entityManager);
-            $allenatoreRepo = new DoctrineAllenatoreRepository($entityManager);
-            $visualizzazioneUtentiView = new VisualizzazioneUtentiViewSmarty();
+                $controller = new ProfiloController(
+                    $clienteRepo,
+                    $parametriRepo,
+                    $certificatoRepo,
+                    $profiloView,
+                    $session
+                );
+                break;
 
-            $controller = new VisualizzazioneUtentiController(
-                $entityManager,
-                $clienteRepo,
-                $allenatoreRepo,
-                $visualizzazioneUtentiView,
-                $session
-            );
-        } elseif ($controllerClass === VisualizzazioneController::class) {
-            $visualizzazioneView = new VisualizzazioneViewSmarty();
-            $controller = new VisualizzazioneController($entityManager, $visualizzazioneView, $session);
-        } elseif ($controllerClass === AbbonamentiController::class) {
-            $abbonamentiView = new AbbonamentiViewSmarty();
-            $controller = new AbbonamentiController($entityManager, $abbonamentiView, $session);
-        } else {
-            $controller = new $controllerClass($entityManager, $authView, $session);
+            case VisualizzazioneUtentiController::class:
+                $clienteRepo = new DoctrineClienteRepository($entityManager);
+                $allenatoreRepo = new DoctrineAllenatoreRepository($entityManager);
+                $visualizzazioneUtentiView = new VisualizzazioneUtentiViewSmarty();
+
+                $controller = new VisualizzazioneUtentiController(
+                    $entityManager,
+                    $clienteRepo,
+                    $allenatoreRepo,
+                    $visualizzazioneUtentiView,
+                    $session
+                );
+                break;
+
+            case VisualizzazioneController::class:
+                $visualizzazioneView = new VisualizzazioneViewSmarty();
+                $controller = new VisualizzazioneController($entityManager, $visualizzazioneView, $session);
+                break;
+
+            case AbbonamentiController::class:
+                $abbonamentiView = new AbbonamentiViewSmarty();
+                $controller = new AbbonamentiController($entityManager, $abbonamentiView, $session);
+                break;
+
+            default:
+                $controller = new $controllerClass($entityManager, $authView, $session);
+                break;
         }
-        
+
         // Esegue l'azione specifica
         $controller->$method();
     }

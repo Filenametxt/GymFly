@@ -24,6 +24,9 @@
                         <span class="tag is-medium is-client-theme mr-3">
                             <i class="fas fa-user mr-2"></i> Area Cliente
                         </span>
+                        <a href="cambia-password" class="button is-link is-light mr-2">
+                            <i class="fas fa-key mr-2"></i> Password
+                        </a>
                         <a href="logout" class="button is-danger is-light">
                             <i class="fas fa-sign-out-alt mr-2"></i> Log Out
                         </a>

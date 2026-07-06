@@ -91,4 +91,11 @@ class ProfiloViewSmarty implements ProfiloView
         }
         $this->smarty->display('carica_certificato.tpl');
     }
+
+    public function mostraFormCambioPassword(): void
+    {
+        header('Content-Type: text/html; charset=utf-8');
+        $this->smarty->assign('ritorno', $this->determinaRitorno());
+        $this->smarty->display('cambia_password.tpl');
+    }
 }
