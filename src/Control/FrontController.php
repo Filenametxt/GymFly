@@ -12,6 +12,8 @@ use App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository;
 use App\View\VisualizzazioneUtentiViewSmarty;
 use App\View\AbbonamentiViewSmarty;
 use App\View\VisualizzazioneViewSmarty;
+use App\View\MessaggiViewSmarty;
+use App\Foundation\Persistence\Repository\DoctrineMessaggioRepository;
 
 
 class FrontController
@@ -40,6 +42,8 @@ class FrontController
             '/allenatori' => [VisualizzazioneUtentiController::class, 'visualizzaAllenatori'],
             '/gestione-abbonamento' => [AbbonamentiController::class, 'gestisciAbbonamento'],
             '/cambia-password' => [ProfiloController::class, 'cambiaPassword'],
+            '/messaggi' => [MessaggiController::class, 'mostraMessaggi'],
+            '/invia-messaggio' => [MessaggiController::class, 'inviaMessaggio'],
         ];
     }
 
@@ -103,6 +107,12 @@ class FrontController
             case AbbonamentiController::class:
                 $abbonamentiView = new AbbonamentiViewSmarty();
                 $controller = new AbbonamentiController($entityManager, $abbonamentiView, $session);
+                break;
+
+            case MessaggiController::class:
+                $messaggioRepo = new DoctrineMessaggioRepository($entityManager);
+                $messaggiView = new MessaggiViewSmarty();
+                $controller = new MessaggiController($entityManager, $messaggioRepo, $messaggiView, $session);
                 break;
 
             default:

@@ -1,5 +1,6 @@
 /* GymFly - Stili e Colori Unificati dell'Applicazione */
 :root {
+    color-scheme: light !important;
     --gymfly-bg: #F4F9F1;
     --gymfly-card-bg: #FFFFFF;
     --gymfly-primary: #AFAFE2;
@@ -19,6 +20,44 @@ html, body {
 .style-theme-text {
     color: var(--gymfly-text) !important;
 }
+
+/* Stili Globali per Input, Select e Textarea (Forzano lo sfondo panna/chiaro e prevengono il nero del dark mode) */
+.input, .textarea, .select select, select {
+    background-color: var(--gymfly-bg) !important;
+    color: var(--gymfly-text) !important;
+    border-color: var(--gymfly-primary) !important;
+}
+
+.input::placeholder, .textarea::placeholder {
+    color: #8c85a6 !important;
+}
+
+.input:focus, .textarea:focus, .select select:focus {
+    border-color: var(--gymfly-secondary) !important;
+    box-shadow: 0 0 0 0.125em rgba(153, 205, 234, 0.25) !important;
+}
+
+/* Evita sfondi scuri ereditati sulle icone all'interno dei form */
+.control.has-icons-left .icon, .control.has-icons-right .icon {
+    color: var(--gymfly-text) !important;
+    background-color: transparent !important;
+}
+
+/* Evita che le tabelle assumano uno sfondo scuro o nero e garantisce il testo corretto */
+table, thead, tbody, tfoot, tr, th, td {
+    background-color: transparent !important;
+    color: var(--gymfly-text) !important;
+}
+
+/* Evita sfondi scuri e colori illeggibili sui tag code (usati per il Codice Fiscale) */
+code {
+    background-color: var(--gymfly-accent) !important;
+    color: #1e3a8a !important;
+    font-weight: bold !important;
+}
+
+
+
 
 /* Barra di Navigazione */
 .navbar {
@@ -60,6 +99,7 @@ html, body {
     border-radius: 15px !important;
     box-shadow: 0 8px 16px rgba(0,0,0,0.03) !important;
     background-color: var(--gymfly-card-bg) !important;
+    color: var(--gymfly-text) !important;
 }
 
 .card {
@@ -67,6 +107,7 @@ html, body {
     border: 2px solid var(--gymfly-primary) !important;
     border-radius: 15px !important;
     box-shadow: 0 8px 16px rgba(0,0,0,0.03) !important;
+    color: var(--gymfly-text) !important;
 }
 
 .info-box {
@@ -77,6 +118,7 @@ html, body {
     box-shadow: 0 8px 16px rgba(0,0,0,0.03) !important;
     margin-bottom: 2rem !important;
     height: 100% !important;
+    color: var(--gymfly-text) !important;
 }
 
 .stat-card {
@@ -87,6 +129,7 @@ html, body {
     text-align: center !important;
     box-shadow: 0 4px 10px rgba(0,0,0,0.02) !important;
     transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+    color: var(--gymfly-text) !important;
 }
 
 .stat-card:hover {
@@ -101,6 +144,7 @@ html, body {
     padding: 1.5rem !important;
     box-shadow: 0 4px 10px rgba(0,0,0,0.02) !important;
     margin-bottom: 1.5rem !important;
+    color: var(--gymfly-text) !important;
 }
 
 .control-box {
@@ -110,6 +154,7 @@ html, body {
     padding: 2rem !important;
     box-shadow: 0 8px 16px rgba(0,0,0,0.03) !important;
     margin-bottom: 2rem !important;
+    color: var(--gymfly-text) !important;
 }
 
 .activity-item {
@@ -207,6 +252,7 @@ html, body {
     border-radius: 20px !important;
     box-shadow: 0 8px 16px rgba(0,0,0,0.05) !important;
     padding: 2.5rem !important;
+    color: var(--gymfly-text) !important;
 }
 
 /* Avatar del profilo */
@@ -243,6 +289,7 @@ html, body {
     border-radius: 20px !important;
     box-shadow: 0 8px 16px rgba(0,0,0,0.05) !important;
     padding: 2.5rem !important;
+    color: var(--gymfly-text) !important;
 }
 
 /* Indicatori degli step */
@@ -275,3 +322,64 @@ html, body {
 .form-step.is-active {
     display: block !important;
 }
+
+/* Disattivazione del tema scuro automatico per mantenere la coerenza della palette panna */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --gymfly-bg: #F4F9F1 !important;
+        --gymfly-card-bg: #FFFFFF !important;
+        --gymfly-primary: #AFAFE2 !important;
+        --gymfly-secondary: #99CDEA !important;
+        --gymfly-accent: #C5E0FC !important;
+        --gymfly-text: #4B3F72 !important;
+    }
+    
+    html, body {
+        background-color: var(--gymfly-bg) !important;
+        color: var(--gymfly-text) !important;
+    }
+
+    .box, .card, .info-box, .stat-card, .trainer-card, .control-box, .login-box, .register-box {
+        background-color: var(--gymfly-card-bg) !important;
+        border-color: var(--gymfly-primary) !important;
+    }
+
+    .title, .subtitle, .label, p, span, div:not(.navbar-burger), strong, th, td, h1, h2, h3, h4, h5, h6 {
+        color: var(--gymfly-text) !important;
+    }
+
+    /* Manteniamo bianchi i testi all'interno delle intestazioni sfumate (dashboard) */
+    .dashboard-header, .dashboard-header-admin, .dashboard-header-trainer {
+        color: #FFFFFF !important;
+    }
+    .dashboard-header *, .dashboard-header-admin *, .dashboard-header-trainer * {
+        color: #FFFFFF !important;
+    }
+
+    /* Manteniamo corretti i pulsanti is-gymfly e altri pulsanti */
+    .button.is-gymfly {
+        background-color: var(--gymfly-primary) !important;
+        color: #FFFFFF !important;
+    }
+    .button.is-danger {
+        color: #FFFFFF !important;
+    }
+
+    /* Input, select e textarea uniformati allo sfondo panna */
+    .input, .select select, .textarea {
+        background-color: var(--gymfly-bg) !important;
+        color: var(--gymfly-text) !important;
+        border-color: var(--gymfly-primary) !important;
+    }
+
+    .input::placeholder, .textarea::placeholder {
+        color: #8c85a6 !important;
+    }
+
+    /* Icone all'interno del controllo input */
+    .control.has-icons-left .icon, .control.has-icons-right .icon {
+        color: var(--gymfly-text) !important;
+        background-color: transparent !important;
+    }
+}
+
