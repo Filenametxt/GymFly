@@ -51,6 +51,7 @@ class DoctrineParametriRepository implements ParametriRepositoryInterface
             ->where('p.cliente = :cliente')
             ->setParameter('cliente', $cliente)
             ->orderBy('p.data', 'DESC')
+            ->addOrderBy('p.id', 'DESC')
             ->getQuery()
             ->getResult();
     }
@@ -63,6 +64,7 @@ class DoctrineParametriRepository implements ParametriRepositoryInterface
             ->where('p.cliente = :cliente')
             ->setParameter('cliente', $cliente)
             ->orderBy('p.data', 'DESC')
+            ->addOrderBy('p.id', 'DESC')
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
@@ -76,6 +78,7 @@ class DoctrineParametriRepository implements ParametriRepositoryInterface
             ->where('p.cliente = :cliente')
             ->setParameter('cliente', $cliente)
             ->orderBy('p.data', 'ASC')
+            ->addOrderBy('p.id', 'ASC')
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
@@ -97,6 +100,7 @@ class DoctrineParametriRepository implements ParametriRepositoryInterface
             ->setParameter('dal',     $dal)
             ->setParameter('al',      $al)
             ->orderBy('p.data', 'ASC')
+            ->addOrderBy('p.id', 'ASC')
             ->getQuery()
             ->getResult();
     }

@@ -36,6 +36,8 @@ class FrontController
             '/modifica-anagrafica' => [ProfiloController::class, 'modificaAnagrafica'],
             '/carica-foto' => [ProfiloController::class, 'caricaFotoProfilo'],
             '/aggiorna-misure' => [ProfiloController::class, 'aggiornaMisureCorporee'],
+            '/inserisci-misure' => [ProfiloController::class, 'inserisciMisureCorporee'],
+            '/visualizza-grafico' => [ProfiloController::class, 'visualizzaGrafico'],
             '/carica-certificato' => [ProfiloController::class, 'caricaCertificato'],
             '/errore' => [VisualizzazioneController::class, 'mostraErrore'],
             '/clienti' => [VisualizzazioneUtentiController::class, 'visualizzaClienti'],

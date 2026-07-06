@@ -228,9 +228,38 @@ class ProfiloController
             return;
         }
 
+        $ultimaMisure = $this->parametriRepo->findUltimaByCliente($cliente);
+        $storicoMisure = $this->parametriRepo->findByCliente($cliente);
+        $this->view->mostraFormMisure([
+            'utente' => $cliente,
+            'ultimaMisure' => $ultimaMisure,
+            'storicoMisure' => $storicoMisure,
+            'storicoMisureCronologico' => array_reverse($storicoMisure)
+        ]);
+    }
+
+    /**
+     * 4b. INSERISCI NUOVE MISURE CORPOREE
+     */
+    public function inserisciMisureCorporee(): void
+    {
+        $idUtente = $this->session->getLoggedUserId();
+        if (!$idUtente) {
+            $this->view->mostraErrore("Effettua il login.");
+            return;
+        }
+
+        $cliente = $this->clienteRepo->findById($idUtente);
+        if (!$cliente) {
+            $this->view->mostraErrore("Cliente non trovato.");
+            return;
+        }
+
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            $this->view->mostraFormMisure([
-                'utente' => $cliente
+            $ultimaMisure = $this->parametriRepo->findUltimaByCliente($cliente);
+            $this->view->mostraFormInserimentoMisure([
+                'utente' => $cliente,
+                'ultimaMisure' => $ultimaMisure
             ]);
             return;
         }
@@ -243,8 +272,6 @@ class ProfiloController
             return;
         }
 
-        // Raccolta completa delle misure antropometriche (PAGE 17)
-        // Se lasciati vuoti o impostati a 0, vengono considerati null (opzionali)
         $bicipiteD = !empty($_POST['bicipite_destro']) ? (float)$_POST['bicipite_destro'] : null;
         $bicipiteS = !empty($_POST['bicipite_sinistro']) ? (float)$_POST['bicipite_sinistro'] : null;
         $tricipiteD = !empty($_POST['tricipite_destro']) ? (float)$_POST['tricipite_destro'] : null;
@@ -279,7 +306,8 @@ class ProfiloController
             );
 
             $this->parametriRepo->salvaMisure($nuoviParametri);
-            $this->view->mostraConfermaModifica("Misure aggiornate con successo nel tuo storico biometrico.");
+            header('Location: aggiorna-misure');
+            exit();
         } catch (\InvalidArgumentException $e) {
             $this->view->mostraErrore("Dati non validi: " . $e->getMessage());
         }
@@ -406,5 +434,83 @@ class ProfiloController
         } catch (\InvalidArgumentException $e) {
             $this->view->mostraErrore("Errore di validazione: " . $e->getMessage());
         }
+    }
+
+    public function visualizzaGrafico(): void
+    {
+        $idUtente = $this->session->getLoggedUserId();
+        if (!$idUtente) {
+            $this->view->mostraErrore("Effettua il login.");
+            return;
+        }
+
+        $cliente = $this->clienteRepo->findById($idUtente);
+        if (!$cliente) {
+            $this->view->mostraErrore("Cliente non trovato.");
+            return;
+        }
+
+        $tipo = $_GET['tipo'] ?? 'peso';
+        if (!in_array($tipo, ['peso', 'superiore', 'inferiore'])) {
+            $tipo = 'peso';
+        }
+
+        $storicoMisure = $this->parametriRepo->findByCliente($cliente);
+        $storico = array_reverse($storicoMisure); // Chronological order
+
+        $punti = [];
+        $width = 390;
+        $height = 120;
+        $padX = 40;
+        $padY = 20;
+
+        $valori = [];
+        foreach ($storico as $m) {
+            if ($tipo === 'peso') {
+                $valori[] = $m->getPeso();
+            } elseif ($tipo === 'superiore') {
+                $valori[] = $m->getBicipiteDestro() ?? 0.0;
+            } else {
+                $valori[] = $m->getCosciaDestra() ?? 0.0;
+            }
+        }
+
+        $minVal = count($valori) ? min($valori) - 2 : 0;
+        $maxVal = count($valori) ? max($valori) + 2 : 10;
+        $range = $maxVal - $minVal ?: 1;
+
+        $count = count($storico);
+        foreach ($storico as $i => $m) {
+            if ($tipo === 'peso') {
+                $val = $m->getPeso();
+            } elseif ($tipo === 'superiore') {
+                $val = $m->getBicipiteDestro() ?? 0.0;
+            } else {
+                $val = $m->getCosciaDestra() ?? 0.0;
+            }
+
+            $x = $padX + ($i * ($width / ($count - 1 ?: 1)));
+            $y = $padY + $height - (($val - $minVal) / $range * $height);
+            $punti[] = [
+                'x' => $x,
+                'y' => $y,
+                'valore' => $val,
+                'data' => $m->getData()->format('d/m')
+            ];
+        }
+
+        $titolo = "Andamento Peso Corporeo";
+        if ($tipo === 'superiore') {
+            $titolo = "Andamento Circonferenza Bicipite";
+        } elseif ($tipo === 'inferiore') {
+            $titolo = "Andamento Circonferenza Coscia";
+        }
+
+        $this->view->mostraGrafico([
+            'utente' => $cliente,
+            'tipo' => $tipo,
+            'titolo' => $titolo,
+            'punti' => $punti
+        ]);
     }
 }

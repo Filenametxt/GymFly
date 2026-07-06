@@ -83,6 +83,15 @@ class ProfiloViewSmarty implements ProfiloView
         $this->smarty->display('aggiorna_misure.tpl');
     }
 
+    public function mostraFormInserimentoMisure(array $dati): void
+    {
+        header('Content-Type: text/html; charset=utf-8');
+        foreach ($dati as $key => $value) {
+            $this->smarty->assign($key, $value);
+        }
+        $this->smarty->display('inserisci_misure.tpl');
+    }
+
     public function mostraFormCertificato(array $dati): void
     {
         header('Content-Type: text/html; charset=utf-8');
@@ -97,5 +106,14 @@ class ProfiloViewSmarty implements ProfiloView
         header('Content-Type: text/html; charset=utf-8');
         $this->smarty->assign('ritorno', $this->determinaRitorno());
         $this->smarty->display('cambia_password.tpl');
+    }
+
+    public function mostraGrafico(array $dati): void
+    {
+        header('Content-Type: text/html; charset=utf-8');
+        foreach ($dati as $key => $value) {
+            $this->smarty->assign($key, $value);
+        }
+        $this->smarty->display('visualizza_grafico.tpl');
     }
 }

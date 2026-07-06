@@ -1,161 +1,168 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+    <meta name="color-scheme" content="light">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GymFly - Area Personale Cliente</title>
+    <title>GymFly - Area Cliente</title>
     <link rel="stylesheet" href="css/bulma.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=1.2">
+    {literal}
+    <style>
+        .custom-mobile-container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .profile-greeting-box {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .profile-avatar-circle {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background-color: var(--gymfly-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.8rem;
+            margin-right: 1rem;
+            border: 2px solid var(--gymfly-accent);
+        }
+        .navigation-box-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.25rem;
+            border-radius: 16px;
+            border: 2px solid var(--gymfly-primary);
+            background-color: var(--gymfly-card-bg);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-bottom: 1.5rem;
+        }
+        .navigation-box-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .course-info-label {
+            font-size: 0.85rem;
+            color: var(--gymfly-text);
+            opacity: 0.8;
+        }
+    </style>
+    {/literal}
 </head>
 <body>
 
-    <!-- NAVBAR -->
+    <!-- NAVBAR MOBILE-FIRST -->
     <nav class="navbar" role="navigation" aria-label="main navigation">
         <div class="container">
-            <div class="navbar-brand">
-                <a class="navbar-item" href="./">
-                    <strong class="is-size-4" style="color: #AFAFE2;">GymFly 🏋️‍♂️</strong>
+            <div class="navbar-brand is-flex is-justify-content-between is-align-items-center w-100 px-3">
+                
+                <!-- Menu a Panino (Hamburger) -->
+                <a role="button" class="navbar-burger ml-0" aria-label="menu" aria-expanded="false" data-target="client-navbar-menu" onclick="document.getElementById('client-navbar-menu').classList.toggle('is-active'); this.classList.toggle('is-active');">
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
                 </a>
+
+                <!-- Titolo Centrato -->
+                <div class="navbar-item py-0">
+                    <strong class="is-size-4 style-theme-text" style="letter-spacing: 1px;">CLIENTE HOME</strong>
+                </div>
+
+                <!-- Icona Calendario / Misure a destra -->
+                <a href="aggiorna-misure" class="navbar-item p-0 has-text-link">
+                    <span class="icon is-medium">
+                        <i class="fas fa-calendar-alt fa-lg"></i>
+                    </span>
+                </a>
+
             </div>
-            <div class="navbar-end">
-                <div class="navbar-item">
-                    <div class="buttons">
-                        <span class="tag is-medium is-client-theme mr-3">
-                            <i class="fas fa-user mr-2"></i> Area Cliente
-                        </span>
-                        <a href="cambia-password" class="button is-link is-light mr-2">
-                            <i class="fas fa-key mr-2"></i> Password
-                        </a>
-                        <a href="logout" class="button is-danger is-light">
-                            <i class="fas fa-sign-out-alt mr-2"></i> Log Out
-                        </a>
-                    </div>
+
+            <!-- Menu che si espande sotto al click del panino -->
+            <div id="client-navbar-menu" class="navbar-menu">
+                <div class="navbar-end">
+                    <a href="dashboard-cliente" class="navbar-item">
+                        <span class="icon mr-2"><i class="fas fa-home"></i></span> Home Dashboard
+                    </a>
+                    <a href="profilo" class="navbar-item">
+                        <span class="icon mr-2"><i class="fas fa-user-edit"></i></span> Il mio Profilo
+                    </a>
+                    <a href="messaggi" class="navbar-item">
+                        <span class="icon mr-2"><i class="fas fa-envelope"></i></span> Bacheca Messaggi
+                    </a>
+                    <a href="cambia-password" class="navbar-item">
+                        <span class="icon mr-2"><i class="fas fa-key"></i></span> Cambia Password
+                    </a>
+                    <hr class="navbar-divider">
+                    <a href="logout" class="navbar-item has-text-danger">
+                        <span class="icon mr-2"><i class="fas fa-sign-out-alt"></i></span> Log Out
+                    </a>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- CONTENT -->
-    <section class="section">
-        <div class="container">
+    <!-- CONTENT CONTAINER -->
+    <section class="section px-3">
+        <div class="container custom-mobile-container">
             
-            <!-- HEADER -->
-            <div class="dashboard-header">
-                <div class="columns is-vcentered">
-                    <div class="column">
-                        <h1 class="title is-2 has-text-white mb-2">Benvenuto, {$utente->getNome()}!</h1>
-                        <p class="subtitle is-5 has-text-white-ter">Resta in forma, monitora i tuoi progressi e controlla gli allenamenti</p>
-                    </div>
-                    <div class="column is-narrow">
-                        <figure class="image is-96x96">
-                            <span class="icon is-large has-text-white">
-                                <i class="fas fa-user-circle fa-5x"></i>
-                            </span>
-                        </figure>
-                    </div>
+            <!-- PROFILO GREETING (Avatar e Ciao Nome!) -->
+            <div class="profile-greeting-box">
+                <div class="profile-avatar-circle">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div>
+                    <h2 class="title is-4 style-theme-text mb-0">Ciao, {$utente->getNome()}!</h2>
+                    <p class="subtitle is-6 has-text-grey mt-1">Pronto per l'allenamento di oggi?</p>
                 </div>
             </div>
 
-            <div class="columns">
-                
-                <!-- DATI PERSONALI ED ABBONAMENTO -->
-                <div class="column is-6">
-                    <div class="info-box">
-                        <h3 class="title is-4 mb-4" style="color: #AFAFE2;"><i class="fas fa-id-card mr-2"></i> Profilo & Abbonamento</h3>
-                        
-                        <div class="block">
-                            <p class="is-size-5 mb-2"><strong>Nome:</strong> {$utente->getNome()} {$utente->getCognome()}</p>
-                            <p class="is-size-6 mb-1"><strong>Sesso:</strong> {$utente->getSesso()->value}</p>
-                            <p class="is-size-6 mb-1"><strong>Email:</strong> {$utente->getEmail()}</p>
-                            <p class="is-size-6 mb-1"><strong>Codice Fiscale:</strong> <code class="is-size-7">{$utente->getCF()}</code></p>
-                            <p class="is-size-6"><strong>Telefono:</strong> {$utente->getTelefono()|default:'Non specificato'}</p>
+            <!-- SCHEDA ALLENAMENTO -->
+            <div class="block">
+                {if $utente->getScheda()}
+                    <a href="#" class="navigation-box-card">
+                        <div>
+                            <span class="tag is-light is-client-theme mb-2">SCHEDA ATTIVA</span>
+                            <h3 class="title is-5 style-theme-text mb-1">{$utente->getScheda()->getNome()}</h3>
+                            <p class="is-size-6 has-text-grey-dark">{$utente->getScheda()->getDescrizione()|default:'Nessuna descrizione'}</p>
                         </div>
-                        
-                        <hr>
-
-                        <div class="notification {if $utente->isAbbonamentoAttivo()}is-success{else}is-danger{/if} is-light has-text-centered py-3">
-                            <h4 class="title is-5 mb-2">
-                                Abbonamento: {if $utente->isAbbonamentoAttivo()}Attivo{else}Scaduto{/if}
-                            </h4>
-                            <p class="is-size-7">Scadenza Iscrizione Palestra: 
-                                <strong>
-                                    {if $utente->getIscrizione()}
-                                        {$utente->getIscrizione()->getDataFine()->format('d/m/Y')}
-                                    {else}
-                                        Non attiva
-                                    {/if}
-                                </strong>
-                            </p>
-                        </div>
+                        <span class="icon has-text-grey"><i class="fas fa-chevron-right fa-lg"></i></span>
+                    </a>
+                {else}
+                    <div class="box has-text-centered py-4">
+                        <span class="icon is-medium has-text-grey-light mb-2"><i class="fas fa-dumbbell fa-2x"></i></span>
+                        <p class="is-size-6 has-text-grey">Nessuna scheda di allenamento assegnata.</p>
                     </div>
-                </div>
+                {/if}
+            </div>
 
-                <!-- SCHEDA ALLENAMENTO E CERTIFICATO MEDICO -->
-                <div class="column is-6">
-                    <div class="info-box">
-                        <h3 class="title is-4 mb-4" style="color: #99CDEA;"><i class="fas fa-heartbeat mr-2"></i> Stato Salute & Allenamento</h3>
+            <!-- CORSI PROGRAMMATI PER OGGI -->
+            <div class="block mt-5">
+                <h3 class="title is-5 style-theme-text mb-3">Corsi programmati per oggi</h3>
 
-                        <!-- CERTIFICATO MEDICO -->
-                        <div class="box mb-4 py-3" style="border: 1px solid #99CDEA;">
-                            <div class="level">
-                                <div class="level-left">
-                                    <div>
-                                        <p class="is-size-6 mb-1"><strong>Certificato Medico</strong></p>
-                                        <p class="is-size-7 has-text-grey">
-                                            {if $utente->isCertificatoValido()}
-                                                Valido fino al: <strong>{$utente->getCertificatoMedico()->getDataScadenza()->format('d/m/Y')}</strong>
-                                            {else}
-                                                <span class="has-text-danger">Mancante o Scaduto</span>
-                                            {/if}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div class="level-right">
-                                    {if $utente->isCertificatoValido()}
-                                        <span class="icon has-text-success"><i class="fas fa-check-circle fa-lg"></i></span>
-                                    {else}
-                                        <span class="icon has-text-danger"><i class="fas fa-exclamation-circle fa-lg"></i></span>
-                                    {/if}
-                                </div>
+                {foreach $utente->getAttivitaPianificate() as $corso}
+                    <a href="#" class="navigation-box-card">
+                        <div>
+                            <div class="is-flex is-align-items-center mb-2">
+                                <span class="tag is-success is-light mr-2">{$corso->getOrario()}:00</span>
+                                <span class="course-info-label">Sala: <strong>{$corso->getSala()->getNome()}</strong></span>
                             </div>
+                            <h4 class="title is-5 style-theme-text mb-1">{$corso->getAttivita()->getNome()}</h4>
+                            <p class="is-size-7 has-text-grey">Allenatore: {$corso->getAllenatore()->getNome()} {$corso->getAllenatore()->getCognome()}</p>
                         </div>
-
-                        <!-- SCHEDA -->
-                        <div class="box mb-5 py-3" style="border: 1px solid #AFAFE2;">
-                            <div class="level">
-                                <div class="level-left">
-                                    <div>
-                                        <p class="is-size-6 mb-1"><strong>Scheda di Allenamento</strong></p>
-                                        <p class="is-size-7 has-text-grey">
-                                            {if $utente->getScheda()}
-                                                Nome scheda: <strong>{$utente->getScheda()->getNome()}</strong>
-                                            {else}
-                                                Nessuna scheda attiva assegnata
-                                            {/if}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div class="level-right">
-                                    {if $utente->getScheda()}
-                                        <button class="button is-small is-gymfly">Visualizza</button>
-                                    {else}
-                                        <span class="has-text-grey-light is-size-7">Nessuna scheda</span>
-                                    {/if}
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- AZIONI RAPIDE -->
-                        <h4 class="subtitle is-6 mb-2 has-text-grey-dark">Scorciatoie Area Personale</h4>
-                        <div class="buttons">
-                            <a href="profilo" class="button is-small is-link is-light">
-                                <i class="fas fa-user-edit mr-2"></i> Vedi Dettagli & Modifica Dati
-                            </a>
-                        </div>
+                        <span class="icon has-text-grey"><i class="fas fa-chevron-right fa-lg"></i></span>
+                    </a>
+                {foreachelse}
+                    <div class="box has-text-centered py-5">
+                        <span class="icon is-medium has-text-grey-light mb-2"><i class="fas fa-calendar-times fa-2x"></i></span>
+                        <p class="is-size-6 has-text-grey">Nessun corso programmato per oggi.</p>
                     </div>
-                </div>
-
+                {/foreach}
             </div>
 
         </div>
