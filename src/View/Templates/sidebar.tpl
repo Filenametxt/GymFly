@@ -1,4 +1,4 @@
-<!--
+{*
     =============================================================================
     GymFly - Componente Sidebar Riutilizzabile
     =============================================================================
@@ -16,7 +16,7 @@
     
     3. Il menu in basso mostra/nasconde le funzionalità a seconda del ruolo in sessione.
     =============================================================================
--->
+*}
 
 <aside class="app-sidebar">
     <!-- LOGO / BRANDING -->
