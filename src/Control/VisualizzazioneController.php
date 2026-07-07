@@ -13,6 +13,7 @@ use App\Entity\AttivitaPianificata;
 use App\Entity\Messaggio;
 use App\Foundation\Persistence\Repository\DoctrineMessaggioRepository;
 use App\Foundation\Persistence\Repository\DoctrineAttivitaPianificataRepository;
+use App\Entity\Attivita;
 
 class VisualizzazioneController
 {
@@ -171,6 +172,8 @@ class VisualizzazioneController
             }
         }
 
+        $attivita = $this->entityManager->getRepository(Attivita::class)->findAll();
+
         $this->view->mostraDashboardAdmin([
             'utente' => $admin,
             'clienti' => $clienti,
@@ -183,7 +186,8 @@ class VisualizzazioneController
             'percentuale_budget' => $percentualeBudget,
             'punti_registrazioni' => $puntiGrafico,
             'ultimi_messaggi' => $ultimiMessaggi,
-            'eventi_oggi' => $eventiOggi
+            'eventi_oggi' => $eventiOggi,
+            'attivita' => $attivita
         ]);
     }
 
