@@ -14,6 +14,8 @@ use App\View\AbbonamentiViewSmarty;
 use App\View\VisualizzazioneViewSmarty;
 use App\View\MessaggiViewSmarty;
 use App\Foundation\Persistence\Repository\DoctrineMessaggioRepository;
+use App\Foundation\Persistence\Repository\DoctrineAttivitaRepository;
+use App\View\AmministratoreViewSmarty;
 
 
 class FrontController
@@ -46,6 +48,13 @@ class FrontController
             '/cambia-password' => [ProfiloController::class, 'cambiaPassword'],
             '/messaggi' => [MessaggiController::class, 'mostraMessaggi'],
             '/invia-messaggio' => [MessaggiController::class, 'inviaMessaggio'],
+            '/crea-cliente' => [AmministratoreController::class, 'creaCliente'],
+            '/crea-allenatore' => [AmministratoreController::class, 'creaAllenatore'],
+            '/crea-attivita' => [AmministratoreController::class, 'creaAttivita'],
+            '/abilita-attivita-allenatore' => [AmministratoreController::class, 'abilitaAttivitaAllenatore'],
+            '/rimuovi-cliente' => [AmministratoreController::class, 'rimuoviCliente'],
+            '/rimuovi-allenatore' => [AmministratoreController::class, 'rimuoviAllenatore'],
+            '/rimuovi-attivita' => [AmministratoreController::class, 'rimuoviAttivita'],
         ];
     }
 
@@ -115,6 +124,21 @@ class FrontController
                 $messaggioRepo = new DoctrineMessaggioRepository($entityManager);
                 $messaggiView = new MessaggiViewSmarty();
                 $controller = new MessaggiController($entityManager, $messaggioRepo, $messaggiView, $session);
+                break;
+
+            case AmministratoreController::class:
+                $clienteRepo = new DoctrineClienteRepository($entityManager);
+                $allenatoreRepo = new DoctrineAllenatoreRepository($entityManager);
+                $attivitaRepo = new DoctrineAttivitaRepository($entityManager);
+                $amministratoreView = new AmministratoreViewSmarty();
+                $controller = new AmministratoreController(
+                    $entityManager,
+                    $clienteRepo,
+                    $allenatoreRepo,
+                    $attivitaRepo,
+                    $amministratoreView,
+                    $session
+                );
                 break;
 
             default:
