@@ -25,27 +25,10 @@
 </head>
 <body>
 
-    <!-- NAVBAR -->
-    <nav class="navbar" role="navigation" aria-label="main navigation">
-        <div class="container">
-            <div class="navbar-brand">
-                <a class="navbar-item" href="./">
-                    <strong class="is-size-4" style="color: #AFAFE2;">GymFly 🏋️‍♂️</strong>
-                </a>
-            </div>
-            <div class="navbar-end">
-                <div class="navbar-item">
-                    <a href="logout" class="button is-danger is-light">
-                        <i class="fas fa-sign-out-alt mr-2"></i> Log Out
-                    </a>
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <!-- CONTENT -->
-    <section class="section">
-        <div class="container">
+    <div class="app-container">
+        {include file='sidebar.tpl'}
+        <main class="app-content">
+            
             
             <div class="mb-5">
                 <a href="{$ritorno}" class="button is-ghost has-text-grey">
@@ -66,6 +49,7 @@
                 <div class="column {if $invioConsentito}is-7{else}is-12{/if}">
                     
                     <!-- MESSAGGI RICEVUTI -->
+                    {if $ruolo !== 'amministratore'}
                     <div class="box">
                         <h2 class="title is-4 style-theme-text mb-4"><i class="fas fa-inbox mr-2"></i> Posta in Arrivo</h2>
                         
@@ -91,6 +75,7 @@
                             </div>
                         {/foreach}
                     </div>
+                    {/if}
 
                     <!-- MESSAGGI INVIATI (Solo se consentito l'invio) -->
                     {if $invioConsentito}
@@ -231,8 +216,8 @@
 
             </div>
 
-        </div>
-    </section>
+        </main>
+    </div>
 
 </body>
 </html>
