@@ -36,7 +36,11 @@
     <div class="is-flex-grow-1">
         
         <!-- Voci comuni per tutti i ruoli -->
-        <a href="dashboard-{$smarty.session.ruolo_utente|default:'cliente'}" class="sidebar-menu-link">
+        {if isset($smarty.session.ruolo_utente) && $smarty.session.ruolo_utente === 'amministratore'}
+            <a href="dashboard-admin" class="sidebar-menu-link">
+        {else}
+            <a href="dashboard-{$smarty.session.ruolo_utente|default:'cliente'}" class="sidebar-menu-link">
+        {/if}
             <i class="fas fa-home"></i>
             <span>Home Dashboard</span>
         </a>

@@ -62,6 +62,7 @@
                                 </div>
                             </div>
 
+                            {if $isClient}
                             <div class="field">
                                 <label class="label">Domicilio (Opzionale)</label>
                                 <div class="control has-icons-left">
@@ -81,6 +82,7 @@
                                     </span>
                                 </div>
                             </div>
+                            {/if}
 
                             <div class="field mt-5">
                                 <div class="control">

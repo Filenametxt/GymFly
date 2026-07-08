@@ -114,7 +114,9 @@
                         <p><strong>Nome:</strong> {$utente->getNome()}</p>
                         <p><strong>Cognome:</strong> {$utente->getCognome()}</p>
                         <p><strong>Sesso:</strong> {$utente->getSesso()->value}</p>
-                        <p><strong>Nascita:</strong> {$utente->getDataDiNascita()|date_format:"%d/%m/%Y"}</p>
+                        {if $isClient}
+                            <p><strong>Nascita:</strong> {$utente->getDataDiNascita()|date_format:"%d/%m/%Y"}</p>
+                        {/if}
                         <p><strong>e-mail:</strong> <span class="is-size-7-mobile">{$utente->getEmail()}</span></p>
                         <p><strong>Telefono:</strong> {$utente->getTelefono()|default:'-'}</p>
                     </div>
@@ -147,6 +149,7 @@
             </div>
 
             <!-- INFO ABBONAMENTO -->
+            {if $isClient}
             <div class="box p-4 mb-4">
                 <h3 class="title is-5 style-theme-text mb-3">
                     Abbonamento 
@@ -179,10 +182,12 @@
                     </div>
                 {/if}
             </div>
+            {/if}
 
             <!-- AZIONI / SHORTCUTS -->
             <div class="block mt-4">
                 
+                {if $isClient}
                 <!-- Parametri -->
                 <a href="aggiorna-misure" class="navigation-box-card">
                     <span class="is-flex is-align-items-center">
@@ -211,6 +216,7 @@
                     </span>
                     <span class="icon has-text-grey"><i class="fas fa-chevron-right fa-lg"></i></span>
                 </a>
+                {/if}
 
                 <!-- Modifica Dati -->
                 <a href="modifica-anagrafica" class="navigation-box-card">

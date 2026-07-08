@@ -29,7 +29,7 @@ class AttivitaPianificataViewSmarty implements AttivitaPianificataView
         if ($dati['ruolo_utente'] === 'amministratore') {
             $this->smarty->display('planner_settimanale.tpl');
         } else {
-            $this->smarty->display('calendario_attivita.tpl');
+            $this->smarty->display('calendario.tpl');
         }
     }
 

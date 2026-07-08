@@ -38,61 +38,58 @@ class ProfiloController
             return;
         }
 
-        // Determina l'ID del cliente da visualizzare
-        $targetId = $idUtente;
-        if ($ruolo === 'amministratore' || $ruolo === 'allenatore') {
-            $targetId = isset($_GET['id']) ? (int)$_GET['id'] : null;
-            if (!$targetId) {
-                $this->view->mostraErrore("ID cliente non specificato.");
-                return;
+        $entityManager = EntityManagerFactory::create();
+        $isSelf = !isset($_GET['id']);
+
+        if ($isSelf) {
+            $utente = $entityManager->find(Utente::class, $idUtente);
+            $isClient = ($utente instanceof \App\Entity\Cliente);
+        } else {
+            $targetId = (int)$_GET['id'];
+            $utente = $this->clienteRepo->findById($targetId);
+            $isClient = true;
+
+            // Controllo di sicurezza (Anti-IDOR) per amministratore e allenatore
+            if ($ruolo === 'amministratore' || $ruolo === 'allenatore') {
+                $palestraUtente = null;
+                if ($ruolo === 'amministratore') {
+                    $adminObj = $entityManager->find(Amministratore::class, $idUtente);
+                    $palestraUtente = $entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $adminObj]);
+                } else {
+                    $allenatoreObj = $entityManager->find(Allenatore::class, $idUtente);
+                    $palestraUtente = $allenatoreObj ? $allenatoreObj->getPalestra() : null;
+                }
+
+                // Verifica che il cliente sia presente e appartenga alla stessa palestra dell'utente loggato
+                if (!$utente || !$palestraUtente || !$utente->getPalestra() || $utente->getPalestra()->getId() !== $palestraUtente->getId()) {
+                    $this->view->mostraErrore("Accesso negato. Non sei autorizzato a visualizzare questo profilo.");
+                    return;
+                }
             }
         }
 
-        $cliente = $this->clienteRepo->findById($targetId);
-        if (!$cliente) {
-            $this->view->mostraErrore("Cliente non trovato.");
+        if (!$utente) {
+            $this->view->mostraErrore("Profilo non trovato.");
             return;
         }
 
-        // Controllo di sicurezza (Anti-IDOR) per amministratore e allenatore
-        if ($ruolo === 'amministratore' || $ruolo === 'allenatore') {
-            $entityManager = EntityManagerFactory::create();
-            $palestraUtente = null;
-            if ($ruolo === 'amministratore') {
-                $adminObj = $entityManager->find(Amministratore::class, $idUtente);
-                $palestraUtente = $entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $adminObj]);
-            } else {
-                $allenatoreObj = $entityManager->find(Allenatore::class, $idUtente);
-                $palestraUtente = $allenatoreObj ? $allenatoreObj->getPalestra() : null;
-            }
+        $ultimiParametri = $isClient ? $this->parametriRepo->findUltimaByCliente($utente) : null;
+        $ultimoCertificato = $isClient ? $this->certificatoRepo->findByCliente($utente) : null;
 
-            // Verifica che il cliente appartenga alla stessa palestra dell'utente loggato
-            if (!$palestraUtente || !$cliente->getPalestra() || $cliente->getPalestra()->getId() !== $palestraUtente->getId()) {
-                $this->view->mostraErrore("Accesso negato. Non sei autorizzato a visualizzare questo profilo.");
-                return;
-            }
-        }
-
-        $ultimiParametri = $this->parametriRepo->findUltimaByCliente($cliente);
-        $ultimoCertificato = $this->certificatoRepo->findByCliente($cliente);
-
-        // Costruiamo l'array con TUTTI i dati presenti nella schermata "PAGE 17"
+        // Costruiamo l'array con i dati del profilo
         $datiProfilo = [
-            'utente' => $cliente,
-            'abbonamento' => $cliente->getAbbonamento(),
-            // Anagrafica e Recapiti
-            'nome' => $cliente->getNome(),
-            'cognome' => $cliente->getCognome(),
-            'email' => $cliente->getEmail(),
-            'cf' => $cliente->getCF(),
-            // Il BLOB viene codificato in Base64 per essere usato direttamente nel tag <img> del template.
-            // Es: <img src="data:image/jpeg;base64,{$datiProfilo.fotoProfilo}">
-            'fotoProfilo' => $cliente->getProfilePicture() ? base64_encode($cliente->getProfilePicture()) : null,
+            'utente' => $utente,
+            'isClient' => $isClient,
+            'isSelf' => $isSelf,
+            'nome' => $utente->getNome(),
+            'cognome' => $utente->getCognome(),
+            'email' => $utente->getEmail(),
+            'cf' => $utente->getCF(),
+            'fotoProfilo' => $utente->getProfilePicture() ? base64_encode($utente->getProfilePicture()) : null,
+            'abbonamento' => $isClient ? $utente->getAbbonamento() : null,
+            'abbonamento_attivo' => $isClient ? $utente->isAbbonamentoAttivo() : false,
             
-            // Stato Abbonamento (presente nel mock-up UX)
-            'abbonamento_attivo' => $cliente->isAbbonamentoAttivo(),
-            
-            // Parametri Biometrici e Misure Dettagliate (PAGE 17)
+            // Parametri Biometrici
             'parametri' => $ultimiParametri ? [
                 'peso' => $ultimiParametri->getPeso(),
                 'altezza' => $ultimiParametri->getAltezza(),
@@ -134,15 +131,19 @@ class ProfiloController
             return;
         }
 
-        $cliente = $this->clienteRepo->findById($idUtente);
-        if (!$cliente) {
+        $entityManager = EntityManagerFactory::create();
+        $utente = $entityManager->find(Utente::class, $idUtente);
+        if (!$utente) {
             $this->view->mostraErrore("Profilo inesistente.");
             return;
         }
 
+        $isClient = ($utente instanceof \App\Entity\Cliente);
+
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $this->view->mostraFormModifica([
-                'utente' => $cliente
+                'utente' => $utente,
+                'isClient' => $isClient
             ]);
             return;
         }
@@ -154,22 +155,29 @@ class ProfiloController
         $nuovoIndirizzoDomicilio = $_POST['indirizzo_domicilio'] ?? null; // Specifico di Cliente
         $nuovoMetodoPagamento = $_POST['metodo_pagamento'] ?? null;
 
-        if (empty($nuovoNome) || empty($nuovoCognome) || empty($nuovoIndirizzoResidenza) || empty($nuovoMetodoPagamento)) {
-            $this->view->mostraErrore("I campi Nome, Cognome, Residenza e Metodo di Pagamento sono obbligatori.");
+        if (empty($nuovoNome) || empty($nuovoCognome) || empty($nuovoIndirizzoResidenza)) {
+            $this->view->mostraErrore("I campi Nome, Cognome e Residenza sono obbligatori.");
+            return;
+        }
+
+        if ($isClient && empty($nuovoMetodoPagamento)) {
+            $this->view->mostraErrore("Il campo Metodo di Pagamento è obbligatorio per i clienti.");
             return;
         }
 
         try {
             // Aggiorniamo l'entità
-            $cliente->setNome($nuovoNome);
-            $cliente->setCognome($nuovoCognome);
-            $cliente->setIndirizzo($nuovoIndirizzoResidenza);
-            if (method_exists($cliente, 'setIndirizzoDiDomicilio')) {
-                $cliente->setIndirizzoDiDomicilio($nuovoIndirizzoDomicilio);
+            $utente->setNome($nuovoNome);
+            $utente->setCognome($nuovoCognome);
+            $utente->setIndirizzo($nuovoIndirizzoResidenza);
+            if ($isClient) {
+                if (method_exists($utente, 'setIndirizzoDiDomicilio')) {
+                    $utente->setIndirizzoDiDomicilio($nuovoIndirizzoDomicilio);
+                }
+                $utente->setMetodoDiPagamento($nuovoMetodoPagamento);
             }
-            $cliente->setMetodoDiPagamento($nuovoMetodoPagamento);
 
-            $this->clienteRepo->save($cliente);
+            $entityManager->flush();
             $this->view->mostraConfermaModifica("Modifiche salvate con successo.");
         } catch (\InvalidArgumentException $e) {
             $this->view->mostraErrore("Errore di validazione: " . $e->getMessage());
@@ -187,8 +195,9 @@ class ProfiloController
             return;
         }
 
-        $cliente = $this->clienteRepo->findById($idUtente);
-        if (!$cliente) {
+        $entityManager = EntityManagerFactory::create();
+        $utente = $entityManager->find(Utente::class, $idUtente);
+        if (!$utente) {
             $this->view->mostraErrore("Profilo non trovato.");
             return;
         }
@@ -203,8 +212,8 @@ class ProfiloController
         $fileContent = file_get_contents($fileTmpPath);
 
         if ($fileContent !== false) {
-            $cliente->setProfilePicture($fileContent);
-            $this->clienteRepo->save($cliente);
+            $utente->setProfilePicture($fileContent);
+            $entityManager->flush();
             $this->view->mostraConfermaModifica("Foto profilo aggiornata con successo.");
         } else {
             $this->view->mostraErrore("Impossibile leggere il contenuto del file immagine.");
