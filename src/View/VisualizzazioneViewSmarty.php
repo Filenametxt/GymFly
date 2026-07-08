@@ -40,6 +40,45 @@ class VisualizzazioneViewSmarty implements VisualizzazioneView
     public function mostraDashboardCliente(array $dati): void
     {
         header('Content-Type: text/html; charset=utf-8');
+        
+        if (isset($dati['utente'])) {
+            $clienteOriginale = $dati['utente'];
+            $dati['utente'] = new class($clienteOriginale) {
+                private $cliente;
+                private $schedaWrapped = null;
+
+                public function __construct($cliente) {
+                    $this->cliente = $cliente;
+                    $scheda = $cliente->getScheda();
+                    if ($scheda) {
+                        $this->schedaWrapped = new class($scheda) {
+                            private $scheda;
+                            public function __construct($scheda) {
+                                $this->scheda = $scheda;
+                            }
+                            public function getNome() {
+                                return $this->scheda->getNome_scheda();
+                            }
+                            public function getDescrizione() {
+                                return $this->scheda->getObiettivo();
+                            }
+                            public function __call($name, $arguments) {
+                                return call_user_func_array([$this->scheda, $name], $arguments);
+                            }
+                        };
+                    }
+                }
+
+                public function getScheda() {
+                    return $this->schedaWrapped;
+                }
+
+                public function __call($name, $arguments) {
+                    return call_user_func_array([$this->cliente, $name], $arguments);
+                }
+            };
+        }
+
         foreach ($dati as $key => $value) {
             $this->smarty->assign($key, $value);
         }

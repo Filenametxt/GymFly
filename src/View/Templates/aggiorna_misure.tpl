@@ -23,14 +23,14 @@
                     logo
                 </div>
                 <strong class="is-size-4 style-theme-text mr-2" style="letter-spacing: 1px;">PARAMETRI</strong>
-                <a href="inserisci-misure" class="button is-outlined is-link is-small" title="Modifica parametri">
+                <a href="inserisci-misure{if !$isSelf}?id={$utente->getId()}{/if}" class="button is-outlined is-link is-small" title="Modifica parametri">
                     <span class="icon"><i class="fas fa-pencil-alt"></i></span>
                 </a>
             </div>
 
             <!-- BACK BUTTON -->
             <div class="mb-4">
-                <a href="profilo" class="button is-ghost has-text-grey pl-0">
+                <a href="profilo{if !$isSelf}?id={$utente->getId()}{/if}" class="button is-ghost has-text-grey pl-0">
                     <span class="icon"><i class="fas fa-arrow-left"></i></span>
                     <span>Torna al Profilo</span>
                 </a>
@@ -39,7 +39,7 @@
             <!-- HEADER (DESKTOP) -->
             <div class="is-flex is-align-items-center mb-5 is-hidden-mobile">
                 <h1 class="title is-3 style-theme-text mb-0 mr-3" style="letter-spacing: 1px;">PARAMETRI</h1>
-                <a href="inserisci-misure" class="button is-outlined is-link" title="Modifica parametri">
+                <a href="inserisci-misure{if !$isSelf}?id={$utente->getId()}{/if}" class="button is-outlined is-link" title="Modifica parametri">
                     <span class="icon"><i class="fas fa-pencil-alt"></i></span>
                 </a>
             </div>
@@ -59,7 +59,7 @@
                     <div class="box p-5 mb-5" style="height: calc(100% - 2.5rem);">
                         <div class="is-flex is-align-items-center is-justify-content-between pb-3 mb-3" style="border-bottom: 2px solid var(--gymfly-primary);">
                             <h3 class="title is-5 style-theme-text mb-0">PARAMETRI BIOMETRICI</h3>
-                            <a href="visualizza-grafico?tipo=peso" class="has-text-grey">
+                            <a href="visualizza-grafico?tipo=peso{if !$isSelf}&id={$utente->getId()}{/if}" class="has-text-grey">
                                 <span class="icon"><i class="fas fa-chevron-right fa-lg"></i></span>
                             </a>
                         </div>
@@ -90,7 +90,7 @@
                             <div class="box p-5 mb-5" style="height: 100%;">
                                 <div class="is-flex is-align-items-center is-justify-content-between pb-3 mb-3" style="border-bottom: 2px solid var(--gymfly-primary);">
                                     <h3 class="title is-5 style-theme-text mb-0">PARTE SUPERIORE</h3>
-                                    <a href="visualizza-grafico?tipo=superiore" class="has-text-grey">
+                                    <a href="visualizza-grafico?tipo=superiore{if !$isSelf}&id={$utente->getId()}{/if}" class="has-text-grey">
                                         <span class="icon"><i class="fas fa-chevron-right fa-lg"></i></span>
                                     </a>
                                 </div>
@@ -130,7 +130,7 @@
                             <div class="box p-5 mb-5" style="height: 100%;">
                                 <div class="is-flex is-align-items-center is-justify-content-between pb-3 mb-3" style="border-bottom: 2px solid var(--gymfly-primary);">
                                     <h3 class="title is-5 style-theme-text mb-0">PARTE INFERIORE</h3>
-                                    <a href="visualizza-grafico?tipo=inferiore" class="has-text-grey">
+                                    <a href="visualizza-grafico?tipo=inferiore{if !$isSelf}&id={$utente->getId()}{/if}" class="has-text-grey">
                                         <span class="icon"><i class="fas fa-chevron-right fa-lg"></i></span>
                                     </a>
                                 </div>

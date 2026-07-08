@@ -226,14 +226,15 @@ class ProfiloController
     public function aggiornaMisureCorporee(): void 
     {
         $idUtente = $this->session->getLoggedUserId();
+        $ruolo = $this->session->getLoggedUserRole();
         if (!$idUtente) {
             $this->view->mostraErrore("Effettua il login.");
             return;
         }
 
-        $cliente = $this->clienteRepo->findById($idUtente);
+        $cliente = $this->recuperaClienteTarget($ruolo, $idUtente);
         if (!$cliente) {
-            $this->view->mostraErrore("Cliente non trovato.");
+            $this->view->mostraErrore("Cliente non trovato o accesso non consentito.");
             return;
         }
 
@@ -243,7 +244,8 @@ class ProfiloController
             'utente' => $cliente,
             'ultimaMisure' => $ultimaMisure,
             'storicoMisure' => $storicoMisure,
-            'storicoMisureCronologico' => array_reverse($storicoMisure)
+            'storicoMisureCronologico' => array_reverse($storicoMisure),
+            'isSelf' => ($ruolo === 'cliente')
         ]);
     }
 
@@ -253,14 +255,15 @@ class ProfiloController
     public function inserisciMisureCorporee(): void
     {
         $idUtente = $this->session->getLoggedUserId();
+        $ruolo = $this->session->getLoggedUserRole();
         if (!$idUtente) {
             $this->view->mostraErrore("Effettua il login.");
             return;
         }
 
-        $cliente = $this->clienteRepo->findById($idUtente);
+        $cliente = $this->recuperaClienteTarget($ruolo, $idUtente);
         if (!$cliente) {
-            $this->view->mostraErrore("Cliente non trovato.");
+            $this->view->mostraErrore("Cliente non trovato o accesso non consentito.");
             return;
         }
 
@@ -315,7 +318,7 @@ class ProfiloController
             );
 
             $this->parametriRepo->salvaMisure($nuoviParametri);
-            header('Location: aggiorna-misure');
+            header('Location: aggiorna-misure' . ($ruolo !== 'cliente' ? '?id=' . $cliente->getId() : ''));
             exit();
         } catch (\InvalidArgumentException $e) {
             $this->view->mostraErrore("Dati non validi: " . $e->getMessage());
@@ -328,14 +331,15 @@ class ProfiloController
     public function caricaCertificato(): void 
     {
         $idUtente = $this->session->getLoggedUserId();
+        $ruolo = $this->session->getLoggedUserRole();
         if (!$idUtente) {
             $this->view->mostraErrore("Utente non autenticato.");
             return;
         }
 
-        $cliente = $this->clienteRepo->findById($idUtente);
+        $cliente = $this->recuperaClienteTarget($ruolo, $idUtente);
         if (!$cliente) {
-            $this->view->mostraErrore("Cliente non trovato.");
+            $this->view->mostraErrore("Cliente non trovato o accesso non consentito.");
             return;
         }
 
@@ -448,14 +452,15 @@ class ProfiloController
     public function visualizzaGrafico(): void
     {
         $idUtente = $this->session->getLoggedUserId();
+        $ruolo = $this->session->getLoggedUserRole();
         if (!$idUtente) {
             $this->view->mostraErrore("Effettua il login.");
             return;
         }
 
-        $cliente = $this->clienteRepo->findById($idUtente);
+        $cliente = $this->recuperaClienteTarget($ruolo, $idUtente);
         if (!$cliente) {
-            $this->view->mostraErrore("Cliente non trovato.");
+            $this->view->mostraErrore("Cliente non trovato o accesso non consentito.");
             return;
         }
 
@@ -521,5 +526,43 @@ class ProfiloController
             'titolo' => $titolo,
             'punti' => $punti
         ]);
+    }
+
+    /**
+     * Recupera l'utente Cliente target della richiesta, verificando i permessi di sicurezza (Anti-IDOR)
+     */
+    private function recuperaClienteTarget(string $ruolo, ?int $idUtente): ?\App\Entity\Cliente
+    {
+        $targetId = $idUtente;
+        if ($ruolo === 'amministratore' || $ruolo === 'allenatore') {
+            $targetId = isset($_GET['id']) ? (int)$_GET['id'] : (isset($_POST['id']) ? (int)$_POST['id'] : null);
+            if (!$targetId) {
+                return null;
+            }
+        }
+
+        $cliente = $this->clienteRepo->findById($targetId);
+        if (!$cliente) {
+            return null;
+        }
+
+        // Controllo multitenant
+        if ($ruolo === 'amministratore' || $ruolo === 'allenatore') {
+            $entityManager = EntityManagerFactory::create();
+            $palestraUtente = null;
+            if ($ruolo === 'amministratore') {
+                $adminObj = $entityManager->find(Amministratore::class, $idUtente);
+                $palestraUtente = $entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $adminObj]);
+            } else {
+                $allenatoreObj = $entityManager->find(Allenatore::class, $idUtente);
+                $palestraUtente = $allenatoreObj ? $allenatoreObj->getPalestra() : null;
+            }
+
+            if (!$palestraUtente || !$cliente->getPalestra() || $cliente->getPalestra()->getId() !== $palestraUtente->getId()) {
+                return null;
+            }
+        }
+
+        return $cliente;
     }
 }

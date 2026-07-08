@@ -16,7 +16,7 @@
                 <div class="column is-six-fifths-tablet is-half-desktop">
                     
                     <div class="mb-5">
-                        <a href="profilo" class="button is-ghost has-text-grey">
+                        <a href="profilo{if $smarty.session.ruolo_utente !== 'cliente'}?id={$utente->getId()}{/if}" class="button is-ghost has-text-grey">
                             <span class="icon"><i class="fas fa-arrow-left"></i></span>
                             <span>Torna al Profilo</span>
                         </a>
@@ -31,7 +31,7 @@
                             <p class="subtitle is-6 has-text-grey mt-1">Carica il tuo certificato in formato PDF per mantenere attiva l'iscrizione</p>
                         </div>
 
-                        <form action="carica-certificato" method="POST" enctype="multipart/form-data">
+                        <form action="carica-certificato{if $smarty.session.ruolo_utente !== 'cliente'}?id={$utente->getId()}{/if}" method="POST" enctype="multipart/form-data">
                             
                             <div class="field">
                                 <label class="label">Medico Certificante</label>

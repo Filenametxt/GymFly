@@ -55,7 +55,7 @@
                     <a href="dashboard-cliente" class="navbar-item">
                         <span class="icon mr-2"><i class="fas fa-home"></i></span> Home Dashboard
                     </a>
-                    <a href="profilo" class="navbar-item">
+                    <a href="profilo{if $smarty.session.ruolo_utente !== 'cliente'}?id={$utente->getId()}{/if}" class="navbar-item">
                         <span class="icon mr-2"><i class="fas fa-user-edit"></i></span> Il mio Profilo
                     </a>
                     <a href="messaggi" class="navbar-item">
@@ -78,7 +78,7 @@
         <div class="container custom-mobile-container">
             
             <div class="mb-4">
-                <a href="aggiorna-misure" class="button is-ghost has-text-grey pl-0">
+                <a href="aggiorna-misure{if $smarty.session.ruolo_utente !== 'cliente'}?id={$utente->getId()}{/if}" class="button is-ghost has-text-grey pl-0">
                     <span class="icon"><i class="fas fa-arrow-left"></i></span>
                     <span>Annulla</span>
                 </a>
@@ -93,7 +93,7 @@
                     <p class="subtitle is-6 has-text-grey mt-1">Registra i parametri fisici correnti per tenere traccia dei tuoi progressi</p>
                 </div>
 
-                <form action="inserisci-misure" method="POST">
+                <form action="inserisci-misure{if $smarty.session.ruolo_utente !== 'cliente'}?id={$utente->getId()}{/if}" method="POST">
                     
                     <!-- Parametri Generali -->
                     <h3 class="is-size-5 form-section-title">Parametri Generali</h3>

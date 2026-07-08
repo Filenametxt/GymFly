@@ -99,6 +99,28 @@ class AbbonamentiController
                 $this->view->mostraConferma("Abbonamento del cliente registrato con successo!", "visualizza-profilo?id=" . $cliente->getId());
                 return;
 
+            } elseif ($azione === 'crea_tipologia') {
+                $tipologia = $_POST['nuova_tipologia'] ?? '';
+                $categoria = $_POST['nuova_categoria'] ?? '';
+                $durata = $_POST['nuova_durata'] ?? '';
+
+                if (empty($tipologia) || empty($categoria) || empty($durata)) {
+                    $this->view->mostraErrore("Tutti i campi per la nuova tipologia sono obbligatori.");
+                    return;
+                }
+
+                try {
+                    $nuovoPlan = new \App\Entity\AbbonamentoDurata($tipologia, $categoria, (int)$durata);
+                    $this->entityManager->persist($nuovoPlan);
+                    $this->entityManager->flush();
+
+                    header('Location: gestione-abbonamento?id=' . $cliente->getId());
+                    exit();
+                } catch (\Exception $e) {
+                    $this->view->mostraErrore("Errore nella creazione della tipologia: " . $e->getMessage());
+                    return;
+                }
+
             } elseif ($azione === 'iscrizione') {
                 $dataInizioStr = $_POST['data_inizio_iscrizione'] ?? '';
 

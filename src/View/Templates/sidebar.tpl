@@ -84,6 +84,22 @@
                 <i class="fas fa-user-ninja"></i>
                 <span>Supervisione Allenatori</span>
             </a>
+            <a href="report" class="sidebar-menu-link">
+                <i class="fas fa-chart-pie"></i>
+                <span>Report & Analisi</span>
+            </a>
+        {/if}
+
+        <!-- Voci destinate solo al Cliente -->
+        {if isset($smarty.session.ruolo_utente) && $smarty.session.ruolo_utente === 'cliente'}
+            <a href="visualizza-scheda" class="sidebar-menu-link">
+                <i class="fas fa-dumbbell"></i>
+                <span>La mia Scheda</span>
+            </a>
+            <a href="richiedi-scheda" class="sidebar-menu-link">
+                <i class="fas fa-paper-plane"></i>
+                <span>Richiedi Scheda</span>
+            </a>
         {/if}
 
     </div>
@@ -96,3 +112,15 @@
         </a>
     </div>
 </aside>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Risolve il link "Vedi Esercizi" con href="#" per evitare di modificare dashboard_cliente.tpl
+    const btns = document.querySelectorAll('a.button');
+    btns.forEach(btn => {
+        if (btn.textContent.includes('Vedi Esercizi')) {
+            btn.setAttribute('href', 'visualizza-scheda');
+        }
+    });
+});
+</script>

@@ -24,7 +24,7 @@
             <!-- CONTROLS / TOOLBAR -->
             <div class="is-flex is-justify-content-between is-align-items-center mb-5 is-flex-wrap-wrap" style="gap: 15px;">
                 <div class="buttons mb-0">
-                    <a href="registrazione" class="button is-gymfly mr-2">
+                    <a href="crea-cliente" class="button is-gymfly mr-2">
                         <span>+ Nuovo</span>
                     </a>
                     <button class="button is-light mr-1" onclick="alert('Funzione di filtro in fase di sviluppo.'); return false;">
