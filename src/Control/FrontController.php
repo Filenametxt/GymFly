@@ -23,8 +23,9 @@ use App\View\AttivitaPianificataViewSmarty;
 use App\Foundation\Persistence\Repository\DoctrineSalaRepository;
 use App\Foundation\Persistence\Repository\DoctrineAttivitaRepository;
 use App\View\ReportViewSmarty;
-
-
+use App\Control\SchedaAllenamentoController;
+use App\Foundation\Persistence\Repository\DoctrineSchedaRepository;
+use App\View\SchedaAllenamentoViewSmarty;
 
 class FrontController
 {
@@ -32,30 +33,36 @@ class FrontController
 
     public function __construct()
     {
-        // Mappa delle rotte: rotta => [ControllerClass, MethodName]
         $this->routes = [
-            '/' => [VisualizzazioneController::class, 'mostraHome'],
+            '/' => [VisualizzazioneController::class, 'home'],
+            '/home' => [VisualizzazioneController::class, 'home'],
+            '/contatti' => [VisualizzazioneController::class, 'contatti'],
+            '/chisiamo' => [VisualizzazioneController::class, 'chisiamo'],
+            
             '/login' => [AutenticazioneController::class, 'login'],
             '/logout' => [AutenticazioneController::class, 'logout'],
-            '/registrazione' => [AutenticazioneController::class, 'registraAmministratore'],
-            '/dashboard-admin' => [VisualizzazioneController::class, 'mostraDashboardAdmin'],
-            '/dashboard-allenatore' => [VisualizzazioneController::class, 'mostraDashboardAllenatore'],
-            '/dashboard-cliente' => [VisualizzazioneController::class, 'mostraDashboardCliente'],
+            '/registrazione' => [AutenticazioneController::class, 'registrazione'],
+            
             '/profilo' => [ProfiloController::class, 'visualizzaProfilo'],
             '/visualizza-profilo' => [ProfiloController::class, 'visualizzaProfilo'],
             '/modifica-anagrafica' => [ProfiloController::class, 'modificaAnagrafica'],
-            '/carica-foto' => [ProfiloController::class, 'caricaFotoProfilo'],
-            '/aggiorna-misure' => [ProfiloController::class, 'aggiornaMisureCorporee'],
-            '/inserisci-misure' => [ProfiloController::class, 'inserisciMisureCorporee'],
-            '/visualizza-grafico' => [ProfiloController::class, 'visualizzaGrafico'],
-            '/carica-certificato' => [ProfiloController::class, 'caricaCertificato'],
-            '/errore' => [VisualizzazioneController::class, 'mostraErrore'],
+            '/aggiorna-misure' => [ProfiloController::class, 'modificaParametriBiometrici'],
+            '/inserisci-misure' => [ProfiloController::class, 'inserisciParametriBiometrici'],
+            '/carica-certificato' => [ProfiloController::class, 'caricaCertificatoMedico'],
+            '/cambia-password' => [ProfiloController::class, 'cambiaPassword'],
+            '/visualizza-grafico' => [ProfiloController::class, 'visualizzaGraficoPeso'],
+            
+            '/dashboard-admin' => [VisualizzazioneController::class, 'mostraDashboardAdmin'],
+            '/dashboard-allenatore' => [VisualizzazioneController::class, 'mostraDashboardAllenatore'],
+            '/dashboard-cliente' => [VisualizzazioneController::class, 'mostraDashboardCliente'],
+            
+            '/messaggi' => [MessaggiController::class, 'gestisciMessaggi'],
+            
             '/clienti' => [VisualizzazioneUtentiController::class, 'visualizzaClienti'],
             '/allenatori' => [VisualizzazioneUtentiController::class, 'visualizzaAllenatori'],
-            '/gestione-abbonamento' => [AbbonamentiController::class, 'gestisciAbbonamento'],
-            '/cambia-password' => [ProfiloController::class, 'cambiaPassword'],
-            '/messaggi' => [MessaggiController::class, 'mostraMessaggi'],
-            '/invia-messaggio' => [MessaggiController::class, 'inviaMessaggio'],
+            '/abbonamento' => [AbbonamentiController::class, 'visualizzaAbbonamenti'],
+            '/gestione-abbonamento' => [AbbonamentiController::class, 'gestioneAbbonamento'],
+            
             '/crea-cliente' => [AmministratoreController::class, 'creaCliente'],
             '/crea-allenatore' => [AmministratoreController::class, 'creaAllenatore'],
             '/crea-attivita' => [AmministratoreController::class, 'creaAttivita'],
@@ -63,11 +70,13 @@ class FrontController
             '/rimuovi-cliente' => [AmministratoreController::class, 'rimuoviCliente'],
             '/rimuovi-allenatore' => [AmministratoreController::class, 'rimuoviAllenatore'],
             '/rimuovi-attivita' => [AmministratoreController::class, 'rimuoviAttivita'],
+            
             '/crea-esercizio' => [EserciziController::class, 'apriFormCreazioneEsercizio'],
             '/valida-esercizio' => [EserciziController::class, 'compilaDatiEsercizio'],
             '/salva-esercizio' => [EserciziController::class, 'salvaEsercizio'],
             '/copia-esercizio' => [EserciziController::class, 'copiaEsercizio'],
             '/elimina-bozza' => [EserciziController::class, 'eliminaBozzaEsercizio'],
+            
             '/calendario' => [AttivitaPianificataController::class, 'visualizzaCalendario'],
             '/prenota-attivita' => [AttivitaPianificataController::class, 'prenotaAttivita'],
             '/disdici-prenotazione' => [AttivitaPianificataController::class, 'disdiciPrenotazione'],
@@ -76,6 +85,16 @@ class FrontController
             '/rimuovi-attivita-pianificata' => [AttivitaPianificataController::class, 'rimuoviAttivitaPianificata'],
             '/disdici-sessione-privata' => [AttivitaPianificataController::class, 'disdiciSessionePrivata'],
             '/report' => [ReportController::class, 'visualizzaReport'],
+            '/richiedi-scheda' => [SchedaAllenamentoController::class, 'apriFormRichiestaScheda'],
+            '/crea-scheda' => [SchedaAllenamentoController::class, 'apriFormCreazioneScheda'],
+            '/modifica-scheda' => [SchedaAllenamentoController::class, 'apriFormModificaScheda'],
+            '/salva-scheda' => [SchedaAllenamentoController::class, 'salvaScheda'],
+            '/invia-scheda' => [SchedaAllenamentoController::class, 'inviaScheda'],
+            '/elimina-scheda' => [SchedaAllenamentoController::class, 'eliminaScheda'],
+            '/rimuovi-scheda' => [SchedaAllenamentoController::class, 'eliminaScheda'],
+            '/visualizza-scheda' => [SchedaAllenamentoController::class, 'visualizzaScheda'],
+            '/esporta-scheda' => [SchedaAllenamentoController::class, 'esportaSchedaPDF'],
+            '/modifica-dettagli' => [SchedaAllenamentoController::class, 'apriFormModificaSchedaCliente'],
         ];
     }
 
@@ -92,22 +111,24 @@ class FrontController
             return;
         }
 
-        [$controllerClass, $method] = $this->routes[$route];
+        list($controllerClass, $method) = $this->routes[$route];
 
-        // Bootstrap dei componenti dell'applicazione
-        $entityManager = EntityManagerFactory::create();
+        // Avvia la sessione
         $session = new Session();
+
+        // Istanzia l'EntityManager
+        $entityManager = EntityManagerFactory::create();
+
+        // Inizializza la View di Default per messaggi di autenticazione/errore generici
         $authView = new AutenticazioneViewSmarty();
 
-        // Inizializza il controller richiesto in base alle dipendenze
-        $controller = null;
+        // Risoluzione delle dipendenze dei Controller tramite Switch basato sulla classe
         switch ($controllerClass) {
             case ProfiloController::class:
                 $clienteRepo = new DoctrineClienteRepository($entityManager);
                 $parametriRepo = new DoctrineParametriRepository($entityManager);
                 $certificatoRepo = new DoctrineCertificatoMedicoRepository($entityManager);
                 $profiloView = new ProfiloViewSmarty();
-
                 $controller = new ProfiloController(
                     $clienteRepo,
                     $parametriRepo,
@@ -120,44 +141,56 @@ class FrontController
             case VisualizzazioneUtentiController::class:
                 $clienteRepo = new DoctrineClienteRepository($entityManager);
                 $allenatoreRepo = new DoctrineAllenatoreRepository($entityManager);
-                $visualizzazioneUtentiView = new VisualizzazioneUtentiViewSmarty();
-
+                $utentiView = new VisualizzazioneUtentiViewSmarty();
                 $controller = new VisualizzazioneUtentiController(
                     $entityManager,
                     $clienteRepo,
                     $allenatoreRepo,
-                    $visualizzazioneUtentiView,
+                    $utentiView,
+                    $session
+                );
+                break;
+
+            case AbbonamentiController::class:
+                $abbonamentoView = new AbbonamentiViewSmarty();
+                $controller = new AbbonamentiController(
+                    $entityManager,
+                    $abbonamentoView,
                     $session
                 );
                 break;
 
             case VisualizzazioneController::class:
                 $visualizzazioneView = new VisualizzazioneViewSmarty();
-                $controller = new VisualizzazioneController($entityManager, $visualizzazioneView, $session);
-                break;
-
-            case AbbonamentiController::class:
-                $abbonamentiView = new AbbonamentiViewSmarty();
-                $controller = new AbbonamentiController($entityManager, $abbonamentiView, $session);
+                $controller = new VisualizzazioneController(
+                    $entityManager,
+                    $visualizzazioneView,
+                    $session
+                );
                 break;
 
             case MessaggiController::class:
                 $messaggioRepo = new DoctrineMessaggioRepository($entityManager);
                 $messaggiView = new MessaggiViewSmarty();
-                $controller = new MessaggiController($entityManager, $messaggioRepo, $messaggiView, $session);
+                $controller = new MessaggiController(
+                    $entityManager,
+                    $messaggioRepo,
+                    $messaggiView,
+                    $session
+                );
                 break;
 
             case AmministratoreController::class:
                 $clienteRepo = new DoctrineClienteRepository($entityManager);
                 $allenatoreRepo = new DoctrineAllenatoreRepository($entityManager);
                 $attivitaRepo = new DoctrineAttivitaRepository($entityManager);
-                $amministratoreView = new AmministratoreViewSmarty();
+                $adminView = new AmministratoreViewSmarty();
                 $controller = new AmministratoreController(
                     $entityManager,
                     $clienteRepo,
                     $allenatoreRepo,
                     $attivitaRepo,
-                    $amministratoreView,
+                    $adminView,
                     $session
                 );
                 break;
@@ -199,6 +232,17 @@ class FrontController
                 $controller = new ReportController($reportView, $session);
                 break;
 
+            case SchedaAllenamentoController::class:
+                $schedaRepo = new DoctrineSchedaRepository($entityManager);
+                $schedaView = new SchedaAllenamentoViewSmarty();
+                $controller = new SchedaAllenamentoController(
+                    $entityManager,
+                    $schedaRepo,
+                    $schedaView,
+                    $session
+                );
+                break;
+
             default:
                 $controller = new $controllerClass($entityManager, $authView, $session);
                 break;
@@ -213,29 +257,31 @@ class FrontController
      */
     private function resolveRoute(): string
     {
-        // 1. Prova con PATH_INFO (es: index.php/login -> /login)
         if (!empty($_SERVER['PATH_INFO'])) {
-            return '/' . trim($_SERVER['PATH_INFO'], '/');
+            return $_SERVER['PATH_INFO'];
         }
-
-        // 2. Prova con REQUEST_URI (es: /public/login -> /login)
+        
         $requestUri = $_SERVER['REQUEST_URI'];
-        $requestPath = parse_url($requestUri, PHP_URL_PATH);
-
-        $scriptName = $_SERVER['SCRIPT_NAME']; // es: /GymFly/public/index.php
-        $basePath = dirname($scriptName); // es: /GymFly/public
-
-        if (strpos($requestPath, $basePath) === 0) {
-            $requestPath = substr($requestPath, strlen($basePath));
+        $scriptName = $_SERVER['SCRIPT_NAME'];
+        
+        if (strpos($requestUri, $scriptName) === 0) {
+            $route = substr($requestUri, strlen($scriptName));
+        } else {
+            $baseDir = dirname($scriptName);
+            $baseDir = str_replace('\\', '/', $baseDir);
+            if ($baseDir === '/') {
+                $route = $requestUri;
+            } else {
+                $route = substr($requestUri, strlen($baseDir));
+            }
         }
-
-        // Rimuove l'eventuale index.php residuo
-        if (strpos($requestPath, '/index.php') === 0) {
-            $requestPath = substr($requestPath, 10);
-        } elseif ($requestPath === 'index.php') {
-            $requestPath = '';
+        
+        $pos = strpos($route, '?');
+        if ($pos !== false) {
+            $route = substr($route, 0, $pos);
         }
-
-        return '/' . trim($requestPath, '/');
+        
+        $route = '/' . ltrim($route, '/');
+        return $route;
     }
 }
