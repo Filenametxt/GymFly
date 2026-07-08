@@ -14,11 +14,14 @@ use App\View\AbbonamentiViewSmarty;
 use App\View\VisualizzazioneViewSmarty;
 use App\View\MessaggiViewSmarty;
 use App\Foundation\Persistence\Repository\DoctrineMessaggioRepository;
-use App\Foundation\Persistence\Repository\DoctrineAttivitaRepository;
 use App\View\AmministratoreViewSmarty;
 use App\Foundation\Persistence\Repository\DoctrineEsercizioRepository;
 use App\View\EserciziViewSmarty;
-
+use App\Foundation\Persistence\Repository\DoctrineAttivitaPianificataRepository;
+use App\Foundation\Persistence\Repository\DoctrineSessionePrivataRepository;
+use App\View\AttivitaPianificataViewSmarty;
+use App\Foundation\Persistence\Repository\DoctrineSalaRepository;
+use App\Foundation\Persistence\Repository\DoctrineAttivitaRepository;
 
 
 class FrontController
@@ -63,6 +66,13 @@ class FrontController
             '/salva-esercizio' => [EserciziController::class, 'salvaEsercizio'],
             '/copia-esercizio' => [EserciziController::class, 'copiaEsercizio'],
             '/elimina-bozza' => [EserciziController::class, 'eliminaBozzaEsercizio'],
+            '/calendario' => [AttivitaPianificataController::class, 'visualizzaCalendario'],
+            '/prenota-attivita' => [AttivitaPianificataController::class, 'prenotaAttivita'],
+            '/disdici-prenotazione' => [AttivitaPianificataController::class, 'disdiciPrenotazione'],
+            '/prenota-sessione-privata' => [AttivitaPianificataController::class, 'prenotaSessionePrivata'],
+            '/crea-attivita-pianificata' => [AttivitaPianificataController::class, 'creaAttivitaPianificata'],
+            '/rimuovi-attivita-pianificata' => [AttivitaPianificataController::class, 'rimuoviAttivitaPianificata'],
+            '/disdici-sessione-privata' => [AttivitaPianificataController::class, 'disdiciSessionePrivata'],
         ];
     }
 
@@ -156,6 +166,27 @@ class FrontController
                     $entityManager,
                     $esercizioRepo,
                     $eserciziView,
+                    $session
+                );
+                break;
+
+            case AttivitaPianificataController::class:
+                $attivitaPianificataRepo = new DoctrineAttivitaPianificataRepository($entityManager);
+                $clienteRepo = new DoctrineClienteRepository($entityManager);
+                $sessionePrivataRepo = new DoctrineSessionePrivataRepository($entityManager);
+                $salaRepo = new DoctrineSalaRepository($entityManager);
+                $attivitaRepo = new DoctrineAttivitaRepository($entityManager);
+                $allenatoreRepo = new DoctrineAllenatoreRepository($entityManager);
+                $attivitaPianificataView = new AttivitaPianificataViewSmarty();
+                $controller = new AttivitaPianificataController(
+                    $entityManager,
+                    $attivitaPianificataRepo,
+                    $clienteRepo,
+                    $sessionePrivataRepo,
+                    $salaRepo,
+                    $attivitaRepo,
+                    $allenatoreRepo,
+                    $attivitaPianificataView,
                     $session
                 );
                 break;
