@@ -184,6 +184,33 @@
             </div>
             {/if}
 
+            <!-- INFO SCHEDA ALLENAMENTO (Visibile a Coach e Admin) -->
+            {if $smarty.session.ruolo_utente === 'allenatore' || $smarty.session.ruolo_utente === 'amministratore'}
+            <div class="box p-4 mb-4">
+                <h3 class="title is-5 style-theme-text mb-3">
+                    <i class="fas fa-dumbbell mr-2"></i>Scheda Allenamento
+                </h3>
+                {if $utente->getScheda()}
+                    <p class="is-size-6 mb-1">Nome Scheda: <strong>{$utente->getScheda()->getNome_scheda()}</strong></p>
+                    <p class="is-size-6 mb-3">Obiettivo: <strong>{$utente->getScheda()->getObiettivo()}</strong></p>
+                    <div class="buttons">
+                        <a href="modifica-scheda?id={$utente->getScheda()->getId()}" class="button is-small is-gymfly is-fullwidth mb-2">
+                            <span class="icon"><i class="fas fa-edit"></i></span>
+                            <span>Gestisci / Modifica Scheda</span>
+                        </a>
+                    </div>
+                {else}
+                    <p class="is-size-6 mb-3 has-text-grey">Nessuna scheda attiva per questo utente.</p>
+                    <div class="buttons">
+                        <a href="crea-scheda?cf={$utente->getCF()}" class="button is-small is-success is-fullwidth">
+                            <span class="icon"><i class="fas fa-plus"></i></span>
+                            <span>Crea Nuova Scheda</span>
+                        </a>
+                    </div>
+                {/if}
+            </div>
+            {/if}
+
             <!-- AZIONI / SHORTCUTS -->
             <div class="block mt-4">
                 
