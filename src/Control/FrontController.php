@@ -22,6 +22,8 @@ use App\Foundation\Persistence\Repository\DoctrineSessionePrivataRepository;
 use App\View\AttivitaPianificataViewSmarty;
 use App\Foundation\Persistence\Repository\DoctrineSalaRepository;
 use App\Foundation\Persistence\Repository\DoctrineAttivitaRepository;
+use App\View\ReportViewSmarty;
+
 
 
 class FrontController
@@ -73,6 +75,7 @@ class FrontController
             '/crea-attivita-pianificata' => [AttivitaPianificataController::class, 'creaAttivitaPianificata'],
             '/rimuovi-attivita-pianificata' => [AttivitaPianificataController::class, 'rimuoviAttivitaPianificata'],
             '/disdici-sessione-privata' => [AttivitaPianificataController::class, 'disdiciSessionePrivata'],
+            '/report' => [ReportController::class, 'visualizzaReport'],
         ];
     }
 
@@ -189,6 +192,11 @@ class FrontController
                     $attivitaPianificataView,
                     $session
                 );
+                break;
+
+            case ReportController::class:
+                $reportView = new ReportViewSmarty();
+                $controller = new ReportController($reportView, $session);
                 break;
 
             default:

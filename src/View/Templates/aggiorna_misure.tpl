@@ -63,7 +63,7 @@
                 <!-- Titolo con Collegamento alla Nuova Pagina di Inserimento -->
                 <div class="navbar-item py-0 is-flex is-align-items-center">
                     <strong class="is-size-4 style-theme-text mr-2" style="letter-spacing: 1px;">PARAMETRI</strong>
-                    <a href="inserisci-misure" class="has-text-link">
+                    <a href="inserisci-misure{if !$isSelf}?id={$utente->getId()}{/if}" class="has-text-link">
                         <span class="icon"><i class="fas fa-pen fa-sm"></i></span>
                     </a>
                 </div>
@@ -79,7 +79,7 @@
                     <a href="dashboard-cliente" class="navbar-item">
                         <span class="icon mr-2"><i class="fas fa-home"></i></span> Home Dashboard
                     </a>
-                    <a href="profilo" class="navbar-item">
+                    <a href="profilo{if !$isSelf}?id={$utente->getId()}{/if}" class="navbar-item">
                         <span class="icon mr-2"><i class="fas fa-user-edit"></i></span> Il mio Profilo
                     </a>
                     <a href="messaggi" class="navbar-item">
@@ -102,7 +102,7 @@
         <div class="container custom-mobile-container">
             
             <div class="mb-4">
-                <a href="profilo" class="button is-ghost has-text-grey pl-0">
+                <a href="profilo{if !$isSelf}?id={$utente->getId()}{/if}" class="button is-ghost has-text-grey pl-0">
                     <span class="icon"><i class="fas fa-arrow-left"></i></span>
                     <span>Torna al Profilo</span>
                 </a>
@@ -112,7 +112,7 @@
             <div>
                 <div class="parameter-section-header">
                     <h3 class="title is-5 style-theme-text mb-0">PARAMETRI BIOMETRICI</h3>
-                    <a href="visualizza-grafico?tipo=peso" class="has-text-grey">
+                    <a href="visualizza-grafico?tipo=peso{if !$isSelf}&id={$utente->getId()}{/if}" class="has-text-grey">
                         <span class="icon"><i class="fas fa-chevron-right fa-lg"></i></span>
                     </a>
                 </div>
@@ -130,7 +130,7 @@
             <div class="mt-5">
                 <div class="parameter-section-header">
                     <h3 class="title is-5 style-theme-text mb-0">PARTE SUPERIORE</h3>
-                    <a href="visualizza-grafico?tipo=superiore" class="has-text-grey">
+                    <a href="visualizza-grafico?tipo=superiore{if !$isSelf}&id={$utente->getId()}{/if}" class="has-text-grey">
                         <span class="icon"><i class="fas fa-chevron-right fa-lg"></i></span>
                     </a>
                 </div>
@@ -168,7 +168,7 @@
             <div class="mt-5">
                 <div class="parameter-section-header">
                     <h3 class="title is-5 style-theme-text mb-0">PARTE INFERIORE</h3>
-                    <a href="visualizza-grafico?tipo=inferiore" class="has-text-grey">
+                    <a href="visualizza-grafico?tipo=inferiore{if !$isSelf}&id={$utente->getId()}{/if}" class="has-text-grey">
                         <span class="icon"><i class="fas fa-chevron-right fa-lg"></i></span>
                     </a>
                 </div>

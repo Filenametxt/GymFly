@@ -133,7 +133,7 @@
                         <div class="columns is-mobile" style="margin-top: -0.5rem;">
                             <!-- Nuovo Utente -->
                             <div class="column is-4 has-text-centered py-2">
-                                <a href="registrazione" class="button is-light is-medium is-flex is-flex-direction-column is-justify-content-center" style="height: 90px; width: 100%; border-radius: 12px; border: 1px solid var(--gymfly-accent);">
+                                <a href="crea-cliente" class="button is-light is-medium is-flex is-flex-direction-column is-justify-content-center" style="height: 90px; width: 100%; border-radius: 12px; border: 1px solid var(--gymfly-accent);">
                                     <span class="icon is-medium mb-1"><i class="fas fa-user-plus fa-lg" style="color: var(--gymfly-text);"></i></span>
                                     <span class="is-size-7 font-weight-bold" style="color: var(--gymfly-text); white-space: normal; line-height: 1.1;">Nuovo Utente</span>
                                 </a>

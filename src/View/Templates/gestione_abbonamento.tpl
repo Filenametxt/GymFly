@@ -82,11 +82,12 @@
                                 <label class="label">Seleziona Piano Abbonamento</label>
                                 <div class="control">
                                     <div class="select is-fullwidth">
-                                        <select name="abbonamento_id" required>
+                                        <select name="abbonamento_id" required onchange="if(this.value === 'nuovo_piano') { document.getElementById('sezione-nuovo-piano').classList.remove('is-hidden'); this.value = ''; } else { document.getElementById('sezione-nuovo-piano').classList.add('is-hidden'); }">
                                             <option value="" disabled selected>Scegli una tipologia...</option>
                                             {foreach $abbonamentiDisponibili as $plan}
-                                                <option value="{$plan->getId()}">{$plan->getTipologia()} - {$plan->getCategoria()}</option>
+                                                <option value="{$plan->getId()}">{$plan->getTipologia()} - {$plan->getCategoria()} ({$plan->getDurata()} gg)</option>
                                             {/foreach}
+                                            <option value="nuovo_piano">+ Aggiungi Nuova Tipologia...</option>
                                         </select>
                                     </div>
                                 </div>
@@ -109,6 +110,38 @@
                                 </div>
                             </div>
                         </form>
+
+                        <div id="sezione-nuovo-piano" class="box is-hidden mt-4 p-4" style="background-color: rgba(175, 175, 226, 0.05); border: 2px dashed var(--gymfly-primary); border-radius: 12px;">
+                            <h3 class="title is-5 mb-3 style-theme-text"><i class="fas fa-plus mr-2"></i> Nuova Tipologia Abbonamento</h3>
+                            <form action="gestione-abbonamento?id={$cliente->getId()}" method="POST">
+                                <input type="hidden" name="azione" value="crea_tipologia">
+                                <div class="field">
+                                    <label class="label">Nome Tipologia (es. Open, Corsi)</label>
+                                    <div class="control">
+                                        <input class="input" type="text" name="nuova_tipologia" required placeholder="es: Open">
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <label class="label">Categoria (es. Mensile, Trimestrale)</label>
+                                    <div class="control">
+                                        <input class="input" type="text" name="nuova_categoria" required placeholder="es: Mensile">
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <label class="label">Durata in Giorni</label>
+                                    <div class="control">
+                                        <input class="input" type="number" name="nuova_durata" required placeholder="es: 30">
+                                    </div>
+                                </div>
+                                <div class="field mt-4">
+                                    <div class="control">
+                                        <button type="submit" class="button is-gymfly is-fullwidth">
+                                            <i class="fas fa-save mr-2"></i> Salva Nuova Tipologia
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
 

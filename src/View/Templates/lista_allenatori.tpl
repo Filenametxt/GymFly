@@ -24,7 +24,7 @@
             <!-- CONTROLS / TOOLBAR -->
             <div class="is-flex is-justify-content-between is-align-items-center mb-5 is-flex-wrap-wrap" style="gap: 15px;">
                 <div class="buttons mb-0">
-                    <a href="#" class="button is-gymfly mr-2" onclick="alert('La registrazione dei singoli allenatori è in fase di implementazione.'); return false;">
+                    <a href="crea-allenatore" class="button is-gymfly mr-2">
                         <span>+ Nuovo</span>
                     </a>
                     <button class="button is-light mr-1" onclick="alert('Funzione di filtro in fase di sviluppo.'); return false;">

@@ -84,6 +84,10 @@
                 <i class="fas fa-user-ninja"></i>
                 <span>Supervisione Allenatori</span>
             </a>
+            <a href="report" class="sidebar-menu-link">
+                <i class="fas fa-chart-pie"></i>
+                <span>Report & Analisi</span>
+            </a>
         {/if}
 
     </div>

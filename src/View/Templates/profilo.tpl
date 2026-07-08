@@ -189,7 +189,7 @@
                 
                 {if $isClient}
                 <!-- Parametri -->
-                <a href="aggiorna-misure" class="navigation-box-card">
+                <a href="aggiorna-misure{if !$isSelf}?id={$utente->getId()}{/if}" class="navigation-box-card">
                     <span class="is-flex is-align-items-center">
                         <span class="icon mr-3 has-text-link"><i class="fas fa-chart-line fa-lg"></i></span>
                         <span class="has-text-weight-semibold is-size-5">parametri</span>
@@ -198,7 +198,7 @@
                 </a>
 
                 <!-- Certificato Medico -->
-                <a href="carica-certificato" class="navigation-box-card">
+                <a href="carica-certificato{if !$isSelf}?id={$utente->getId()}{/if}" class="navigation-box-card">
                     <span class="is-flex is-align-items-center">
                         {if $utente->isCertificatoValido()}
                             <span class="icon mr-3 has-text-success"><i class="fas fa-check-circle fa-lg"></i></span>

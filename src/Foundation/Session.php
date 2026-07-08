@@ -27,6 +27,14 @@ class Session {
         return isset($_SESSION['id_utente']);
     }
 
+    public function set(string $key, mixed $value): void {
+        $_SESSION[$key] = $value;
+    }
+
+    public function get(string $key): mixed {
+        return $_SESSION[$key] ?? null;
+    }
+
     public function logout(): void {
         session_unset();
         session_destroy();
