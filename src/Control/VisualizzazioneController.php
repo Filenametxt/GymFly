@@ -233,9 +233,13 @@ class VisualizzazioneController
         }
 
         $cliente = $this->entityManager->find(Cliente::class, $id);
+        
+        $parametriRepo = new \App\Foundation\Persistence\Repository\DoctrineParametriRepository($this->entityManager);
+        $ultimaMisure = $parametriRepo->findUltimaByCliente($cliente);
 
         $this->view->mostraDashboardCliente([
-            'utente' => $cliente
+            'utente' => $cliente,
+            'ultimaMisure' => $ultimaMisure
         ]);
     }
 
