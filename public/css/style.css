@@ -476,16 +476,44 @@ code {
     font-size: 1.1rem;
 }
 
+/* Sidebar mobile backdrop */
+.sidebar-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 998;
+    backdrop-filter: blur(4px);
+}
+.sidebar-backdrop.is-active {
+    display: block;
+}
+
 /* Gestione Responsive */
 @media screen and (max-width: 768px) {
-    /* Di default (non spuntato) su mobile la sidebar è nascosta */
+    .app-container {
+        flex-direction: column;
+    }
     .app-sidebar {
         position: fixed;
         top: 0;
         left: 0;
+        width: 260px;
+        min-width: 260px;
+        height: 100vh;
         z-index: 1020;
         box-shadow: 4px 0 15px rgba(0, 0, 0, 0.15);
         transform: translateX(-280px);
+        transition: transform 0.3s ease;
+        border-right: 2px solid var(--gymfly-primary) !important;
+        border-bottom: none !important;
+        background-color: var(--gymfly-card-bg) !important;
+        padding: 2rem 1.5rem;
+        display: flex;
+        flex-direction: column;
     }
     
     /* Pulsante hamburger in alto a sinistra su mobile */
