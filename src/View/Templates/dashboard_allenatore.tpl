@@ -66,9 +66,9 @@
                         <h3 class="title is-4 mb-4" style="color: #AFAFE2;"><i class="fas fa-tasks mr-2"></i> Logica Allenamento</h3>
                         
                         <div class="buttons">
-                            <button class="button is-gymfly is-fullwidth mb-3">
+                            <a href="crea-esercizio" class="button is-gymfly is-fullwidth mb-3">
                                 <i class="fas fa-plus-circle mr-2"></i> Crea Nuovo Esercizio
-                            </button>
+                            </a>
                             <button class="button is-link is-light is-fullwidth mb-3" style="border-radius: 12px;">
                                 <i class="fas fa-file-medical mr-2"></i> Crea Nuova Scheda
                             </button>
@@ -77,7 +77,12 @@
                         <h4 class="subtitle is-6 has-text-grey-dark">Esercizi Registrati</h4>
                         <div class="tags">
                             {foreach $esercizi as $esercizio}
-                                <span class="tag is-light">{$esercizio->getNome()}</span>
+                                <span class="tag is-light">
+                                    {$esercizio->getNomeEsercizio()}
+                                    <a href="copia-esercizio?id={$esercizio->getId()}" class="ml-2 has-text-link" title="Copia da esistente">
+                                        <i class="fas fa-copy"></i>
+                                    </a>
+                                </span>
                             {foreachelse}
                                 <span class="has-text-grey-light is-size-7">Nessun esercizio presente</span>
                             {/foreach}

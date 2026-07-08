@@ -16,6 +16,9 @@ use App\View\MessaggiViewSmarty;
 use App\Foundation\Persistence\Repository\DoctrineMessaggioRepository;
 use App\Foundation\Persistence\Repository\DoctrineAttivitaRepository;
 use App\View\AmministratoreViewSmarty;
+use App\Foundation\Persistence\Repository\DoctrineEsercizioRepository;
+use App\View\EserciziViewSmarty;
+
 
 
 class FrontController
@@ -55,6 +58,11 @@ class FrontController
             '/rimuovi-cliente' => [AmministratoreController::class, 'rimuoviCliente'],
             '/rimuovi-allenatore' => [AmministratoreController::class, 'rimuoviAllenatore'],
             '/rimuovi-attivita' => [AmministratoreController::class, 'rimuoviAttivita'],
+            '/crea-esercizio' => [EserciziController::class, 'apriFormCreazioneEsercizio'],
+            '/valida-esercizio' => [EserciziController::class, 'compilaDatiEsercizio'],
+            '/salva-esercizio' => [EserciziController::class, 'salvaEsercizio'],
+            '/copia-esercizio' => [EserciziController::class, 'copiaEsercizio'],
+            '/elimina-bozza' => [EserciziController::class, 'eliminaBozzaEsercizio'],
         ];
     }
 
@@ -137,6 +145,17 @@ class FrontController
                     $allenatoreRepo,
                     $attivitaRepo,
                     $amministratoreView,
+                    $session
+                );
+                break;
+
+            case EserciziController::class:
+                $esercizioRepo = new DoctrineEsercizioRepository($entityManager);
+                $eserciziView = new EserciziViewSmarty();
+                $controller = new EserciziController(
+                    $entityManager,
+                    $esercizioRepo,
+                    $eserciziView,
                     $session
                 );
                 break;
