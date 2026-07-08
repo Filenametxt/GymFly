@@ -14,6 +14,7 @@ use App\Entity\Amministratore;
 use App\Entity\Palestra;
 use App\Entity\Allenatore;
 use App\Entity\Utente;
+use App\Entity\Cliente;
 
 class ProfiloController 
 {
@@ -42,8 +43,8 @@ class ProfiloController
         $isSelf = !isset($_GET['id']);
 
         if ($isSelf) {
-            $utente = $entityManager->find(Utente::class, $idUtente);
-            $isClient = ($utente instanceof \App\Entity\Cliente);
+            $utente = $this->recuperaUtenteLoggato($entityManager, $idUtente, $ruolo);
+            $isClient = ($utente instanceof Cliente);
         } else {
             $targetId = (int)$_GET['id'];
             $utente = $this->clienteRepo->findById($targetId);
@@ -73,8 +74,18 @@ class ProfiloController
             return;
         }
 
-        $ultimiParametri = $isClient ? $this->parametriRepo->findUltimaByCliente($utente) : null;
-        $ultimoCertificato = $isClient ? $this->certificatoRepo->findByCliente($utente) : null;
+        if ($isClient) {
+            /** @var Cliente $utente */
+            $ultimiParametri = $this->parametriRepo->findUltimaByCliente($utente);
+            $ultimoCertificato = $this->certificatoRepo->findByCliente($utente);
+            $abbonamento = $utente->getAbbonamento();
+            $abbonamentoAttivo = $utente->isAbbonamentoAttivo();
+        } else {
+            $ultimiParametri = null;
+            $ultimoCertificato = null;
+            $abbonamento = null;
+            $abbonamentoAttivo = false;
+        }
 
         // Costruiamo l'array con i dati del profilo
         $datiProfilo = [
@@ -86,8 +97,8 @@ class ProfiloController
             'email' => $utente->getEmail(),
             'cf' => $utente->getCF(),
             'fotoProfilo' => $utente->getProfilePicture() ? base64_encode($utente->getProfilePicture()) : null,
-            'abbonamento' => $isClient ? $utente->getAbbonamento() : null,
-            'abbonamento_attivo' => $isClient ? $utente->isAbbonamentoAttivo() : false,
+            'abbonamento' => $abbonamento,
+            'abbonamento_attivo' => $abbonamentoAttivo,
             
             // Parametri Biometrici
             'parametri' => $ultimiParametri ? [
@@ -132,13 +143,14 @@ class ProfiloController
         }
 
         $entityManager = EntityManagerFactory::create();
-        $utente = $entityManager->find(Utente::class, $idUtente);
+        $ruolo = $this->session->getLoggedUserRole();
+        $utente = $this->recuperaUtenteLoggato($entityManager, $idUtente, $ruolo);
         if (!$utente) {
             $this->view->mostraErrore("Profilo inesistente.");
             return;
         }
 
-        $isClient = ($utente instanceof \App\Entity\Cliente);
+        $isClient = ($utente instanceof Cliente);
 
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $this->view->mostraFormModifica([
@@ -171,6 +183,7 @@ class ProfiloController
             $utente->setCognome($nuovoCognome);
             $utente->setIndirizzo($nuovoIndirizzoResidenza);
             if ($isClient) {
+                /** @var Cliente $utente */
                 if (method_exists($utente, 'setIndirizzoDiDomicilio')) {
                     $utente->setIndirizzoDiDomicilio($nuovoIndirizzoDomicilio);
                 }
@@ -196,7 +209,8 @@ class ProfiloController
         }
 
         $entityManager = EntityManagerFactory::create();
-        $utente = $entityManager->find(Utente::class, $idUtente);
+        $ruolo = $this->session->getLoggedUserRole();
+        $utente = $this->recuperaUtenteLoggato($entityManager, $idUtente, $ruolo);
         if (!$utente) {
             $this->view->mostraErrore("Profilo non trovato.");
             return;
@@ -429,7 +443,8 @@ class ProfiloController
         }
 
         $entityManager = EntityManagerFactory::create();
-        $utente = $entityManager->find(Utente::class, $idUtente);
+        $ruolo = $this->session->getLoggedUserRole();
+        $utente = $this->recuperaUtenteLoggato($entityManager, $idUtente, $ruolo);
         if (!$utente) {
             $this->view->mostraErrore("Utente non trovato.");
             return;
@@ -531,7 +546,7 @@ class ProfiloController
     /**
      * Recupera l'utente Cliente target della richiesta, verificando i permessi di sicurezza (Anti-IDOR)
      */
-    private function recuperaClienteTarget(string $ruolo, ?int $idUtente): ?\App\Entity\Cliente
+    private function recuperaClienteTarget(string $ruolo, ?int $idUtente): ?Cliente
     {
         $targetId = $idUtente;
         if ($ruolo === 'amministratore' || $ruolo === 'allenatore') {
@@ -564,5 +579,20 @@ class ProfiloController
         }
 
         return $cliente;
+    }
+
+    /**
+     * Recupera l'utente loggato instanziando la sua classe concreta specifica per evitare proxy casting issue
+     */
+    private function recuperaUtenteLoggato(\Doctrine\ORM\EntityManagerInterface $entityManager, int $idUtente, ?string $ruolo): Utente
+    {
+        if ($ruolo === 'cliente') {
+            return $entityManager->find(Cliente::class, $idUtente);
+        } elseif ($ruolo === 'allenatore') {
+            return $entityManager->find(Allenatore::class, $idUtente);
+        } elseif ($ruolo === 'amministratore') {
+            return $entityManager->find(Amministratore::class, $idUtente);
+        }
+        return $entityManager->find(Utente::class, $idUtente);
     }
 }
