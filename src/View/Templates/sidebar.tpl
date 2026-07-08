@@ -61,6 +61,14 @@
             </a>
         {/if}
 
+        <!-- Voci destinate solo all'Allenatore -->
+        {if isset($smarty.session.ruolo_utente) && $smarty.session.ruolo_utente === 'allenatore'}
+            <a href="crea-esercizio" class="sidebar-menu-link">
+                <i class="fas fa-dumbbell"></i>
+                <span>Aggiungi Esercizio</span>
+            </a>
+        {/if}
+
         <!-- Voci destinate esclusivamente all'Amministratore -->
         {if isset($smarty.session.ruolo_utente) && $smarty.session.ruolo_utente === 'amministratore'}
             <a href="allenatori" class="sidebar-menu-link">

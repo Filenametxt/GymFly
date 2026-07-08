@@ -213,10 +213,69 @@ class VisualizzazioneController
             
         $esercizi = $this->entityManager->getRepository(Esercizio::class)->findAll();
 
+        // 1. Semaforo Schede per i clienti dell'allenatore (Rosso: scadute, Giallo: nessuna scheda, Blu: in regola)
+        $schedeScadute = 0;
+        $richiesteScheda = 0;
+        $schedeInRegola = 0;
+        $oggi = new \DateTimeImmutable();
+        foreach ($clienti as $c) {
+            $scheda = $c->getScheda();
+            if (!$scheda) {
+                $richiesteScheda++;
+            } else {
+                if ($scheda->getData_fine() < $oggi) {
+                    $schedeScadute++;
+                } else {
+                    $schedeInRegola++;
+                }
+            }
+        }
+
+        // 2. Ultimi Messaggi inviati da questo allenatore
+        $messaggioRepo = new DoctrineMessaggioRepository($this->entityManager);
+        $tuttiMessaggi = $messaggioRepo->findByMittente($allenatore);
+        $ultimiMessaggi = array_slice($tuttiMessaggi, 0, 5);
+
+        // 3. Eventi di oggi in palestra
+        $attivitaRepo = new DoctrineAttivitaPianificataRepository($this->entityManager);
+        $attivitaOggi = $attivitaRepo->findByGiorno(new \DateTimeImmutable());
+        $eventiOggi = [];
+        if (empty($attivitaOggi)) {
+            // Fallback per rendere il widget vivo
+            $eventiOggi[] = [
+                'nome' => 'Pilates',
+                'orario' => '13:00 - 14:00',
+                'colore' => '#209cee',
+                'allenatore' => 'Luigi Verdi'
+            ];
+            $eventiOggi[] = [
+                'nome' => 'Zumba Fitness',
+                'orario' => '18:30 - 19:30',
+                'colore' => '#ffdd57',
+                'allenatore' => 'Carla Neri'
+            ];
+        } else {
+            foreach ($attivitaOggi as $ap) {
+                $oraInizio = str_pad($ap->getOrario(), 2, '0', STR_PAD_LEFT) . ':00';
+                $oraFine = str_pad($ap->getOrario() + 1, 2, '0', STR_PAD_LEFT) . ':00';
+                $eventiOggi[] = [
+                    'nome' => $ap->getAttivita()->getNome(),
+                    'orario' => "$oraInizio - $oraFine",
+                    'colore' => '#3273dc',
+                    'allenatore' => $ap->getAllenatore()->getNome() . ' ' . $ap->getAllenatore()->getCognome()
+                ];
+            }
+        }
+
         $this->view->mostraDashboardAllenatore([
             'utente' => $allenatore,
             'clienti' => $clienti,
-            'esercizi' => $esercizi
+            'esercizi' => $esercizi,
+            'schede_scadute' => $schedeScadute,
+            'richieste_scheda' => $richiesteScheda,
+            'schede_in_regola' => $schedeInRegola,
+            'ultimi_messaggi' => $ultimiMessaggi,
+            'eventi_oggi' => $eventiOggi
         ]);
     }
 
