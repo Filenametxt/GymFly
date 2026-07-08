@@ -18,9 +18,17 @@
     =============================================================================
 *}
 
+<!-- STATO SIDEBAR IN PURO CSS (SENZA JAVASCRIPT) -->
+<input type="checkbox" id="sidebar-toggle-checkbox" class="sidebar-checkbox-state" style="display: none;">
+
+<!-- LABEL HAMBURGER COLLEGATO AL CHECKBOX -->
+<label for="sidebar-toggle-checkbox" class="sidebar-toggle-flat" title="Mostra/Nascondi Menu">
+    <i class="fas fa-bars"></i>
+</label>
+
 <aside class="app-sidebar">
     <!-- LOGO / BRANDING -->
-    <div class="has-text-centered mb-6">
+    <div class="has-text-centered mb-6 mt-6">
         <strong class="is-size-3" style="color: #AFAFE2;">GymFly 🏋️‍♂️</strong>
     </div>
 
