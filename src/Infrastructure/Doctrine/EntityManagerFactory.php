@@ -8,10 +8,16 @@ use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\Mapping\Driver\XmlDriver;
 use Doctrine\Persistence\Mapping\Driver\MappingDriverChain;
 
+use App\Foundation\Persistence\Type\StringableTimeImmutableType;
+use Doctrine\DBAL\Types\Type;
+
 final class EntityManagerFactory
 {
     public static function create(): EntityManager
     {
+        // Override time_immutable to return stringable DateTimeImmutable objects
+        Type::overrideType('time_immutable', StringableTimeImmutableType::class);
+
         $mappingPath = __DIR__ . '/../../Foundation/Persistence/Mapping';
 
         $xmlDriver = new XmlDriver(

@@ -34,26 +34,25 @@
             Lato proprietario: fa parte della PK composita.
             FK: sessione_privata.id_allenatore → allenatore.id_utente
         -->
-        <one-to-one field="allenatore"
-                    target-entity="App\Entity\Allenatore"
-                    inversed-by="sessionePrivata"
-                    fetch="LAZY">
+        <many-to-one field="allenatore"
+                     target-entity="App\Entity\Allenatore"
+                     fetch="LAZY">
             <join-column name="id_allenatore"
                          referenced-column-name="id"
                          nullable="false"/>
-        </one-to-one>
+        </many-to-one>
 
         <!--
-            1-1  →  Cliente  (SessionePrivata "partecipa" un Cliente)
+            Molti-1  →  Cliente  (SessionePrivata "partecipa" un Cliente)
             FK: sessione_privata.id_cliente → cliente.id_utente
         -->
-        <one-to-one field="atleta"
-                    target-entity="App\Entity\Cliente"
-                    fetch="LAZY">
+        <many-to-one field="atleta"
+                     target-entity="App\Entity\Cliente"
+                     fetch="LAZY">
             <join-column name="id_cliente"
                          referenced-column-name="id"
                          nullable="false"/>
-        </one-to-one>
+        </many-to-one>
 
     </entity>
 

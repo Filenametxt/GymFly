@@ -51,6 +51,11 @@
             <span>Bacheca Messaggi</span>
         </a>
 
+        <a href="calendario" class="sidebar-menu-link">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Calendario Corsi</span>
+        </a>
+
         <!-- Voci destinate solo ad Allenatori e Amministratori -->
         {if isset($smarty.session.ruolo_utente) && ($smarty.session.ruolo_utente === 'amministratore' || $smarty.session.ruolo_utente === 'allenatore')}
             <hr style="background-color: var(--gymfly-primary); height: 1px; margin: 1rem 0;">
