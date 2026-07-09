@@ -607,8 +607,12 @@ class SchedaAllenamentoController
         // Renderizza il PDF
         $dompdf->render();
         
-        // Output del PDF direttamente come download (attachment)
-        $filename = "Scheda_" . str_replace(' ', '_', $scheda->getNome_scheda()) . ".pdf";
+        // Output del PDF direttamente come download (attachment) con disattivazione cache
+        header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+        header("Cache-Control: post-check=0, pre-check=0", false);
+        header("Pragma: no-cache");
+        
+        $filename = "Scheda_" . str_replace(' ', '_', $scheda->getNome_scheda()) . "_" . time() . ".pdf";
         $dompdf->stream($filename, [
             "Attachment" => true
         ]);
