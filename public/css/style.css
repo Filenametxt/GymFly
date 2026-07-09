@@ -667,7 +667,51 @@ code {
     align-items: center !important;
     justify-content: center !important;
     color: var(--gymfly-text) !important;
+    overflow: hidden !important;
 }
+
+/* Stili specifici per la pagina Profilo */
+.custom-mobile-container {
+    max-width: 500px;
+    margin: 0 auto;
+}
+.profile-avatar-circle {
+    width: 90px !important;
+    height: 90px !important;
+    border-radius: 50% !important;
+    overflow: hidden !important;
+    border: 3px solid var(--gymfly-primary) !important;
+    margin: 0 auto 0.5rem auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background-color: var(--gymfly-bg) !important;
+}
+.profile-avatar-circle img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+}
+.profile-details-text p {
+    margin-bottom: 0.4rem !important;
+    font-size: 0.95rem !important;
+}
+.navigation-box-card {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 1.25rem !important;
+    border-radius: 16px !important;
+    border: 2px solid var(--gymfly-primary) !important;
+    background-color: var(--gymfly-card-bg) !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+    margin-bottom: 1rem !important;
+}
+.navigation-box-card:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05) !important;
+}
+
 
 
 

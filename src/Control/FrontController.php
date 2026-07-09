@@ -49,6 +49,7 @@ class FrontController
             '/carica-certificato' => [ProfiloController::class, 'caricaCertificato'],
             '/cambia-password' => [ProfiloController::class, 'cambiaPassword'],
             '/visualizza-grafico' => [ProfiloController::class, 'visualizzaGrafico'],
+            '/carica-foto' => [ProfiloController::class, 'caricaFotoProfilo'],
             
             '/dashboard-admin' => [VisualizzazioneController::class, 'mostraDashboardAdmin'],
             '/dashboard-allenatore' => [VisualizzazioneController::class, 'mostraDashboardAllenatore'],
