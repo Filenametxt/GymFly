@@ -56,69 +56,47 @@
                 </div>
             </div>
 
-            <!-- RIGA WIDGETS SUPERIORI (SEMAFORO & BUDGET) -->
+            <!-- RIGA SUPERIORE (SEMAFORO & AZIONI RAPIDE A SINISTRA, ISTOGRAMMA TALL A DESTRA) -->
             <div class="columns mb-6">
-                <!-- Semaforo Certificati Medici -->
+                <!-- Colonna Sinistra: Semaforo, Azioni Rapide e Messaggi Preimpostati -->
                 <div class="column is-6">
-                    <div class="box" style="height: 100%;">
+                    <!-- Box 1: Semaforo Certificati Medici (Originale) -->
+                    <div class="box mb-5">
                         <h2 class="title is-5 mb-4 style-theme-text">
                             <i class="fas fa-heartbeat mr-2" style="color: #ff3860;"></i> Controllo Certificati Medici
                         </h2>
                         <div class="columns is-mobile is-vcentered" style="height: calc(100% - 2.5rem); margin-top: 0;">
                             <div class="column has-text-centered">
-                                <div class="notification is-danger is-light p-3" style="border-radius: 12px; border: 1px solid #ff3860;">
-                                    <span class="icon is-large"><i class="fas fa-times-circle fa-2x"></i></span>
-                                    <h4 class="title is-4 mt-2 mb-0">{$certificati_scaduti}</h4>
-                                    <p class="is-size-7 font-weight-bold">SCADUTI / ASSENTI</p>
-                                </div>
+                                <a href="clienti?filtro_certificato=scaduti" style="display: block; text-decoration: none;">
+                                    <div class="notification is-danger is-light p-3" style="border-radius: 12px; border: 1px solid #ff3860; cursor: pointer;">
+                                        <span class="icon is-large"><i class="fas fa-times-circle fa-2x"></i></span>
+                                        <h4 class="title is-4 mt-2 mb-0">{$certificati_scaduti}</h4>
+                                        <p class="is-size-7 font-weight-bold">SCADUTI / ASSENTI</p>
+                                    </div>
+                                </a>
                             </div>
                             <div class="column has-text-centered">
-                                <div class="notification is-warning is-light p-3" style="border-radius: 12px; border: 1px solid #ffdd57;">
-                                    <span class="icon is-large"><i class="fas fa-exclamation-triangle fa-2x"></i></span>
-                                    <h4 class="title is-4 mt-2 mb-0">{$certificati_in_scadenza}</h4>
-                                    <p class="is-size-7 font-weight-bold">IN SCADENZA</p>
-                                </div>
+                                <a href="clienti?filtro_certificato=in_scadenza" style="display: block; text-decoration: none;">
+                                    <div class="notification is-warning is-light p-3" style="border-radius: 12px; border: 1px solid #ffdd57; cursor: pointer;">
+                                        <span class="icon is-large"><i class="fas fa-exclamation-triangle fa-2x"></i></span>
+                                        <h4 class="title is-4 mt-2 mb-0">{$certificati_in_scadenza}</h4>
+                                        <p class="is-size-7 font-weight-bold">IN SCADENZA</p>
+                                    </div>
+                                </a>
                             </div>
                             <div class="column has-text-centered">
-                                <div class="notification is-info is-light p-3" style="border-radius: 12px; border: 1px solid #209cee;">
-                                    <span class="icon is-large"><i class="fas fa-check-circle fa-2x"></i></span>
-                                    <h4 class="title is-4 mt-2 mb-0">{$certificati_validi}</h4>
-                                    <p class="is-size-7 font-weight-bold">IN REGOLA</p>
-                                </div>
+                                <a href="clienti?filtro_certificato=in_regola" style="display: block; text-decoration: none;">
+                                    <div class="notification is-info is-light p-3" style="border-radius: 12px; border: 1px solid #209cee; cursor: pointer;">
+                                        <span class="icon is-large"><i class="fas fa-check-circle fa-2x"></i></span>
+                                        <h4 class="title is-4 mt-2 mb-0">{$certificati_validi}</h4>
+                                        <p class="is-size-7 font-weight-bold">IN REGOLA</p>
+                                    </div>
+                                </a>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Budget Mensile -->
-                <div class="column is-6">
-                    <div class="box" style="height: 100%;">
-                        <h2 class="title is-5 mb-4 style-theme-text">
-                            <i class="fas fa-chart-line mr-2" style="color: #23d160;"></i> Raggiungimento Budget Mensile
-                        </h2>
-                        <div class="is-flex is-flex-direction-column is-justify-content-center" style="height: calc(100% - 2.5rem);">
-                            <div class="level mb-2">
-                                <div class="level-left">
-                                    <span class="is-size-6 font-weight-bold" style="color: var(--gymfly-text);">Attuale: <strong>€{$budget_attuale}</strong></span>
-                                </div>
-                                <div class="level-right">
-                                    <span class="is-size-6 has-text-grey">Target: €{$budget_target}</span>
-                                </div>
-                            </div>
-                            <progress class="progress is-success is-large" value="{$percentuale_budget}" max="100">{$percentuale_budget}%</progress>
-                            <div class="has-text-right mt-1">
-                                <span class="tag is-success is-light font-weight-bold">{$percentuale_budget}% completato</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- RIGA WIDGETS INTERMEDI (AZIONI RAPIDE, MESSAGGI PREIMPOSTATI & GRAFICO) -->
-            <div class="columns mb-6">
-                <!-- Colonna sinistra: widget sovrapposti -->
-                <div class="column is-6">
-                    <!-- Widget Azioni Rapide -->
+                    <!-- Box 2: Azioni Rapide (Originale) -->
                     <div class="box mb-5">
                         <h2 class="title is-5 mb-4 style-theme-text">
                             <i class="fas fa-bolt mr-2" style="color: #ffdd57;"></i> Azioni Rapide
@@ -133,7 +111,7 @@
                             </div>
                             <!-- Aggiungi Attività -->
                             <div class="column is-4 has-text-centered py-2">
-                                <a href="#" onclick="alert('Funzionalità in fase di implementazione.'); return false;" class="button is-light is-medium is-flex is-flex-direction-column is-justify-content-center" style="height: 90px; width: 100%; border-radius: 12px; border: 1px solid var(--gymfly-accent);">
+                                <a href="crea-attivita" class="button is-light is-medium is-flex is-flex-direction-column is-justify-content-center" style="height: 90px; width: 100%; border-radius: 12px; border: 1px solid var(--gymfly-accent);">
                                     <span class="icon is-medium mb-1"><i class="fas fa-calendar-plus fa-lg" style="color: var(--gymfly-text);"></i></span>
                                     <span class="is-size-7 font-weight-bold" style="color: var(--gymfly-text); white-space: normal; line-height: 1.1;">Aggiungi Attività</span>
                                 </a>
@@ -148,13 +126,13 @@
                         </div>
                     </div>
 
-                    <!-- Widget Messaggi Preimpostati -->
+                    <!-- Box 3: Messaggi Preimpostati (Originale) -->
                     <div class="box">
                         <h2 class="title is-5 mb-4 style-theme-text">
                             <i class="fas fa-comment-alt mr-2" style="color: #3273dc;"></i> Messaggi Preimpostati
                         </h2>
                         <div class="columns is-mobile" style="margin-top: -0.5rem;">
-                            <!-- Chiusura Palestra (Invio Automatico) -->
+                            <!-- Chiusura Palestra -->
                             <form action="invia-messaggio" method="POST" class="column is-4 has-text-centered py-2" style="margin: 0; padding: 0.75rem;">
                                 <input type="hidden" name="oggetto" value="Avviso Chiusura Palestra">
                                 <input type="hidden" name="contenuto" value="Gentili clienti, vi comunichiamo che la palestra rimarrà chiusa temporaneamente per motivi tecnici straordinari. Ci scusiamo per il disagio.">
@@ -166,7 +144,7 @@
                                 </button>
                             </form>
                             
-                            <!-- Guasto Attrezzi (Invio Automatico) -->
+                            <!-- Guasto Attrezzi -->
                             <form action="invia-messaggio" method="POST" class="column is-4 has-text-centered py-2" style="margin: 0; padding: 0.75rem;">
                                 <input type="hidden" name="oggetto" value="Avviso Guasto Tecnico">
                                 <input type="hidden" name="contenuto" value="Gentili clienti, vi avvisiamo che a causa di un guasto tecnico temporaneo ad alcune attrezzature, l'accesso a determinate sale potrebbe essere limitato. Lavoriamo al ripristino.">
@@ -178,7 +156,7 @@
                                 </button>
                             </form>
                             
-                            <!-- Manutenzione (Invio Automatico) -->
+                            <!-- Manutenzione -->
                             <form action="invia-messaggio" method="POST" class="column is-4 has-text-centered py-2" style="margin: 0; padding: 0.75rem;">
                                 <input type="hidden" name="oggetto" value="Avviso Manutenzione Programmata">
                                 <input type="hidden" name="contenuto" value="Gentili clienti, vi avvisiamo che verranno effettuati lavori di manutenzione ordinaria. La palestra rimarrà regolarmente aperta ma alcune aree potrebbero subire variazioni.">
@@ -193,30 +171,34 @@
                     </div>
                 </div>
 
-                <!-- Statistiche Registrazioni (Grafico) -->
+                <!-- Colonna Destra: Statistiche Registrazioni (Grafico Istogramma Allungato) -->
                 <div class="column is-6">
-                    <div class="box" style="height: 100%;">
+                    <div class="box" style="height: 100%; display: flex; flex-direction: column;">
                         <h2 class="title is-5 mb-4 style-theme-text">
-                            <i class="fas fa-chart-area mr-2" style="color: #3273dc;"></i> Statistiche Registrazioni
+                            <i class="fas fa-chart-bar mr-2" style="color: #3273dc;"></i> Statistiche Registrazioni Mensili
                         </h2>
-                        <div class="chart-container" style="background-color: var(--gymfly-bg); border-radius: 16px; padding: 1.5rem 1rem; border: 1px solid var(--gymfly-primary); height: calc(100% - 3.5rem); display: flex; align-items: center;">
-                            <svg viewBox="0 0 450 150" style="display: block; width: 100%; height: auto; max-width: 100%; overflow: hidden;">
-                                <!-- Linee di griglia -->
-                                <line x1="40" y1="20" x2="420" y2="20" stroke="#e8e8e8" stroke-dasharray="5,5" />
-                                <line x1="40" y1="60" x2="420" y2="60" stroke="#e8e8e8" stroke-dasharray="5,5" />
-                                <line x1="40" y1="100" x2="420" y2="100" stroke="#e8e8e8" stroke-dasharray="5,5" />
-                                <line x1="40" y1="120" x2="420" y2="120" stroke="var(--gymfly-primary)" stroke-width="2" />
+                        <div class="chart-container" style="background-color: var(--gymfly-bg); border-radius: 16px; padding: 1.25rem; border: 1px solid var(--gymfly-primary); flex-grow: 1; display: flex; align-items: center; justify-content: center;">
+                            <svg viewBox="0 0 450 310" style="display: block; width: 100%; height: auto; max-width: 100%; overflow: hidden;">
+                                <defs>
+                                    <linearGradient id="barGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stop-color="#afafe2" />
+                                        <stop offset="100%" stop-color="#99cdea" />
+                                    </linearGradient>
+                                </defs>
+                                <!-- Linee di griglia orizzontali -->
+                                <line x1="30" y1="45" x2="420" y2="45" stroke="#e8e8e8" stroke-dasharray="5,5" />
+                                <line x1="30" y1="100" x2="420" y2="100" stroke="#e8e8e8" stroke-dasharray="5,5" />
+                                <line x1="30" y1="155" x2="420" y2="155" stroke="#e8e8e8" stroke-dasharray="5,5" />
+                                <line x1="30" y1="210" x2="420" y2="210" stroke="#e8e8e8" stroke-dasharray="5,5" />
+                                <line x1="30" y1="265" x2="420" y2="265" stroke="var(--gymfly-primary)" stroke-width="2" />
                                 
-                                <!-- Linea continua dell'andamento -->
-                                {if $punti_registrazioni|@count > 1}
-                                    <polyline points="{foreach $punti_registrazioni as $p}{$p.x},{$p.y} {/foreach}" fill="none" stroke="var(--gymfly-secondary)" stroke-width="3" />
-                                {/if}
-                                
-                                <!-- Punti e Valori -->
+                                <!-- Istogramma (Rettangoli) -->
                                 {foreach $punti_registrazioni as $p}
-                                    <circle cx="{$p.x}" cy="{$p.y}" r="4" fill="var(--gymfly-text)" />
-                                    <text x="{$p.x}" y="{$p.y - 8}" font-size="9" fill="var(--gymfly-text)" text-anchor="middle" font-weight="bold">{$p.valore}</text>
-                                    <text x="{$p.x}" y="138" font-size="9" fill="var(--gymfly-text)" text-anchor="middle">{$p.data}</text>
+                                    <rect x="{$p.x - 15}" y="{$p.y}" width="30" height="{$p.altezza}" rx="5" fill="url(#barGradient)" style="transition: fill 0.3s;" />
+                                    <!-- Valore sopra la barra -->
+                                    <text x="{$p.x}" y="{$p.y - 10}" font-size="12" fill="var(--gymfly-text)" text-anchor="middle" font-weight="bold">{$p.valore}</text>
+                                    <!-- Etichetta mese sotto la barra -->
+                                    <text x="{$p.x}" y="290" font-size="12" fill="var(--gymfly-text)" text-anchor="middle" font-weight="bold">{$p.data}</text>
                                 {/foreach}
                             </svg>
                         </div>
@@ -261,30 +243,6 @@
                             <span class="tag is-link is-light font-weight-bold">({$eventi_oggi|@count} Eventi)</span>
                         </div>
                         
-                        <!-- Subheader con Pulsanti -->
-                        <div class="level mb-4">
-                            <div class="level-left">
-                                <button class="button is-small is-light" style="border-radius: 8px;">
-                                    <span class="icon is-small"><i class="fas fa-plus"></i></span>
-                                </button>
-                            </div>
-                            <div class="level-right">
-                                <div class="buttons are-small">
-                                    <button class="button is-light" style="border-radius: 8px;">
-                                        <span class="icon is-small"><i class="fas fa-chevron-left"></i></span>
-                                    </button>
-                                    <button class="button is-light" style="border-radius: 8px;">
-                                        <span class="icon is-small"><i class="fas fa-chevron-right"></i></span>
-                                    </button>
-                                    <button class="button is-light" style="border-radius: 8px;">
-                                        <span class="icon is-small"><i class="fas fa-share-alt"></i></span>
-                                    </button>
-                                    <button class="button is-light" style="border-radius: 8px;">
-                                        <span class="icon is-small"><i class="fas fa-calendar-alt"></i></span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
 
                         <!-- Elenco Eventi -->
                         <div class="event-list">

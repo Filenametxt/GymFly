@@ -9,7 +9,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Amministratore;
 use App\Entity\Allenatore;
 use App\Entity\Palestra;
-use App\Entity\Cliente;
 
 class VisualizzazioneUtentiController 
 {
@@ -52,22 +51,11 @@ class VisualizzazioneUtentiController
             return;
         }
 
-        // Recupero dei clienti filtrati per palestra ed eventuale stringa di ricerca
+        // Recupero dei clienti filtrati per palestra, ricerca ed eventuale stato del certificato medico
         $query = $_POST['search_query'] ?? $_GET['search_query'] ?? null;
-        if ($query !== null && trim($query) !== '') {
-            $clienti = $this->entityManager->createQueryBuilder()
-                ->select('c')
-                ->from(Cliente::class, 'c')
-                ->where('c.palestra = :palestra')
-                ->andWhere('(LOWER(c.nome) LIKE LOWER(:query) OR LOWER(c.cognome) LIKE LOWER(:query) OR LOWER(c.email) LIKE LOWER(:query))')
-                ->setParameter('palestra', $palestra)
-                ->setParameter('query', '%' . trim($query) . '%')
-                ->orderBy('c.cognome', 'ASC')
-                ->getQuery()
-                ->getResult();
-        } else {
-            $clienti = $this->clienteRepo->findByPalestra($palestra);
-        }
+        $filtroCertificato = $_POST['filtro_certificato'] ?? $_GET['filtro_certificato'] ?? null;
+
+        $clienti = $this->clienteRepo->findByPalestraAndFiltri($palestra, $query, $filtroCertificato);
 
         $clientiData = [];
         foreach ($clienti as $c) {

@@ -20,6 +20,65 @@
         .message-sent-card {
             border-left: 5px solid var(--gymfly-secondary);
         }
+        /* Custom circular checkboxes and radio buttons to make them perfectly consistent in style and size */
+        input[type="radio"], .chk-utente-singolo, .chk-nuovo-gruppo {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ccc;
+            outline: none;
+            background-color: #fff;
+            cursor: pointer;
+            display: inline-block;
+            vertical-align: middle;
+            position: relative;
+            margin-right: 0.5rem;
+            margin-top: -2px;
+            transition: all 0.2s ease;
+        }
+        
+        /* Radios are circular */
+        input[type="radio"] {
+            border-radius: 50%;
+        }
+        
+        /* Checkboxes are squares with rounded corners */
+        .chk-utente-singolo, .chk-nuovo-gruppo {
+            border-radius: 4px;
+        }
+        
+        input[type="radio"]:checked, .chk-utente-singolo:checked, .chk-nuovo-gruppo:checked {
+            background-color: var(--gymfly-primary);
+            border-color: var(--gymfly-primary);
+        }
+        
+        /* Center dot for radio buttons */
+        input[type="radio"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #fff;
+        }
+        
+        /* Checkmark for checkboxes */
+        .chk-utente-singolo:checked::after, .chk-nuovo-gruppo:checked::after {
+            content: '';
+            position: absolute;
+            top: 1px;
+            left: 4px;
+            width: 4px;
+            height: 8px;
+            border: solid #fff;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
     </style>
     {/literal}
 </head>
@@ -79,32 +138,33 @@
 
                     <!-- MESSAGGI INVIATI (Solo se consentito l'invio) -->
                     {if $invioConsentito}
-                        <div class="box mt-5">
+                        <div class="box {if $ruolo !== 'amministratore'}mt-5{/if}" style="height: calc(100% - 20px); display: flex; flex-direction: column;">
                             <h2 class="title is-4 style-theme-text mb-4"><i class="fas fa-paper-plane mr-2"></i> Posta in Uscita</h2>
-                            
-                            {foreach $messaggiInviati as $msg}
-                                <div class="box message-card message-sent-card mb-3 p-4">
-                                    <div class="level mb-2">
-                                        <div class="level-left">
-                                            <div>
-                                                <p class="is-size-7 has-text-grey">
-                                                    A: 
-                                                    {foreach $msg->getDestinatari() as $dest}
-                                                        <strong>{$dest->getNome()} {$dest->getCognome()}</strong> ({$dest->getRuolo()}){if !$dest@last}, {/if}
-                                                    {/foreach}
-                                                </p>
-                                                <h4 class="title is-5 mt-1 mb-0">{$msg->getOggetto()}</h4>
+                            <div style="flex-grow: 1; max-height: 520px; overflow-y: auto; padding-right: 0.5rem;">
+                                {foreach $messaggiInviati as $msg}
+                                    <div class="box message-card message-sent-card mb-3 p-4">
+                                        <div class="level mb-2">
+                                            <div class="level-left">
+                                                <div>
+                                                    <p class="is-size-7 has-text-grey">
+                                                        A: 
+                                                        {foreach $msg->getDestinatari() as $dest}
+                                                            <strong>{$dest->getNome()} {$dest->getCognome()}</strong> ({$dest->getRuolo()}){if !$dest@last}, {/if}
+                                                        {/foreach}
+                                                    </p>
+                                                    <h4 class="title is-5 mt-1 mb-0">{$msg->getOggetto()}</h4>
+                                                </div>
                                             </div>
                                         </div>
+                                        <p class="has-text-grey-dark" style="white-space: pre-line;">{$msg->getContenuto()}</p>
                                     </div>
-                                    <p class="has-text-grey-dark" style="white-space: pre-line;">{$msg->getContenuto()}</p>
-                                </div>
-                            {foreachelse}
-                                <div class="has-text-centered py-5 has-text-grey">
-                                    <span class="icon is-large mb-2"><i class="fas fa-paper-plane fa-2x"></i></span>
-                                    <p>Non hai ancora inviato nessun messaggio.</p>
-                                </div>
-                            {/foreach}
+                                {foreachelse}
+                                    <div class="has-text-centered py-5 has-text-grey">
+                                        <span class="icon is-large mb-2"><i class="fas fa-paper-plane fa-2x"></i></span>
+                                        <p>Non hai ancora inviato nessun messaggio.</p>
+                                    </div>
+                                {/foreach}
+                            </div>
                         </div>
                     {/if}
 
@@ -155,46 +215,57 @@
                                 <div id="div-gruppo" class="field">
                                     <label class="label">Seleziona Gruppo</label>
                                     <div class="control">
-                                        <div class="select is-fullwidth">
-                                            <select name="gruppo_tipo">
-                                                <option value="tutti_clienti" selected>Tutti i Clienti</option>
-                                                {if $ruolo === 'amministratore'}
-                                                    <option value="tutti_allenatori">Tutti gli Allenatori</option>
-                                                {/if}
-                                                <option value="tutti_palestra">Tutti i membri della palestra</option>
-                                            </select>
+                                        <div class="box p-3" id="gruppo-list-container" style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px;">
+                                            <label class="radio is-block mb-2">
+                                                <input type="radio" name="gruppo_tipo" value="tutti_clienti" checked>
+                                                Tutti i Clienti
+                                            </label>
+                                            {if $ruolo === 'amministratore'}
+                                                <label class="radio is-block mb-2">
+                                                    <input type="radio" name="gruppo_tipo" value="tutti_allenatori">
+                                                    Tutti gli Allenatori
+                                                </label>
+                                            {/if}
+                                            <label class="radio is-block mb-2">
+                                                <input type="radio" name="gruppo_tipo" value="tutti_palestra">
+                                                Tutti i membri della palestra
+                                            </label>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- SELEZIONE UTENTI INDIVIDUALI (Nascosto di default) -->
                                 <div id="div-selezionati" class="field" style="display: none;">
-                                    <label class="label">Seleziona Destinatari (tieni premuto Ctrl / Cmd per selezione multipla)</label>
+                                    <label class="label">Seleziona Destinatari</label>
                                     <div class="control">
-                                        <div class="select is-multiple is-fullwidth">
-                                            <select name="destinatari_ids[]" multiple style="height: 150px;">
-                                                {if !empty($clientiCandidati)}
-                                                    <optgroup label="Clienti">
-                                                        {foreach $clientiCandidati as $c}
-                                                            <option value="{$c->getId()}">{$c->getNome()} {$c->getCognome()}</option>
-                                                        {/foreach}
-                                                    </optgroup>
-                                                {/if}
-                                                {if !empty($allenatoriCandidati)}
-                                                    <optgroup label="Allenatori">
-                                                        {foreach $allenatoriCandidati as $a}
-                                                            <option value="{$a->getId()}">{$a->getNome()} {$a->getCognome()}</option>
-                                                        {/foreach}
-                                                    </optgroup>
-                                                {/if}
-                                                {if !empty($adminCandidati)}
-                                                    <optgroup label="Amministratori">
-                                                        {foreach $adminCandidati as $ad}
-                                                            <option value="{$ad->getId()}">{$ad->getNome()} {$ad->getCognome()}</option>
-                                                        {/foreach}
-                                                    </optgroup>
-                                                {/if}
-                                            </select>
+                                        <div class="box p-3" style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px;">
+                                            {if !empty($clientiCandidati)}
+                                                <p class="menu-label font-weight-bold mb-2">CLIENTI</p>
+                                                {foreach $clientiCandidati as $c}
+                                                    <label class="checkbox is-block mb-2">
+                                                        <input type="checkbox" name="destinatari_ids[]" value="{$c->getId()}" class="chk-utente-singolo">
+                                                        {$c->getNome()} {$c->getCognome()}
+                                                    </label>
+                                                {/foreach}
+                                            {/if}
+                                            {if !empty($allenatoriCandidati)}
+                                                <p class="menu-label font-weight-bold mb-2 mt-3">ALLENATORI</p>
+                                                {foreach $allenatoriCandidati as $a}
+                                                    <label class="checkbox is-block mb-2">
+                                                        <input type="checkbox" name="destinatari_ids[]" value="{$a->getId()}" class="chk-utente-singolo">
+                                                        {$a->getNome()} {$a->getCognome()}
+                                                    </label>
+                                                {/foreach}
+                                            {/if}
+                                            {if !empty($adminCandidati)}
+                                                <p class="menu-label font-weight-bold mb-2 mt-3">AMMINISTRATORI</p>
+                                                {foreach $adminCandidati as $ad}
+                                                    <label class="checkbox is-block mb-2">
+                                                        <input type="checkbox" name="destinatari_ids[]" value="{$ad->getId()}" class="chk-utente-singolo">
+                                                        {$ad->getNome()} {$ad->getCognome()}
+                                                    </label>
+                                                {/foreach}
+                                            {/if}
                                         </div>
                                     </div>
                                 </div>
@@ -218,6 +289,8 @@
 
         </main>
     </div>
+
+
 
 </body>
 </html>
