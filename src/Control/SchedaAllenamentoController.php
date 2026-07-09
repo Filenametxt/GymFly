@@ -273,10 +273,11 @@ class SchedaAllenamentoController
                     ->getQuery()
                     ->getResult();
             }
-            $this->view->mostraTemplate('seleziona_scheda_modifica.tpl', [
-                'utente' => $allenatore,
-                'schede' => $schede
-            ]);
+            if (!empty($schede)) {
+                header("Location: modifica-scheda?id=" . $schede[0]->getId());
+            } else {
+                header("Location: dashboard-allenatore");
+            }
             return;
         }
 
