@@ -20,7 +20,7 @@
         </a>
         <div class="gf-navbar-actions">
             <a href="login" class="gf-btn-outline">Accedi</a>
-            <a href="registrazione" class="gf-btn-primary">Inizia Gratis</a>
+            <a href="registrazione" class="gf-btn-primary">Inizia</a>
         </div>
     </nav>
 
