@@ -307,10 +307,6 @@ class VisualizzazioneController
      */
     public function mostraHome(): void
     {
-        if ($this->session->isLogged()) {
-            $this->view->reindirizzaDopoLogin($this->session->getLoggedUserRole());
-            return;
-        }
         $this->view->mostraHome();
     }
 
