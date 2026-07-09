@@ -232,7 +232,8 @@ class AttivitaPianificataController
             'clienti' => $this->clienteRepo->findByPalestra($palestra),
             'selectedAp' => $selectedAp,
             'selectedSp' => $selectedSp,
-            'nuovo' => isset($_GET['nuovo']) ? 1 : 0
+            'nuovo' => isset($_GET['nuovo']) ? 1 : 0,
+            'nuova_sessione' => isset($_GET['nuova_sessione']) ? 1 : 0
         ];
 
         // Dettagli specifici per il Cliente

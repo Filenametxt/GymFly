@@ -32,6 +32,7 @@ class VisualizzazioneUtentiViewSmarty implements VisualizzazioneUtentiView
     {
         header('Content-Type: text/html; charset=utf-8');
         $this->smarty->assign('clienti', $clientiData);
+        $this->smarty->assign('filtro_certificato', $_GET['filtro_certificato'] ?? null);
         $this->smarty->assign('ritorno', $this->determinaRitorno());
         $this->smarty->display('lista_clienti.tpl');
     }

@@ -17,7 +17,22 @@
 
             <!-- HEADER -->
             <div class="mb-5">
-                <h1 class="title is-2 style-theme-text mb-2">Gestione utenti - Visualizzazione Clienti</h1>
+                <div class="is-flex is-align-items-center is-flex-wrap-wrap mb-2">
+                    <h1 class="title is-2 style-theme-text mb-0 mr-3">Gestione utenti - Visualizzazione Clienti</h1>
+                    {if isset($filtro_certificato) && $filtro_certificato !== null}
+                        {if $filtro_certificato === 'scaduti'}
+                            <span class="tag is-danger is-medium font-weight-bold mr-2">Filtro: Certificati Scaduti / Assenti</span>
+                        {elseif $filtro_certificato === 'in_scadenza'}
+                            <span class="tag is-warning is-medium font-weight-bold mr-2">Filtro: Certificati in Scadenza</span>
+                        {elseif $filtro_certificato === 'in_regola'}
+                            <span class="tag is-success is-medium font-weight-bold mr-2">Filtro: Certificati in Regola</span>
+                        {/if}
+                        <a href="clienti" class="button is-small is-light" style="border-radius: 8px;">
+                            <span class="icon is-small"><i class="fas fa-times"></i></span>
+                            <span>Mostra Tutti</span>
+                        </a>
+                    {/if}
+                </div>
                 <p class="subtitle is-6 has-text-grey">Visualizza e gestisci le schede anagrafiche dei clienti della palestra</p>
             </div>
 

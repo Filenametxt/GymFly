@@ -111,25 +111,25 @@ class VisualizzazioneController
             }
         }
 
-        // Simula uno storico per mostrare il grafico popolato se i dati reali sono pochi
-        $valoriEsempio = [3, 5, 8, 12, 15];
-        $index = 0;
-        foreach ($datiGrafico as $key => $dati) {
-            $datiGrafico[$key]['valore'] += $valoriEsempio[$index++];
-        }
 
-        // Calcola i punti per il grafico SVG (Polyline)
+
+        // Calcola i punti per il grafico SVG (Istogramma Verticale)
         $puntiGrafico = [];
         $maxVal = max(array_column($datiGrafico, 'valore'));
         if ($maxVal == 0) $maxVal = 1;
-        $passoX = 320 / (count($datiGrafico) - 1);
+        $count = count($datiGrafico);
+        $passoX = ($count > 1) ? 360 / ($count - 1) : 360;
         $x = 40;
         foreach ($datiGrafico as $dati) {
             $val = $dati['valore'];
-            $y = 120 - (($val / $maxVal) * 80); // scala tra y=40 e y=120
+            // scala tra y=45 e y=265 (altezza massima = 220)
+            $altezzaVal = ($val / $maxVal) * 220;
+            $altezzaFinal = max(6, $altezzaVal);
+            $y = 265 - $altezzaFinal;
             $puntiGrafico[] = [
                 'x' => $x,
                 'y' => $y,
+                'altezza' => $altezzaFinal,
                 'valore' => $val,
                 'data' => $dati['data']
             ];

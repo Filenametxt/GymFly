@@ -103,7 +103,7 @@
                     </div>
                     <div class="column is-narrow">
                         {if $ruolo_utente === 'allenatore'}
-                            <a href="prenota-sessione-privata" class="button is-gymfly">
+                            <a href="calendario?nuova_sessione=1" class="button is-gymfly">
                                 <span class="icon"><i class="fas fa-calendar-plus"></i></span>
                                 <span>Pianifica Sessione Privata</span>
                             </a>
@@ -127,7 +127,7 @@
             <div class="columns">
                 
                 <!-- COLONNA GRID CALENDARIO -->
-                <div class="column {if $selectedAp || $selectedSp}is-8{else}is-12{/if}">
+                <div class="column {if $selectedAp || $selectedSp || $nuova_sessione}is-8{else}is-12{/if}">
                     <div class="table-container">
                         <table class="planner-table">
                             <thead>
@@ -183,8 +183,8 @@
                     </div>
                 </div>
 
-                <!-- COLONNA DETTAGLIO PLANNER SIDEBAR (Se selezionato un corso o una sessione privata) -->
-                {if $selectedAp || $selectedSp}
+                <!-- COLONNA DETTAGLIO PLANNER SIDEBAR (Se selezionato un corso o una sessione privata o nuova sessione) -->
+                {if $selectedAp || $selectedSp || $nuova_sessione}
                     <div class="column is-4">
                         <div class="card p-5" style="border: 2px solid var(--gymfly-primary); background-color: var(--gymfly-card-bg); height: 100%;">
                             
@@ -253,6 +253,66 @@
                                         <span>Disdici Sessione</span>
                                     </a>
                                 </div>
+                            {elseif $nuova_sessione}
+                                <div class="is-flex is-justify-content-between is-align-items-center mb-4">
+                                    <h2 class="title is-4 mb-0 style-theme-text" style="color: #f5af19;">Pianifica Sessione</h2>
+                                    <a href="calendario" class="delete" title="Chiudi inserimento"></a>
+                                </div>
+
+                                <form action="prenota-sessione-privata" method="POST">
+                                    
+                                    <!-- SELEZIONE ATLETA -->
+                                    <div class="field mb-3">
+                                        <label class="label is-small style-theme-text">Atleta / Cliente *</label>
+                                        <div class="control">
+                                            <div class="select is-fullwidth is-small">
+                                                <select name="id_cliente" required>
+                                                    <option value="">Scegli l'atleta...</option>
+                                                    {foreach from=$clienti item=cl}
+                                                        <option value="{$cl->getId()}">{$cl->getNome()} {$cl->getCognome()} ({$cl->getEmail()})</option>
+                                                    {/foreach}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- GIORNO -->
+                                    <div class="field mb-3">
+                                        <label class="label is-small style-theme-text">Giorno della sessione *</label>
+                                        <div class="control">
+                                            <input class="input is-small" type="date" name="data" required min="{$smarty.now|date_format:'%Y-%m-%d'}">
+                                        </div>
+                                    </div>
+
+                                    <div class="columns mb-4">
+                                        <!-- ORA INIZIO -->
+                                        <div class="column">
+                                            <div class="field">
+                                                <label class="label is-small style-theme-text">Ora Inizio *</label>
+                                                <div class="control">
+                                                    <input class="input is-small" type="time" name="ora_inizio" required>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- ORA FINE -->
+                                        <div class="column">
+                                            <div class="field">
+                                                <label class="label is-small style-theme-text">Ora Fine *</label>
+                                                <div class="control">
+                                                    <input class="input is-small" type="time" name="ora_fine" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- SUBMIT -->
+                                    <button type="submit" class="button is-gymfly is-fullwidth">
+                                        <span class="icon"><i class="fas fa-save"></i></span>
+                                        <span>Salva Prenotazione</span>
+                                    </button>
+
+                                </form>
                             {/if}
 
                         </div>
