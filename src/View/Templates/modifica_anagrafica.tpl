@@ -7,7 +7,7 @@
     <title>GymFly - Modifica Dati Personali</title>
     <link rel="stylesheet" href="css/bulma.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=1.3">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <section class="section">

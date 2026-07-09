@@ -1,14 +1,41 @@
 /* GymFly - Stili e Colori Unificati dell'Applicazione */
 :root {
     color-scheme: light !important;
-    --gymfly-bg: #F4F9F1;
+    
+    /* CSS HEX */
+    --mint-cream: #f4f9f1ff;
+    --baby-blue: #99cdeaff;
+    --pale-sky: #c5e0fcff;
+    --periwinkle: #afafe2ff;
+    --periwinkle-2: #d0d0f5ff;
+
+    /* CSS HSL */
+    --mint-cream-hsl: hsla(97, 40%, 96%, 1);
+    --baby-blue-hsl: hsla(201, 66%, 76%, 1);
+    --pale-sky-hsl: hsla(211, 90%, 88%, 1);
+    --periwinkle-hsl: hsla(240, 47%, 79%, 1);
+    --periwinkle-2-hsl: hsla(240, 65%, 89%, 1);
+
+    /* Gradients */
+    --gradient-top: linear-gradient(0deg, #f4f9f1ff, #99cdeaff, #c5e0fcff, #afafe2ff, #d0d0f5ff);
+    --gradient-right: linear-gradient(90deg, #f4f9f1ff, #99cdeaff, #c5e0fcff, #afafe2ff, #d0d0f5ff);
+    --gradient-bottom: linear-gradient(180deg, #f4f9f1ff, #99cdeaff, #c5e0fcff, #afafe2ff, #d0d0f5ff);
+    --gradient-left: linear-gradient(270deg, #f4f9f1ff, #99cdeaff, #c5e0fcff, #afafe2ff, #d0d0f5ff);
+    --gradient-top-right: linear-gradient(45deg, #f4f9f1ff, #99cdeaff, #c5e0fcff, #afafe2ff, #d0d0f5ff);
+    --gradient-bottom-right: linear-gradient(135deg, #f4f9f1ff, #99cdeaff, #c5e0fcff, #afafe2ff, #d0d0f5ff);
+    --gradient-top-left: linear-gradient(225deg, #f4f9f1ff, #99cdeaff, #c5e0fcff, #afafe2ff, #d0d0f5ff);
+    --gradient-bottom-left: linear-gradient(315deg, #f4f9f1ff, #99cdeaff, #c5e0fcff, #afafe2ff, #d0d0f5ff);
+    --gradient-radial: radial-gradient(#f4f9f1ff, #99cdeaff, #c5e0fcff, #afafe2ff, #d0d0f5ff);
+
+    /* GymFly theme aliases */
+    --gymfly-bg: var(--mint-cream);
     --gymfly-card-bg: #FFFFFF;
-    --gymfly-primary: #AFAFE2;
-    --gymfly-secondary: #99CDEA;
-    --gymfly-accent: #C5E0FC;
+    --gymfly-primary: var(--periwinkle);
+    --gymfly-secondary: var(--baby-blue);
+    --gymfly-accent: var(--pale-sky);
     --gymfly-text: #4B3F72;
-    --gymfly-header-gradient: linear-gradient(135deg, #AFAFE2 0%, #99CDEA 100%);
-    --gymfly-header-gradient-admin: linear-gradient(135deg, #AFAFE2 0%, #C5E0FC 100%);
+    --gymfly-header-gradient: linear-gradient(135deg, var(--periwinkle) 0%, var(--baby-blue) 100%);
+    --gymfly-header-gradient-admin: linear-gradient(135deg, var(--periwinkle) 0%, var(--pale-sky) 100%);
 }
 
 /* Regole Globali di Base */
@@ -335,11 +362,11 @@ code {
 /* Disattivazione del tema scuro automatico per mantenere la coerenza della palette panna */
 @media (prefers-color-scheme: dark) {
     :root {
-        --gymfly-bg: #F4F9F1 !important;
+        --gymfly-bg: var(--mint-cream) !important;
         --gymfly-card-bg: #FFFFFF !important;
-        --gymfly-primary: #AFAFE2 !important;
-        --gymfly-secondary: #99CDEA !important;
-        --gymfly-accent: #C5E0FC !important;
+        --gymfly-primary: var(--periwinkle) !important;
+        --gymfly-secondary: var(--baby-blue) !important;
+        --gymfly-accent: var(--pale-sky) !important;
         --gymfly-text: #4B3F72 !important;
     }
     

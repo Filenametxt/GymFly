@@ -7,7 +7,7 @@
     <title>GymFly - Planner Settimanale</title>
     <link class="style-sheet" rel="stylesheet" href="css/bulma.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=1.6">
+    <link rel="stylesheet" href="css/style.css">
     <style>
         .planner-table {
             width: 100%;
