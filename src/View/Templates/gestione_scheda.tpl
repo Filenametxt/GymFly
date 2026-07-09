@@ -11,29 +11,9 @@
 </head>
 <body>
 
-    <!-- NAVBAR -->
-    <nav class="navbar" role="navigation" aria-label="main navigation">
-        <div class="container">
-            <div class="navbar-brand">
-                <a class="navbar-item" href="./">
-                    <strong class="is-size-4" style="color: #AFAFE2;">GymFly 🏋️‍♂️</strong>
-                </a>
-            </div>
-            <div class="navbar-end">
-                <div class="navbar-item">
-                    <a href="dashboard-allenatore" class="button is-link is-light">
-                        <i class="fas fa-arrow-left mr-2"></i> Dashboard Allenatore
-                    </a>
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <!-- CONTENT -->
-    <section class="section">
-        <div class="container">
-            <div class="columns is-centered">
-                <div class="column is-10">
+    <div class="app-container">
+        {include file='sidebar.tpl'}
+        <main class="app-content">
                     
                     <!-- OPTION: COPIA DA UN ALTRO CLIENTE -->
                     {if $altre_schede|@count > 0}
@@ -68,188 +48,191 @@
 
                     <!-- SCHEDA FORM -->
                     <div class="control-box">
-                        <div class="has-text-centered mb-5">
-                            <span class="icon is-large has-text-trainer-theme">
-                                <i class="fas fa-file-invoice fa-3x" style="color: #AFAFE2;"></i>
-                            </span>
-                            <h1 class="title is-3 mt-3 style-theme-text">Inserimento Dati Scheda</h1>
-                            <p class="subtitle is-6 has-text-grey mt-1">
-                                Compila i dettagli della scheda per l'atleta <strong>{$scheda->getCliente()->getNome()} {$scheda->getCliente()->getCognome()}</strong>.
-                            </p>
+                        <!-- HEADER CON TITOLO E TASTO ELIMINA (Top-right con display flex inline per compatibilità) -->
+                        <div style="display: flex; justify-content: space-between; align-items: center;" class="mb-5">
+                            <h1 class="title is-2 style-theme-text mb-0">REALIZZA SCHEDA</h1>
+                            <a href="elimina-scheda?id={$scheda->getId()}" class="button is-danger is-outlined" onclick="return confirm('Sei sicuro di voler eliminare questa scheda e tutti i suoi allenamenti?')">
+                                <span class="icon"><i class="fas fa-trash"></i></span>
+                                <span>Elimina</span>
+                            </a>
                         </div>
 
                         <form id="form-scheda" action="salva-scheda" method="POST">
                             <input type="hidden" name="id_scheda" id="id_scheda" value="{$scheda->getId()}">
                             <input type="hidden" name="azione" id="azione-field" value="salva">
 
-                            <div class="columns">
-                                <!-- NOME SCHEDA -->
-                                <div class="column is-6">
-                                    <div class="field">
-                                        <label class="label">Nome della Scheda *</label>
-                                        <div class="control has-icons-left">
-                                            <input class="input" type="text" name="nome_scheda" value="{$scheda->getNome_scheda()|escape}" required placeholder="Es: Massa Periodo 1">
-                                            <span class="icon is-small is-left"><i class="fas fa-tag"></i></span>
+                            {assign var="em" value=App\Infrastructure\Doctrine\EntityManagerFactory::create()}
+                            {assign var="clienti" value=$em->getRepository('App\Entity\Cliente')->findBy(['palestra' => $utente->getPalestra()])}
+
+                            <!-- BOX METADATI CON NOME COGNOME ATLETA E INPUT (Layout bozza) -->
+                            <div class="box mb-5">
+                                <div class="field mb-4">
+                                    <label class="label"><i class="fas fa-user-circle mr-2" style="color: var(--gymfly-primary);"></i> Atleta Cliente</label>
+                                    <div class="control">
+                                        <div class="select is-fullwidth">
+                                            <select id="select-cambia-cliente">
+                                                {foreach $clienti as $c}
+                                                    <option value="{$c->getCF()}" {if $c->getCF() === $scheda->getCliente()->getCF()}selected{/if} data-scheda-id="{if $c->getScheda()}{$c->getScheda()->getId()}{else}0{/if}">
+                                                        {$c->getNome()} {$c->getCognome()} ({$c->getCF()})
+                                                    </option>
+                                                {/foreach}
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
-                                <!-- OBIETTIVO -->
-                                <div class="column is-6">
-                                    <div class="field">
-                                        <label class="label">Obiettivo *</label>
-                                        <div class="control has-icons-left">
-                                            <input class="input" type="text" name="obiettivo" value="{$scheda->getObiettivo()|escape}" required placeholder="Es: Aumento massa muscolare">
-                                            <span class="icon is-small is-left"><i class="fas fa-bullseye"></i></span>
+                                
+                                <div class="columns is-multiline">
+                                    <!-- NOME SCHEDA -->
+                                    <div class="column is-6">
+                                        <div class="field">
+                                            <label class="label">Nome della Scheda *</label>
+                                            <div class="control has-icons-left">
+                                                <input class="input" type="text" name="nome_scheda" value="{$scheda->getNome_scheda()|escape}" required placeholder="Es: Massa Periodo 1">
+                                                <span class="icon is-small is-left"><i class="fas fa-tag"></i></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- OBIETTIVO -->
+                                    <div class="column is-6">
+                                        <div class="field">
+                                            <label class="label">Obiettivo *</label>
+                                            <div class="control has-icons-left">
+                                                <input class="input" type="text" name="obiettivo" value="{$scheda->getObiettivo()|escape}" required placeholder="Es: Aumento massa muscolare">
+                                                <span class="icon is-small is-left"><i class="fas fa-bullseye"></i></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- DATA INIZIO -->
+                                    <div class="column is-6">
+                                        <div class="field">
+                                            <label class="label">Data Inizio *</label>
+                                            <div class="control has-icons-left">
+                                                <input class="input" type="date" name="data_inizio" value="{$scheda->getData_inizio()->format('Y-m-d')}" required>
+                                                <span class="icon is-small is-left"><i class="fas fa-calendar-alt"></i></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- DATA FINE -->
+                                    <div class="column is-6">
+                                        <div class="field">
+                                            <label class="label">Data Fine *</label>
+                                            <div class="control has-icons-left">
+                                                <input class="input" type="date" name="data_fine" value="{$scheda->getData_fine()->format('Y-m-d')}" required>
+                                                <span class="icon is-small is-left"><i class="fas fa-calendar-check"></i></span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="columns">
-                                <!-- DATA INIZIO -->
-                                <div class="column is-6">
-                                    <div class="field">
-                                        <label class="label">Data Inizio *</label>
-                                        <div class="control has-icons-left">
-                                            <input class="input" type="date" name="data_inizio" value="{$scheda->getData_inizio()->format('Y-m-d')}" required>
-                                            <span class="icon is-small is-left"><i class="fas fa-calendar-alt"></i></span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- DATA FINE -->
-                                <div class="column is-6">
-                                    <div class="field">
-                                        <label class="label">Data Fine *</label>
-                                        <div class="control has-icons-left">
-                                            <input class="input" type="date" name="data_fine" value="{$scheda->getData_fine()->format('Y-m-d')}" required>
-                                            <span class="icon is-small is-left"><i class="fas fa-calendar-check"></i></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <hr>
-                            
-                            <!-- DETTAGLI ALLENAMENTI -->
-                            <div class="is-flex is-justify-content-between is-align-items-center mb-4">
-                                <h3 class="title is-4 style-theme-text mb-0"><i class="fas fa-running mr-2"></i> Allenamenti della Scheda</h3>
-                                <button type="button" class="button is-small is-success" id="add-workout-btn">
-                                    <i class="fas fa-plus mr-1"></i> Aggiungi Allenamento (A, B, C...)
-                                </button>
-                            </div>
-
-                            <div id="workouts-container">
-                                {foreach $scheda->getAllenamenti() as $wIndex => $allenamento}
-                                    <div class="box workout-box mb-4" data-workout-index="{$wIndex}">
-                                        <div class="columns is-vcentered">
-                                            <div class="column is-5">
-                                                <div class="field">
-                                                    <label class="label">Nome Allenamento (Sessione)</label>
-                                                    <div class="control">
-                                                        <input class="input" type="text" name="workouts[{$wIndex}][nome]" value="{$allenamento->getNome()|escape}" required placeholder="Es: Allenamento A - Petto/Bicipiti">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="column is-5">
-                                                <div class="field">
-                                                    <label class="label">Note / Descrizione</label>
-                                                    <div class="control">
-                                                        <input class="input" type="text" name="workouts[{$wIndex}][descrizione]" value="{$allenamento->getDescrizione()|escape}" placeholder="Es: Sessione del lunedì">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="column is-2 has-text-right">
-                                                <button type="button" class="button is-danger is-outlined remove-workout-btn mt-4">
-                                                    <i class="fas fa-trash-alt"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        <div class="exercise-rows-container mt-4">
-                                            <table class="table is-fullwidth is-striped">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Esercizio *</th>
-                                                        <th style="width: 100px;">Serie</th>
-                                                        <th style="width: 100px;">Ripetizioni</th>
-                                                        <th style="width: 120px;">Carico (Kg)</th>
-                                                        <th style="width: 120px;">Recupero</th>
-                                                        <th style="width: 60px;"></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {foreach $allenamento->getDettagli() as $dIndex => $dettaglio}
-                                                        <tr data-exercise-index="{$dIndex}">
-                                                            <td>
-                                                                <div class="select is-fullwidth">
-                                                                    <select name="workouts[{$wIndex}][dettagli][{$dIndex}][esercizio_id]" required>
-                                                                        <option value="">-- Seleziona --</option>
-                                                                        {foreach $esercizi as $ex}
-                                                                            <option value="{$ex->getId()}" {if $dettaglio->getEsercizio()->getId() == $ex->getId()}selected{/if}>
-                                                                                {$ex->getNomeEsercizio()}
-                                                                            </option>
-                                                                        {/foreach}
-                                                                    </select>
-                                                                </div>
-                                                            </td>
-                                                            <td>
-                                                                <input class="input" type="number" name="workouts[{$wIndex}][dettagli][{$dIndex}][serie]" value="{$dettaglio->getSerie()}" required min="1">
-                                                            </td>
-                                                            <td>
-                                                                <input class="input" type="number" name="workouts[{$wIndex}][dettagli][{$dIndex}][ripetizioni]" value="{$dettaglio->getRipetizioni()}" required min="1">
-                                                            </td>
-                                                            <td>
-                                                                <input class="input" type="number" step="0.5" name="workouts[{$wIndex}][dettagli][{$dIndex}][carico]" value="{$dettaglio->getCarico()}" required min="0">
-                                                            </td>
-                                                            <td>
-                                                                <input class="input" type="text" name="workouts[{$wIndex}][dettagli][{$dIndex}][recupero]" placeholder="Es: 90s" value="">
-                                                            </td>
-                                                            <td>
-                                                                <button type="button" class="button is-danger is-light remove-exercise-btn">
-                                                                    <i class="fas fa-times"></i>
-                                                                </button>
-                                                            </td>
-                                                        </tr>
-                                                    {/foreach}
-                                                </tbody>
-                                            </table>
-                                            <div class="has-text-left mt-2">
-                                                <button type="button" class="button is-small is-link is-light add-exercise-btn">
-                                                    <i class="fas fa-plus mr-1"></i> Aggiungi Esercizio
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                {/foreach}
-                            </div>
-
-                            <!-- ACTION BUTTONS -->
-                            <hr class="my-5">
-                            <div class="field is-grouped is-grouped-multiline">
-                                <div class="control">
-                                    <button type="button" class="button is-gymfly" id="btn-save-draft">
-                                        <i class="fas fa-save mr-2"></i> Salva Bozza (per me)
+                            <!-- CONTENITORE ALLENAMENTI (Grande box centrale) -->
+                            <div class="box mb-5 p-5">
+                                <div style="display: flex; justify-content: space-between; align-items: center;" class="mb-5">
+                                    <h3 class="title is-4 style-theme-text mb-0"><i class="fas fa-running mr-2"></i> Allenamenti della Scheda</h3>
+                                    <button type="button" class="button is-small is-success" id="add-workout-btn">
+                                        <i class="fas fa-plus mr-1"></i> Aggiungi Allenamento (A, B, C...)
                                     </button>
                                 </div>
+
+                                <div id="workouts-container">
+                                    {foreach $scheda->getAllenamenti() as $wIndex => $allenamento}
+                                        <div class="box workout-box mb-4" data-workout-index="{$wIndex}">
+                                            <div class="columns is-vcentered">
+                                                <div class="column is-5">
+                                                    <div class="field">
+                                                        <label class="label">Nome Allenamento (Sessione)</label>
+                                                        <div class="control">
+                                                            <input class="input" type="text" name="workouts[{$wIndex}][nome]" value="{$allenamento->getNome()|escape}" required placeholder="Es: Allenamento A - Petto/Bicipiti">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="column is-5">
+                                                    <div class="field">
+                                                        <label class="label">Note / Descrizione</label>
+                                                        <div class="control">
+                                                            <input class="input" type="text" name="workouts[{$wIndex}][descrizione]" value="{$allenamento->getDescrizione()|escape}" placeholder="Es: Sessione del lunedì">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="column is-2 has-text-right">
+                                                    <button type="button" class="button is-danger remove-workout-btn mt-4" title="Rimuovi Allenamento">
+                                                        <span class="icon"><i class="fas fa-times"></i></span>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="exercise-rows-container mt-4">
+                                                <table class="table is-fullwidth is-striped">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Esercizio *</th>
+                                                            <th style="width: 100px;">Serie</th>
+                                                            <th style="width: 100px;">Ripetizioni</th>
+                                                            <th style="width: 120px;">Carico (Kg)</th>
+                                                            <th style="width: 120px;">Recupero</th>
+                                                            <th style="width: 60px;"></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {foreach $allenamento->getDettagli() as $dIndex => $dettaglio}
+                                                            <tr data-exercise-index="{$dIndex}">
+                                                                <td>
+                                                                    <div class="select is-fullwidth">
+                                                                        <select name="workouts[{$wIndex}][dettagli][{$dIndex}][esercizio_id]" required>
+                                                                            <option value="">-- Seleziona --</option>
+                                                                            {foreach $esercizi as $ex}
+                                                                                <option value="{$ex->getId()}" {if $dettaglio->getEsercizio()->getId() == $ex->getId()}selected{/if}>
+                                                                                    {$ex->getNomeEsercizio()}
+                                                                                </option>
+                                                                            {/foreach}
+                                                                        </select>
+                                                                    </div>
+                                                                </td>
+                                                                <td>
+                                                                    <input class="input" type="number" name="workouts[{$wIndex}][dettagli][{$dIndex}][serie]" value="{$dettaglio->getSerie()}" required min="1">
+                                                                </td>
+                                                                <td>
+                                                                    <input class="input" type="number" name="workouts[{$wIndex}][dettagli][{$dIndex}][ripetizioni]" value="{$dettaglio->getRipetizioni()}" required min="1">
+                                                                </td>
+                                                                <td>
+                                                                    <input class="input" type="number" step="0.5" name="workouts[{$wIndex}][dettagli][{$dIndex}][carico]" value="{$dettaglio->getCarico()}" required min="0">
+                                                                </td>
+                                                                <td>
+                                                                    <input class="input" type="text" name="workouts[{$wIndex}][dettagli][{$dIndex}][recupero]" placeholder="Es: 90s" value="">
+                                                                </td>
+                                                                <td>
+                                                                    <button type="button" class="button is-danger remove-exercise-btn" title="Rimuovi Esercizio">
+                                                                        <span class="icon"><i class="fas fa-times"></i></span>
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        {/foreach}
+                                                    </tbody>
+                                                </table>
+                                                <div class="has-text-left mt-2">
+                                                    <button type="button" class="button is-small is-link is-light add-exercise-btn">
+                                                        <i class="fas fa-plus mr-1"></i> Aggiungi Esercizio
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {/foreach}
+                                </div>
+                            </div>
+
+                            <!-- ACTION BUTTONS (In basso a destra come da bozza: "Manda") -->
+                            <div class="field is-grouped is-grouped-right mt-5">
                                 <div class="control">
                                     <button type="button" class="button is-success" id="btn-save-send">
-                                        <i class="fas fa-paper-plane mr-2"></i> Invia al Cliente (Salva & Invia)
+                                        <i class="fas fa-paper-plane mr-2"></i> Manda
                                     </button>
-                                </div>
-                                <div class="control">
-                                    <a href="elimina-scheda?id={$scheda->getId()}" class="button is-danger is-light" onclick="return confirm('Sei sicuro di voler eliminare questa scheda e tutti i suoi allenamenti?')">
-                                        <i class="fas fa-trash-alt mr-2"></i> Elimina Scheda
-                                    </a>
                                 </div>
                             </div>
 
                         </form>
                     </div>
-
-                </div>
-            </div>
-        </div>
-    </section>
+        </main>
+    </div>
 
     <!-- UI ESERCIZI LIST TEMPLATE (JSON-ENCODED PER JAVASCRIPT) -->
     <script>
@@ -283,11 +266,22 @@
                 });
             }
 
-            // 2. Click Salvataggio Bozza o Invio
-            document.getElementById('btn-save-draft').addEventListener('click', () => {
-                actionField.value = 'salva';
-                form.submit();
-            });
+            // 1.1 Gestione cambio cliente dal menu a tendina
+            const selectCliente = document.getElementById('select-cambia-cliente');
+            if (selectCliente) {
+                selectCliente.addEventListener('change', () => {
+                    const cf = selectCliente.value;
+                    const option = selectCliente.options[selectCliente.selectedIndex];
+                    const targetSchedaId = parseInt(option.getAttribute('data-scheda-id') || '0');
+                    if (targetSchedaId > 0) {
+                        window.location.href = `modifica-scheda?id=${targetSchedaId}`;
+                    } else {
+                        window.location.href = `crea-scheda?cf=${cf}`;
+                    }
+                });
+            }
+
+            // 2. Click Invio al Cliente
             document.getElementById('btn-save-send').addEventListener('click', () => {
                 actionField.value = 'invia';
                 form.submit();
@@ -316,8 +310,8 @@
                                 </div>
                             </div>
                             <div class="column is-2 has-text-right">
-                                <button type="button" class="button is-danger is-outlined remove-workout-btn mt-4">
-                                    <i class="fas fa-trash-alt"></i>
+                                <button type="button" class="button is-danger remove-workout-btn mt-4" title="Rimuovi Allenamento">
+                                    <span class="icon"><i class="fas fa-times"></i></span>
                                 </button>
                             </div>
                         </div>
@@ -398,8 +392,8 @@
                                 <input class="input" type="text" name="workouts[${wIndex}][dettagli][${exIndex}][recupero]" placeholder="Es: 90s">
                             </td>
                             <td>
-                                <button type="button" class="button is-danger is-light remove-exercise-btn">
-                                    <i class="fas fa-times"></i>
+                                <button type="button" class="button is-danger remove-exercise-btn" title="Rimuovi Esercizio">
+                                    <span class="icon"><i class="fas fa-times"></i></span>
                                 </button>
                             </td>
                         </tr>
