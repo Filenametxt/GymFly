@@ -31,13 +31,9 @@
                     </div>
                     <div class="column is-narrow">
                         <figure class="image is-96x96">
-                            {if $fotoProfilo}
-                                <img src="data:image/jpeg;base64,{$fotoProfilo}" alt="Foto Profilo" class="is-rounded" style="width: 100%; height: 100%; object-fit: cover; border: 3px solid white; border-radius: 50%;">
-                            {else}
-                                <span class="icon is-large has-text-white">
-                                    <i class="fas fa-user-circle fa-5x"></i>
-                                </span>
-                            {/if}
+                            <span class="icon is-large has-text-white">
+                                <i class="fas fa-user-circle fa-5x"></i>
+                            </span>
                         </figure>
                     </div>
                 </div>

@@ -23,13 +23,6 @@
                         <h1 class="title is-2 has-text-white mt-1 mb-2">Ciao, Coach {$utente->getNome()}!</h1>
                         <p class="subtitle is-5 has-text-white-ter">Prepara nuove schede di allenamento e segui i tuoi atleti</p>
                     </div>
-                    <div class="column is-narrow is-hidden-mobile">
-                        <figure class="image is-96x96">
-                            <span class="icon is-large has-text-white">
-                                <i class="fas fa-user-circle fa-5x"></i>
-                            </span>
-                        </figure>
-                    </div>
                 </div>
             </div>
 

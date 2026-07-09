@@ -22,6 +22,9 @@ class VisualizzazioneViewSmarty implements VisualizzazioneView
     public function mostraDashboardAdmin(array $dati): void
     {
         header('Content-Type: text/html; charset=utf-8');
+        $utente = $dati['utente'] ?? null;
+        $fotoProfilo = ($utente && $utente->getProfilePicture()) ? base64_encode($utente->getProfilePicture()) : null;
+        $this->smarty->assign('fotoProfilo', $fotoProfilo);
         foreach ($dati as $key => $value) {
             $this->smarty->assign($key, $value);
         }
@@ -31,6 +34,9 @@ class VisualizzazioneViewSmarty implements VisualizzazioneView
     public function mostraDashboardAllenatore(array $dati): void
     {
         header('Content-Type: text/html; charset=utf-8');
+        $utente = $dati['utente'] ?? null;
+        $fotoProfilo = ($utente && $utente->getProfilePicture()) ? base64_encode($utente->getProfilePicture()) : null;
+        $this->smarty->assign('fotoProfilo', $fotoProfilo);
         foreach ($dati as $key => $value) {
             $this->smarty->assign($key, $value);
         }
@@ -41,8 +47,10 @@ class VisualizzazioneViewSmarty implements VisualizzazioneView
     {
         header('Content-Type: text/html; charset=utf-8');
         
+        $fotoProfilo = null;
         if (isset($dati['utente'])) {
             $clienteOriginale = $dati['utente'];
+            $fotoProfilo = $clienteOriginale->getProfilePicture() ? base64_encode($clienteOriginale->getProfilePicture()) : null;
             $dati['utente'] = new class($clienteOriginale) {
                 private $cliente;
                 private $schedaWrapped = null;
@@ -79,6 +87,7 @@ class VisualizzazioneViewSmarty implements VisualizzazioneView
             };
         }
 
+        $this->smarty->assign('fotoProfilo', $fotoProfilo);
         foreach ($dati as $key => $value) {
             $this->smarty->assign($key, $value);
         }

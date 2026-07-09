@@ -22,13 +22,6 @@
                         <h1 class="title is-2 has-text-white mb-2">Ciao, {$utente->getNome()}!</h1>
                         <p class="subtitle is-5 has-text-white-ter">Pronto per l'allenamento di oggi?</p>
                     </div>
-                    <div class="column is-narrow">
-                        <figure class="image is-96x96">
-                            <span class="icon is-large has-text-white">
-                                <i class="fas fa-user-circle fa-5x"></i>
-                            </span>
-                        </figure>
-                    </div>
                 </div>
             </div>
 
@@ -45,10 +38,14 @@
             <!-- ================= MOBILE GREETING (Da mockup Screenshot - Diretto sullo sfondo) ================= -->
             <div class="has-text-centered mb-6 is-hidden-tablet">
                 <div class="client-avatar-wrapper mb-3">
-                    <div class="client-avatar-inner">
-                        <span class="icon is-large">
-                            <i class="fas fa-user fa-3x"></i>
-                        </span>
+                    <div class="client-avatar-inner" style="{if $fotoProfilo}padding: 0; background: transparent;{/if}">
+                        {if $fotoProfilo}
+                            <img src="data:image/jpeg;base64,{$fotoProfilo}" alt="Foto Profilo" class="is-rounded" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                        {else}
+                            <span class="icon is-large">
+                                <i class="fas fa-user fa-3x"></i>
+                            </span>
+                        {/if}
                     </div>
                 </div>
                 <h2 class="title is-3 style-theme-text mb-1">Ciao, {$utente->getNome()}!</h2>
