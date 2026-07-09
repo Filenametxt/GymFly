@@ -332,6 +332,7 @@ class SchedaAllenamentoController
         $allenatore = $this->entityManager->find(Allenatore::class, $idAllenatore);
 
         $idScheda = (int)($_POST['id_scheda'] ?? 0);
+        file_put_contents('C:/XAMPP/htdocs/GymFly/post_log.txt', print_r($_POST, true));
         $scheda = $this->schedaRepo->findById($idScheda);
 
         if (!$scheda || $scheda->getCliente()->getPalestra()->getId() !== $allenatore->getPalestra()->getId()) {
@@ -367,6 +368,8 @@ class SchedaAllenamentoController
 
             // Costruisce la nuova lista di allenamenti ed esercizi
             $workoutsData = $_POST['workouts'] ?? [];
+            $recuperoMap = [];
+
             foreach ($workoutsData as $wData) {
                 $nomeWorkout = trim($wData['nome'] ?? 'Allenamento');
                 $descrizioneWorkout = trim($wData['descrizione'] ?? '');
@@ -386,10 +389,6 @@ class SchedaAllenamentoController
                         $carico = (float)($dData['carico'] ?? 0.0);
                         $recupero = trim($dData['recupero'] ?? '');
 
-                        if ($recupero !== '') {
-                            $allenamento->setDescrizione($allenamento->getDescrizione() . "\n[" . $esercizio->getNomeEsercizio() . " - Recupero: " . $recupero . "]");
-                        }
-
                         $dettaglio = new DettaglioAllenamento(
                             $esercizio,
                             $allenamento,
@@ -399,9 +398,38 @@ class SchedaAllenamentoController
                         );
                         $allenamento->addDettaglio($dettaglio);
                         $this->entityManager->persist($dettaglio);
+
+                        // Salviamo temporaneamente per scrivere il meta recupero dopo la generazione ID
+                        $recuperoMap[] = [
+                            'dettaglio' => $dettaglio,
+                            'allenamento' => $allenamento,
+                            'recupero' => $recupero
+                        ];
                     }
                 }
             }
+
+            // Flush per generare i dettagli id a DB
+            $this->entityManager->flush();
+
+            // Ora che gli ID dei dettagli esistono, aggiorniamo le descrizioni degli allenamenti con il tag univoco [DetId - ID - Recupero: XX]
+            foreach ($recuperoMap as $item) {
+                $dettaglio = $item['dettaglio'];
+                $allenamento = $item['allenamento'];
+                $recupero = $item['recupero'];
+
+                if ($recupero !== '') {
+                    $desc = $allenamento->getDescrizione();
+                    $meta = '[DetId - ' . $dettaglio->getId() . ' - Recupero: ' . $recupero . ']';
+                    if (strpos($desc, $meta) === false) {
+                        $desc = trim($desc . "\n" . $meta);
+                        $allenamento->setDescrizione($desc);
+                    }
+                }
+            }
+
+            // Flush finale per salvare le descrizioni
+            $this->entityManager->flush();
 
             // Sincronizza ed esegue il salvataggio specifico
             if ($azione === 'invia') {
@@ -506,6 +534,11 @@ class SchedaAllenamentoController
      */
     public function visualizzaScheda(): void
     {
+        // Disattiva cache del browser per visualizzare sempre gli ultimi aggiornamenti del coach
+        header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+        header("Cache-Control: post-check=0, pre-check=0", false);
+        header("Pragma: no-cache");
+
         $idCliente = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
 
@@ -554,13 +587,35 @@ class SchedaAllenamentoController
             return;
         }
 
-        // Invia header di stampa e renderizza una pagina HTML ottimizzata per stampa/PDF
-        header("Content-Disposition: attachment; filename=\"Scheda_" . str_replace(' ', '_', $scheda->getNome_scheda()) . ".html\"");
-        $this->view->mostraTemplate('esporta_scheda.tpl', [
+        // 1. Genera l'HTML renderizzato da Smarty
+        $html = $this->view->fetchTemplate('esporta_scheda.tpl', [
             'utente' => $cliente,
             'scheda' => $scheda
         ]);
+
+        // 2. Inizializza Dompdf e carica l'HTML
+        $options = new \Dompdf\Options();
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', true);
+        
+        $dompdf = new \Dompdf\Dompdf($options);
+        $dompdf->loadHtml($html);
+        
+        // Imposta formato foglio
+        $dompdf->setPaper('A4', 'portrait');
+        
+        // Renderizza il PDF
+        $dompdf->render();
+        
+        // Output del PDF direttamente come download (attachment)
+        $filename = "Scheda_" . str_replace(' ', '_', $scheda->getNome_scheda()) . ".pdf";
+        $dompdf->stream($filename, [
+            "Attachment" => true
+        ]);
+        exit;
     }
+
+
 
     /**
      * 6. Modifica scheda da parte del cliente (Caso 29)
@@ -568,6 +623,11 @@ class SchedaAllenamentoController
      */
     public function apriFormModificaSchedaCliente(): void
     {
+        // Disattiva cache del browser per visualizzare sempre gli ultimi aggiornamenti del coach
+        header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+        header("Cache-Control: post-check=0, pre-check=0", false);
+        header("Pragma: no-cache");
+
         $idCliente = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
 
@@ -592,15 +652,38 @@ class SchedaAllenamentoController
             return;
         }
 
-        // Se POST, delega a modificaDatiScheda
+        // Se POST, delega a modificaDatiScheda e aggiorna recupero nella descrizione
+        file_put_contents('C:/XAMPP/htdocs/GymFly/post_log_cliente.txt', print_r($_POST, true));
         $dettagliModificati = $_POST['dettagli'] ?? [];
         foreach ($dettagliModificati as $idDet => $data) {
             $ripetizioni = isset($data['ripetizioni']) ? (int)$data['ripetizioni'] : 0;
             $carico = isset($data['carico']) ? (float)$data['carico'] : 0.0;
             $this->modificaDatiScheda((int)$idDet, $carico, $ripetizioni);
-        }
 
-        $this->view->mostraStatoOperazione(true, "Dettagli tecnici della scheda (carico e ripetizioni) aggiornati con successo.", "visualizza-scheda");
+            $recupero = trim($data['recupero'] ?? '');
+            $dettaglio = $this->entityManager->find(DettaglioAllenamento::class, (int)$idDet);
+            if ($dettaglio) {
+                $allenamento = $dettaglio->getAllenamento();
+                $desc = $allenamento->getDescrizione();
+                $exNome = $dettaglio->getEsercizio()->getNomeEsercizio();
+                
+                $pattern = '/\[DetId - ' . $idDet . ' - Recupero: [^\]]+\]/';
+                $replacement = '[DetId - ' . $idDet . ' - Recupero: ' . $recupero . ']';
+                if ($recupero !== '') {
+                    if (preg_match($pattern, $desc)) {
+                        $desc = preg_replace($pattern, $replacement, $desc);
+                    } else {
+                        $desc .= "\n" . $replacement;
+                    }
+                } else {
+                    $desc = preg_replace($pattern, '', $desc);
+                }
+                $allenamento->setDescrizione(trim($desc));
+            }
+        }
+        $this->entityManager->flush();
+
+        $this->view->mostraStatoOperazione(true, "Dettagli tecnici della scheda aggiornati con successo.", "visualizza-scheda");
     }
 
     /**

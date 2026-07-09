@@ -14,6 +14,7 @@ class SchedaAllenamentoViewSmarty implements SchedaAllenamentoView
         $this->smarty->registerPlugin('modifier', 'base64_encode', 'base64_encode');
         $this->smarty->registerPlugin('modifier', 'pulisci_descrizione', [self::class, 'pulisciDescrizione']);
         $this->smarty->registerPlugin('modifier', 'estrai_recupero', [self::class, 'estraiRecupero']);
+        $this->smarty->clearCompiledTemplate(); // Forza ricompilazione immediata dei template modificati
     }
 
     public static function pulisciDescrizione(?string $descrizione): string
@@ -24,14 +25,28 @@ class SchedaAllenamentoViewSmarty implements SchedaAllenamentoView
         return trim(preg_replace('/\[[^\]]+\]/', '', $descrizione));
     }
 
-    public static function estraiRecupero(?string $descrizione, string $nomeEsercizio): string
+    public static function estraiRecupero(?string $descrizione, string $nomeEsercizio, int $serie = 1, ?int $dettaglioId = null): string
     {
         if ($descrizione === null) {
             return 'Non specificato';
         }
-        // pattern per catturare "[Nome Esercizio - Recupero: X]"
-        $pattern = '/' . preg_quote($nomeEsercizio, '/') . ' - Recupero: ([^\]\n]+)/';
-        if (preg_match($pattern, $descrizione, $matches)) {
+        
+        // 1. Se abbiamo il dettaglio ID, proviamo prima il pattern univoco per ID
+        if ($dettaglioId !== null && $dettaglioId > 0) {
+            $patternId = '/\[DetId - ' . $dettaglioId . ' - Recupero: ([^\]\n]+)\]/';
+            if (preg_match($patternId, $descrizione, $matches)) {
+                return trim($matches[1]);
+            }
+        }
+        
+        // 2. Proviamo il pattern specifico per serie: "[Nome Esercizio - Serie S - Recupero: X]"
+        $patternSeries = '/' . preg_quote($nomeEsercizio, '/') . ' - Serie ' . $serie . ' - Recupero: ([^\]\n]+)/';
+        if (preg_match($patternSeries, $descrizione, $matches)) {
+            return trim($matches[1]);
+        }
+        // Fallback al pattern globale senza serie: "[Nome Esercizio - Recupero: X]"
+        $patternGlobal = '/' . preg_quote($nomeEsercizio, '/') . ' - Recupero: ([^\]\n]+)/';
+        if (preg_match($patternGlobal, $descrizione, $matches)) {
             return trim($matches[1]);
         }
         return 'Non specificato';
@@ -44,6 +59,14 @@ class SchedaAllenamentoViewSmarty implements SchedaAllenamentoView
             $this->smarty->assign($key, $value);
         }
         $this->smarty->display($tplName);
+    }
+
+    public function fetchTemplate(string $tplName, array $dati = []): string
+    {
+        foreach ($dati as $key => $value) {
+            $this->smarty->assign($key, $value);
+        }
+        return $this->smarty->fetch($tplName);
     }
 
     public function mostraStatoOperazione(bool $successo, string $messaggio, ?string $ritorno = null): void

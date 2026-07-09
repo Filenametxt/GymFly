@@ -1178,6 +1178,18 @@ code {
     opacity: 0.3 !important;
 }
 
+/* Container per la visualizzazione della scheda dell'atleta */
+.visualizza-scheda-container {
+    max-width: 500px !important;
+    margin: 0 auto !important;
+    transition: max-width 0.3s ease;
+}
+
+@media screen and (min-width: 769px) {
+    .visualizza-scheda-container {
+        max-width: 1000px !important;
+    }
+}
 
 
 

@@ -79,6 +79,9 @@
             color: #4B3F72;
             font-weight: bold;
         }
+        tr.thick-border td {
+            border-bottom: 3px solid #4B3F72 !important;
+        }
         .print-btn-container {
             text-align: center;
             margin-bottom: 20px;
@@ -106,13 +109,9 @@
 </head>
 <body>
 
-    <div class="print-btn-container">
-        <button class="print-btn" onclick="window.print()">Stampa / Salva in PDF</button>
-    </div>
 
     <div class="header">
         <h1>GymFly - Scheda di Allenamento</h1>
-        <p>Generata per l'atleta il {$smarty.now|date_format:"%d/%m/%Y"}</p>
     </div>
 
     <div class="info-grid">
@@ -147,16 +146,53 @@
                     </tr>
                 </thead>
                 <tbody>
+                    {assign var="blocks" value=[]}
+                    {assign var="currentBlock" value=null}
                     {foreach $allenamento->getDettagli() as $dettaglio}
-                        <tr>
-                            <td><strong>{$dettaglio->getEsercizio()->getNomeEsercizio()}</strong></td>
-                            <td>{$dettaglio->getSerie()}</td>
-                            <td>{$dettaglio->getRipetizioni()}</td>
-                            <td>{$dettaglio->getCarico()} Kg</td>
-                            <td>
-                                {$allenamento->getDescrizione()|estrai_recupero:$dettaglio->getEsercizio()->getNomeEsercizio()}
-                            </td>
-                        </tr>
+                        {assign var="exId" value=$dettaglio->getEsercizio()->getId()}
+                        {assign var="isNewBlock" value=false}
+                        {if $currentBlock === null || $currentBlock.esercizio_id !== $exId}
+                            {assign var="isNewBlock" value=true}
+                        {else}
+                            {assign var="lastIndex" value=count($currentBlock.dettagli) - 1}
+                            {assign var="lastDettaglio" value=$currentBlock.dettagli[$lastIndex]}
+                            {if $dettaglio->getSerie() <= $lastDettaglio->getSerie()}
+                                {assign var="isNewBlock" value=true}
+                            {/if}
+                        {/if}
+                        {if $isNewBlock}
+                            {if $currentBlock !== null}
+                                {$blocks[] = $currentBlock}
+                            {/if}
+                            {assign var="currentBlock" value=[
+                                'esercizio' => $dettaglio->getEsercizio(),
+                                'esercizio_id' => $exId,
+                                'dettagli' => []
+                            ]}
+                        {/if}
+                        {$currentBlock.dettagli[] = $dettaglio}
+                    {/foreach}
+                    {if $currentBlock !== null}
+                        {$blocks[] = $currentBlock}
+                    {/if}
+
+                    {foreach $blocks as $block}
+                        {assign var="esercizio" value=$block['esercizio']}
+                        {foreach $block['dettagli'] as $dettaglio}
+                            <tr {if $dettaglio@last and not $block@last}class="thick-border"{/if}>
+                                <td>
+                                    {if $dettaglio@first}
+                                        <strong>{$esercizio->getNomeEsercizio()}</strong>
+                                    {/if}
+                                </td>
+                                <td>{$dettaglio->getSerie()}</td>
+                                <td>{$dettaglio->getRipetizioni()}</td>
+                                <td>{$dettaglio->getCarico()} Kg</td>
+                                <td>
+                                    {$allenamento->getDescrizione()|estrai_recupero:$esercizio->getNomeEsercizio():$dettaglio->getSerie():$dettaglio->getId()}
+                                </td>
+                            </tr>
+                        {/foreach}
                     {foreachelse}
                         <tr>
                             <td colspan="5">Nessun esercizio presente in questa sessione.</td>
@@ -169,14 +205,5 @@
         <p style="text-align: center; color: #777;">Nessun allenamento presente in questa scheda.</p>
     {/foreach}
 
-    <script>
-        // Avvia la stampa automatica dopo che la pagina è caricata
-        window.addEventListener('DOMContentLoaded', () => {
-            // Un breve ritardo garantisce il caricamento completo del layout prima di aprire la stampa del browser
-            setTimeout(() => {
-                window.print();
-            }, 500);
-        });
-    </script>
 </body>
 </html>

@@ -8,6 +8,31 @@
     <link rel="stylesheet" href="css/bulma.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        .exercise-box {
+            border: 2px solid var(--gymfly-primary);
+            border-radius: 12px;
+            padding: 1.25rem;
+            background-color: var(--gymfly-card-bg);
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        .series-table th {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--gymfly-primary);
+            font-weight: bold;
+        }
+        .series-table td {
+            vertical-align: middle;
+            text-align: center;
+        }
+        .series-label {
+            font-weight: bold;
+            color: var(--gymfly-primary);
+            font-size: 0.9rem;
+        }
+    </style>
 </head>
 <body>
 
@@ -48,10 +73,10 @@
 
                     <!-- SCHEDA FORM -->
                     <div class="control-box">
-                        <!-- HEADER CON TITOLO E TASTO ELIMINA (Top-right con display flex inline per compatibilità) -->
+                        <!-- HEADER CON TITOLO E TASTO ELIMINA -->
                         <div style="display: flex; justify-content: space-between; align-items: center;" class="mb-5">
                             <h1 class="title is-2 style-theme-text mb-0">REALIZZA SCHEDA</h1>
-                            <a href="elimina-scheda?id={$scheda->getId()}" class="button is-danger is-outlined" onclick="return confirm('Sei sicuro di voler eliminare questa scheda e tutti i suoi allenamenti?')">
+                            <a href="elimina-scheda?id={$scheda->getId()}" class="button is-danger" onclick="return confirm('Sei sicuro di voler eliminare questa scheda e tutti i suoi allenamenti?')">
                                 <span class="icon"><i class="fas fa-trash"></i></span>
                                 <span>Elimina</span>
                             </a>
@@ -64,7 +89,7 @@
                             {assign var="em" value=App\Infrastructure\Doctrine\EntityManagerFactory::create()}
                             {assign var="clienti" value=$em->getRepository('App\Entity\Cliente')->findBy(['palestra' => $utente->getPalestra()])}
 
-                            <!-- BOX METADATI CON NOME COGNOME ATLETA E INPUT (Layout bozza) -->
+                            <!-- BOX METADATI CON NOME COGNOME ATLETA E INPUT -->
                             <div class="box mb-5">
                                 <div class="field mb-4">
                                     <label class="label"><i class="fas fa-user-circle mr-2" style="color: var(--gymfly-primary);"></i> Atleta Cliente</label>
@@ -127,100 +152,23 @@
 
                             <!-- CONTENITORE ALLENAMENTI (Grande box centrale) -->
                             <div class="box mb-5 p-5">
-                                <div style="display: flex; justify-content: space-between; align-items: center;" class="mb-5">
+                                <div class="mb-5">
                                     <h3 class="title is-4 style-theme-text mb-0"><i class="fas fa-running mr-2"></i> Allenamenti della Scheda</h3>
-                                    <button type="button" class="button is-small is-success" id="add-workout-btn">
-                                        <i class="fas fa-plus mr-1"></i> Aggiungi Allenamento (A, B, C...)
-                                    </button>
                                 </div>
 
                                 <div id="workouts-container">
-                                    {foreach $scheda->getAllenamenti() as $wIndex => $allenamento}
-                                        <div class="box workout-box mb-4" data-workout-index="{$wIndex}">
-                                            <div class="columns is-vcentered">
-                                                <div class="column is-5">
-                                                    <div class="field">
-                                                        <label class="label">Nome Allenamento (Sessione)</label>
-                                                        <div class="control">
-                                                            <input class="input" type="text" name="workouts[{$wIndex}][nome]" value="{$allenamento->getNome()|escape}" required placeholder="Es: Allenamento A - Petto/Bicipiti">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="column is-5">
-                                                    <div class="field">
-                                                        <label class="label">Note / Descrizione</label>
-                                                        <div class="control">
-                                                            <input class="input" type="text" name="workouts[{$wIndex}][descrizione]" value="{$allenamento->getDescrizione()|escape}" placeholder="Es: Sessione del lunedì">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="column is-2 has-text-right">
-                                                    <button type="button" class="button is-danger remove-workout-btn mt-4" title="Rimuovi Allenamento">
-                                                        <span class="icon"><i class="fas fa-times"></i></span>
-                                                    </button>
-                                                </div>
-                                            </div>
+                                    <!-- Generato dinamicamente via JS per garantire coerenza totale -->
+                                </div>
 
-                                            <div class="exercise-rows-container mt-4">
-                                                <table class="table is-fullwidth is-striped">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Esercizio *</th>
-                                                            <th style="width: 100px;">Serie</th>
-                                                            <th style="width: 100px;">Ripetizioni</th>
-                                                            <th style="width: 120px;">Carico (Kg)</th>
-                                                            <th style="width: 120px;">Recupero</th>
-                                                            <th style="width: 60px;"></th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {foreach $allenamento->getDettagli() as $dIndex => $dettaglio}
-                                                            <tr data-exercise-index="{$dIndex}">
-                                                                <td>
-                                                                    <div class="select is-fullwidth">
-                                                                        <select name="workouts[{$wIndex}][dettagli][{$dIndex}][esercizio_id]" required>
-                                                                            <option value="">-- Seleziona --</option>
-                                                                            {foreach $esercizi as $ex}
-                                                                                <option value="{$ex->getId()}" {if $dettaglio->getEsercizio()->getId() == $ex->getId()}selected{/if}>
-                                                                                    {$ex->getNomeEsercizio()}
-                                                                                </option>
-                                                                            {/foreach}
-                                                                        </select>
-                                                                    </div>
-                                                                </td>
-                                                                <td>
-                                                                    <input class="input" type="number" name="workouts[{$wIndex}][dettagli][{$dIndex}][serie]" value="{$dettaglio->getSerie()}" required min="1">
-                                                                </td>
-                                                                <td>
-                                                                    <input class="input" type="number" name="workouts[{$wIndex}][dettagli][{$dIndex}][ripetizioni]" value="{$dettaglio->getRipetizioni()}" required min="1">
-                                                                </td>
-                                                                <td>
-                                                                    <input class="input" type="number" step="0.5" name="workouts[{$wIndex}][dettagli][{$dIndex}][carico]" value="{$dettaglio->getCarico()}" required min="0">
-                                                                </td>
-                                                                <td>
-                                                                    <input class="input" type="text" name="workouts[{$wIndex}][dettagli][{$dIndex}][recupero]" placeholder="Es: 90s" value="">
-                                                                </td>
-                                                                <td>
-                                                                    <button type="button" class="button is-danger remove-exercise-btn" title="Rimuovi Esercizio">
-                                                                        <span class="icon"><i class="fas fa-times"></i></span>
-                                                                    </button>
-                                                                </td>
-                                                            </tr>
-                                                        {/foreach}
-                                                    </tbody>
-                                                </table>
-                                                <div class="has-text-left mt-2">
-                                                    <button type="button" class="button is-small is-link is-light add-exercise-btn">
-                                                        <i class="fas fa-plus mr-1"></i> Aggiungi Esercizio
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    {/foreach}
+                                <!-- Pulsante Aggiungi Allenamento spostato in fondo alla lista degli allenamenti -->
+                                <div class="has-text-right mt-4" style="border-top: 2px dashed var(--gymfly-accent); padding-top: 1.5rem;">
+                                    <button type="button" class="button is-gymfly" id="add-workout-btn" style="border-radius: 8px;">
+                                        <i class="fas fa-plus mr-2"></i> Aggiungi Allenamento (A, B, C...)
+                                    </button>
                                 </div>
                             </div>
 
-                            <!-- ACTION BUTTONS (In basso a destra come da bozza: "Manda") -->
+                            <!-- ACTION BUTTONS -->
                             <div class="field is-grouped is-grouped-right mt-5">
                                 <div class="control">
                                     <button type="button" class="button is-success" id="btn-save-send">
@@ -241,6 +189,30 @@
                 { id: "{$ex->getId()}", nome: "{$ex->getNomeEsercizio()|escape:'javascript'}" },
             {/foreach}
         ];
+        
+        const existingWorkouts = [
+            {foreach $scheda->getAllenamenti() as $allenamento}
+            {
+                id: "{$allenamento->getId()}",
+                nome: "{$allenamento->getNome()|escape:'javascript'}",
+                descrizione: "{$allenamento->getDescrizione()|pulisci_descrizione|escape:'javascript'}",
+                dettagli: [
+                    {foreach $allenamento->getDettagli() as $dettaglio}
+                    {
+                        id: "{$dettaglio->getId()}",
+                        esercizio_id: "{$dettaglio->getEsercizio()->getId()}",
+                        esercizio_nome: "{$dettaglio->getEsercizio()->getNomeEsercizio()|escape:'javascript'}",
+                        serie: "{$dettaglio->getSerie()}",
+                        ripetizioni: "{$dettaglio->getRipetizioni()}",
+                        carico: "{$dettaglio->getCarico()}",
+                        recupero: "{$allenamento->getDescrizione()|estrai_recupero:$dettaglio->getEsercizio()->getNomeEsercizio():$dettaglio->getSerie():$dettaglio->getId()|escape:'javascript'}"
+                    },
+                    {/foreach}
+                ]
+            },
+            {/foreach}
+        ];
+
         const schedaId = "{$scheda->getId()}";
     </script>
 
@@ -283,160 +255,300 @@
 
             // 2. Click Invio al Cliente
             document.getElementById('btn-save-send').addEventListener('click', () => {
-                actionField.value = 'invia';
-                form.submit();
+                if (form.reportValidity()) {
+                    actionField.value = 'invia';
+                    form.submit();
+                }
             });
 
-            // 3. Aggiungi Sessione di Allenamento
-            addWorkoutBtn.addEventListener('click', () => {
+            // 3. Funzione di sincronizzazione dei nomi e degli indici delle input per Doctrine
+            function updateIndices() {
+                const workoutBoxes = container.querySelectorAll('.workout-box');
+                
+                // Nascondi il tasto aggiungi allenamento se si raggiungono i 7 allenamenti
+                const addWorkoutBtn = document.getElementById('add-workout-btn');
+                if (addWorkoutBtn) {
+                    if (workoutBoxes.length >= 7) {
+                        addWorkoutBtn.style.display = 'none';
+                    } else {
+                        addWorkoutBtn.style.display = 'inline-flex';
+                    }
+                }
+
+                workoutBoxes.forEach((wBox, wIndex) => {
+                    const letter = String.fromCharCode(65 + wIndex);
+                    const letterTitle = wBox.querySelector('.workout-letter-title');
+                    if (letterTitle) {
+                        letterTitle.textContent = `ALLENAMENTO ${letter}`;
+                    }
+
+                    // Aggiorna name dei campi workout
+                    wBox.querySelector('.input-workout-nome').setAttribute('name', `workouts[${wIndex}][nome]`);
+                    wBox.querySelector('.input-workout-descrizione').setAttribute('name', `workouts[${wIndex}][descrizione]`);
+                    
+                    const exBoxes = wBox.querySelectorAll('.exercise-box');
+                    let dIndex = 0;
+                    
+                    exBoxes.forEach((exBox, exIdx) => {
+                        const selectEx = exBox.querySelector('.select-esercizio');
+                        if (selectEx && selectEx.options.length > 0) {
+                            selectEx.options[0].textContent = `Esercizio ${exIdx + 1}`;
+                        }
+                        const exId = selectEx.value;
+                        
+                        // Sincronizza i dati di ogni riga di serie
+                        const rows = exBox.querySelectorAll('.series-row');
+                        rows.forEach((row, rIndex) => {
+                            const sNum = rIndex + 1;
+                            row.querySelector('.series-label').textContent = `Serie ${sNum}`;
+                            
+                            // Aggiorna name per Doctrine
+                            row.querySelector('.input-esercizio-id').setAttribute('name', `workouts[${wIndex}][dettagli][${dIndex}][esercizio_id]`);
+                            row.querySelector('.input-esercizio-id').value = exId;
+                            
+                            row.querySelector('.input-serie-num').setAttribute('name', `workouts[${wIndex}][dettagli][${dIndex}][serie]`);
+                            row.querySelector('.input-serie-num').value = sNum;
+                            
+                            row.querySelector('.input-carico').setAttribute('name', `workouts[${wIndex}][dettagli][${dIndex}][carico]`);
+                            row.querySelector('.input-ripetizioni').setAttribute('name', `workouts[${wIndex}][dettagli][${dIndex}][ripetizioni]`);
+                            row.querySelector('.input-recupero').setAttribute('name', `workouts[${wIndex}][dettagli][${dIndex}][recupero]`);
+                            
+                            dIndex++;
+                        });
+                    });
+                });
+            }
+
+            // 4. Aggiunge un Allenamento (Sessione)
+            function addWorkout(wData = null) {
+                if (container.children.length >= 7) {
+                    alert("Non puoi inserire più di 7 allenamenti.");
+                    return null;
+                }
                 const wIndex = container.children.length;
-                const workoutHtml = `
-                    <div class="box workout-box mb-4" data-workout-index="${wIndex}">
-                        <div class="columns is-vcentered">
-                            <div class="column is-5">
-                                <div class="field">
-                                    <label class="label">Nome Allenamento (Sessione)</label>
-                                    <div class="control">
-                                        <input class="input" type="text" name="workouts[${wIndex}][nome]" required placeholder="Es: Allenamento A - Petto/Bicipiti">
-                                    </div>
+                const workoutDiv = document.createElement('div');
+                workoutDiv.className = 'box workout-box mb-5';
+                workoutDiv.style.border = '2px solid var(--gymfly-accent)';
+                workoutDiv.style.borderRadius = '16px';
+                
+                const nomeVal = wData ? wData.nome : '';
+                const descVal = wData ? wData.descrizione : '';
+                
+                workoutDiv.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--gymfly-accent); padding-bottom: 0.5rem; margin-bottom: 1.25rem;">
+                        <h4 class="title is-5 style-theme-text mb-0 workout-letter-title" style="font-weight: 800; letter-spacing: 0.5px;">ALLENAMENTO A</h4>
+                        <button type="button" class="button is-danger remove-workout-btn" title="Rimuovi Allenamento">
+                            <span class="icon"><i class="fas fa-times"></i></span>
+                        </button>
+                    </div>
+                    <div class="columns is-vcentered mb-4">
+                        <div class="column is-6">
+                            <div class="field">
+                                <label class="label">Nome Allenamento (Sessione)</label>
+                                <div class="control">
+                                    <input class="input input-workout-nome" type="text" value="${nomeVal}" required placeholder="Es: Petto/Bicipiti">
                                 </div>
-                            </div>
-                            <div class="column is-5">
-                                <div class="field">
-                                    <label class="label">Note / Descrizione</label>
-                                    <div class="control">
-                                        <input class="input" type="text" name="workouts[${wIndex}][descrizione]" placeholder="Es: Sessione del lunedì">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="column is-2 has-text-right">
-                                <button type="button" class="button is-danger remove-workout-btn mt-4" title="Rimuovi Allenamento">
-                                    <span class="icon"><i class="fas fa-times"></i></span>
-                                </button>
                             </div>
                         </div>
-
-                        <div class="exercise-rows-container mt-4">
-                            <table class="table is-fullwidth is-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Esercizio *</th>
-                                        <th style="width: 100px;">Serie</th>
-                                        <th style="width: 100px;">Ripetizioni</th>
-                                        <th style="width: 120px;">Carico (Kg)</th>
-                                        <th style="width: 120px;">Recupero</th>
-                                        <th style="width: 60px;"></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Righe di esercizi dinamiche -->
-                                </tbody>
-                            </table>
-                            <div class="has-text-left mt-2">
-                                <button type="button" class="button is-small is-link is-light add-exercise-btn">
-                                    <i class="fas fa-plus mr-1"></i> Aggiungi Esercizio
-                                </button>
+                        <div class="column is-6">
+                            <div class="field">
+                                <label class="label">Note / Descrizione</label>
+                                <div class="control">
+                                    <input class="input input-workout-descrizione" type="text" value="${descVal}" placeholder="inserisci informazioni">
+                                </div>
                             </div>
                         </div>
                     </div>
+
+                    <div class="exercises-list-container">
+                        <!-- Qui finiranno gli esercizi dell'allenamento -->
+                    </div>
+
+                    <div class="has-text-right mt-3">
+                        <button type="button" class="button is-small is-gymfly add-exercise-btn" style="border-radius: 8px;">
+                            <i class="fas fa-plus mr-1"></i> NUOVO
+                        </button>
+                    </div>
                 `;
-                container.insertAdjacentHTML('beforeend', workoutHtml);
-                attachWorkoutEvents(container.lastElementChild);
+
+                // Rimozione allenamento senza conferma
+                workoutDiv.querySelector('.remove-workout-btn').addEventListener('click', () => {
+                    workoutDiv.remove();
+                    updateIndices();
+                });
+
+                // Aggiunta esercizio
+                workoutDiv.querySelector('.add-exercise-btn').addEventListener('click', () => {
+                    addExercise(workoutDiv);
+                });
+
+                container.appendChild(workoutDiv);
+                updateIndices();
+                return workoutDiv;
+            }
+
+            // 5. Aggiunge un blocco Esercizio
+            function addExercise(wBox, exData = null) {
+                const exListContainer = wBox.querySelector('.exercises-list-container');
+                const exBox = document.createElement('div');
+                exBox.className = 'exercise-box';
+
+                // Genera le opzioni della select
+                const exIdx = exListContainer.children.length + 1;
+                let optionsHtml = `<option value="">Esercizio ${exIdx}</option>`;
+                eserciziDisponibili.forEach(ex => {
+                    const selected = (exData && exData.esercizio_id == ex.id) ? 'selected' : '';
+                    optionsHtml += `<option value="${ex.id}" ${selected}>${ex.nome}</option>`;
+                });
+
+                exBox.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center;" class="mb-3">
+                        <div class="select is-fullwidth" style="max-width: 80%;">
+                            <select class="select-esercizio" required>
+                                ${optionsHtml}
+                            </select>
+                        </div>
+                        <button type="button" class="button is-danger remove-exercise-btn" title="Rimuovi Esercizio">
+                            <span class="icon"><i class="fas fa-times"></i></span>
+                        </button>
+                    </div>
+
+                    <table class="table is-fullwidth is-striped series-table mb-2">
+                        <thead>
+                            <tr>
+                                <th style="width: 90px; text-align: left;">Serie</th>
+                                <th>Ripetizioni</th>
+                                <th>Carico (Kg)</th>
+                                <th>Recupero</th>
+                                <th style="width: 50px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="series-rows-container">
+                            <!-- Qui finiranno le righe delle serie -->
+                        </tbody>
+                    </table>
+
+                    <div class="has-text-right">
+                        <button type="button" class="button is-small is-gymfly add-series-btn" style="border-radius: 8px;">
+                            <i class="fas fa-plus mr-1"></i> NUOVA
+                        </button>
+                    </div>
+                `;
+
+                // Sincronizza l'id esercizio quando cambia
+                exBox.querySelector('.select-esercizio').addEventListener('change', updateIndices);
+
+                // Rimuovi Esercizio
+                exBox.querySelector('.remove-exercise-btn').addEventListener('click', () => {
+                    exBox.remove();
+                    updateIndices();
+                });
+
+                // Aggiungi Serie
+                exBox.querySelector('.add-series-btn').addEventListener('click', () => {
+                    addSeriesRow(exBox);
+                });
+
+                exListContainer.appendChild(exBox);
+
+                // Renderizza le serie esistenti o ne aggiunge una di default
+                if (exData && exData.series && exData.series.length > 0) {
+                    exData.series.forEach(sData => {
+                        addSeriesRow(exBox, sData);
+                    });
+                } else {
+                    addSeriesRow(exBox); // Inizializza con almeno una riga
+                }
+
+                updateIndices();
+            }
+
+            // 6. Aggiunge una riga di serie (S1, S2...) all'interno della tabella dell'esercizio
+            function addSeriesRow(exBox, sData = null) {
+                const tbody = exBox.querySelector('.series-rows-container');
+                const row = document.createElement('tr');
+                row.className = 'series-row';
+
+                const pesoVal = sData ? sData.carico : '0';
+                const repVal = sData ? sData.ripetizioni : '10';
+                const recVal = sData ? sData.recupero : '';
+
+                row.innerHTML = `
+                    <td style="text-align: left; white-space: nowrap;">
+                        <span class="series-label">Serie 1</span>
+                        <input type="hidden" class="input-esercizio-id" value="">
+                        <input type="hidden" class="input-serie-num" value="1">
+                    </td>
+                    <td>
+                        <input class="input is-small input-ripetizioni" type="number" value="${repVal}" required min="1" style="text-align: center;">
+                    </td>
+                    <td>
+                        <input class="input is-small input-carico" type="number" step="0.5" value="${pesoVal}" required min="0" style="text-align: center;">
+                    </td>
+                    <td>
+                        <input class="input is-small input-recupero" type="text" value="${recVal}" placeholder="Es: 60s" style="text-align: center;">
+                    </td>
+                    <td>
+                        <button type="button" class="button is-danger remove-series-btn" title="Rimuovi Serie">
+                            <span class="icon"><i class="fas fa-times"></i></span>
+                        </button>
+                    </td>
+                `;
+
+                // Rimuovi Serie
+                row.querySelector('.remove-series-btn').addEventListener('click', () => {
+                    const activeRows = tbody.querySelectorAll('.series-row');
+                    if (activeRows.length > 1) {
+                        row.remove();
+                        updateIndices();
+                    } else {
+                        alert('Un esercizio deve avere almeno una serie attiva.');
+                    }
+                });
+
+                tbody.appendChild(row);
+                updateIndices();
+            }
+
+            // 7. Renderizza i dati esistenti all'avvio
+            if (existingWorkouts && existingWorkouts.length > 0) {
+                existingWorkouts.forEach(wData => {
+                    const wBox = addWorkout(wData);
+                    
+                    // Raggruppa i dettagli dell'allenamento preservando blocchi separati dello stesso esercizio
+                    const blocks = [];
+                    let currentBlock = null;
+
+                    wData.dettagli.forEach(d => {
+                        if (!currentBlock || 
+                            currentBlock.esercizio_id !== d.esercizio_id || 
+                            parseInt(d.serie) <= parseInt(currentBlock.series[currentBlock.series.length - 1].serie)) {
+                            
+                            currentBlock = {
+                                esercizio_id: d.esercizio_id,
+                                esercizio_nome: d.esercizio_nome,
+                                series: []
+                            };
+                            blocks.push(currentBlock);
+                        }
+                        currentBlock.series.push(d);
+                    });
+
+                    // Aggiunge ogni blocco di esercizio con le sue serie
+                    blocks.forEach(exData => {
+                        addExercise(wBox, exData);
+                    });
+                });
+            } else {
+                // Se scheda nuova o vuota, inizializza con un allenamento vuoto
+                addWorkout();
+            }
+
+            // Gestione dei bottoni di aggiunta allenamento dall'intestazione
+            addWorkoutBtn.addEventListener('click', () => {
+                addWorkout();
             });
 
-            // 4. Attach events to existing workout blocks
-            Array.from(container.children).forEach(block => {
-                attachWorkoutEvents(block);
-            });
-
-            function attachWorkoutEvents(workoutBlock) {
-                const wIndex = workoutBlock.getAttribute('data-workout-index');
-                const tableBody = workoutBlock.querySelector('tbody');
-                const addExBtn = workoutBlock.querySelector('.add-exercise-btn');
-                const removeWBtn = workoutBlock.querySelector('.remove-workout-btn');
-
-                // Rimuovi Sessione
-                removeWBtn.addEventListener('click', () => {
-                    workoutBlock.remove();
-                    reindexWorkouts();
-                });
-
-                // Aggiungi Esercizio alla Sessione
-                addExBtn.addEventListener('click', () => {
-                    const exIndex = tableBody.children.length;
-                    
-                    let optionsHtml = '<option value="">-- Seleziona --</option>';
-                    eserciziDisponibili.forEach(ex => {
-                        optionsHtml += `<option value="${ex.id}">${ex.nome}</option>`;
-                    });
-
-                    const exHtml = `
-                        <tr data-exercise-index="${exIndex}">
-                            <td>
-                                <div class="select is-fullwidth">
-                                    <select name="workouts[${wIndex}][dettagli][${exIndex}][esercizio_id]" required>
-                                        ${optionsHtml}
-                                    </select>
-                                </div>
-                            </td>
-                            <td>
-                                <input class="input" type="number" name="workouts[${wIndex}][dettagli][${exIndex}][serie]" value="4" required min="1">
-                            </td>
-                            <td>
-                                <input class="input" type="number" name="workouts[${wIndex}][dettagli][${exIndex}][ripetizioni]" value="10" required min="1">
-                            </td>
-                            <td>
-                                <input class="input" type="number" step="0.5" name="workouts[${wIndex}][dettagli][${exIndex}][carico]" value="0" required min="0">
-                            </td>
-                            <td>
-                                <input class="input" type="text" name="workouts[${wIndex}][dettagli][${exIndex}][recupero]" placeholder="Es: 90s">
-                            </td>
-                            <td>
-                                <button type="button" class="button is-danger remove-exercise-btn" title="Rimuovi Esercizio">
-                                    <span class="icon"><i class="fas fa-times"></i></span>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                    tableBody.insertAdjacentHTML('beforeend', exHtml);
-                    
-                    // Rimuovi Riga Esercizio
-                    tableBody.lastElementChild.querySelector('.remove-exercise-btn').addEventListener('click', (e) => {
-                        e.target.closest('tr').remove();
-                        reindexExercises(tableBody, wIndex);
-                    });
-                });
-
-                // Collega rimozione esercizi esistenti
-                Array.from(tableBody.querySelectorAll('.remove-exercise-btn')).forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        e.target.closest('tr').remove();
-                        reindexExercises(tableBody, wIndex);
-                    });
-                });
-            }
-
-            function reindexWorkouts() {
-                Array.from(container.children).forEach((block, wIndex) => {
-                    block.setAttribute('data-workout-index', wIndex);
-                    block.querySelector('input[name*="[nome]"]').setAttribute('name', `workouts[${wIndex}][nome]`);
-                    block.querySelector('input[name*="[descrizione]"]').setAttribute('name', `workouts[${wIndex}][descrizione]`);
-                    
-                    const tableBody = block.querySelector('tbody');
-                    reindexExercises(tableBody, wIndex);
-                });
-            }
-
-            function reindexExercises(tableBody, wIndex) {
-                Array.from(tableBody.children).forEach((tr, exIndex) => {
-                    tr.setAttribute('data-exercise-index', exIndex);
-                    tr.querySelector('select').setAttribute('name', `workouts[${wIndex}][dettagli][${exIndex}][esercizio_id]`);
-                    tr.querySelector('input[name*="[serie]"]').setAttribute('name', `workouts[${wIndex}][dettagli][${exIndex}][serie]`);
-                    tr.querySelector('input[name*="[ripetizioni]"]').setAttribute('name', `workouts[${wIndex}][dettagli][${exIndex}][ripetizioni]`);
-                    tr.querySelector('input[name*="[carico]"]').setAttribute('name', `workouts[${wIndex}][dettagli][${exIndex}][carico]`);
-                    tr.querySelector('input[name*="[recupero]"]').setAttribute('name', `workouts[${wIndex}][dettagli][${exIndex}][recupero]`);
-                });
-            }
         });
         {/literal}
     </script>

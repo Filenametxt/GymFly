@@ -9,6 +9,11 @@ interface SchedaAllenamentoView
     public function mostraTemplate(string $tplName, array $dati = []): void;
 
     /**
+     * Ritorna l'HTML renderizzato del template senza mostrarlo.
+     */
+    public function fetchTemplate(string $tplName, array $dati = []): string;
+
+    /**
      * Mostra la pagina di stato operazione (successo o errore).
      */
     public function mostraStatoOperazione(bool $successo, string $messaggio, ?string $ritorno = null): void;
