@@ -1,0 +1,42 @@
+Array
+(
+    [dettagli] => Array
+        (
+            [60] => Array
+                (
+                    [ripetizioni] => 10
+                    [carico] => 19
+                    [recupero] => 12
+                )
+
+            [61] => Array
+                (
+                    [ripetizioni] => 8
+                    [carico] => 17
+                    [recupero] => 45
+                )
+
+            [62] => Array
+                (
+                    [ripetizioni] => 8
+                    [carico] => 15
+                    [recupero] => Non specificato
+                )
+
+            [63] => Array
+                (
+                    [ripetizioni] => 10
+                    [carico] => 0
+                    [recupero] => Non specificato
+                )
+
+            [64] => Array
+                (
+                    [ripetizioni] => 10
+                    [carico] => 0
+                    [recupero] => Non specificato
+                )
+
+        )
+
+)
