@@ -34,29 +34,28 @@ class FrontController
     public function __construct()
     {
         $this->routes = [
-            '/' => [VisualizzazioneController::class, 'home'],
-            '/home' => [VisualizzazioneController::class, 'home'],
-            '/contatti' => [VisualizzazioneController::class, 'contatti'],
-            '/chisiamo' => [VisualizzazioneController::class, 'chisiamo'],
+            '/' => [VisualizzazioneController::class, 'mostraHome'],
+            '/home' => [VisualizzazioneController::class, 'mostraHome'],
             
             '/login' => [AutenticazioneController::class, 'login'],
             '/logout' => [AutenticazioneController::class, 'logout'],
-            '/registrazione' => [AutenticazioneController::class, 'registrazione'],
+            '/registrazione' => [AutenticazioneController::class, 'registraAmministratore'],
             
             '/profilo' => [ProfiloController::class, 'visualizzaProfilo'],
             '/visualizza-profilo' => [ProfiloController::class, 'visualizzaProfilo'],
             '/modifica-anagrafica' => [ProfiloController::class, 'modificaAnagrafica'],
-            '/aggiorna-misure' => [ProfiloController::class, 'modificaParametriBiometrici'],
-            '/inserisci-misure' => [ProfiloController::class, 'inserisciParametriBiometrici'],
-            '/carica-certificato' => [ProfiloController::class, 'caricaCertificatoMedico'],
+            '/aggiorna-misure' => [ProfiloController::class, 'aggiornaMisureCorporee'],
+            '/inserisci-misure' => [ProfiloController::class, 'inserisciMisureCorporee'],
+            '/carica-certificato' => [ProfiloController::class, 'caricaCertificato'],
             '/cambia-password' => [ProfiloController::class, 'cambiaPassword'],
-            '/visualizza-grafico' => [ProfiloController::class, 'visualizzaGraficoPeso'],
+            '/visualizza-grafico' => [ProfiloController::class, 'visualizzaGrafico'],
             
             '/dashboard-admin' => [VisualizzazioneController::class, 'mostraDashboardAdmin'],
             '/dashboard-allenatore' => [VisualizzazioneController::class, 'mostraDashboardAllenatore'],
             '/dashboard-cliente' => [VisualizzazioneController::class, 'mostraDashboardCliente'],
             
-            '/messaggi' => [MessaggiController::class, 'gestisciMessaggi'],
+            '/messaggi' => [MessaggiController::class, 'mostraMessaggi'],
+            '/invia-messaggio' => [MessaggiController::class, 'inviaMessaggio'],
             
             '/clienti' => [VisualizzazioneUtentiController::class, 'visualizzaClienti'],
             '/allenatori' => [VisualizzazioneUtentiController::class, 'visualizzaAllenatori'],
