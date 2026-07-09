@@ -124,4 +124,18 @@ class DoctrineMessaggioRepository implements MessaggioRepositoryInterface
             ->getQuery()
             ->getResult();
     }
+
+    /** @return Messaggio[] */
+    public function findByMittenteAndOggetto(Utente $mittente, string $oggetto): array
+    {
+        return $this->em->createQueryBuilder()
+            ->select('m')
+            ->from(Messaggio::class, 'm')
+            ->where('m.mittente = :mittente')
+            ->andWhere('m.oggetto = :oggetto')
+            ->setParameter('mittente', $mittente)
+            ->setParameter('oggetto', $oggetto)
+            ->getQuery()
+            ->getResult();
+    }
 }

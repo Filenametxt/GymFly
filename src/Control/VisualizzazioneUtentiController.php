@@ -51,11 +51,13 @@ class VisualizzazioneUtentiController
             return;
         }
 
-        // Recupero dei clienti filtrati per palestra, ricerca ed eventuale stato del certificato medico
+        // Recupero dei clienti filtrati per palestra, ricerca, certificato medico, abbonamento e ordinamento
         $query = $_POST['search_query'] ?? $_GET['search_query'] ?? null;
         $filtroCertificato = $_POST['filtro_certificato'] ?? $_GET['filtro_certificato'] ?? null;
+        $filtroAbbonamento = $_POST['filtro_abbonamento'] ?? $_GET['filtro_abbonamento'] ?? null;
+        $ordine = $_POST['ordine'] ?? $_GET['ordine'] ?? null;
 
-        $clienti = $this->clienteRepo->findByPalestraAndFiltri($palestra, $query, $filtroCertificato);
+        $clienti = $this->clienteRepo->findByPalestraAndFiltri($palestra, $query, $filtroCertificato, $filtroAbbonamento, $ordine);
 
         $clientiData = [];
         foreach ($clienti as $c) {

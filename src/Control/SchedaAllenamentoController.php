@@ -146,15 +146,10 @@ class SchedaAllenamentoController
         if ($palestra) {
             $tuttiClienti = $this->entityManager->getRepository(Cliente::class)->findBy(['palestra' => $palestra]);
             foreach ($tuttiClienti as $c) {
-                $qb = $this->entityManager->createQueryBuilder();
-                $richieste = $qb->select('m')
-                    ->from(Messaggio::class, 'm')
-                    ->where('m.mittente = :allenatore')
-                    ->andWhere('m.oggetto = :oggetto')
-                    ->setParameter('allenatore', $allenatore)
-                    ->setParameter('oggetto', "Richiesta Nuova Scheda - " . $c->getNome() . " " . $c->getCognome())
-                    ->getQuery()
-                    ->getResult();
+                $richieste = $this->entityManager->getRepository(Messaggio::class)->findByMittenteAndOggetto(
+                    $allenatore,
+                    "Richiesta Nuova Scheda - " . $c->getNome() . " " . $c->getCognome()
+                );
                 if (!empty($richieste)) {
                     $clienti[] = $c;
                 }
@@ -183,16 +178,10 @@ class SchedaAllenamentoController
             return;
         }
 
-        // Verifica che il cliente abbia effettivamente richiesto la scheda a questo allenatore
-        $qb = $this->entityManager->createQueryBuilder();
-        $richieste = $qb->select('m')
-            ->from(Messaggio::class, 'm')
-            ->where('m.mittente = :allenatore')
-            ->andWhere('m.oggetto = :oggetto')
-            ->setParameter('allenatore', $allenatore)
-            ->setParameter('oggetto', "Richiesta Nuova Scheda - " . $cliente->getNome() . " " . $cliente->getCognome())
-            ->getQuery()
-            ->getResult();
+        $richieste = $this->entityManager->getRepository(Messaggio::class)->findByMittenteAndOggetto(
+            $allenatore,
+            "Richiesta Nuova Scheda - " . $cliente->getNome() . " " . $cliente->getCognome()
+        );
 
         if (empty($richieste)) {
             $this->view->mostraStatoOperazione(false, "L'allenatore può creare una nuova scheda solo se il cliente l'ha esplicitamente richiesta.", "dashboard-allenatore");
@@ -264,14 +253,7 @@ class SchedaAllenamentoController
             $palestra = $allenatore->getPalestra();
             $schede = [];
             if ($palestra) {
-                $schede = $this->entityManager->createQueryBuilder()
-                    ->select('s')
-                    ->from(Scheda::class, 's')
-                    ->join('s.cliente', 'c')
-                    ->where('c.palestra = :palestra')
-                    ->setParameter('palestra', $palestra)
-                    ->getQuery()
-                    ->getResult();
+                $schede = $this->schedaRepo->findByPalestra($palestra);
             }
             if (!empty($schede)) {
                 header("Location: modifica-scheda?id=" . $schede[0]->getId());
@@ -330,16 +312,7 @@ class SchedaAllenamentoController
         $esercizi = $this->entityManager->getRepository(Esercizio::class)->findAll();
         
         // Trova le altre schede attive nella palestra per l'azione "Copia da esistente"
-        $altreSchede = $this->entityManager->createQueryBuilder()
-            ->select('s')
-            ->from(Scheda::class, 's')
-            ->join('s.cliente', 'c')
-            ->where('c.palestra = :palestra')
-            ->andWhere('s.id != :attualeId')
-            ->setParameter('palestra', $allenatore->getPalestra())
-            ->setParameter('attualeId', $idScheda)
-            ->getQuery()
-            ->getResult();
+        $altreSchede = $this->schedaRepo->findAltreByPalestra($allenatore->getPalestra(), $idScheda);
 
         $this->view->mostraTemplate('gestione_scheda.tpl', [
             'utente' => $allenatore,

@@ -8,79 +8,7 @@
     <link rel="stylesheet" href="css/bulma.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
-    {literal}
-    <style>
-        .message-card {
-            border-left: 5px solid var(--gymfly-primary);
-            transition: transform 0.2s ease;
-        }
-        .message-card:hover {
-            transform: translateX(3px);
-        }
-        .message-sent-card {
-            border-left: 5px solid var(--gymfly-secondary);
-        }
-        /* Custom circular checkboxes and radio buttons to make them perfectly consistent in style and size */
-        input[type="radio"], .chk-utente-singolo, .chk-nuovo-gruppo {
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #ccc;
-            outline: none;
-            background-color: #fff;
-            cursor: pointer;
-            display: inline-block;
-            vertical-align: middle;
-            position: relative;
-            margin-right: 0.5rem;
-            margin-top: -2px;
-            transition: all 0.2s ease;
-        }
-        
-        /* Radios are circular */
-        input[type="radio"] {
-            border-radius: 50%;
-        }
-        
-        /* Checkboxes are squares with rounded corners */
-        .chk-utente-singolo, .chk-nuovo-gruppo {
-            border-radius: 4px;
-        }
-        
-        input[type="radio"]:checked, .chk-utente-singolo:checked, .chk-nuovo-gruppo:checked {
-            background-color: var(--gymfly-primary);
-            border-color: var(--gymfly-primary);
-        }
-        
-        /* Center dot for radio buttons */
-        input[type="radio"]:checked::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background-color: #fff;
-        }
-        
-        /* Checkmark for checkboxes */
-        .chk-utente-singolo:checked::after, .chk-nuovo-gruppo:checked::after {
-            content: '';
-            position: absolute;
-            top: 1px;
-            left: 4px;
-            width: 4px;
-            height: 8px;
-            border: solid #fff;
-            border-width: 0 2px 2px 0;
-            transform: rotate(45deg);
-        }
-    </style>
-    {/literal}
+
 </head>
 <body>
 
@@ -215,7 +143,7 @@
                                 <div id="div-gruppo" class="field">
                                     <label class="label">Seleziona Gruppo</label>
                                     <div class="control">
-                                        <div class="box p-3" id="gruppo-list-container" style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px;">
+                                        <div class="box p-3" id="gruppo-list-container" style="max-height: 200px; overflow-y: auto;">
                                             <label class="radio is-block mb-2">
                                                 <input type="radio" name="gruppo_tipo" value="tutti_clienti" checked>
                                                 Tutti i Clienti
@@ -238,7 +166,7 @@
                                 <div id="div-selezionati" class="field" style="display: none;">
                                     <label class="label">Seleziona Destinatari</label>
                                     <div class="control">
-                                        <div class="box p-3" style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px;">
+                                        <div class="box p-3" style="max-height: 200px; overflow-y: auto;">
                                             {if !empty($clientiCandidati)}
                                                 <p class="menu-label font-weight-bold mb-2">CLIENTI</p>
                                                 {foreach $clientiCandidati as $c}

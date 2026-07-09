@@ -88,8 +88,13 @@ class DoctrineClienteRepository extends AbstractDoctrineUtenteRepository
     /**
      * @inheritDoc
      */
-    public function findByPalestraAndFiltri(Palestra $palestra, ?string $query, ?string $filtroCertificato): array
-    {
+    public function findByPalestraAndFiltri(
+        Palestra $palestra, 
+        ?string $query, 
+        ?string $filtroCertificato,
+        ?string $filtroAbbonamento = null,
+        ?string $ordine = null
+    ): array {
         $qb = $this->em->createQueryBuilder()
             ->select('c')
             ->from(Cliente::class, 'c')
@@ -119,10 +124,30 @@ class DoctrineClienteRepository extends AbstractDoctrineUtenteRepository
             }
         }
 
-        return $qb->orderBy('c.cognome', 'ASC')
-            ->addOrderBy('c.nome', 'ASC')
-            ->getQuery()
-            ->getResult();
+        if ($filtroAbbonamento !== null && trim($filtroAbbonamento) !== '') {
+            if ($filtroAbbonamento === 'attivo') {
+                $qb->join('c.abbonamento', 'aa')
+                   ->andWhere('aa.dataFine >= :oggiAbb')
+                   ->setParameter('oggiAbb', new \DateTimeImmutable('today'));
+            } elseif ($filtroAbbonamento === 'scaduto') {
+                $qb->leftJoin('c.abbonamento', 'aa')
+                   ->andWhere('aa.id IS NULL OR aa.dataFine < :oggiAbb')
+                   ->setParameter('oggiAbb', new \DateTimeImmutable('today'));
+            }
+        }
+
+        if ($ordine === 'cognome_desc') {
+            $qb->orderBy('c.cognome', 'DESC')->addOrderBy('c.nome', 'ASC');
+        } elseif ($ordine === 'nome_asc') {
+            $qb->orderBy('c.nome', 'ASC')->addOrderBy('c.cognome', 'ASC');
+        } elseif ($ordine === 'nome_desc') {
+            $qb->orderBy('c.nome', 'DESC')->addOrderBy('c.cognome', 'ASC');
+        } else {
+            // Default: cognome_asc
+            $qb->orderBy('c.cognome', 'ASC')->addOrderBy('c.nome', 'ASC');
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     // -------------------------------------------------------------------------

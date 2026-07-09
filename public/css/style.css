@@ -713,15 +713,14 @@ code {
 }
 
 /* Landing page GymFly */
-html, body {
+.gf-landing-body {
     scroll-behavior: smooth;
     background-color: var(--gymfly-bg);
     color: var(--gymfly-text);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-body,
-body * {
+.gf-landing-body * {
     font-family: inherit;
 }
 
@@ -1147,6 +1146,36 @@ body * {
 .animate-on-scroll.visible {
     opacity: 1;
     transform: translateY(0);
+}
+
+/* Stili Dropdown coerenti con il tema GymFly (sempre chiaro) */
+.dropdown-content {
+    background-color: var(--gymfly-card-bg) !important;
+    border: 2px solid var(--gymfly-primary) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05) !important;
+}
+
+.dropdown-item {
+    color: var(--gymfly-text) !important;
+    font-size: 0.9rem !important;
+    background-color: transparent !important;
+    transition: background-color 0.2s ease, color 0.2s ease !important;
+}
+
+.dropdown-item:hover {
+    background-color: var(--gymfly-accent) !important;
+    color: #1e3a8a !important;
+}
+
+.dropdown-item.is-active {
+    background-color: var(--gymfly-primary) !important;
+    color: #FFFFFF !important;
+}
+
+.dropdown-divider {
+    background-color: var(--gymfly-primary) !important;
+    opacity: 0.3 !important;
 }
 
 
