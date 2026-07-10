@@ -9,12 +9,14 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\Component\Cache;
+namespace Symfony\Contracts\Service;
+
+use Psr\Container\ContainerInterface;
 
 /**
- * Interface extends psr-6 and psr-16 caches to allow for pruning (deletion) of all expired cache items.
+ * Implemented by objects that expose a service container.
  */
-interface PruneableInterface
+interface ContainerProviderInterface
 {
-    public function prune(): bool;
+    public function getContainer(): ContainerInterface;
 }
