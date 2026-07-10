@@ -43,6 +43,16 @@ class SchedaAllenamentoController
             return;
         }
 
+        // Impedisce l'invio di più richieste contemporanee se c'è già una richiesta pendente
+        $schedaPendente = $this->entityManager->getRepository(Scheda::class)->findOneBy([
+            'cliente' => $cliente,
+            'nome_scheda' => 'Richiesta Nuova Scheda'
+        ]);
+        if ($schedaPendente !== null) {
+            $this->view->mostraStatoOperazione(false, "Hai già una richiesta di scheda in attesa di essere creata dal tuo allenatore.", "dashboard-cliente");
+            return;
+        }
+
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             // Recupera gli allenatori della palestra del cliente
             $palestra = $cliente->getPalestra();
@@ -89,24 +99,48 @@ class SchedaAllenamentoController
             return;
         }
 
-        // Crea un Messaggio interno con l'allenatore come mittente (poiché Cliente non ha i permessi di invio)
-        // e destinato allo stesso allenatore, fungendo da promemoria/notifica.
-        $messaggioOggetto = "Richiesta Nuova Scheda - " . $cliente->getNome() . " " . $cliente->getCognome();
-        $messaggioContenuto = "Il cliente " . $cliente->getNome() . " " . $cliente->getCognome() . " (" . $cliente->getEmail() . ") ti ha richiesto una nuova scheda.\n\n"
-                            . "Obiettivo: " . $obiettivo . "\n"
-                            . "Allenamenti per ciclo: " . $nAllenamenti . "\n";
-
-        $messaggio = new Messaggio($allenatore, $messaggioOggetto, $messaggioContenuto);
-        $messaggio->aggiungiDestinatario($allenatore);
+        // Limita a massimo 7 allenamenti
+        if ($nAllenamenti < 1 || $nAllenamenti > 7) {
+            $this->view->mostraStatoOperazione(false, "Il numero di allenamenti richiesto deve essere compreso tra 1 e 7.", "richiedi-scheda");
+            return;
+        }
 
         try {
-            $this->entityManager->persist($messaggio);
+            // Quando il cliente richiede la nuova scheda, quella presente attualmente deve essere eliminata
+            $vecchieSchede = $this->entityManager->getRepository(Scheda::class)->findBy(['cliente' => $cliente]);
+            foreach ($vecchieSchede as $vs) {
+                $cliente->setScheda(null);
+                $this->entityManager->flush();
+                $this->entityManager->remove($vs);
+            }
+            $this->entityManager->flush();
+
+            // Crea una nuova scheda (richiesta/bozza) nel DB per salvare Obiettivo e pre-creare gli allenamenti
+            $scheda = new Scheda(
+                "Richiesta Nuova Scheda",
+                new \DateTimeImmutable('today'),
+                new \DateTimeImmutable('+1 month'),
+                $obiettivo,
+                $cliente,
+                $allenatore
+            );
+            $this->entityManager->persist($scheda);
+
+            // Pre-crea il numero di allenamenti richiesti di default (A, B, C, D...)
+            $letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+            for ($i = 0; $i < $nAllenamenti; $i++) {
+                $nuovoAll = new Allenamento("Allenamento " . $letters[$i], "Informazioni sull'allenamento " . $letters[$i]);
+                $scheda->addAllenamento($nuovoAll);
+                $this->entityManager->persist($nuovoAll);
+            }
+
+            // NON associamo la scheda al cliente (id_scheda in Cliente rimane null)
             $this->entityManager->flush();
 
             // Simula invio e-mail all'allenatore
             error_log("EMAIL CONFIRMATION: Inviata email a " . $allenatore->getEmail() . " per richiesta scheda da parte del cliente " . $cliente->getEmail());
 
-            $this->view->mostraStatoOperazione(true, "Richiesta inviata con successo al tuo Allenatore ed e-mail di notifica recapitata.", "dashboard-cliente");
+            $this->view->mostraStatoOperazione(true, "Richiesta inviata con successo al tuo Allenatore ed e-mail di notifica recapitata. La vecchia scheda è stata rimossa.", "dashboard-cliente");
         } catch (\Throwable $e) {
             $this->view->mostraStatoOperazione(false, "Errore durante l'invio della richiesta: " . $e->getMessage(), "richiedi-scheda");
         }
@@ -141,16 +175,16 @@ class SchedaAllenamentoController
         // Altrimenti mostra form selezione utente
         $palestra = $allenatore->getPalestra();
         
-        // Trova i clienti della palestra dell'allenatore per cui esiste un messaggio di richiesta
+        // Trova i clienti della palestra dell'allenatore per cui esiste una scheda di richiesta
         $clienti = [];
         if ($palestra) {
             $tuttiClienti = $this->entityManager->getRepository(Cliente::class)->findBy(['palestra' => $palestra]);
             foreach ($tuttiClienti as $c) {
-                $richieste = $this->entityManager->getRepository(Messaggio::class)->findByMittenteAndOggetto(
-                    $allenatore,
-                    "Richiesta Nuova Scheda - " . $c->getNome() . " " . $c->getCognome()
-                );
-                if (!empty($richieste)) {
+                $schedaReq = $this->entityManager->getRepository(Scheda::class)->findOneBy([
+                    'cliente' => $c,
+                    'nome_scheda' => 'Richiesta Nuova Scheda'
+                ]);
+                if ($schedaReq !== null) {
                     $clienti[] = $c;
                 }
             }
@@ -178,52 +212,28 @@ class SchedaAllenamentoController
             return;
         }
 
-        $richieste = $this->entityManager->getRepository(Messaggio::class)->findByMittenteAndOggetto(
-            $allenatore,
-            "Richiesta Nuova Scheda - " . $cliente->getNome() . " " . $cliente->getCognome()
-        );
+        // Trova la scheda di richiesta creata dal cliente
+        $scheda = $this->entityManager->getRepository(Scheda::class)->findOneBy([
+            'cliente' => $cliente,
+            'nome_scheda' => 'Richiesta Nuova Scheda'
+        ]);
 
-        if (empty($richieste)) {
+        if (!$scheda) {
             $this->view->mostraStatoOperazione(false, "L'allenatore può creare una nuova scheda solo se il cliente l'ha esplicitamente richiesta.", "dashboard-allenatore");
             return;
         }
 
-        // Consuma la richiesta eliminando il messaggio di notifica associato
-        foreach ($richieste as $richiesta) {
-            $this->entityManager->remove($richiesta);
-        }
-        $this->entityManager->flush();
-
-        // Regola di Dominio: Rimuove preventivamente vecchie schede attive/bozze per evitare violazioni di chiave unica 1-1 su id_cliente
-        $vecchieSchede = $this->entityManager->getRepository(Scheda::class)->findBy(['cliente' => $cliente]);
-        foreach ($vecchieSchede as $vs) {
-            $cliente->setScheda(null);
-            $this->entityManager->flush();
-            $this->entityManager->remove($vs);
-        }
-        $this->entityManager->flush();
-
-        // Crea una scheda vuota nel db associata a quel cliente
-        $scheda = new Scheda(
-            "Nuovo Protocollo",
-            new \DateTimeImmutable('today'),
-            new \DateTimeImmutable('+1 month'),
-            "Focus da definire",
-            $cliente,
-            $allenatore
-        );
+        // Modifica il nome da "Richiesta Nuova Scheda" a "Nuovo Protocollo" per iniziare la compilazione
+        $scheda->setNome_scheda("Nuovo Protocollo");
 
         try {
-            $this->schedaRepo->save($scheda);
-            // Associa bidirezionalmente al cliente per aggiornare id_scheda nel DB
-            $cliente->setScheda($scheda);
             $this->entityManager->flush();
 
             // Reindirizza al form di inserimento dei dati e dettagli della scheda (Passo 2)
             header("Location: modifica-scheda?id=" . $scheda->getId());
             exit();
         } catch (\Throwable $e) {
-            $this->view->mostraStatoOperazione(false, "Errore nella creazione della scheda vuota: " . $e->getMessage(), "dashboard-allenatore");
+            $this->view->mostraStatoOperazione(false, "Errore nell'avvio della modifica scheda: " . $e->getMessage(), "dashboard-allenatore");
         }
     }
 
@@ -367,6 +377,8 @@ class SchedaAllenamentoController
 
             // Costruisce la nuova lista di allenamenti ed esercizi
             $workoutsData = $_POST['workouts'] ?? [];
+            $recuperoMap = [];
+
             foreach ($workoutsData as $wData) {
                 $nomeWorkout = trim($wData['nome'] ?? 'Allenamento');
                 $descrizioneWorkout = trim($wData['descrizione'] ?? '');
@@ -386,10 +398,6 @@ class SchedaAllenamentoController
                         $carico = (float)($dData['carico'] ?? 0.0);
                         $recupero = trim($dData['recupero'] ?? '');
 
-                        if ($recupero !== '') {
-                            $allenamento->setDescrizione($allenamento->getDescrizione() . "\n[" . $esercizio->getNomeEsercizio() . " - Recupero: " . $recupero . "]");
-                        }
-
                         $dettaglio = new DettaglioAllenamento(
                             $esercizio,
                             $allenamento,
@@ -399,9 +407,31 @@ class SchedaAllenamentoController
                         );
                         $allenamento->addDettaglio($dettaglio);
                         $this->entityManager->persist($dettaglio);
+
+                        $recuperoMap[] = [
+                            'dettaglio' => $dettaglio,
+                            'allenamento' => $allenamento,
+                            'recupero' => $recupero
+                        ];
                     }
                 }
             }
+
+            // Flush per generare i dettagli id a DB
+            $this->entityManager->flush();
+
+            // Ora che gli ID dei dettagli esistono, aggiorniamo le descrizioni degli allenamenti con il tag univoco
+            foreach ($recuperoMap as $item) {
+                $det = $item['dettaglio'];
+                $all = $item['allenamento'];
+                $rec = $item['recupero'];
+                if ($rec !== '') {
+                    $all->setDescrizione($all->getDescrizione() . "\n[DetId - " . $det->getId() . " - Recupero: " . $rec . "]");
+                }
+            }
+
+            // Flush finale per salvare le descrizioni
+            $this->entityManager->flush();
 
             // Sincronizza ed esegue il salvataggio specifico
             if ($azione === 'invia') {
@@ -450,7 +480,7 @@ class SchedaAllenamentoController
         $scheda = $this->schedaRepo->findById($idScheda);
         if ($scheda) {
             $this->schedaRepo->save($scheda);
-            $scheda->getCliente()->setScheda($scheda);
+            // Non associamo la scheda al cliente (bozza/non ancora inviata)
             $this->entityManager->flush();
 
             $this->view->mostraStatoOperazione(true, "Scheda di allenamento salvata come bozza per l'allenatore.", "dashboard-allenatore");
@@ -506,6 +536,11 @@ class SchedaAllenamentoController
      */
     public function visualizzaScheda(): void
     {
+        // Disattiva cache del browser per visualizzare sempre gli ultimi aggiornamenti del coach
+        header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+        header("Cache-Control: post-check=0, pre-check=0", false);
+        header("Pragma: no-cache");
+
         $idCliente = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
 
@@ -527,36 +562,6 @@ class SchedaAllenamentoController
         }
 
         $this->view->mostraTemplate('visualizza_scheda.tpl', [
-            'utente' => $cliente,
-            'scheda' => $scheda
-        ]);
-    }
-
-    /**
-     * 5. Esportazione scheda da parte del cliente (Caso 28)
-     * esportaSchedaPDF()
-     */
-    public function esportaSchedaPDF(): void
-    {
-        $idCliente = $this->session->getLoggedUserId();
-        $ruolo = $this->session->getLoggedUserRole();
-
-        if (!$idCliente || $ruolo !== 'cliente') {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.", "login");
-            return;
-        }
-
-        $cliente = $this->entityManager->find(Cliente::class, $idCliente);
-        $scheda = $cliente ? $cliente->getScheda() : null;
-
-        if (!$scheda) {
-            $this->view->mostraStatoOperazione(false, "Scheda non trovata per l'esportazione.", "dashboard-cliente");
-            return;
-        }
-
-        // Invia header di stampa e renderizza una pagina HTML ottimizzata per stampa/PDF
-        header("Content-Disposition: attachment; filename=\"Scheda_" . str_replace(' ', '_', $scheda->getNome_scheda()) . ".html\"");
-        $this->view->mostraTemplate('esporta_scheda.tpl', [
             'utente' => $cliente,
             'scheda' => $scheda
         ]);
@@ -594,30 +599,48 @@ class SchedaAllenamentoController
 
         // Se POST, delega a modificaDatiScheda
         $dettagliModificati = $_POST['dettagli'] ?? [];
+        $recuperoMap = [];
         foreach ($dettagliModificati as $idDet => $data) {
             $ripetizioni = isset($data['ripetizioni']) ? (int)$data['ripetizioni'] : 0;
             $carico = isset($data['carico']) ? (float)$data['carico'] : 0.0;
-            $this->modificaDatiScheda((int)$idDet, $carico, $ripetizioni);
-        }
+            $recupero = isset($data['recupero']) ? trim($data['recupero']) : '';
 
-        $this->view->mostraStatoOperazione(true, "Dettagli tecnici della scheda (carico e ripetizioni) aggiornati con successo.", "visualizza-scheda");
-    }
-
-    /**
-     * modificaDatiScheda(idDettaglio, carico, ripetizioni)
-     * Aggiorna carico e ripetizioni del singolo dettaglio nel DB.
-     */
-    public function modificaDatiScheda(int $idDettaglio, float $carico, int $ripetizioni): void
-    {
-        $dettaglio = $this->entityManager->find(DettaglioAllenamento::class, $idDettaglio);
-        if ($dettaglio) {
-            if ($ripetizioni > 0) {
-                $dettaglio->setRipetizioni($ripetizioni);
+            $dettaglio = $this->entityManager->find(DettaglioAllenamento::class, (int)$idDet);
+            if ($dettaglio) {
+                if ($ripetizioni > 0) {
+                    $dettaglio->setRipetizioni($ripetizioni);
+                }
+                if ($carico >= 0) {
+                    $dettaglio->setCarico($carico);
+                }
+                $recuperoMap[] = [
+                    'dettaglio' => $dettaglio,
+                    'allenamento' => $dettaglio->getAllenamento(),
+                    'recupero' => $recupero
+                ];
             }
-            if ($carico >= 0) {
-                $dettaglio->setCarico($carico);
-            }
-            $this->entityManager->flush();
         }
+        $this->entityManager->flush();
+
+        // Pulisce i vecchi e aggiunge i nuovi recuperi per gli allenamenti coinvolti
+        $allenamentiCoinvolti = [];
+        foreach ($recuperoMap as $item) {
+            $all = $item['allenamento'];
+            if (!in_array($all, $allenamentiCoinvolti, true)) {
+                $allenamentiCoinvolti[] = $all;
+                $all->setDescrizione(\App\View\SchedaAllenamentoViewSmarty::pulisciDescrizione($all->getDescrizione()));
+            }
+        }
+        foreach ($recuperoMap as $item) {
+            $all = $item['allenamento'];
+            $det = $item['dettaglio'];
+            $rec = $item['recupero'];
+            if ($rec !== '') {
+                $all->setDescrizione($all->getDescrizione() . "\n[DetId - " . $det->getId() . " - Recupero: " . $rec . "]");
+            }
+        }
+        $this->entityManager->flush();
+
+        $this->view->mostraStatoOperazione(true, "Dettagli tecnici della scheda aggiornati con successo.", "visualizza-scheda");
     }
 }
