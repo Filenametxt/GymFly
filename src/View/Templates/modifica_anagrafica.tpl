@@ -16,7 +16,7 @@
                 <div class="column is-six-fifths-tablet is-half-desktop">
                     
                     <div class="mb-5">
-                        <a href="profilo" class="button is-ghost has-text-grey">
+                        <a href="{if isset($isSelf) && !$isSelf}visualizza-profilo?id={$utente->getId()}{else}profilo{/if}" class="button is-ghost has-text-grey">
                             <span class="icon"><i class="fas fa-arrow-left"></i></span>
                             <span>Torna al Profilo</span>
                         </a>
@@ -31,7 +31,7 @@
                             <p class="subtitle is-6 has-text-grey mt-1">Aggiorna le tue informazioni di residenza, domicilio e pagamento</p>
                         </div>
 
-                        <form action="modifica-anagrafica" method="POST">
+                        <form action="modifica-anagrafica{if isset($isSelf) && !$isSelf}?id={$utente->getId()}{/if}" method="POST">
                             <div class="field">
                                 <label class="label">Nome</label>
                                 <div class="control has-icons-left">

@@ -26,8 +26,22 @@
             <div class="{$headerClass} is-hidden-mobile">
                 <div class="columns is-vcentered">
                     <div class="column">
-                        <h1 class="title is-2 has-text-white mb-2">Il mio Profilo</h1>
-                        <p class="subtitle is-5 has-text-white-ter">Visualizza e gestisci le tue informazioni personali</p>
+                        <h1 class="title is-2 has-text-white mb-2">
+                            {if $isSelf}
+                                Il mio Profilo
+                            {elseif $isClient}
+                                Profilo Cliente
+                            {else}
+                                Profilo Allenatore
+                            {/if}
+                        </h1>
+                        <p class="subtitle is-5 has-text-white-ter">
+                            {if $isSelf}
+                                Visualizza e gestisci le tue informazioni personali
+                            {else}
+                                Visualizza e gestisci le informazioni dell'utente
+                            {/if}
+                        </p>
                     </div>
                     <div class="column is-narrow">
                         <figure class="image is-96x96">
@@ -127,8 +141,26 @@
                 </div>
                 {/if}
 
-                <!-- INFO SCHEDA ALLENAMENTO (Visibile a Coach e Admin se il profilo è di un cliente) -->
-                {if ($smarty.session.ruolo_utente === 'allenatore' || $smarty.session.ruolo_utente === 'amministratore') && $isClient}
+                <!-- ATTIVITÀ ABILITATE (Visibile solo per gli Allenatori) -->
+                {if isset($isTrainer) && $isTrainer}
+                <div class="box p-4 mb-4">
+                    <h3 class="title is-5 style-theme-text mb-3">
+                        <i class="fas fa-certificate mr-2"></i>Attività Abilitate
+                    </h3>
+                    {if $attivitaAbilitate && count($attivitaAbilitate) > 0}
+                        <div class="tags">
+                            {foreach from=$attivitaAbilitate item=att}
+                                <span class="tag is-light style-theme-text is-rounded" style="font-weight: 500; font-size: 0.95rem;">{$att->getNome()}</span>
+                            {/foreach}
+                        </div>
+                    {else}
+                        <p class="is-size-6 mb-0 has-text-grey">Nessuna attività abilitata per questo allenatore.</p>
+                    {/if}
+                </div>
+                {/if}
+
+                <!-- INFO SCHEDA ALLENAMENTO (Visibile a Coach se il profilo è di un cliente) -->
+                {if ($smarty.session.ruolo_utente === 'allenatore') && $isClient}
                 <div class="box p-4 mb-4">
                     <h3 class="title is-5 style-theme-text mb-3">
                         <i class="fas fa-dumbbell mr-2"></i>Scheda Allenamento
@@ -159,6 +191,7 @@
                     
                     {if $isClient}
                     <!-- Parametri -->
+                    {if $smarty.session.ruolo_utente !== 'amministratore'}
                     <a href="aggiorna-misure{if !$isSelf}?id={$utente->getId()}{/if}" class="navigation-box-card">
                         <span class="is-flex is-align-items-center">
                             <span class="icon mr-3 has-text-link"><i class="fas fa-chart-line fa-lg"></i></span>
@@ -166,6 +199,7 @@
                         </span>
                         <span class="icon has-text-grey"><i class="fas fa-chevron-right fa-lg"></i></span>
                     </a>
+                    {/if}
 
                     <!-- Certificato Medico -->
                     <a href="carica-certificato{if !$isSelf}?id={$utente->getId()}{/if}" class="navigation-box-card">
@@ -189,7 +223,7 @@
                     {/if}
 
                     <!-- Modifica Dati -->
-                    <a href="modifica-anagrafica" class="navigation-box-card">
+                    <a href="modifica-anagrafica{if !$isSelf}?id={$utente->getId()}{/if}" class="navigation-box-card">
                         <span class="is-flex is-align-items-center">
                             <span class="icon mr-3 has-text-link"><i class="fas fa-pen fa-lg"></i></span>
                             <span class="has-text-weight-semibold is-size-5">modifica dati</span>

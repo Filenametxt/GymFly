@@ -47,8 +47,8 @@ class ProfiloController
             $isClient = ($utente instanceof Cliente);
         } else {
             $targetId = (int)$_GET['id'];
-            $utente = $this->clienteRepo->findById($targetId);
-            $isClient = true;
+            $utente = $entityManager->find(Utente::class, $targetId);
+            $isClient = ($utente instanceof Cliente);
 
             // Controllo di sicurezza (Anti-IDOR) per amministratore e allenatore
             if ($ruolo === 'amministratore' || $ruolo === 'allenatore') {
@@ -61,8 +61,8 @@ class ProfiloController
                     $palestraUtente = $allenatoreObj ? $allenatoreObj->getPalestra() : null;
                 }
 
-                // Verifica che il cliente sia presente e appartenga alla stessa palestra dell'utente loggato
-                if (!$utente || !$palestraUtente || !$utente->getPalestra() || $utente->getPalestra()->getId() !== $palestraUtente->getId()) {
+                // Verifica che il target sia presente, abbia una palestra e appartenga alla stessa palestra dell'utente loggato
+                if (!$utente || !method_exists($utente, 'getPalestra') || !$utente->getPalestra() || !$palestraUtente || $utente->getPalestra()->getId() !== $palestraUtente->getId()) {
                     $this->view->mostraErrore("Accesso negato. Non sei autorizzato a visualizzare questo profilo.");
                     return;
                 }
@@ -73,6 +73,8 @@ class ProfiloController
             $this->view->mostraErrore("Profilo non trovato.");
             return;
         }
+
+        $isTrainer = ($utente instanceof Allenatore);
 
         if ($isClient) {
             /** @var Cliente $utente */
@@ -87,10 +89,18 @@ class ProfiloController
             $abbonamentoAttivo = false;
         }
 
+        $attivitaAbilitate = null;
+        if ($isTrainer) {
+            /** @var Allenatore $utente */
+            $attivitaAbilitate = $utente->getAttivitaAbilitate();
+        }
+
         // Costruiamo l'array con i dati del profilo
         $datiProfilo = [
             'utente' => $utente,
             'isClient' => $isClient,
+            'isTrainer' => $isTrainer,
+            'attivitaAbilitate' => $attivitaAbilitate,
             'isSelf' => $isSelf,
             'nome' => $utente->getNome(),
             'cognome' => $utente->getCognome(),
@@ -144,18 +154,44 @@ class ProfiloController
 
         $entityManager = EntityManagerFactory::create();
         $ruolo = $this->session->getLoggedUserRole();
-        $utente = $this->recuperaUtenteLoggato($entityManager, $idUtente, $ruolo);
+
+        $isSelf = !isset($_GET['id']) && !isset($_POST['id']);
+        if ($isSelf) {
+            $utente = $this->recuperaUtenteLoggato($entityManager, $idUtente, $ruolo);
+            $isClient = ($utente instanceof Cliente);
+        } else {
+            $targetId = isset($_GET['id']) ? (int)$_GET['id'] : (int)$_POST['id'];
+            $utente = $entityManager->find(Utente::class, $targetId);
+            $isClient = ($utente instanceof Cliente);
+
+            // Security check (Anti-IDOR) for admin and trainer
+            if ($ruolo === 'amministratore' || $ruolo === 'allenatore') {
+                $palestraUtente = null;
+                if ($ruolo === 'amministratore') {
+                    $adminObj = $entityManager->find(Amministratore::class, $idUtente);
+                    $palestraUtente = $entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $adminObj]);
+                } else {
+                    $allenatoreObj = $entityManager->find(Allenatore::class, $idUtente);
+                    $palestraUtente = $allenatoreObj ? $allenatoreObj->getPalestra() : null;
+                }
+
+                if (!$utente || !method_exists($utente, 'getPalestra') || !$utente->getPalestra() || !$palestraUtente || $utente->getPalestra()->getId() !== $palestraUtente->getId()) {
+                    $this->view->mostraErrore("Accesso negato. Non sei autorizzato a modificare questo profilo.");
+                    return;
+                }
+            }
+        }
+
         if (!$utente) {
             $this->view->mostraErrore("Profilo inesistente.");
             return;
         }
 
-        $isClient = ($utente instanceof Cliente);
-
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $this->view->mostraFormModifica([
                 'utente' => $utente,
-                'isClient' => $isClient
+                'isClient' => $isClient,
+                'isSelf' => $isSelf
             ]);
             return;
         }
@@ -191,7 +227,12 @@ class ProfiloController
             }
 
             $entityManager->flush();
-            $this->view->mostraConfermaModifica("Modifiche salvate con successo.");
+            if ($isSelf) {
+                header('Location: profilo');
+            } else {
+                header('Location: visualizza-profilo?id=' . $utente->getId());
+            }
+            exit();
         } catch (\InvalidArgumentException $e) {
             $this->view->mostraErrore("Errore di validazione: " . $e->getMessage());
         }

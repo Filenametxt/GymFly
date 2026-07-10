@@ -102,12 +102,18 @@ class VisualizzazioneUtentiController
         $allenatori = $this->allenatoreRepo->findByPalestra($palestra);
         $allenatoriData = [];
         foreach ($allenatori as $a) {
+            $attivitaNomi = [];
+            foreach ($a->getAttivitaAbilitate() as $att) {
+                $attivitaNomi[] = $att->getNome();
+            }
             $allenatoriData[] = [
                 'id' => $a->getId(),
                 'nome' => $a->getNome(),
                 'cognome' => $a->getCognome(),
                 'email' => $a->getEmail(),
-                'cf' => $a->getCF()
+                'cf' => $a->getCF(),
+                'sesso' => $a->getSesso()->value,
+                'attivita' => implode(',', $attivitaNomi)
             ];
         }
 
