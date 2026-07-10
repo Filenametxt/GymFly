@@ -2,12 +2,15 @@
 FROM php:8.2-apache
 
 # Installa le estensioni necessarie
+# Installa le estensioni necessarie
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libzip-dev \
     libxml2-dev \
     zip \
     unzip \
+    --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/* \
     && docker-php-ext-install pdo pdo_mysql libxml
 
 # Installa Composer
