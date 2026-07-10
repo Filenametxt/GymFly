@@ -89,24 +89,39 @@ class SchedaAllenamentoController
             return;
         }
 
-        // Crea un Messaggio interno con l'allenatore come mittente (poiché Cliente non ha i permessi di invio)
-        // e destinato allo stesso allenatore, fungendo da promemoria/notifica.
-        $messaggioOggetto = "Richiesta Nuova Scheda - " . $cliente->getNome() . " " . $cliente->getCognome();
-        $messaggioContenuto = "Il cliente " . $cliente->getNome() . " " . $cliente->getCognome() . " (" . $cliente->getEmail() . ") ti ha richiesto una nuova scheda.\n\n"
-                            . "Obiettivo: " . $obiettivo . "\n"
-                            . "Allenamenti per ciclo: " . $nAllenamenti . "\n";
-
-        $messaggio = new Messaggio($allenatore, $messaggioOggetto, $messaggioContenuto);
-        $messaggio->aggiungiDestinatario($allenatore);
+        // Limita a massimo 7 allenamenti
+        if ($nAllenamenti < 1 || $nAllenamenti > 7) {
+            $this->view->mostraStatoOperazione(false, "Il numero di allenamenti richiesto deve essere compreso tra 1 e 7.", "richiedi-scheda");
+            return;
+        }
 
         try {
+            // Quando il cliente richiede la nuova scheda, quella presente attualmente deve essere eliminata
+            $schedaAttiva = $cliente->getScheda();
+            if ($schedaAttiva) {
+                $cliente->setScheda(null);
+                $this->entityManager->flush();
+                $this->entityManager->remove($schedaAttiva);
+                $this->entityManager->flush();
+            }
+
+            // Crea un Messaggio interno con l'allenatore come mittente (poiché Cliente non ha i permessi di invio)
+            // e destinato allo stesso allenatore, fungendo da promemoria/notifica.
+            $messaggioOggetto = "Richiesta Nuova Scheda - " . $cliente->getNome() . " " . $cliente->getCognome();
+            $messaggioContenuto = "Il cliente " . $cliente->getNome() . " " . $cliente->getCognome() . " (" . $cliente->getEmail() . ") ti ha richiesto una nuova scheda.\n\n"
+                                . "Obiettivo: " . $obiettivo . "\n"
+                                . "Allenamenti per ciclo: " . $nAllenamenti . "\n";
+
+            $messaggio = new Messaggio($allenatore, $messaggioOggetto, $messaggioContenuto);
+            $messaggio->aggiungiDestinatario($allenatore);
+
             $this->entityManager->persist($messaggio);
             $this->entityManager->flush();
 
             // Simula invio e-mail all'allenatore
             error_log("EMAIL CONFIRMATION: Inviata email a " . $allenatore->getEmail() . " per richiesta scheda da parte del cliente " . $cliente->getEmail());
 
-            $this->view->mostraStatoOperazione(true, "Richiesta inviata con successo al tuo Allenatore ed e-mail di notifica recapitata.", "dashboard-cliente");
+            $this->view->mostraStatoOperazione(true, "Richiesta inviata con successo al tuo Allenatore ed e-mail di notifica recapitata. La vecchia scheda è stata rimossa.", "dashboard-cliente");
         } catch (\Throwable $e) {
             $this->view->mostraStatoOperazione(false, "Errore durante l'invio della richiesta: " . $e->getMessage(), "richiedi-scheda");
         }
@@ -145,8 +160,9 @@ class SchedaAllenamentoController
         $clienti = [];
         if ($palestra) {
             $tuttiClienti = $this->entityManager->getRepository(Cliente::class)->findBy(['palestra' => $palestra]);
+            $messaggioRepo = new \App\Foundation\Persistence\Repository\DoctrineMessaggioRepository($this->entityManager);
             foreach ($tuttiClienti as $c) {
-                $richieste = $this->entityManager->getRepository(Messaggio::class)->findByMittenteAndOggetto(
+                $richieste = $messaggioRepo->findByMittenteAndOggetto(
                     $allenatore,
                     "Richiesta Nuova Scheda - " . $c->getNome() . " " . $c->getCognome()
                 );
@@ -178,7 +194,8 @@ class SchedaAllenamentoController
             return;
         }
 
-        $richieste = $this->entityManager->getRepository(Messaggio::class)->findByMittenteAndOggetto(
+        $messaggioRepo = new \App\Foundation\Persistence\Repository\DoctrineMessaggioRepository($this->entityManager);
+        $richieste = $messaggioRepo->findByMittenteAndOggetto(
             $allenatore,
             "Richiesta Nuova Scheda - " . $cliente->getNome() . " " . $cliente->getCognome()
         );
@@ -186,6 +203,19 @@ class SchedaAllenamentoController
         if (empty($richieste)) {
             $this->view->mostraStatoOperazione(false, "L'allenatore può creare una nuova scheda solo se il cliente l'ha esplicitamente richiesta.", "dashboard-allenatore");
             return;
+        }
+
+        // Estrae Obiettivo e n_allenamenti dalla richiesta
+        $obiettivoRichiesto = "Focus da definire";
+        $nAllenamentiRichiesto = 3; // Default se non trovato
+        foreach ($richieste as $richiesta) {
+            $testo = $richiesta->getContenuto();
+            if (preg_match('/Obiettivo:\s*(.+)/i', $testo, $matches)) {
+                $obiettivoRichiesto = trim($matches[1]);
+            }
+            if (preg_match('/Allenamenti per ciclo:\s*(\d+)/i', $testo, $matches)) {
+                $nAllenamentiRichiesto = (int)$matches[1];
+            }
         }
 
         // Consuma la richiesta eliminando il messaggio di notifica associato
@@ -203,27 +233,36 @@ class SchedaAllenamentoController
         }
         $this->entityManager->flush();
 
-        // Crea una scheda vuota nel db associata a quel cliente
+        // Crea una scheda vuota nel db associata a quel cliente con l'obiettivo inserito dal cliente
         $scheda = new Scheda(
             "Nuovo Protocollo",
             new \DateTimeImmutable('today'),
             new \DateTimeImmutable('+1 month'),
-            "Focus da definire",
+            $obiettivoRichiesto,
             $cliente,
             $allenatore
         );
 
         try {
             $this->schedaRepo->save($scheda);
-            // Associa bidirezionalmente al cliente per aggiornare id_scheda nel DB
-            $cliente->setScheda($scheda);
+
+            // Pre-crea il numero di allenamenti richiesti di default (A, B, C, D...)
+            $letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+            $maxAllenamenti = min(7, max(1, $nAllenamentiRichiesto));
+            for ($i = 0; $i < $maxAllenamenti; $i++) {
+                $nuovoAll = new Allenamento("Allenamento " . $letters[$i], "Informazioni sull'allenamento " . $letters[$i]);
+                $scheda->addAllenamento($nuovoAll);
+                $this->entityManager->persist($nuovoAll);
+            }
+
+
             $this->entityManager->flush();
 
             // Reindirizza al form di inserimento dei dati e dettagli della scheda (Passo 2)
             header("Location: modifica-scheda?id=" . $scheda->getId());
             exit();
         } catch (\Throwable $e) {
-            $this->view->mostraStatoOperazione(false, "Errore nella creazione della scheda vuota: " . $e->getMessage(), "dashboard-allenatore");
+            $this->view->mostraStatoOperazione(false, "Errore nella creazione della scheda: " . $e->getMessage(), "dashboard-allenatore");
         }
     }
 
@@ -478,7 +517,7 @@ class SchedaAllenamentoController
         $scheda = $this->schedaRepo->findById($idScheda);
         if ($scheda) {
             $this->schedaRepo->save($scheda);
-            $scheda->getCliente()->setScheda($scheda);
+            // Non associamo la scheda al cliente (bozza/non ancora inviata)
             $this->entityManager->flush();
 
             $this->view->mostraStatoOperazione(true, "Scheda di allenamento salvata come bozza per l'allenatore.", "dashboard-allenatore");

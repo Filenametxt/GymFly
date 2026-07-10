@@ -1,103 +1,29 @@
 Array
 (
-    [id_scheda] => 6
+    [id_scheda] => 8
     [azione] => invia
-    [nome_scheda] => Scheda estiva
-    [obiettivo] => Perdere grasso
-    [data_inizio] => 2026-07-09
-    [data_fine] => 2026-08-09
+    [nome_scheda] => Nuovo Protocollo
+    [obiettivo] => Ricondizionamento posturale
+    [data_inizio] => 2026-07-10
+    [data_fine] => 2026-08-10
     [workouts] => Array
         (
             [0] => Array
                 (
-                    [nome] => Petto/bicipiti
-                    [descrizione] => Ipertrofia
-                    [dettagli] => Array
-                        (
-                            [0] => Array
-                                (
-                                    [esercizio_id] => 1
-                                    [serie] => 1
-                                    [ripetizioni] => 10
-                                    [carico] => 19
-                                    [recupero] => 12
-                                )
-
-                            [1] => Array
-                                (
-                                    [esercizio_id] => 1
-                                    [serie] => 2
-                                    [ripetizioni] => 8
-                                    [carico] => 17
-                                    [recupero] => 45
-                                )
-
-                            [2] => Array
-                                (
-                                    [esercizio_id] => 1
-                                    [serie] => 3
-                                    [ripetizioni] => 8
-                                    [carico] => 15
-                                    [recupero] => Non specificato
-                                )
-
-                            [3] => Array
-                                (
-                                    [esercizio_id] => 1
-                                    [serie] => 1
-                                    [ripetizioni] => 10
-                                    [carico] => 0
-                                    [recupero] => Non specificato
-                                )
-
-                            [4] => Array
-                                (
-                                    [esercizio_id] => 1
-                                    [serie] => 2
-                                    [ripetizioni] => 10
-                                    [carico] => 0
-                                    [recupero] => Non specificato
-                                )
-
-                            [5] => Array
-                                (
-                                    [esercizio_id] => 1
-                                    [serie] => 1
-                                    [ripetizioni] => 10
-                                    [carico] => 0
-                                    [recupero] => 3545
-                                )
-
-                        )
-
+                    [nome] => Allenamento A
+                    [descrizione] => Informazioni sull'allenamento A
                 )
 
             [1] => Array
                 (
-                    [nome] => Gambe/spalle
-                    [descrizione] => Ipertrofia
-                    [dettagli] => Array
-                        (
-                            [0] => Array
-                                (
-                                    [esercizio_id] => 1
-                                    [serie] => 1
-                                    [ripetizioni] => 10
-                                    [carico] => 0
-                                    [recupero] => Non specificato
-                                )
+                    [nome] => Allenamento B
+                    [descrizione] => Informazioni sull'allenamento B
+                )
 
-                            [1] => Array
-                                (
-                                    [esercizio_id] => 1
-                                    [serie] => 2
-                                    [ripetizioni] => 10
-                                    [carico] => 0
-                                    [recupero] => Non specificato
-                                )
-
-                        )
-
+            [2] => Array
+                (
+                    [nome] => Allenamento C
+                    [descrizione] => Informazioni sull'allenamento C
                 )
 
         )
