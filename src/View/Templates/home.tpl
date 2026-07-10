@@ -54,16 +54,16 @@
                 <div class="gf-stat-label">Made in Italy</div>
             </div>
             <div class="gf-stat-item">
-                <div class="gf-stat-number">∞</div>
-                <div class="gf-stat-label">Atleti gestibili</div>
-            </div>
-            <div class="gf-stat-item">
                 <div class="gf-stat-number">24/7</div>
                 <div class="gf-stat-label">Disponibile sempre</div>
             </div>
             <div class="gf-stat-item">
                 <div class="gf-stat-number">100%</div>
                 <div class="gf-stat-label">Affidabile</div>
+            </div>
+            <div class="gf-stat-item">
+                <div class="gf-stat-number">∞</div>
+                <div class="gf-stat-label">Atleti gestibili</div>
             </div>
         </div>
     </section>
