@@ -104,9 +104,6 @@
                     <!-- Stato Filtri Attivi -->
                     <div id="active-filters-tags" class="tags mb-0 is-flex is-align-items-center is-hidden" style="gap: 5px;">
                         <span id="tag-activity" class="tag is-info font-weight-bold is-hidden"></span>
-                        <a href="#" onclick="resetAllFilters(); return false;" class="button is-small is-light" style="border-radius: 8px; height: 24px; padding: 0 8px;" title="Rimuovi Filtri">
-                            <span class="icon is-small"><i class="fas fa-times"></i></span>
-                        </a>
                     </div>
 
                 </div>
@@ -343,7 +340,6 @@
         function updateFilterTags() {
             const tagsContainer = document.getElementById('active-filters-tags');
             const tagActivity = document.getElementById('tag-activity');
-            const resetContainer = document.getElementById('reset-filters-container');
             
             let hasFilters = false;
             
@@ -357,10 +353,8 @@
             
             if (hasFilters) {
                 tagsContainer.classList.remove('is-hidden');
-                resetContainer.classList.remove('is-hidden');
             } else {
                 tagsContainer.classList.add('is-hidden');
-                resetContainer.classList.add('is-hidden');
             }
         }
 

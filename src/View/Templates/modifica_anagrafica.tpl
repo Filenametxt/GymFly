@@ -10,93 +10,96 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <section class="section">
-        <div class="container">
-            <div class="columns is-centered">
-                <div class="column is-six-fifths-tablet is-half-desktop">
-                    
-                    <div class="mb-5">
-                        <a href="{if isset($isSelf) && !$isSelf}visualizza-profilo?id={$utente->getId()}{else}profilo{/if}" class="button is-ghost has-text-grey">
-                            <span class="icon"><i class="fas fa-arrow-left"></i></span>
-                            <span>Torna al Profilo</span>
-                        </a>
-                    </div>
-
-                    <div class="card p-5">
-                        <div class="has-text-centered mb-5">
-                            <span class="icon is-large has-text-info">
-                                <i class="fas fa-user-edit fa-3x"></i>
-                            </span>
-                            <h1 class="title is-3 mt-3 style-theme-text">Modifica Dati</h1>
-                            <p class="subtitle is-6 has-text-grey mt-1">Aggiorna le tue informazioni di residenza, domicilio e pagamento</p>
+    <div class="app-container">
+        {include file='sidebar.tpl'}
+        <main class="app-content">
+            <div class="container">
+                <div class="columns is-centered">
+                    <div class="column is-six-fifths-tablet is-half-desktop">
+                        
+                        <div class="mb-5">
+                            <a href="{if isset($isSelf) && !$isSelf}visualizza-profilo?id={$utente->getId()}{else}profilo{/if}" class="button is-ghost has-text-grey">
+                                <span class="icon"><i class="fas fa-arrow-left"></i></span>
+                                <span>Torna al Profilo</span>
+                            </a>
                         </div>
 
-                        <form action="modifica-anagrafica{if isset($isSelf) && !$isSelf}?id={$utente->getId()}{/if}" method="POST">
-                            <div class="field">
-                                <label class="label">Nome</label>
-                                <div class="control has-icons-left">
-                                    <input class="input" type="text" name="nome" value="{$utente->getNome()|escape}" required placeholder="Nome">
-                                    <span class="icon is-small is-left">
-                                        <i class="fas fa-user"></i>
-                                    </span>
-                                </div>
+                        <div class="card p-5">
+                            <div class="has-text-centered mb-5">
+                                <span class="icon is-large has-text-info">
+                                    <i class="fas fa-user-edit fa-3x"></i>
+                                </span>
+                                <h1 class="title is-3 mt-3 style-theme-text">Modifica Dati</h1>
+                                <p class="subtitle is-6 has-text-grey mt-1">Aggiorna le tue informazioni di residenza, domicilio e pagamento</p>
                             </div>
 
-                            <div class="field">
-                                <label class="label">Cognome</label>
-                                <div class="control has-icons-left">
-                                    <input class="input" type="text" name="cognome" value="{$utente->getCognome()|escape}" required placeholder="Cognome">
-                                    <span class="icon is-small is-left">
-                                        <i class="fas fa-user"></i>
-                                    </span>
+                            <form action="modifica-anagrafica{if isset($isSelf) && !$isSelf}?id={$utente->getId()}{/if}" method="POST">
+                                <div class="field">
+                                    <label class="label">Nome</label>
+                                    <div class="control has-icons-left">
+                                        <input class="input" type="text" name="nome" value="{$utente->getNome()|escape}" required placeholder="Nome">
+                                        <span class="icon is-small is-left">
+                                            <i class="fas fa-user"></i>
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="field">
-                                <label class="label">Residenza (Indirizzo Principale)</label>
-                                <div class="control has-icons-left">
-                                    <input class="input" type="text" name="indirizzo" value="{$utente->getIndirizzo()|escape}" required placeholder="Via/Piazza, Numero, Città">
-                                    <span class="icon is-small is-left">
-                                        <i class="fas fa-home"></i>
-                                    </span>
+                                <div class="field">
+                                    <label class="label">Cognome</label>
+                                    <div class="control has-icons-left">
+                                        <input class="input" type="text" name="cognome" value="{$utente->getCognome()|escape}" required placeholder="Cognome">
+                                        <span class="icon is-small is-left">
+                                            <i class="fas fa-user"></i>
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
 
-                            {if $isClient}
-                            <div class="field">
-                                <label class="label">Domicilio (Opzionale)</label>
-                                <div class="control has-icons-left">
-                                    <input class="input" type="text" name="indirizzo_domicilio" value="{$utente->getIndirizzoDiDomicilio()|escape}" placeholder="Via/Piazza, Numero, Città">
-                                    <span class="icon is-small is-left">
-                                        <i class="fas fa-map-marker-alt"></i>
-                                    </span>
+                                <div class="field">
+                                    <label class="label">Residenza (Indirizzo Principale)</label>
+                                    <div class="control has-icons-left">
+                                        <input class="input" type="text" name="indirizzo" value="{$utente->getIndirizzo()|escape}" required placeholder="Via/Piazza, Numero, Città">
+                                        <span class="icon is-small is-left">
+                                            <i class="fas fa-home"></i>
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="field">
-                                <label class="label">Metodo di Pagamento</label>
-                                <div class="control has-icons-left">
-                                    <input class="input" type="text" name="metodo_pagamento" value="{$utente->getMetodoDiPagamento()|escape}" required placeholder="Carta di Credito, Paypal, Contanti, ecc.">
-                                    <span class="icon is-small is-left">
-                                        <i class="fas fa-credit-card"></i>
-                                    </span>
+                                {if $isClient}
+                                <div class="field">
+                                    <label class="label">Domicilio (Opzionale)</label>
+                                    <div class="control has-icons-left">
+                                        <input class="input" type="text" name="indirizzo_domicilio" value="{$utente->getIndirizzoDiDomicilio()|escape}" placeholder="Via/Piazza, Numero, Città">
+                                        <span class="icon is-small is-left">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                            {/if}
 
-                            <div class="field mt-5">
-                                <div class="control">
-                                    <button class="button is-gymfly is-fullwidth" type="submit">
-                                        <i class="fas fa-save mr-2"></i> Salva Modifiche
-                                    </button>
+                                <div class="field">
+                                    <label class="label">Metodo di Pagamento</label>
+                                    <div class="control has-icons-left">
+                                        <input class="input" type="text" name="metodo_pagamento" value="{$utente->getMetodoDiPagamento()|escape}" required placeholder="Carta di Credito, Paypal, Contanti, ecc.">
+                                        <span class="icon is-small is-left">
+                                            <i class="fas fa-credit-card"></i>
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                        </form>
+                                {/if}
+
+                                <div class="field mt-5">
+                                    <div class="control">
+                                        <button class="button is-gymfly is-fullwidth" type="submit">
+                                            <i class="fas fa-save mr-2"></i> Salva Modifiche
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
                     </div>
-
                 </div>
             </div>
-        </div>
-    </section>
+        </main>
+    </div>
 </body>
 </html>
