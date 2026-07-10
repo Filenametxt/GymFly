@@ -1,8 +1,7 @@
 # Usa l'immagine ufficiale PHP 8.2 con Apache
 FROM php:8.2-apache
 
-# Installa le estensioni necessarie
-# Installa le estensioni necessarie
+# Installa le librerie di sistema necessarie
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libzip-dev \
@@ -10,8 +9,11 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     --no-install-recommends && \
-    rm -rf /var/lib/apt/lists/* \
-    && docker-php-ext-install pdo pdo_mysql libxml
+    rm -rf /var/lib/apt/lists/*
+
+# Installa le estensioni PHP (pdo, pdo_mysql e zip)
+# NOTA: libxml NON deve stare qui dentro!
+RUN docker-php-ext-install pdo pdo_mysql zip
 
 # Installa Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -37,10 +39,12 @@ RUN mkdir -p /var/www/html/src/View/Templates_c && \
     chown -R www-data:www-data /var/www/html/src/View/Templates_c && \
     chmod -R 775 /var/www/html/src/View/Templates_c
 
-# --- VERIFICA DOCTRINE (Posizionata alla fine) ---
-# Se questa parte fallisce, la build si interrompe correttamente
+# --- VERIFICA DOCTRINE (Alla fine) ---
 RUN php bin/console orm:info && \
     php bin/console orm:schema-tool:create || true
 
 # Espone la porta 80
 EXPOSE 80
+
+# Comando finale per avviare Apache
+CMD ["apache2-foreground"]
