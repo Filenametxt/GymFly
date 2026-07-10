@@ -1,18 +1,19 @@
 # Usa l'immagine ufficiale PHP 8.2 con Apache
 FROM php:8.2-apache
 
-# Installa le librerie di sistema necessarie
+# Installa le librerie di sistema necessarie (inclusa libpq-dev per PostgreSQL)
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libzip-dev \
     libxml2-dev \
+    libpq-dev \
     zip \
     unzip \
     --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
-# Installa le estensioni PHP (pdo, pdo_mysql e zip)
-RUN docker-php-ext-install pdo pdo_mysql zip
+# Installa le estensioni PHP (aggiunto pdo_pgsql)
+RUN docker-php-ext-install pdo pdo_mysql pdo_pgsql zip
 
 # Installa Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -45,5 +46,5 @@ RUN chmod +x /var/www/html/entrypoint.sh && \
 # Espone la porta 80
 EXPOSE 80
 
-# Esegue lo script di avvio al posto del classico apache2-foreground
+# Esegue lo script di avvio
 ENTRYPOINT ["entrypoint"]
