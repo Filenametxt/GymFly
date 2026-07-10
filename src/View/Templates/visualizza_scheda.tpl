@@ -60,7 +60,7 @@
                     <a href="modifica-dettagli" class="button is-gymfly is-small is-fullwidth">
                         <i class="fas fa-edit mr-2"></i> Aggiorna Carico & Ripetizioni
                     </a>
-                    <a href="esporta-scheda" target="_blank" class="button is-link is-light is-small is-fullwidth">
+                    <a href="javascript:void(0)" class="button is-link is-light is-small is-fullwidth">
                         <i class="fas fa-file-download mr-2"></i> Esporta in PDF
                     </a>
                 </div>
@@ -69,7 +69,15 @@
             <!-- WORKOUTS LIST -->
             {foreach $scheda->getAllenamenti() as $allenamento}
                 <div class="box p-4 workout-session-box">
-                    <h2 class="title is-4 style-theme-text mb-1"><i class="fas fa-dumbbell mr-2"></i>{$allenamento->getNome()}</h2>
+                    <div class="is-flex is-justify-content-between is-align-items-center mb-2">
+                        <h2 class="title is-4 style-theme-text mb-0"><i class="fas fa-dumbbell mr-2"></i>{$allenamento->getNome()}</h2>
+                        {if $allenamento->getDescrizione()|pulisci_descrizione}
+                            <button type="button" class="button is-small is-info is-light" onclick="openInfoModal('{$allenamento->getDescrizione()|pulisci_descrizione|escape:'javascript'}')">
+                                <span class="icon"><i class="fas fa-info-circle"></i></span>
+                                <span>Info</span>
+                            </button>
+                        {/if}
+                    </div>
                     <p class="subtitle is-6 has-text-grey mb-4">{$allenamento->getDescrizione()|pulisci_descrizione|default:'Sessione di allenamento'}</p>
 
                     <!-- EXERCISES IN WORKOUT -->
@@ -113,5 +121,31 @@
         </div>
     </section>
 
+    <!-- MODAL INFO DI BULMA -->
+    <div class="modal" id="info-modal">
+        <div class="modal-background" onclick="closeInfoModal()"></div>
+        <div class="modal-content px-3">
+            <div class="box p-5" style="border: 2px solid var(--gymfly-primary); border-radius: 16px; background-color: var(--gymfly-card-bg); max-width: 450px; margin: 0 auto;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--gymfly-accent); padding-bottom: 0.75rem; margin-bottom: 1rem;">
+                    <h3 class="title is-5 style-theme-text mb-0" style="font-weight: 700;">NOTE ALLENAMENTO</h3>
+                    <button type="button" class="delete" aria-label="close" onclick="closeInfoModal()"></button>
+                </div>
+                <p id="info-modal-text" class="style-theme-text" style="white-space: pre-line; font-size: 0.95rem; line-height: 1.5;"></p>
+                <button type="button" class="button is-gymfly is-fullwidth mt-4" onclick="closeInfoModal()" style="border-radius: 10px; font-weight: bold; background: var(--gymfly-primary); color: white;">CHIUDI</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT GESTIONE MODAL INFO -->
+    <script>
+        function openInfoModal(text) {
+            document.getElementById('info-modal-text').textContent = text;
+            document.getElementById('info-modal').classList.add('is-active');
+        }
+
+        function closeInfoModal() {
+            document.getElementById('info-modal').classList.remove('is-active');
+        }
+    </script>
 </body>
 </html>

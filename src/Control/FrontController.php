@@ -93,7 +93,6 @@ class FrontController
             '/elimina-scheda' => [SchedaAllenamentoController::class, 'eliminaScheda'],
             '/rimuovi-scheda' => [SchedaAllenamentoController::class, 'eliminaScheda'],
             '/visualizza-scheda' => [SchedaAllenamentoController::class, 'visualizzaScheda'],
-            '/esporta-scheda' => [SchedaAllenamentoController::class, 'esportaSchedaPDF'],
             '/modifica-dettagli' => [SchedaAllenamentoController::class, 'apriFormModificaSchedaCliente'],
         ];
     }
