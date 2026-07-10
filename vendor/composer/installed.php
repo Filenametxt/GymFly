@@ -3,7 +3,7 @@
         'name' => 'univaq/gym-fly',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '720dd60ee3847bd9ce6b6554ac725dd49a5abd7e',
+        'reference' => 'f9902e7bcb7cd8165b423dce0d8d81473d8c402a',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -199,6 +199,12 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
+        'psr/cache-implementation' => array(
+            'dev_requirement' => false,
+            'provided' => array(
+                0 => '2.0|3.0',
+            ),
+        ),
         'psr/container' => array(
             'pretty_version' => '2.0.2',
             'version' => '2.0.2.0',
@@ -218,6 +224,12 @@
             'dev_requirement' => false,
         ),
         'psr/log-implementation' => array(
+            'dev_requirement' => false,
+            'provided' => array(
+                0 => '1.0|2.0|3.0',
+            ),
+        ),
+        'psr/simple-cache-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
                 0 => '1.0|2.0|3.0',
@@ -367,6 +379,30 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
+        'symfony/cache' => array(
+            'pretty_version' => 'v7.4.14',
+            'version' => '7.4.14.0',
+            'reference' => '9adfcb2a7fc3924473b09f5a0b058dcc2cc7be9a',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../symfony/cache',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'symfony/cache-contracts' => array(
+            'pretty_version' => 'v3.7.1',
+            'version' => '3.7.1.0',
+            'reference' => '9789738bc19af1106dc54d6afba9a0b467516cf2',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../symfony/cache-contracts',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'symfony/cache-implementation' => array(
+            'dev_requirement' => false,
+            'provided' => array(
+                0 => '1.1|2.0|3.0',
+            ),
+        ),
         'symfony/console' => array(
             'pretty_version' => 'v7.4.14',
             'version' => '7.4.14.0',
@@ -478,7 +514,7 @@
         'univaq/gym-fly' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '720dd60ee3847bd9ce6b6554ac725dd49a5abd7e',
+            'reference' => 'f9902e7bcb7cd8165b423dce0d8d81473d8c402a',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
