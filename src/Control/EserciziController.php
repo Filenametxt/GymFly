@@ -151,6 +151,7 @@ class EserciziController
         $tracciamentoCarico = isset($_POST['tracciamento_carico']) ? (int)$_POST['tracciamento_carico'] : 1;
         $gruppiSelezionati = $_POST['gruppi_muscolari'] ?? [];
         $idAttrezzatura = isset($_POST['attrezzatura_id']) && $_POST['attrezzatura_id'] !== '' ? (int)$_POST['attrezzatura_id'] : null;
+        $nuovoGruppoNome = trim($_POST['nuovo_gruppo_nome'] ?? '');
 
         // Validazione finale obbligatoria lato server
         if ($nome === '') {
@@ -209,11 +210,26 @@ class EserciziController
             $immagineBin
         );
 
-        // Associa i gruppi muscolari scelti
+        // Associa i gruppi muscolari scelti o ne crea uno nuovo
         foreach ($gruppiSelezionati as $idGm) {
-            $gruppoMuscolare = $this->entityManager->find(GruppoMuscolare::class, (int)$idGm);
-            if ($gruppoMuscolare) {
+            if ($idGm === 'nuovo_gruppo') {
+                if ($nuovoGruppoNome === '') {
+                    $this->view->mostraStatoOperazione(false, "Il nome del nuovo gruppo muscolare è obbligatorio se hai selezionato di aggiungerne uno nuovo.", "crea-esercizio");
+                    return;
+                }
+                $gruppoMuscolare = $this->entityManager->getRepository(GruppoMuscolare::class)
+                    ->findOneBy(['nomeGruppoMuscolare' => $nuovoGruppoNome]);
+                if (!$gruppoMuscolare) {
+                    $gruppoMuscolare = new GruppoMuscolare($nuovoGruppoNome);
+                    $this->entityManager->persist($gruppoMuscolare);
+                    $this->entityManager->flush();
+                }
                 $esercizio->aggiungiGruppoMuscolare($gruppoMuscolare);
+            } else {
+                $gruppoMuscolare = $this->entityManager->find(GruppoMuscolare::class, (int)$idGm);
+                if ($gruppoMuscolare) {
+                    $esercizio->aggiungiGruppoMuscolare($gruppoMuscolare);
+                }
             }
         }
 
