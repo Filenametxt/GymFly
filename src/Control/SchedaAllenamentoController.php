@@ -172,28 +172,9 @@ class SchedaAllenamentoController
             return;
         }
 
-        // Altrimenti mostra form selezione utente
-        $palestra = $allenatore->getPalestra();
-        
-        // Trova i clienti della palestra dell'allenatore per cui esiste una scheda di richiesta
-        $clienti = [];
-        if ($palestra) {
-            $tuttiClienti = $this->entityManager->getRepository(Cliente::class)->findBy(['palestra' => $palestra]);
-            foreach ($tuttiClienti as $c) {
-                $schedaReq = $this->entityManager->getRepository(Scheda::class)->findOneBy([
-                    'cliente' => $c,
-                    'nome_scheda' => 'Richiesta Nuova Scheda'
-                ]);
-                if ($schedaReq !== null) {
-                    $clienti[] = $c;
-                }
-            }
-        }
-
-        $this->view->mostraTemplate('aggiungi_scheda_passo1.tpl', [
-            'utente' => $allenatore,
-            'clienti' => $clienti
-        ]);
+        // Altrimenti reindirizza alla lista clienti per farne scegliere uno
+        header("Location: clienti");
+        exit;
     }
 
     /**
@@ -219,12 +200,37 @@ class SchedaAllenamentoController
         ]);
 
         if (!$scheda) {
-            $this->view->mostraStatoOperazione(false, "L'allenatore può creare una nuova scheda solo se il cliente l'ha esplicitamente richiesta.", "dashboard-allenatore");
-            return;
-        }
+            // Se non c'è una richiesta pendente, creiamo una nuova scheda vuota (bozza)
+            // Prima eliminiamo eventuali vecchie schede del cliente per evitare accumuli
+            $vecchieSchede = $this->entityManager->getRepository(Scheda::class)->findBy(['cliente' => $cliente]);
+            foreach ($vecchieSchede as $vs) {
+                $cliente->setScheda(null);
+                $this->entityManager->flush();
+                $this->entityManager->remove($vs);
+            }
+            $this->entityManager->flush();
 
-        // Modifica il nome da "Richiesta Nuova Scheda" a "Nuovo Protocollo" per iniziare la compilazione
-        $scheda->setNome_scheda("Nuovo Protocollo");
+            $scheda = new Scheda(
+                "Nuovo Protocollo",
+                new \DateTimeImmutable('today'),
+                new \DateTimeImmutable('+1 month'),
+                "Inserisci obiettivo",
+                $cliente,
+                $allenatore
+            );
+            $this->entityManager->persist($scheda);
+
+            // Pre-crea 3 allenamenti di default (A, B, C)
+            $letters = ['A', 'B', 'C'];
+            for ($i = 0; $i < 3; $i++) {
+                $nuovoAll = new Allenamento("Allenamento " . $letters[$i], "Informazioni sull'allenamento " . $letters[$i]);
+                $scheda->addAllenamento($nuovoAll);
+                $this->entityManager->persist($nuovoAll);
+            }
+        } else {
+            // Modifica il nome da "Richiesta Nuova Scheda" a "Nuovo Protocollo" per iniziare la compilazione
+            $scheda->setNome_scheda("Nuovo Protocollo");
+        }
 
         try {
             $this->entityManager->flush();
