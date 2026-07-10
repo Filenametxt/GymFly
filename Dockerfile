@@ -16,6 +16,9 @@ RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available
 
 
 
+RUN mkdir -p /var/www/html/src/View/Templates_c && \
+    chown -R www-data:www-data /var/www/html/src/View/Templates_c
+    
 # Assicurati che i permessi siano corretti per Smarty (cartella Templates_c)
 RUN chown -R www-data:www-data /var/www/html/src/View/Templates_c
 
