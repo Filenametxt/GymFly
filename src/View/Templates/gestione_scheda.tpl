@@ -247,7 +247,7 @@
                                                                 </tbody>
                                                             </table>
                                                             <div class="has-text-right">
-                                                                <button type="button" class="button is-small is-link is-light add-series-btn">
+                                                                <button type="button" class="button is-small is-gymfly add-series-btn">
                                                                     <i class="fas fa-plus mr-1"></i> Aggiungi Serie
                                                                 </button>
                                                             </div>
@@ -256,7 +256,7 @@
                                             </div>
 
                                             <div class="has-text-right mt-2">
-                                                <button type="button" class="button is-small is-link is-light add-exercise-group-btn">
+                                                <button type="button" class="button is-small is-gymfly add-exercise-group-btn">
                                                     <i class="fas fa-plus mr-1"></i> Aggiungi Esercizio
                                                 </button>
                                             </div>
@@ -265,7 +265,7 @@
                                 </div>
 
                                 <div class="has-text-right mt-3">
-                                    <button type="button" class="button is-link" id="add-workout-btn">
+                                    <button type="button" class="button is-gymfly" id="add-workout-btn">
                                         <i class="fas fa-plus mr-1"></i> Aggiungi Allenamento (A, B, C...)
                                     </button>
                                 </div>
@@ -377,7 +377,7 @@
                             <!-- Qui verranno inseriti i gruppi di esercizi -->
                         </div>
                         <div class="has-text-right mt-2">
-                            <button type="button" class="button is-small is-link is-light add-exercise-group-btn">
+                            <button type="button" class="button is-small is-gymfly add-exercise-group-btn">
                                 <i class="fas fa-plus mr-1"></i> Aggiungi Esercizio
                             </button>
                         </div>
@@ -473,7 +473,7 @@
                             </table>
                             
                             <div class="has-text-right">
-                                <button type="button" class="button is-small is-link is-light add-series-btn">
+                                <button type="button" class="button is-small is-gymfly add-series-btn">
                                     <i class="fas fa-plus mr-1"></i> Aggiungi Serie
                                 </button>
                             </div>
