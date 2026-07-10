@@ -1,10 +1,4 @@
-# --- Configurazione per escludere file nascosti (escluso .git) ---
-/.*
-!/.git/
-
-# --- Cache e file temporanei ---
 src/View/Templates_c/*
-*.log
-
-# --- Documentazione e Info ---
 Doc-Info/commit_message.md
+/.*/
+merda/
