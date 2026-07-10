@@ -93,7 +93,7 @@
                                     </div>
                                     
                                     <p class="is-size-7 has-text-grey-dark">
-                                        <i class="fas fa-clock mr-1"></i> Recupero: {$allenamento->getDescrizione()|estrai_recupero:$dettaglio->getEsercizio()->getNomeEsercizio()}
+                                        <i class="fas fa-clock mr-1"></i> Recupero: {$allenamento->getDescrizione()|estrai_recupero:$dettaglio->getEsercizio()->getNomeEsercizio():$dettaglio->getSerie():$dettaglio->getId()}
                                     </p>
                                 </div>
                                 <div class="column is-4 has-text-centered">

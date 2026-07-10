@@ -60,11 +60,11 @@
                         
                         {foreach $allenamento->getDettagli() as $dettaglio}
                             <div class="detail-item-box">
-                                <h4 class="title is-6 mb-3">{$dettaglio->getEsercizio()->getNomeEsercizio()}</h4>
+                                <h4 class="title is-6 mb-3">{$dettaglio->getEsercizio()->getNomeEsercizio()} - Serie {$dettaglio->getSerie()}</h4>
                                 
                                 <div class="columns is-mobile">
                                     <!-- RIPETIZIONI -->
-                                    <div class="column is-6">
+                                    <div class="column is-4">
                                         <div class="field">
                                             <label class="label">Ripetizioni</label>
                                             <div class="control has-icons-left">
@@ -74,12 +74,22 @@
                                         </div>
                                     </div>
                                     <!-- CARICO -->
-                                    <div class="column is-6">
+                                    <div class="column is-4">
                                         <div class="field">
                                             <label class="label">Carico (Kg)</label>
                                             <div class="control has-icons-left">
                                                 <input class="input" type="number" step="0.5" name="dettagli[{$dettaglio->getId()}][carico]" value="{$dettaglio->getCarico()}" required min="0">
                                                 <span class="icon is-small is-left"><i class="fas fa-weight-hanging"></i></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- RECUPERO -->
+                                    <div class="column is-4">
+                                        <div class="field">
+                                            <label class="label">Recupero</label>
+                                            <div class="control has-icons-left">
+                                                <input class="input" type="text" name="dettagli[{$dettaglio->getId()}][recupero]" placeholder="Es: 90s" value="{$allenamento->getDescrizione()|estrai_recupero:$dettaglio->getEsercizio()->getNomeEsercizio():$dettaglio->getSerie():$dettaglio->getId()}">
+                                                <span class="icon is-small is-left"><i class="fas fa-stopwatch"></i></span>
                                             </div>
                                         </div>
                                     </div>
