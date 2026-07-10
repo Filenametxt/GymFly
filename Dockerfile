@@ -12,7 +12,6 @@ RUN apt-get update && apt-get install -y \
     rm -rf /var/lib/apt/lists/*
 
 # Installa le estensioni PHP (pdo, pdo_mysql e zip)
-# NOTA: libxml NON deve stare qui dentro!
 RUN docker-php-ext-install pdo pdo_mysql zip
 
 # Installa Composer
@@ -39,12 +38,12 @@ RUN mkdir -p /var/www/html/src/View/Templates_c && \
     chown -R www-data:www-data /var/www/html/src/View/Templates_c && \
     chmod -R 775 /var/www/html/src/View/Templates_c
 
-# --- VERIFICA DOCTRINE (Alla fine) ---
-RUN php bin/console orm:info && \
-    php bin/console orm:schema-tool:create || true
+# Configura lo script di entrypoint per gestire il database all'avvio
+RUN chmod +x /var/www/html/entrypoint.sh && \
+    ln -s /var/www/html/entrypoint.sh /usr/local/bin/entrypoint
 
 # Espone la porta 80
 EXPOSE 80
 
-# Comando finale per avviare Apache
-CMD ["apache2-foreground"]
+# Esegue lo script di avvio al posto del classico apache2-foreground
+ENTRYPOINT ["entrypoint"]
