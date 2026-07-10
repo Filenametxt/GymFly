@@ -39,15 +39,22 @@
                         </div>
                         <div class="dropdown-menu" id="dropdown-menu-filter" role="menu">
                             <div class="dropdown-content">
-                                <p class="dropdown-item font-weight-bold" style="font-size: 0.85rem; color: var(--gymfly-primary) !important; margin-bottom: 0;">CERTIFICATO MEDICO</p>
-                                <a href="clienti?filtro_certificato=scaduti{if isset($filtro_abbonamento)}&filtro_abbonamento={$filtro_abbonamento}{/if}{if isset($ordine)}&ordine={$ordine}{/if}" class="dropdown-item {if isset($filtro_certificato) && $filtro_certificato === 'scaduti'}is-active{/if}">Scaduti / Assenti</a>
-                                <a href="clienti?filtro_certificato=in_scadenza{if isset($filtro_abbonamento)}&filtro_abbonamento={$filtro_abbonamento}{/if}{if isset($ordine)}&ordine={$ordine}{/if}" class="dropdown-item {if isset($filtro_certificato) && $filtro_certificato === 'in_scadenza'}is-active{/if}">In scadenza</a>
-                                <a href="clienti?filtro_certificato=in_regola{if isset($filtro_abbonamento)}&filtro_abbonamento={$filtro_abbonamento}{/if}{if isset($ordine)}&ordine={$ordine}{/if}" class="dropdown-item {if isset($filtro_certificato) && $filtro_certificato === 'in_regola'}is-active{/if}">In regola</a>
-                                <hr class="dropdown-divider">
-                                <p class="dropdown-item font-weight-bold" style="font-size: 0.85rem; color: var(--gymfly-primary) !important; margin-bottom: 0;">ABBONAMENTO</p>
-                                <a href="clienti?filtro_abbonamento=attivo{if isset($filtro_certificato)}&filtro_certificato={$filtro_certificato}{/if}{if isset($ordine)}&ordine={$ordine}{/if}" class="dropdown-item {if isset($filtro_abbonamento) && $filtro_abbonamento === 'attivo'}is-active{/if}">Attivo</a>
-                                <a href="clienti?filtro_abbonamento=scaduto{if isset($filtro_certificato)}&filtro_certificato={$filtro_certificato}{/if}{if isset($ordine)}&ordine={$ordine}{/if}" class="dropdown-item {if isset($filtro_abbonamento) && $filtro_abbonamento === 'scaduto'}is-active{/if}">Scaduto / Assente</a>
-                                {if (isset($filtro_certificato) && $filtro_certificato !== null) || (isset($filtro_abbonamento) && $filtro_abbonamento !== null)}
+                                {if $smarty.session.ruolo_utente === 'allenatore'}
+                                    <p class="dropdown-item font-weight-bold" style="font-size: 0.85rem; color: var(--gymfly-primary) !important; margin-bottom: 0;">SCHEDA ALLENAMENTO</p>
+                                    <a href="clienti?filtro_scheda=scadute{if isset($ordine)}&ordine={$ordine}{/if}" class="dropdown-item {if isset($filtro_scheda) && $filtro_scheda === 'scadute'}is-active{/if}">Scaduta</a>
+                                    <a href="clienti?filtro_scheda=richieste{if isset($ordine)}&ordine={$ordine}{/if}" class="dropdown-item {if isset($filtro_scheda) && $filtro_scheda === 'richieste'}is-active{/if}">Richiesta / Assente</a>
+                                    <a href="clienti?filtro_scheda=in_regola{if isset($ordine)}&ordine={$ordine}{/if}" class="dropdown-item {if isset($filtro_scheda) && $filtro_scheda === 'in_regola'}is-active{/if}">In regola</a>
+                                {else}
+                                    <p class="dropdown-item font-weight-bold" style="font-size: 0.85rem; color: var(--gymfly-primary) !important; margin-bottom: 0;">CERTIFICATO MEDICO</p>
+                                    <a href="clienti?filtro_certificato=scaduti{if isset($filtro_abbonamento)}&filtro_abbonamento={$filtro_abbonamento}{/if}{if isset($ordine)}&ordine={$ordine}{/if}" class="dropdown-item {if isset($filtro_certificato) && $filtro_certificato === 'scaduti'}is-active{/if}">Scaduti / Assenti</a>
+                                    <a href="clienti?filtro_certificato=in_scadenza{if isset($filtro_abbonamento)}&filtro_abbonamento={$filtro_abbonamento}{/if}{if isset($ordine)}&ordine={$ordine}{/if}" class="dropdown-item {if isset($filtro_certificato) && $filtro_certificato === 'in_scadenza'}is-active{/if}">In scadenza</a>
+                                    <a href="clienti?filtro_certificato=in_regola{if isset($filtro_abbonamento)}&filtro_abbonamento={$filtro_abbonamento}{/if}{if isset($ordine)}&ordine={$ordine}{/if}" class="dropdown-item {if isset($filtro_certificato) && $filtro_certificato === 'in_regola'}is-active{/if}">In regola</a>
+                                    <hr class="dropdown-divider">
+                                    <p class="dropdown-item font-weight-bold" style="font-size: 0.85rem; color: var(--gymfly-primary) !important; margin-bottom: 0;">ABBONAMENTO</p>
+                                    <a href="clienti?filtro_abbonamento=attivo{if isset($filtro_certificato)}&filtro_certificato={$filtro_certificato}{/if}{if isset($ordine)}&ordine={$ordine}{/if}" class="dropdown-item {if isset($filtro_abbonamento) && $filtro_abbonamento === 'attivo'}is-active{/if}">Attivo</a>
+                                    <a href="clienti?filtro_abbonamento=scaduto{if isset($filtro_certificato)}&filtro_certificato={$filtro_certificato}{/if}{if isset($ordine)}&ordine={$ordine}{/if}" class="dropdown-item {if isset($filtro_abbonamento) && $filtro_abbonamento === 'scaduto'}is-active{/if}">Scaduto / Assente</a>
+                                {/if}
+                                {if (isset($filtro_certificato) && $filtro_certificato !== null) || (isset($filtro_abbonamento) && $filtro_abbonamento !== null) || (isset($filtro_scheda) && $filtro_scheda !== null)}
                                     <hr class="dropdown-divider">
                                     <a href="clienti{if isset($ordine)}?ordine={$ordine}{/if}" class="dropdown-item has-text-danger font-weight-bold">Rimuovi Filtri</a>
                                 {/if}
@@ -65,10 +72,10 @@
                         </div>
                         <div class="dropdown-menu" id="dropdown-menu-sort" role="menu">
                             <div class="dropdown-content">
-                                <a href="clienti?ordine=cognome_asc{if isset($filtro_certificato)}&filtro_certificato={$filtro_certificato}{/if}{if isset($filtro_abbonamento)}&filtro_abbonamento={$filtro_abbonamento}{/if}" class="dropdown-item {if !isset($ordine) || $ordine === 'cognome_asc'}is-active{/if}">Cognome (A-Z)</a>
-                                <a href="clienti?ordine=cognome_desc{if isset($filtro_certificato)}&filtro_certificato={$filtro_certificato}{/if}{if isset($filtro_abbonamento)}&filtro_abbonamento={$filtro_abbonamento}{/if}" class="dropdown-item {if isset($ordine) && $ordine === 'cognome_desc'}is-active{/if}">Cognome (Z-A)</a>
-                                <a href="clienti?ordine=nome_asc{if isset($filtro_certificato)}&filtro_certificato={$filtro_certificato}{/if}{if isset($filtro_abbonamento)}&filtro_abbonamento={$filtro_abbonamento}{/if}" class="dropdown-item {if isset($ordine) && $ordine === 'nome_asc'}is-active{/if}">Nome (A-Z)</a>
-                                <a href="clienti?ordine=nome_desc{if isset($filtro_certificato)}&filtro_certificato={$filtro_certificato}{/if}{if isset($filtro_abbonamento)}&filtro_abbonamento={$filtro_abbonamento}{/if}" class="dropdown-item {if isset($ordine) && $ordine === 'nome_desc'}is-active{/if}">Nome (Z-A)</a>
+                                <a href="clienti?ordine=cognome_asc{if isset($filtro_certificato)}&filtro_certificato={$filtro_certificato}{/if}{if isset($filtro_abbonamento)}&filtro_abbonamento={$filtro_abbonamento}{/if}{if isset($filtro_scheda)}&filtro_scheda={$filtro_scheda}{/if}" class="dropdown-item {if !isset($ordine) || $ordine === 'cognome_asc'}is-active{/if}">Cognome (A-Z)</a>
+                                <a href="clienti?ordine=cognome_desc{if isset($filtro_certificato)}&filtro_certificato={$filtro_certificato}{/if}{if isset($filtro_abbonamento)}&filtro_abbonamento={$filtro_abbonamento}{/if}{if isset($filtro_scheda)}&filtro_scheda={$filtro_scheda}{/if}" class="dropdown-item {if isset($ordine) && $ordine === 'cognome_desc'}is-active{/if}">Cognome (Z-A)</a>
+                                <a href="clienti?ordine=nome_asc{if isset($filtro_certificato)}&filtro_certificato={$filtro_certificato}{/if}{if isset($filtro_abbonamento)}&filtro_abbonamento={$filtro_abbonamento}{/if}{if isset($filtro_scheda)}&filtro_scheda={$filtro_scheda}{/if}" class="dropdown-item {if isset($ordine) && $ordine === 'nome_asc'}is-active{/if}">Nome (A-Z)</a>
+                                <a href="clienti?ordine=nome_desc{if isset($filtro_certificato)}&filtro_certificato={$filtro_certificato}{/if}{if isset($filtro_abbonamento)}&filtro_abbonamento={$filtro_abbonamento}{/if}{if isset($filtro_scheda)}&filtro_scheda={$filtro_scheda}{/if}" class="dropdown-item {if isset($ordine) && $ordine === 'nome_desc'}is-active{/if}">Nome (Z-A)</a>
                             </div>
                         </div>
                     </div>
@@ -96,6 +103,7 @@
                         <form action="clienti" method="POST">
                             {if isset($filtro_certificato)}<input type="hidden" name="filtro_certificato" value="{$filtro_certificato}">{/if}
                             {if isset($filtro_abbonamento)}<input type="hidden" name="filtro_abbonamento" value="{$filtro_abbonamento}">{/if}
+                            {if isset($filtro_scheda)}<input type="hidden" name="filtro_scheda" value="{$filtro_scheda}">{/if}
                             {if isset($ordine)}<input type="hidden" name="ordine" value="{$ordine}">{/if}
                             <div class="field mb-0">
                                 <div class="control has-icons-left">
@@ -109,7 +117,7 @@
                     </div>
 
                     <!-- Stato Filtri Attivi -->
-                    {if (isset($filtro_certificato) && $filtro_certificato !== null) || (isset($filtro_abbonamento) && $filtro_abbonamento !== null)}
+                    {if (isset($filtro_certificato) && $filtro_certificato !== null) || (isset($filtro_abbonamento) && $filtro_abbonamento !== null) || (isset($filtro_scheda) && $filtro_scheda !== null)}
                         <div class="tags mb-0 is-flex is-align-items-center" style="gap: 5px;">
                             {if isset($filtro_certificato) && $filtro_certificato !== null}
                                 {if $filtro_certificato === 'scaduti'}
@@ -125,6 +133,15 @@
                                     <span class="tag is-success font-weight-bold">Abbonamento Attivo</span>
                                 {elseif $filtro_abbonamento === 'scaduto'}
                                     <span class="tag is-danger font-weight-bold">Abbonamento Scaduto</span>
+                                {/if}
+                            {/if}
+                            {if isset($filtro_scheda) && $filtro_scheda !== null}
+                                {if $filtro_scheda === 'scadute'}
+                                    <span class="tag is-danger font-weight-bold">Scheda Scaduta</span>
+                                {elseif $filtro_scheda === 'richieste'}
+                                    <span class="tag is-warning font-weight-bold">Scheda Richiesta/Assente</span>
+                                {elseif $filtro_scheda === 'in_regola'}
+                                    <span class="tag is-success font-weight-bold">Scheda in Regola</span>
                                 {/if}
                             {/if}
                             <a href="clienti{if isset($ordine)}?ordine={$ordine}{/if}" class="button is-small is-light" style="border-radius: 8px; height: 24px; padding: 0 8px;" title="Rimuovi Filtri">

@@ -60,26 +60,33 @@
                         <form id="form-scheda" action="salva-scheda" method="POST">
                             <input type="hidden" name="id_scheda" id="id_scheda" value="{$scheda->getId()}">
                             <input type="hidden" name="azione" id="azione-field" value="salva">
-
-                            {assign var="em" value=App\Infrastructure\Doctrine\EntityManagerFactory::create()}
-                            {assign var="clienti" value=$em->getRepository('App\Entity\Cliente')->findBy(['palestra' => $utente->getPalestra()])}
-
                             <!-- BOX METADATI CON NOME COGNOME ATLETA E INPUT (Layout bozza) -->
                             <div class="box mb-5">
-                                <div class="field mb-4">
-                                    <label class="label"><i class="fas fa-user-circle mr-2" style="color: var(--gymfly-primary);"></i> Atleta Cliente</label>
-                                    <div class="control">
-                                        <div class="select is-fullwidth">
-                                            <select id="select-cambia-cliente">
-                                                {foreach $clienti as $c}
-                                                    <option value="{$c->getCF()}" {if $c->getCF() === $scheda->getCliente()->getCF()}selected{/if} data-scheda-id="{if $c->getScheda()}{$c->getScheda()->getId()}{else}0{/if}">
-                                                        {$c->getNome()} {$c->getCognome()} ({$c->getCF()})
-                                                    </option>
-                                                {/foreach}
-                                            </select>
+                                {if isset($azione_rapida) && $azione_rapida == 1}
+                                    {assign var="em" value=App\Infrastructure\Doctrine\EntityManagerFactory::create()}
+                                    {assign var="clienti" value=$em->getRepository('App\Entity\Cliente')->findBy(['palestra' => $utente->getPalestra()])}
+                                    <div class="field mb-4">
+                                        <label class="label"><i class="fas fa-user-circle mr-2" style="color: var(--gymfly-primary);"></i> Atleta Cliente</label>
+                                        <div class="control">
+                                            <div class="select is-fullwidth">
+                                                <select id="select-cambia-cliente">
+                                                    {foreach $clienti as $c}
+                                                        <option value="{$c->getCF()}" {if $c->getCF() === $scheda->getCliente()->getCF()}selected{/if} data-scheda-id="{if $c->getScheda()}{$c->getScheda()->getId()}{else}0{/if}">
+                                                            {$c->getNome()} {$c->getCognome()} ({$c->getCF()})
+                                                        </option>
+                                                    {/foreach}
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                {else}
+                                    <div class="field mb-4">
+                                        <label class="label"><i class="fas fa-user-circle mr-2" style="color: var(--gymfly-primary);"></i> Atleta Cliente</label>
+                                        <div class="control">
+                                            <input class="input" type="text" readonly value="{$scheda->getCliente()->getNome()} {$scheda->getCliente()->getCognome()} ({$scheda->getCliente()->getCF()})">
+                                        </div>
+                                    </div>
+                                {/if}
                                 
                                 <div class="columns is-multiline">
                                     <!-- NOME SCHEDA -->
@@ -325,9 +332,9 @@
                     const option = selectCliente.options[selectCliente.selectedIndex];
                     const targetSchedaId = parseInt(option.getAttribute('data-scheda-id') || '0');
                     if (targetSchedaId > 0) {
-                        window.location.href = `modifica-scheda?id=${targetSchedaId}`;
+                        window.location.href = `modifica-scheda?id=${targetSchedaId}&azione_rapida=1`;
                     } else {
-                        window.location.href = `crea-scheda?cf=${cf}`;
+                        window.location.href = `crea-scheda?cf=${cf}&azione_rapida=1`;
                     }
                 });
             }

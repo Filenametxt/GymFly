@@ -79,7 +79,7 @@ class ProfiloController
         if ($isClient) {
             /** @var Cliente $utente */
             $ultimiParametri = $this->parametriRepo->findUltimaByCliente($utente);
-            $ultimoCertificato = $this->certificatoRepo->findByCliente($utente);
+            $ultimoCertificato = ($ruolo === 'allenatore') ? null : $this->certificatoRepo->findByCliente($utente);
             $abbonamento = $utente->getAbbonamento();
             $abbonamentoAttivo = $utente->isAbbonamentoAttivo();
         } else {
@@ -90,9 +90,17 @@ class ProfiloController
         }
 
         $attivitaAbilitate = null;
+        $attivitaNonAbilitate = [];
+        $tutteAttivita = [];
         if ($isTrainer) {
             /** @var Allenatore $utente */
             $attivitaAbilitate = $utente->getAttivitaAbilitate();
+            $tutteAttivita = $entityManager->getRepository(\App\Entity\Attivita::class)->findAll();
+            foreach ($tutteAttivita as $att) {
+                if (!$attivitaAbilitate->contains($att)) {
+                    $attivitaNonAbilitate[] = $att;
+                }
+            }
         }
 
         // Costruiamo l'array con i dati del profilo
@@ -101,6 +109,8 @@ class ProfiloController
             'isClient' => $isClient,
             'isTrainer' => $isTrainer,
             'attivitaAbilitate' => $attivitaAbilitate,
+            'attivitaNonAbilitate' => $attivitaNonAbilitate,
+            'tutteAttivita' => $tutteAttivita,
             'isSelf' => $isSelf,
             'nome' => $utente->getNome(),
             'cognome' => $utente->getCognome(),
@@ -387,8 +397,8 @@ class ProfiloController
     {
         $idUtente = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-        if (!$idUtente) {
-            $this->view->mostraErrore("Utente non autenticato.");
+        if (!$idUtente || $ruolo === 'allenatore') {
+            $this->view->mostraErrore("Accesso negato. Questa funzionalità è riservata ad Amministratori e Clienti.");
             return;
         }
 
@@ -635,5 +645,205 @@ class ProfiloController
             return $entityManager->find(Amministratore::class, $idUtente);
         }
         return $entityManager->find(Utente::class, $idUtente);
+    }
+
+    /**
+     * Aggiunge un'attività abilitata a un allenatore dal suo profilo
+     */
+    public function aggiungiAttivitaAllenatore(): void
+    {
+        $idLoggato = $this->session->getLoggedUserId();
+        $ruoloLoggato = $this->session->getLoggedUserRole();
+
+        if (!$idLoggato || ($ruoloLoggato !== 'amministratore' && $ruoloLoggato !== 'allenatore')) {
+            $this->view->mostraErrore("Azione non consentita.");
+            return;
+        }
+
+        $idAllenatore = isset($_POST['id_allenatore']) ? (int)$_POST['id_allenatore'] : 0;
+        $idAttivita = isset($_POST['id_attivita']) ? (int)$_POST['id_attivita'] : 0;
+
+        if ($idAllenatore <= 0 || $idAttivita <= 0) {
+            $this->view->mostraErrore("Dati non validi.");
+            return;
+        }
+
+        $entityManager = EntityManagerFactory::create();
+
+        // Controllo permessi (Se non è admin, l'allenatore può modificare solo se stesso)
+        if ($ruoloLoggato !== 'amministratore' && $idAllenatore !== $idLoggato) {
+            $this->view->mostraErrore("Non sei autorizzato ad aggiungere attività a questo profilo.");
+            return;
+        }
+
+        $allenatore = $entityManager->find(Allenatore::class, $idAllenatore);
+        $attivita = $entityManager->find(\App\Entity\Attivita::class, $idAttivita);
+
+        if (!$allenatore || !$attivita) {
+            $this->view->mostraErrore("Allenatore o Attività non validi.");
+            return;
+        }
+
+        // Se l'utente loggato è l'admin, controlliamo che l'allenatore sia nella palestra dell'admin
+        if ($ruoloLoggato === 'amministratore') {
+            $adminObj = $entityManager->find(Amministratore::class, $idLoggato);
+            $palestraAdmin = $entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $adminObj]);
+            if (!$palestraAdmin || $allenatore->getPalestra()->getId() !== $palestraAdmin->getId()) {
+                $this->view->mostraErrore("L'allenatore non appartiene alla tua palestra.");
+                return;
+            }
+        }
+
+        try {
+            $allenatore->addAbilitazione($attivita);
+            $entityManager->flush();
+
+            // Redirect back to profile page
+            if ($idAllenatore === $idLoggato) {
+                header('Location: profilo');
+            } else {
+                header('Location: visualizza-profilo?id=' . $idAllenatore);
+            }
+            exit();
+        } catch (\Throwable $e) {
+            $this->view->mostraErrore("Impossibile aggiungere l'attività: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Rimuove un'attività abilitata da un allenatore dal suo profilo
+     */
+    public function rimuoviAttivitaAllenatore(): void
+    {
+        $idLoggato = $this->session->getLoggedUserId();
+        $ruoloLoggato = $this->session->getLoggedUserRole();
+
+        if (!$idLoggato || ($ruoloLoggato !== 'amministratore' && $ruoloLoggato !== 'allenatore')) {
+            $this->view->mostraErrore("Azione non consentita.");
+            return;
+        }
+
+        $idAllenatore = isset($_POST['id_allenatore']) ? (int)$_POST['id_allenatore'] : 0;
+        $idAttivita = isset($_POST['id_attivita']) ? (int)$_POST['id_attivita'] : 0;
+
+        if ($idAllenatore <= 0 || $idAttivita <= 0) {
+            $this->view->mostraErrore("Dati non validi.");
+            return;
+        }
+
+        $entityManager = EntityManagerFactory::create();
+
+        // Controllo permessi (Se non è admin, l'allenatore può modificare solo se stesso)
+        if ($ruoloLoggato !== 'amministratore' && $idAllenatore !== $idLoggato) {
+            $this->view->mostraErrore("Non sei autorizzato a rimuovere attività da questo profilo.");
+            return;
+        }
+
+        $allenatore = $entityManager->find(Allenatore::class, $idAllenatore);
+        $attivita = $entityManager->find(\App\Entity\Attivita::class, $idAttivita);
+
+        if (!$allenatore || !$attivita) {
+            $this->view->mostraErrore("Allenatore o Attività non validi.");
+            return;
+        }
+
+        // Se l'utente loggato è l'admin, controlliamo che l'allenatore sia nella palestra dell'admin
+        if ($ruoloLoggato === 'amministratore') {
+            $adminObj = $entityManager->find(Amministratore::class, $idLoggato);
+            $palestraAdmin = $entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $adminObj]);
+            if (!$palestraAdmin || $allenatore->getPalestra()->getId() !== $palestraAdmin->getId()) {
+                $this->view->mostraErrore("L'allenatore non appartiene alla tua palestra.");
+                return;
+            }
+        }
+
+        try {
+            $allenatore->removeAbilitazione($attivita);
+            $entityManager->flush();
+
+            // Redirect back to profile page
+            if ($idAllenatore === $idLoggato) {
+                header('Location: profilo');
+            } else {
+                header('Location: visualizza-profilo?id=' . $idAllenatore);
+            }
+            exit();
+        } catch (\Throwable $e) {
+            $this->view->mostraErrore("Impossibile rimuovere l'attività: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Aggiorna in blocco le attività abilitate di un allenatore dal suo profilo
+     */
+    public function aggiornaAbilitazioniAllenatore(): void
+    {
+        $idLoggato = $this->session->getLoggedUserId();
+        $ruoloLoggato = $this->session->getLoggedUserRole();
+
+        if (!$idLoggato || ($ruoloLoggato !== 'amministratore' && $ruoloLoggato !== 'allenatore')) {
+            $this->view->mostraErrore("Azione non consentita.");
+            return;
+        }
+
+        $idAllenatore = isset($_POST['id_allenatore']) ? (int)$_POST['id_allenatore'] : 0;
+        $attivitaSelezionate = isset($_POST['attivita']) ? $_POST['attivita'] : []; // Array of IDs
+
+        if ($idAllenatore <= 0) {
+            $this->view->mostraErrore("Dati non validi.");
+            return;
+        }
+
+        $entityManager = EntityManagerFactory::create();
+
+        // Controllo permessi (Se non è admin, l'allenatore può modificare solo se stesso)
+        if ($ruoloLoggato !== 'amministratore' && $idAllenatore !== $idLoggato) {
+            $this->view->mostraErrore("Non sei autorizzato a modificare questo profilo.");
+            return;
+        }
+
+        $allenatore = $entityManager->find(Allenatore::class, $idAllenatore);
+        if (!$allenatore) {
+            $this->view->mostraErrore("Allenatore non trovato.");
+            return;
+        }
+
+        // Se l'utente loggato è l'admin, controlliamo che l'allenatore sia nella palestra dell'admin
+        if ($ruoloLoggato === 'amministratore') {
+            $adminObj = $entityManager->find(Amministratore::class, $idLoggato);
+            $palestraAdmin = $entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $adminObj]);
+            if (!$palestraAdmin || $allenatore->getPalestra()->getId() !== $palestraAdmin->getId()) {
+                $this->view->mostraErrore("L'allenatore non appartiene alla tua palestra.");
+                return;
+            }
+        }
+
+        try {
+            // Rimuoviamo tutte le abilitazioni correnti
+            $correnti = $allenatore->getAttivitaAbilitate();
+            foreach ($correnti as $c) {
+                $allenatore->removeAbilitazione($c);
+            }
+            $entityManager->flush();
+
+            // Aggiungiamo le nuove abilitazioni selezionate
+            foreach ($attivitaSelezionate as $idAtt) {
+                $att = $entityManager->find(\App\Entity\Attivita::class, (int)$idAtt);
+                if ($att) {
+                    $allenatore->addAbilitazione($att);
+                }
+            }
+            $entityManager->flush();
+
+            // Redirect back to profile page
+            if ($idAllenatore === $idLoggato) {
+                header('Location: profilo');
+            } else {
+                header('Location: visualizza-profilo?id=' . $idAllenatore);
+            }
+            exit();
+        } catch (\Throwable $e) {
+            $this->view->mostraErrore("Impossibile aggiornare le abilitazioni: " . $e->getMessage());
+        }
     }
 }

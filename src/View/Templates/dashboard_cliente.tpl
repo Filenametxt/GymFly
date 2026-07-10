@@ -136,21 +136,45 @@
 
                 {if $ultimaMisure}
                     <div class="columns is-multiline is-mobile is-centered">
-                        <div class="column is-6-mobile is-3-tablet has-text-centered py-3">
+                        <div class="column is-6-mobile is-3-tablet is-2-desktop has-text-centered py-3">
                             <p class="heading has-text-grey mb-1">Peso</p>
                             <p class="title is-4 style-theme-text">{$ultimaMisure->getPeso()} kg</p>
                         </div>
-                        <div class="column is-6-mobile is-3-tablet has-text-centered py-3">
+                        <div class="column is-6-mobile is-3-tablet is-2-desktop has-text-centered py-3">
                             <p class="heading has-text-grey mb-1">Altezza</p>
                             <p class="title is-4 style-theme-text">{$ultimaMisure->getAltezza()} cm</p>
                         </div>
-                        <div class="column is-6-mobile is-3-tablet has-text-centered py-3">
+                        <div class="column is-6-mobile is-3-tablet is-2-desktop has-text-centered py-3">
                             <p class="heading has-text-grey mb-1">Bicipite (Dx/Sx)</p>
                             <p class="title is-4 style-theme-text">{$ultimaMisure->getBicipiteDestro()|default:'0'}/{$ultimaMisure->getBicipiteSinistro()|default:'0'} cm</p>
                         </div>
-                        <div class="column is-6-mobile is-3-tablet has-text-centered py-3">
+                        <div class="column is-6-mobile is-3-tablet is-2-desktop has-text-centered py-3">
+                            <p class="heading has-text-grey mb-1">Tricipite (Dx/Sx)</p>
+                            <p class="title is-4 style-theme-text">{$ultimaMisure->getTricipiteDestro()|default:'0'}/{$ultimaMisure->getTricipiteSinistro()|default:'0'} cm</p>
+                        </div>
+                        <div class="column is-6-mobile is-3-tablet is-2-desktop has-text-centered py-3">
                             <p class="heading has-text-grey mb-1">Petto</p>
                             <p class="title is-4 style-theme-text">{if $ultimaMisure->getMisuraPetto()}{$ultimaMisure->getMisuraPetto()} cm{else}-{/if}</p>
+                        </div>
+                        <div class="column is-6-mobile is-3-tablet is-2-desktop has-text-centered py-3">
+                            <p class="heading has-text-grey mb-1">Spalle</p>
+                            <p class="title is-4 style-theme-text">{if $ultimaMisure->getMisuraSpalle()}{$ultimaMisure->getMisuraSpalle()} cm{else}-{/if}</p>
+                        </div>
+                        <div class="column is-6-mobile is-3-tablet is-2-desktop has-text-centered py-3">
+                            <p class="heading has-text-grey mb-1">Coscia (Dx/Sx)</p>
+                            <p class="title is-4 style-theme-text">{$ultimaMisure->getCosciaDestra()|default:'0'}/{$ultimaMisure->getCosciaSinistra()|default:'0'} cm</p>
+                        </div>
+                        <div class="column is-6-mobile is-3-tablet is-2-desktop has-text-centered py-3">
+                            <p class="heading has-text-grey mb-1">Polpaccio (Dx/Sx)</p>
+                            <p class="title is-4 style-theme-text">{$ultimaMisure->getPolpaccioDestro()|default:'0'}/{$ultimaMisure->getPolpaccioSinistro()|default:'0'} cm</p>
+                        </div>
+                        <div class="column is-6-mobile is-3-tablet is-2-desktop has-text-centered py-3">
+                            <p class="heading has-text-grey mb-1">Vita</p>
+                            <p class="title is-4 style-theme-text">{if $ultimaMisure->getMisuraVita()}{$ultimaMisure->getMisuraVita()} cm{else}-{/if}</p>
+                        </div>
+                        <div class="column is-6-mobile is-3-tablet is-2-desktop has-text-centered py-3">
+                            <p class="heading has-text-grey mb-1">Fianchi</p>
+                            <p class="title is-4 style-theme-text">{if $ultimaMisure->getMisuraFianchi()}{$ultimaMisure->getMisuraFianchi()} cm{else}-{/if}</p>
                         </div>
                     </div>
                 {else}

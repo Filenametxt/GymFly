@@ -236,7 +236,11 @@ class SchedaAllenamentoController
             $this->entityManager->flush();
 
             // Reindirizza al form di inserimento dei dati e dettagli della scheda (Passo 2)
-            header("Location: modifica-scheda?id=" . $scheda->getId());
+            $redirectUrl = "modifica-scheda?id=" . $scheda->getId();
+            if (isset($_REQUEST['azione_rapida'])) {
+                $redirectUrl .= "&azione_rapida=1";
+            }
+            header("Location: " . $redirectUrl);
             exit();
         } catch (\Throwable $e) {
             $this->view->mostraStatoOperazione(false, "Errore nell'avvio della modifica scheda: " . $e->getMessage(), "dashboard-allenatore");
@@ -272,7 +276,11 @@ class SchedaAllenamentoController
                 $schede = $this->schedaRepo->findByPalestra($palestra);
             }
             if (!empty($schede)) {
-                header("Location: modifica-scheda?id=" . $schede[0]->getId());
+                $redirectUrl = "modifica-scheda?id=" . $schede[0]->getId();
+                if (isset($_GET['azione_rapida'])) {
+                    $redirectUrl .= "&azione_rapida=1";
+                }
+                header("Location: " . $redirectUrl);
             } else {
                 header("Location: dashboard-allenatore");
             }
@@ -334,7 +342,8 @@ class SchedaAllenamentoController
             'utente' => $allenatore,
             'scheda' => $scheda,
             'esercizi' => $esercizi,
-            'altre_schede' => $altreSchede
+            'altre_schede' => $altreSchede,
+            'azione_rapida' => isset($_GET['azione_rapida']) ? 1 : 0
         ]);
     }
 
@@ -595,10 +604,19 @@ class SchedaAllenamentoController
 
         $scheda = $cliente->getScheda();
 
+        $idAllenamento = isset($_REQUEST['id_allenamento']) ? (int)$_REQUEST['id_allenamento'] : 0;
+        $allenamento = $this->entityManager->find(Allenamento::class, $idAllenamento);
+
+        if (!$allenamento || $allenamento->getScheda()->getId() !== $scheda->getId()) {
+            $this->view->mostraStatoOperazione(false, "Allenamento non trovato o non associato alla tua scheda.", "visualizza-scheda");
+            return;
+        }
+
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $this->view->mostraTemplate('modifica_dettagli.tpl', [
                 'utente' => $cliente,
-                'scheda' => $scheda
+                'scheda' => $scheda,
+                'allenamento' => $allenamento
             ]);
             return;
         }
@@ -612,7 +630,7 @@ class SchedaAllenamentoController
             $recupero = isset($data['recupero']) ? trim($data['recupero']) : '';
 
             $dettaglio = $this->entityManager->find(DettaglioAllenamento::class, (int)$idDet);
-            if ($dettaglio) {
+            if ($dettaglio && $dettaglio->getAllenamento()->getScheda()->getId() === $scheda->getId()) {
                 if ($ripetizioni > 0) {
                     $dettaglio->setRipetizioni($ripetizioni);
                 }

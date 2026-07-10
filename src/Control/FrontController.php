@@ -50,6 +50,9 @@ class FrontController
             '/cambia-password' => [ProfiloController::class, 'cambiaPassword'],
             '/visualizza-grafico' => [ProfiloController::class, 'visualizzaGrafico'],
             '/carica-foto' => [ProfiloController::class, 'caricaFotoProfilo'],
+            '/aggiungi-attivita-profilo' => [ProfiloController::class, 'aggiungiAttivitaAllenatore'],
+            '/rimuovi-attivita-profilo' => [ProfiloController::class, 'rimuoviAttivitaAllenatore'],
+            '/aggiorna-abilitazioni-profilo' => [ProfiloController::class, 'aggiornaAbilitazioniAllenatore'],
             
             '/dashboard-admin' => [VisualizzazioneController::class, 'mostraDashboardAdmin'],
             '/dashboard-allenatore' => [VisualizzazioneController::class, 'mostraDashboardAllenatore'],

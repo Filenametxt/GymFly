@@ -12,13 +12,13 @@
         .custom-mobile-container {
             max-width: 600px;
             margin: 0 auto;
-            padding: 1rem;
+            width: 100%;
         }
 
         /* ACCORDION STYLES */
         .accordion-item {
-            border: 2px solid var(--gymfly-primary);
-            border-radius: 12px;
+            border: 2px solid var(--gymfly-accent);
+            border-radius: 15px;
             margin-bottom: 1.25rem;
             overflow: hidden;
             transition: all 0.2s ease;
@@ -26,7 +26,7 @@
         }
 
         .accordion-item:hover {
-            box-shadow: 0 4px 12px rgba(175, 175, 226, 0.12);
+            box-shadow: 0 8px 16px rgba(175, 175, 226, 0.06);
         }
 
         .accordion-header {
@@ -112,14 +112,14 @@
         .exercise-card {
             background: var(--gymfly-bg);
             border: 1px solid var(--gymfly-accent);
-            border-radius: 10px;
+            border-radius: 12px;
             padding: 1rem;
             transition: all 0.2s ease;
         }
 
         .exercise-card:hover {
             border-color: var(--gymfly-primary);
-            box-shadow: 0 2px 8px rgba(175, 175, 226, 0.08);
+            box-shadow: 0 4px 12px rgba(175, 175, 226, 0.06);
         }
 
         .exercise-name {
@@ -139,7 +139,7 @@
             width: 24px;
             height: 24px;
             background: var(--gymfly-accent);
-            color: #1e3a8a;
+            color: var(--gymfly-text);
             border-radius: 50%;
             font-size: 0.7rem;
             font-weight: 700;
@@ -161,8 +161,8 @@
 
         .param-box {
             background: white;
-            border: 1px solid var(--gymfly-primary);
-            border-radius: 6px;
+            border: 1px solid rgba(175, 175, 226, 0.15);
+            border-radius: 8px;
             padding: 0.5rem;
             text-align: center;
         }
@@ -192,7 +192,7 @@
             background: var(--gymfly-primary);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             padding: 0.75rem;
             font-size: 0.85rem;
             font-weight: 700;
@@ -223,154 +223,142 @@
             margin-bottom: 1rem;
             opacity: 0.5;
         }
-
-        /* BACK LINK */
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--gymfly-primary);
-            text-decoration: none;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            transition: color 0.2s ease;
-        }
-
-        .back-link:hover {
-            color: var(--gymfly-secondary);
-        }
     </style>
 </head>
 <body>
 
-    <!-- CONTENT -->
-    <section class="section">
-        <div class="container custom-mobile-container">
-            
-            <!-- BACK LINK -->
-            <a href="dashboard-cliente" class="back-link">
-                <i class="fas fa-arrow-left"></i>
-                <span>Torna alla Dashboard</span>
-            </a>
-
-            <!-- HEADER SCHEDA -->
-            <div class="box p-5 mb-5" style="border: 2px solid var(--gymfly-primary); border-radius: 16px; background: linear-gradient(135deg, rgba(197,224,252,0.1) 0%, rgba(175,175,226,0.08) 100%);">
-                <div class="mb-3">
-                    <span class="tag is-success is-light mb-2">
-                        <i class="fas fa-check-circle mr-1"></i> SCHEDA ATTIVA
-                    </span>
+    <div class="app-container">
+        {include file='sidebar.tpl'}
+        <main class="app-content">
+            <div class="container custom-mobile-container">
+                
+                <!-- BACK LINK -->
+                <div class="mb-4">
+                    <a href="dashboard-cliente" class="button is-ghost has-text-grey pl-0">
+                        <span class="icon"><i class="fas fa-arrow-left"></i></span>
+                        <span>Torna alla Dashboard</span>
+                    </a>
                 </div>
-                <h1 class="title is-2 style-theme-text mb-2">{$scheda->getNome_scheda()}</h1>
-                <p class="subtitle is-6 has-text-grey-dark mb-4">
-                    <strong>Obiettivo:</strong> {$scheda->getObiettivo()}
-                </p>
-                <div class="is-size-7 has-text-grey mb-4">
-                    <p><strong>Coach:</strong> {$scheda->getAllenatore()->getNome()} {$scheda->getAllenatore()->getCognome()}</p>
-                    <p><strong>Validità:</strong> {$scheda->getData_inizio()->format('d/m/Y')} — {$scheda->getData_fine()->format('d/m/Y')}</p>
-                </div>
-            </div>
 
-            <!-- ALLENAMENTI ACCORDION -->
-            <div>
-                <h2 class="title is-5 style-theme-text mb-3">
-                    <i class="fas fa-running mr-2"></i> I tuoi Allenamenti
-                </h2>
-
-                {if $scheda->getAllenamenti()|@count > 0}
-                    {foreach $scheda->getAllenamenti() as $idx => $allenamento}
-                        <div class="accordion-item" data-allenamento-id="{$allenamento->getId()}">
-                            <!-- ACCORDION HEADER -->
-                            <div class="accordion-header" onclick="toggleAccordion(this)">
-                                <div class="accordion-header-content">
-                                    <span class="accordion-icon">
-                                        <i class="fas fa-dumbbell"></i>
-                                    </span>
-                                    <h3 class="accordion-title">{$allenamento->getNome()}</h3>
-                                </div>
-                                <div class="accordion-toggle">
-                                    <i class="fas fa-chevron-down"></i>
-                                </div>
-                            </div>
-
-                            <!-- ACCORDION CONTENT -->
-                            <div class="accordion-content">
-                                {if $allenamento->getDescrizione()|pulisci_descrizione}
-                                    <p class="subtitle is-6 has-text-grey mb-3" style="font-size: 0.85rem;">
-                                        <i class="fas fa-note mr-1"></i> {$allenamento->getDescrizione()|pulisci_descrizione}
-                                    </p>
-                                {/if}
-
-                                <!-- EXERCISES LIST -->
-                                {if $allenamento->getDettagli()|@count > 0}
-                                    <div class="exercises-list">
-                                        {foreach $allenamento->getDettagli() as $dettaglio}
-                                            <div class="exercise-card">
-                                                <!-- EXERCISE NAME -->
-                                                <div class="exercise-name">
-                                                    <span class="exercise-serie-badge">S{$dettaglio->getSerie()}</span>
-                                                    <span>{$dettaglio->getEsercizio()->getNomeEsercizio()}</span>
-                                                </div>
-
-                                                <!-- EXERCISE PARAMS -->
-                                                <div class="exercise-params">
-                                                    <div class="param-box">
-                                                        <div class="param-label">
-                                                            <i class="fas fa-redo mr-1"></i> Ripetizioni
-                                                        </div>
-                                                        <div class="param-value">{$dettaglio->getRipetizioni()}</div>
-                                                    </div>
-                                                    <div class="param-box">
-                                                        <div class="param-label">
-                                                            <i class="fas fa-weight mr-1"></i> Carico
-                                                        </div>
-                                                        <div class="param-value">{$dettaglio->getCarico()} Kg</div>
-                                                    </div>
-                                                    <div class="param-box">
-                                                        <div class="param-label">
-                                                            <i class="fas fa-stopwatch mr-1"></i> Recupero
-                                                        </div>
-                                                        <div class="param-value">{$allenamento->getDescrizione()|estrai_recupero:$dettaglio->getEsercizio()->getNomeEsercizio():$dettaglio->getSerie():$dettaglio->getId()}</div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- EXERCISE IMAGE (optional) -->
-                                                {if $dettaglio->getEsercizio()->getImmagine()}
-                                                    <div style="margin-top: 0.75rem; text-align: center;">
-                                                        <figure class="image is-96x96 is-inline-block" style="border-radius: 8px; overflow: hidden; border: 1px solid var(--gymfly-primary);">
-                                                            <img src="data:image/jpeg;base64,{$dettaglio->getEsercizio()->getImmagine()|base64_encode}" alt="Esercizio" style="object-fit: cover; width: 100%; height: 100%;">
-                                                        </figure>
-                                                    </div>
-                                                {/if}
-                                            </div>
-                                        {/foreach}
-                                    </div>
-
-                                    <!-- EDIT BUTTON -->
-                                    <div class="exercises-actions">
-                                        <a href="modifica-dettagli?id_allenamento={$allenamento->getId()}" class="btn-edit-allenamento">
-                                            <i class="fas fa-edit"></i>
-                                            <span>Modifica Dettagli</span>
-                                        </a>
-                                    </div>
-                                {else}
-                                    <div class="empty-state">
-                                        <i class="fas fa-inbox"></i>
-                                        <p>Nessun esercizio in questo allenamento.</p>
-                                    </div>
-                                {/if}
-                            </div>
-                        </div>
-                    {/foreach}
-                {else}
-                    <div class="box has-text-centered py-5">
-                        <i class="fas fa-file-invoice" style="font-size: 2rem; color: #d0d0d0; margin-bottom: 1rem; display: block;"></i>
-                        <p class="has-text-grey" style="font-size: 0.95rem;">Nessun allenamento presente in questa scheda.</p>
+                <!-- HEADER SCHEDA -->
+                <div class="box p-5 mb-5" style="border: 2px solid var(--gymfly-accent); border-radius: 15px; background-color: var(--gymfly-card-bg); box-shadow: 0 8px 16px rgba(0,0,0,0.02) !important;">
+                    <div class="mb-3">
+                        <span class="tag is-success is-light mb-2">
+                            <i class="fas fa-check-circle mr-1"></i> SCHEDA ATTIVA
+                        </span>
                     </div>
-                {/if}
-            </div>
+                    <h1 class="title is-2 style-theme-text mb-2">{$scheda->getNome_scheda()}</h1>
+                    <p class="subtitle is-6 has-text-grey-dark mb-4">
+                        <strong>Obiettivo:</strong> {$scheda->getObiettivo()}
+                    </p>
+                    <div class="is-size-7 has-text-grey mb-4">
+                        <p><strong>Coach:</strong> {$scheda->getAllenatore()->getNome()} {$scheda->getAllenatore()->getCognome()}</p>
+                        <p><strong>Validità:</strong> {$scheda->getData_inizio()->format('d/m/Y')} — {$scheda->getData_fine()->format('d/m/Y')}</p>
+                    </div>
+                </div>
 
-        </div>
-    </section>
+                <!-- ALLENAMENTI ACCORDION -->
+                <div>
+                    <h2 class="title is-5 style-theme-text mb-3">
+                        <i class="fas fa-running mr-2"></i> I tuoi Allenamenti
+                    </h2>
+
+                    {if $scheda->getAllenamenti()|@count > 0}
+                        {foreach $scheda->getAllenamenti() as $idx => $allenamento}
+                            <div class="accordion-item" data-allenamento-id="{$allenamento->getId()}">
+                                <!-- ACCORDION HEADER -->
+                                <div class="accordion-header" onclick="toggleAccordion(this)">
+                                    <div class="accordion-header-content">
+                                        <span class="accordion-icon">
+                                            <i class="fas fa-dumbbell"></i>
+                                        </span>
+                                        <h3 class="accordion-title">{$allenamento->getNome()}</h3>
+                                    </div>
+                                    <div class="accordion-toggle">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                </div>
+
+                                <!-- ACCORDION CONTENT -->
+                                <div class="accordion-content">
+                                    {if $allenamento->getDescrizione()|pulisci_descrizione}
+                                        <p class="subtitle is-6 has-text-grey mb-3" style="font-size: 0.85rem;">
+                                            <i class="fas fa-note-sticky mr-1"></i> {$allenamento->getDescrizione()|pulisci_descrizione}
+                                        </p>
+                                    {/if}
+
+                                    <!-- EXERCISES LIST -->
+                                    {if $allenamento->getDettagli()|@count > 0}
+                                        <div class="exercises-list">
+                                            {foreach $allenamento->getDettagli() as $dettaglio}
+                                                <div class="exercise-card">
+                                                    <!-- EXERCISE NAME -->
+                                                    <div class="exercise-name">
+                                                        <span class="exercise-serie-badge">S{$dettaglio->getSerie()}</span>
+                                                        <span>{$dettaglio->getEsercizio()->getNomeEsercizio()}</span>
+                                                    </div>
+
+                                                    <!-- EXERCISE PARAMS -->
+                                                    <div class="exercise-params">
+                                                        <div class="param-box">
+                                                            <div class="param-label">
+                                                                <i class="fas fa-redo mr-1"></i> Ripetizioni
+                                                            </div>
+                                                            <div class="param-value">{$dettaglio->getRipetizioni()}</div>
+                                                        </div>
+                                                        <div class="param-box">
+                                                            <div class="param-label">
+                                                                <i class="fas fa-weight mr-1"></i> Carico
+                                                            </div>
+                                                            <div class="param-value">{$dettaglio->getCarico()} Kg</div>
+                                                        </div>
+                                                        <div class="param-box">
+                                                            <div class="param-label">
+                                                                <i class="fas fa-stopwatch mr-1"></i> Recupero
+                                                            </div>
+                                                            <div class="param-value">{$allenamento->getDescrizione()|estrai_recupero:$dettaglio->getEsercizio()->getNomeEsercizio():$dettaglio->getSerie():$dettaglio->getId()}</div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- EXERCISE IMAGE (optional) -->
+                                                    {if $dettaglio->getEsercizio()->getImmagine()}
+                                                        <div style="margin-top: 0.75rem; text-align: center;">
+                                                            <figure class="image is-96x96 is-inline-block" style="border-radius: 8px; overflow: hidden; border: 1px solid var(--gymfly-accent);">
+                                                                <img src="data:image/jpeg;base64,{$dettaglio->getEsercizio()->getImmagine()|base64_encode}" alt="Esercizio" style="object-fit: cover; width: 100%; height: 100%;">
+                                                            </figure>
+                                                        </div>
+                                                    {/if}
+                                                </div>
+                                            {/foreach}
+                                        </div>
+
+                                        <!-- EDIT BUTTON -->
+                                        <div class="exercises-actions">
+                                            <a href="modifica-dettagli?id_allenamento={$allenamento->getId()}" class="btn-edit-allenamento">
+                                                <i class="fas fa-edit"></i>
+                                                <span>Modifica Dettagli</span>
+                                            </a>
+                                        </div>
+                                    {else}
+                                        <div class="empty-state">
+                                            <i class="fas fa-inbox"></i>
+                                            <p>Nessun esercizio in questo allenamento.</p>
+                                        </div>
+                                    {/if}
+                                </div>
+                            </div>
+                        {/foreach}
+                    {else}
+                        <div class="box has-text-centered py-5" style="border: 1px solid var(--gymfly-accent); border-radius: 15px;">
+                            <i class="fas fa-file-invoice" style="font-size: 2rem; color: #d0d0d0; margin-bottom: 1rem; display: block;"></i>
+                            <p class="has-text-grey" style="font-size: 0.95rem;">Nessun allenamento presente in questa scheda.</p>
+                        </div>
+                    {/if}
+                </div>
+
+            </div>
+        </main>
+    </div>
 
     <!-- SCRIPT ACCORDION GESTIONE -->
     <script>
