@@ -8,7 +8,7 @@ class CertificatoMedico
     private \DateTimeImmutable $dataEmissione;
     private \DateTimeImmutable $dataScadenza;   // calcolata automaticamente: +1 anno da emissione
     private string $medico;
-    private ?string $fileContent = null; // contenuto binario del file (BLOB)
+    private $fileContent = null; // contenuto binario del file (BLOB)
     private Cliente $cliente;
 
     public function __construct(
@@ -47,6 +47,10 @@ class CertificatoMedico
     }
     public function getFileContent(): ?string
     {
+        if (is_resource($this->fileContent)) {
+            rewind($this->fileContent);
+            return stream_get_contents($this->fileContent);
+        }
         return $this->fileContent;
     }
     public function getCliente(): Cliente

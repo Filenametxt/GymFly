@@ -148,4 +148,32 @@ class DoctrineSchedaRepository implements SchedaRepositoryInterface
             ->getQuery()
             ->getResult();
     }
+
+    /** @return Scheda[] */
+    public function findByPalestra(\App\Entity\Palestra $palestra): array
+    {
+        return $this->em->createQueryBuilder()
+            ->select('s')
+            ->from(Scheda::class, 's')
+            ->join('s.cliente', 'c')
+            ->where('c.palestra = :palestra')
+            ->setParameter('palestra', $palestra)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /** @return Scheda[] */
+    public function findAltreByPalestra(\App\Entity\Palestra $palestra, int $escludiSchedaId): array
+    {
+        return $this->em->createQueryBuilder()
+            ->select('s')
+            ->from(Scheda::class, 's')
+            ->join('s.cliente', 'c')
+            ->where('c.palestra = :palestra')
+            ->andWhere('s.id != :attualeId')
+            ->setParameter('palestra', $palestra)
+            ->setParameter('attualeId', $escludiSchedaId)
+            ->getQuery()
+            ->getResult();
+    }
 }

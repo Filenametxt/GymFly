@@ -19,6 +19,7 @@ interface AutenticazioneView
      */
     public function richiediDatiRegistrazione(): array;
 
-    public function richiediIdUtenteDaRimuovere(): int;
-    public function mostraStatoOperazione(bool $successo, string $messaggio): void;
+    public function mostraStatoOperazione(bool $successo, string $messaggio, ?string $ritorno = null): void;
+
+    public function reindirizzaDopoLogin(string $ruolo): void;
 }

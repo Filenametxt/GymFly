@@ -64,4 +64,11 @@ interface MessaggioRepositoryInterface
      * @return Messaggio[]
      */
     public function findConversazione(Utente $mittente, Utente $destinatario): array;
+
+    /**
+     * Messaggi inviati da un mittente con uno specifico oggetto.
+     *
+     * @return Messaggio[]
+     */
+    public function findByMittenteAndOggetto(Utente $mittente, string $oggetto): array;
 }

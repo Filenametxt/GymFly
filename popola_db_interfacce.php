@@ -17,6 +17,9 @@ use App\Entity\Cliente;
 use App\Entity\Attivita;
 use App\Entity\Palestra;
 use App\Entity\Abbonamento;
+use App\Entity\AbbonamentoDurata;
+use App\Entity\AbbonamentoAttivo;
+use App\Entity\Iscrizione;
 use App\Entity\CertificatoMedico;
 use App\Entity\Messaggio;
 use App\Enum\Sesso;
@@ -48,7 +51,7 @@ try {
         'admin@gymfly.com',
         'RSSMRA80A01H501U',
         'Via Roma 1, Milano',
-        Sesso::MALE, // NB: Assicurati che "MASCHIO" corrisponda al caso reale del tuo Enum Sesso
+        Sesso::MALE,
         'PasswordSicura123!'
     );
     $entityManager->persist($admin);
@@ -148,8 +151,26 @@ try {
     $entityManager->flush();
     echo "[OK] Messaggio inviato correttamente dall'allenatore al cliente.\n";
 
-    // NB: Abbonamento è una classe astratta. Se vuoi testarne la persistenza, 
-    // istanzia una sua classe figlia (es: $abbonamento = new AbbonamentoDurata(...)).
+    // 8. Creazione Abbonamento e associazione al Cliente
+    echo "[DEBUG] 11. Creazione AbbonamentoDurata...\n";
+    $abbonamentoDurata = new AbbonamentoDurata('Mensile Open', 'Fitness', 30);
+    $entityManager->persist($abbonamentoDurata);
+    $entityManager->flush();
+
+    echo "[DEBUG] 12. Creazione AbbonamentoAttivo e associazione al Cliente...\n";
+    $abbonamentoAttivo = new AbbonamentoAttivo(new \DateTimeImmutable('-5 days'), $abbonamentoDurata);
+    $entityManager->persist($abbonamentoAttivo);
+    
+    $cliente->setAbbonamento($abbonamentoAttivo);
+    $entityManager->flush();
+    echo "[OK] AbbonamentoAttivo salvato ed associato.\n";
+
+    // 9. Creazione Iscrizione
+    echo "[DEBUG] 13. Creazione Iscrizione...\n";
+    $iscrizione = new Iscrizione(new \DateTimeImmutable('-5 days'), $cliente);
+    $entityManager->persist($iscrizione);
+    $entityManager->flush();
+    echo "[OK] Iscrizione salvata (Scadenza: " . $iscrizione->getDataFine()->format('d/m/Y') . ").\n";
 
     echo "\nPopolamento del database completato senza errori!\n";
 

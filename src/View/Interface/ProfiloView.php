@@ -5,4 +5,10 @@ interface ProfiloView {
     public function mostraProfilo(array $datiCliente): void;
     public function mostraConfermaModifica(string $messaggio): void;
     public function mostraErrore(string $messaggio): void;
+    public function mostraFormModifica(array $dati): void;
+    public function mostraFormMisure(array $dati): void;
+    public function mostraFormInserimentoMisure(array $dati): void;
+    public function mostraFormCertificato(array $dati): void;
+    public function mostraFormCambioPassword(): void;
+    public function mostraGrafico(array $dati): void;
 }

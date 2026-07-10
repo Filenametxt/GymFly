@@ -44,6 +44,19 @@ interface ClienteRepositoryInterface extends UtenteRepositoryInterface
      * @return Cliente[]
      */
     public function findByPalestra(Palestra $palestra): array;
+    
+    /**
+     * Ricerca e filtra i clienti di una palestra per query testuale, stato del certificato medico, abbonamento e ordinamento.
+     *
+     * @return Cliente[]
+     */
+    public function findByPalestraAndFiltri(
+        Palestra $palestra, 
+        ?string $query, 
+        ?string $filtroCertificato,
+        ?string $filtroAbbonamento = null,
+        ?string $ordine = null
+    ): array;
 
     // -------------------------------------------------------------------------
     // Stato abbonamento

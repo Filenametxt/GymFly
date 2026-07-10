@@ -80,4 +80,18 @@ interface SchedaRepositoryInterface
      * @return Scheda[]
      */
     public function findInScadenza(int $giorni): array;
+
+    /**
+     * Tutte le schede dei clienti appartenenti a una specifica palestra.
+     *
+     * @return Scheda[]
+     */
+    public function findByPalestra(\App\Entity\Palestra $palestra): array;
+
+    /**
+     * Altre schede attive o storiche dei clienti della palestra escludendo la scheda corrente.
+     *
+     * @return Scheda[]
+     */
+    public function findAltreByPalestra(\App\Entity\Palestra $palestra, int $escludiSchedaId): array;
 }

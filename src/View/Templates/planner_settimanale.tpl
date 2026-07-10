@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <title>GymFly - Planner Settimanale</title>
+    <link class="style-sheet" rel="stylesheet" href="css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .planner-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 4px;
+            table-layout: fixed;
+        }
+        .planner-table th {
+            text-align: center;
+            padding: 10px;
+            background-color: var(--gymfly-card-bg);
+            color: #AFAFE2;
+            border-radius: 8px;
+            border: 1px solid var(--gymfly-primary);
+            font-size: 0.9rem;
+        }
+        .planner-table td {
+            height: 90px;
+            vertical-align: top;
+            padding: 6px;
+            background-color: rgba(26, 26, 46, 0.4);
+            border-radius: 8px;
+            border: 1px dashed rgba(175, 175, 226, 0.2);
+            position: relative;
+        }
+        .planner-table .hour-col {
+            width: 65px;
+            vertical-align: middle;
+            text-align: center;
+            background-color: var(--gymfly-card-bg);
+            color: var(--gymfly-text);
+            font-weight: bold;
+            font-size: 0.85rem;
+            border: 1px solid var(--gymfly-primary);
+            height: auto;
+        }
+        .ap-block {
+            background: linear-gradient(135deg, var(--gymfly-primary) 0%, var(--gymfly-accent) 100%);
+            color: white;
+            padding: 6px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: block;
+        }
+        .ap-block:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(175, 175, 226, 0.25);
+        }
+        .ap-block.is-selected {
+            border: 2px solid white;
+            box-shadow: 0 0 10px var(--gymfly-secondary);
+        }
+        .weekday-checkboxes label {
+            display: inline-block;
+            margin-right: 8px;
+            background: rgba(175, 175, 226, 0.1);
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .weekday-checkboxes input[type="checkbox"]:checked + span {
+            color: var(--gymfly-secondary);
+            font-weight: bold;
+        }
+        .weekday-checkboxes input[type="checkbox"] {
+            margin-right: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        {include file='sidebar.tpl'}
+        <main class="app-content">
+
+            <!-- HEADER -->
+            <div class="mb-5">
+                <div class="columns is-vcentered">
+                    <div class="column">
+                        <h1 class="title is-2 style-theme-text mb-2">Weekly Planner</h1>
+                        <p class="subtitle is-6 has-text-grey">Programmazione dell'agenda corsi e gestione delle attività pianificate</p>
+                    </div>
+                    <div class="column is-narrow">
+                        <a href="calendario?nuovo=1" class="button is-gymfly">
+                            <span class="icon"><i class="fas fa-plus"></i></span>
+                            <span>+ Nuovo Corso</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LAYOUT SPLIT PANEL -->
+            <div class="columns">
+                
+                <!-- COLONNA GRID PLANNER -->
+                <div class="column {if $selectedAp || $nuovo}is-8{else}is-12{/if}">
+                    <div class="table-container">
+                        <table class="planner-table">
+                            <thead>
+                                <tr>
+                                    <th class="hour-col">Ora</th>
+                                    <th>Lun <br><small class="has-text-grey">{$giorniSettimana[0]->format('d/m')}</small></th>
+                                    <th>Mar <br><small class="has-text-grey">{$giorniSettimana[1]->format('d/m')}</small></th>
+                                    <th>Mer <br><small class="has-text-grey">{$giorniSettimana[2]->format('d/m')}</small></th>
+                                    <th>Gio <br><small class="has-text-grey">{$giorniSettimana[3]->format('d/m')}</small></th>
+                                    <th>Ven <br><small class="has-text-grey">{$giorniSettimana[4]->format('d/m')}</small></th>
+                                    <th>Sab <br><small class="has-text-grey">{$giorniSettimana[5]->format('d/m')}</small></th>
+                                    <th>Dom <br><small class="has-text-grey">{$giorniSettimana[6]->format('d/m')}</small></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {foreach from=$fasceOrarie item=ora}
+                                    <tr>
+                                        <!-- Ora di inizio -->
+                                        <td class="hour-col">{$ora}:00</td>
+
+                                        <!-- Giorni da 1 (Lunedì) a 7 (Domenica) -->
+                                        {for $giorno=1 to 7}
+                                            <td>
+                                                {if isset($grid[$ora][$giorno])}
+                                                    {foreach from=$grid[$ora][$giorno] item=ap}
+                                                        <a href="calendario?id_ap={$ap->getId()}" class="ap-block {if $selectedAp && $selectedAp->getId() === $ap->getId()}is-selected{/if}">
+                                                            <div class="has-text-weight-bold">{$ap->getAttivita()->getNome()}</div>
+                                                            <div class="is-size-7">Sala: {$ap->getSala()->getNome()}</div>
+                                                            <div class="is-size-7">PT: {$ap->getAllenatore()->getNome()}</div>
+                                                            <div class="is-size-7 is-flex is-justify-content-between">
+                                                                <span><i class="fas fa-users mr-1"></i>{$ap->getPrenotati()}/{$ap->getMaxPartecipanti()}</span>
+                                                            </div>
+                                                        </a>
+                                                    {/foreach}
+                                                {/if}
+                                            </td>
+                                        {/for}
+                                    </tr>
+                                {/foreach}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- COLONNA DETTAGLIO / NUOVO INSERIMENTO (SIDEBAR PLANNER) -->
+                {if $selectedAp || $nuovo}
+                    <div class="column is-4">
+                        <div class="card p-5" style="border: 2px solid var(--gymfly-primary); background-color: var(--gymfly-card-bg); height: 100%;">
+                            
+                            <!-- SE SELEZIONATA ATTIVITÀ ESISTENTE (DETTAGLIO/MODIFICA/ELIMINA) -->
+                            {if $selectedAp}
+                                <div class="is-flex is-justify-content-between is-align-items-center mb-4">
+                                    <h2 class="title is-4 mb-0 style-theme-text">Dettaglio Corso</h2>
+                                    <a href="calendario" class="delete" title="Chiudi dettaglio"></a>
+                                </div>
+
+                                <div class="box" style="background-color: rgba(175, 175, 226, 0.05); border: 1px solid var(--gymfly-primary);">
+                                    <p class="is-size-5 mb-2"><strong>{$selectedAp->getAttivita()->getNome()}</strong></p>
+                                    <p class="mb-2"><i class="fas fa-calendar-day mr-2"></i>Data: <strong>{$selectedAp->getGiorno()->format('d/m/Y')}</strong></p>
+                                    <p class="mb-2"><i class="fas fa-clock mr-2"></i>Orario: <strong>{$selectedAp->getOrario()}:00</strong></p>
+                                    <p class="mb-2"><i class="fas fa-door-open mr-2"></i>Sala: <strong>{$selectedAp->getSala()->getNome()}</strong></p>
+                                    <p class="mb-3"><i class="fas fa-user-ninja mr-2"></i>Coach: <strong>{$selectedAp->getAllenatore()->getNome()} {$selectedAp->getAllenatore()->getCognome()}</strong></p>
+                                    
+                                    <div class="mb-2 is-size-7 is-flex is-justify-content-between">
+                                        <span>Prenotati</span>
+                                        <span><strong>{$selectedAp->getPrenotati()}</strong> / {$selectedAp->getMaxPartecipanti()}</span>
+                                    </div>
+                                    <progress class="progress is-link" value="{$selectedAp->getPrenotati()}" max="{$selectedAp->getMaxPartecipanti()}" style="height: 6px;"></progress>
+                                </div>
+
+                                <div class="mt-5">
+                                    <h3 class="title is-5 style-theme-text mb-3">Lista Iscritti</h3>
+                                    {if $selectedAp->getUtenti()|@count === 0}
+                                        <p class="is-size-7 has-text-grey mb-4 is-italic">Nessun utente iscritto a questa classe.</p>
+                                    {else}
+                                        <ul class="mb-4" style="max-height: 150px; overflow-y: auto; background-color: rgba(0,0,0,0.1); padding: 8px; border-radius: 8px;">
+                                            {foreach from=$selectedAp->getUtenti() item=ut}
+                                                <li class="is-flex is-justify-content-between is-align-items-center mb-2" style="border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 4px;">
+                                                    <span class="is-size-7">{$ut->getNome()} {$ut->getCognome()}</span>
+                                                    <a href="disdici-prenotazione?id_attivita_pianificata={$selectedAp->getId()}&id_cliente={$ut->getId()}" class="button is-danger is-small is-light" title="Rimuovi iscrizione" style="padding: 2px 6px; height: auto;">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </a>
+                                                </li>
+                                            {/foreach}
+                                        </ul>
+                                    {/if}
+
+                                    <!-- ISCRIVI NUOVO CLIENTE DA PARTE DELL'ADMIN -->
+                                    <div class="box p-3 mb-4" style="background-color: rgba(255,255,255,0.02);">
+                                        <form action="prenota-attivita" method="POST">
+                                            <input type="hidden" name="id_attivita_pianificata" value="{$selectedAp->getId()}">
+                                            <div class="field">
+                                                <label class="label is-small style-theme-text">Aggiungi Cliente</label>
+                                                <div class="field has-addons">
+                                                    <div class="control is-expanded">
+                                                        <div class="select is-small is-fullwidth">
+                                                            <select name="id_cliente" required>
+                                                                <option value="">Seleziona cliente...</option>
+                                                                {foreach from=$clienti item=cl}
+                                                                    <option value="{$cl->getId()}">{$cl->getNome()} {$cl->getCognome()}</option>
+                                                                {/foreach}
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="control">
+                                                        <button type="submit" class="button is-gymfly is-small">Aggiungi</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+
+                                    <!-- RIMOZIONE EVENTO -->
+                                    <a href="rimuovi-attivita-pianificata?id_attivita_pianificata={$selectedAp->getId()}" class="button is-danger is-light is-fullwidth mt-4" onclick="return confirm('Sei sicuro di voler rimuovere questa attività pianificata dal calendario? Tutti gli iscritti saranno rimossi.');">
+                                        <span class="icon"><i class="fas fa-trash-alt"></i></span>
+                                        <span>Elimina Corso Pianificato</span>
+                                    </a>
+                                </div>
+
+                            <!-- SE MODALITÀ NUOVO INSERIMENTO (CREA CORSO PIANIFICATO) -->
+                            {elseif $nuovo}
+                                <div class="is-flex is-justify-content-between is-align-items-center mb-4">
+                                    <h2 class="title is-4 mb-0 style-theme-text">Pianifica Corso</h2>
+                                    <a href="calendario" class="delete" title="Chiudi inserimento"></a>
+                                </div>
+
+                                <form action="crea-attivita-pianificata" method="POST">
+                                    
+                                    <!-- NOME CORSO -->
+                                    <div class="field mb-3">
+                                        <label class="label is-small style-theme-text">Corso da pianificare *</label>
+                                        <div class="control">
+                                            <div class="select is-fullwidth is-small">
+                                                <select name="id_attivita" id="select-corso" onchange="toggleNuovoCorsoForm(this.value)">
+                                                    <option value="">-- Seleziona corso esistente --</option>
+                                                    {foreach from=$attivita item=att}
+                                                        <option value="{$att->getId()}">{$att->getNome()} (max: {$att->getMaxPartecipanti()})</option>
+                                                    {/foreach}
+                                                    <option value="0">+ Registra nuovo corso nel catalogo</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- MINI FORM PER NUOVO CORSO NEL CATALOGO (MOSTRATO SOLO SE SELEZIONATO '0') -->
+                                    <div id="nuovo-corso-box" class="box p-3 mb-3" style="display: none; background-color: rgba(255,255,255,0.02); border: 1px dashed var(--gymfly-primary);">
+                                        <h4 class="title is-6 mb-2 style-theme-text">Dettagli Nuovo Corso</h4>
+                                        <div class="field mb-2">
+                                            <input class="input is-small" type="text" name="nuova_attivita_nome" placeholder="Nome Corso (es: Spinning)">
+                                        </div>
+                                        <div class="field mb-2">
+                                            <input class="input is-small" type="text" name="nuova_attivita_desc" placeholder="Descrizione del corso">
+                                        </div>
+                                        <div class="field">
+                                            <input class="input is-small" type="number" name="nuova_attivita_max" placeholder="Posti Max Consentiti (es: 15)">
+                                        </div>
+                                    </div>
+
+                                    <!-- DATA DI INIZIO -->
+                                    <div class="field mb-3">
+                                        <label class="label is-small style-theme-text">Data Inizio *</label>
+                                        <div class="control">
+                                            <input class="input is-small" type="date" name="data" required min="{$smarty.now|date_format:'%Y-%m-%d'}">
+                                        </div>
+                                    </div>
+
+                                    <!-- ORARIO (FASCIA ORARIA) -->
+                                    <div class="field mb-3">
+                                        <label class="label is-small style-theme-text">Ora Inizio (Ora Fine = Ora + 1) *</label>
+                                        <div class="control">
+                                            <div class="select is-fullwidth is-small">
+                                                <select name="orario" required>
+                                                    {foreach from=$fasceOrarie item=ora}
+                                                        <option value="{$ora}">{$ora}:00</option>
+                                                    {/foreach}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- SALA -->
+                                    <div class="field mb-3">
+                                         <label class="label is-small style-theme-text">Sala *</label>
+                                         <div class="control">
+                                             <div class="select is-fullwidth is-small">
+                                                 <select name="id_sala" id="select-sala" onchange="toggleNuovaSalaForm(this.value)" required>
+                                                     <option value="">Seleziona sala...</option>
+                                                     {foreach from=$sale item=sa}
+                                                         <option value="{$sa->getId()}">{$sa->getNome()} (max: {$sa->getMaxPartecipanti()})</option>
+                                                     {/foreach}
+                                                     <option value="0">+ Registra nuova sala nella palestra</option>
+                                                 </select>
+                                             </div>
+                                         </div>
+                                     </div>
+
+                                     <!-- MINI FORM PER NUOVA SALA (MOSTRATO SOLO SE SELEZIONATO '0') -->
+                                     <div id="nuova-sala-box" class="box p-3 mb-3" style="display: none; background-color: rgba(255,255,255,0.02); border: 1px dashed var(--gymfly-primary);">
+                                         <h4 class="title is-6 mb-2 style-theme-text">Dettagli Nuova Sala</h4>
+                                         <div class="field mb-2">
+                                             <input class="input is-small" type="text" name="nuova_sala_nome" placeholder="Nome Sala (es: Sala C)">
+                                         </div>
+                                         <div class="field">
+                                             <input class="input is-small" type="number" name="nuova_sala_max" placeholder="Posti Max Sala (es: 20)">
+                                         </div>
+                                     </div>
+
+                                    <!-- ALLENATORE (ADD PT) -->
+                                    <div class="field mb-3">
+                                        <label class="label is-small style-theme-text">Allenatore / PT *</label>
+                                        <div class="control">
+                                            <div class="select is-fullwidth is-small">
+                                                <select name="id_allenatore" required>
+                                                    <option value="">Seleziona PT...</option>
+                                                    {foreach from=$allenatori item=pt}
+                                                        <option value="{$pt->getId()}">{$pt->getNome()} {$pt->getCognome()}</option>
+                                                    {/foreach}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- RIPETIZIONI SETTIMANALI -->
+                                    <div class="field mb-4">
+                                        <label class="label is-small style-theme-text">Ripeti settimanalmente nei giorni:</label>
+                                        <div class="weekday-checkboxes">
+                                            <label><input type="checkbox" name="ripetizione[]" value="L"><span>L</span></label>
+                                            <label><input type="checkbox" name="ripetizione[]" value="M"><span>M</span></label>
+                                            <label><input type="checkbox" name="ripetizione[]" value="M"><span>M</span></label>
+                                            <label><input type="checkbox" name="ripetizione[]" value="G"><span>G</span></label>
+                                            <label><input type="checkbox" name="ripetizione[]" value="V"><span>V</span></label>
+                                            <label><input type="checkbox" name="ripetizione[]" value="S"><span>S</span></label>
+                                            <label><input type="checkbox" name="ripetizione[]" value="D"><span>D</span></label>
+                                        </div>
+                                        <p class="help has-text-grey-light">Se selezionate delle ripetizioni, l'evento verrà pianificato per le prossime 4 settimane nei giorni selezionati.</p>
+                                    </div>
+
+                                    <!-- SUBMIT -->
+                                    <button type="submit" class="button is-gymfly is-fullwidth">
+                                        <span class="icon"><i class="fas fa-save"></i></span>
+                                        <span>Pianifica Corso</span>
+                                    </button>
+
+                                </form>
+                            {/if}
+
+                        </div>
+                    </div>
+                {/if}
+
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        function toggleNuovoCorsoForm(val) {
+            var box = document.getElementById('nuovo-corso-box');
+            if (val === '0') {
+                box.style.display = 'block';
+                box.querySelectorAll('input').forEach(input => input.setAttribute('required', 'true'));
+            } else {
+                box.style.display = 'none';
+                box.querySelectorAll('input').forEach(input => input.removeAttribute('required'));
+            }
+        }
+
+        function toggleNuovaSalaForm(val) {
+            var box = document.getElementById('nuova-sala-box');
+            if (val === '0') {
+                box.style.display = 'block';
+                box.querySelectorAll('input').forEach(input => input.setAttribute('required', 'true'));
+            } else {
+                box.style.display = 'none';
+                box.querySelectorAll('input').forEach(input => input.removeAttribute('required'));
+            }
+        }
+    </script>
+
+</body>
+</html>

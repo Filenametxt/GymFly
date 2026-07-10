@@ -11,7 +11,7 @@ abstract class Utente
     private string $cognome;
     private string $email;
     private string $CF;
-    private ?string $profilePicture = null;
+    private $profilePicture = null;
     private ?string $telefono = null;
     private string $indirizzo;
     private Sesso $sesso;
@@ -50,8 +50,8 @@ abstract class Utente
             $this->profilePicture = null;
             }
         
-        // Se il telefono è stato passato (non è null), avvia il setter con la pulizia
-        if ($telefono !== null) {
+        // Se il telefono è stato passato (non è null e non è vuoto), avvia il setter con la pulizia
+        if ($telefono !== null && trim($telefono) !== '') {
             $this->setTelefono($telefono);
         } else {
             $this->telefono = null;
@@ -91,6 +91,10 @@ abstract class Utente
 
     public function getProfilePicture(): ?string
     {
+        if (is_resource($this->profilePicture)) {
+            rewind($this->profilePicture);
+            return stream_get_contents($this->profilePicture);
+        }
         return $this->profilePicture;
     }
 
@@ -231,7 +235,7 @@ abstract class Utente
      *
      * @param string $profilePicture Contenuto binario dell'immagine.
      */
-    public function setProfilePicture(string $profilePicture): self
+    public function setProfilePicture(?string $profilePicture): self
     {
         $this->profilePicture = $profilePicture;
         return $this;

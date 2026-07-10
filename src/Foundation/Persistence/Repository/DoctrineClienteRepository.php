@@ -50,6 +50,23 @@ class DoctrineClienteRepository extends AbstractDoctrineUtenteRepository
             ->getOneOrNullResult();
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function findByStringa(string $query): array
+    {
+        return $this->em->createQueryBuilder()
+            ->select('c')
+            ->from(Cliente::class, 'c')
+            ->where('LOWER(c.nome) LIKE LOWER(:query)')
+            ->orWhere('LOWER(c.cognome) LIKE LOWER(:query)')
+            ->orWhere('LOWER(c.email) LIKE LOWER(:query)')
+            ->setParameter('query', '%' . $query . '%')
+            ->orderBy('c.cognome', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     // -------------------------------------------------------------------------
     // Filtro per palestra
     // -------------------------------------------------------------------------
@@ -66,6 +83,71 @@ class DoctrineClienteRepository extends AbstractDoctrineUtenteRepository
             ->addOrderBy('c.nome', 'ASC')
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function findByPalestraAndFiltri(
+        Palestra $palestra, 
+        ?string $query, 
+        ?string $filtroCertificato,
+        ?string $filtroAbbonamento = null,
+        ?string $ordine = null
+    ): array {
+        $qb = $this->em->createQueryBuilder()
+            ->select('c')
+            ->from(Cliente::class, 'c')
+            ->where('c.palestra = :palestra')
+            ->setParameter('palestra', $palestra);
+
+        if ($query !== null && trim($query) !== '') {
+            $qb->andWhere('(LOWER(c.nome) LIKE LOWER(:search) OR LOWER(c.cognome) LIKE LOWER(:search) OR LOWER(c.email) LIKE LOWER(:search))')
+               ->setParameter('search', '%' . trim($query) . '%');
+        }
+
+        if ($filtroCertificato !== null && trim($filtroCertificato) !== '') {
+            $qb->leftJoin('c.certificatoMedico', 'cm');
+            if ($filtroCertificato === 'scaduti') {
+                $qb->andWhere('cm.id IS NULL OR cm.dataScadenza < :oggi')
+                   ->setParameter('oggi', new \DateTimeImmutable('today'));
+            } elseif ($filtroCertificato === 'in_scadenza') {
+                $oggi = new \DateTimeImmutable('today');
+                $limite = $oggi->modify('+30 days');
+                $qb->andWhere('cm.id IS NOT NULL AND cm.dataScadenza >= :oggi AND cm.dataScadenza <= :limite')
+                   ->setParameter('oggi', $oggi)
+                   ->setParameter('limite', $limite);
+            } elseif ($filtroCertificato === 'in_regola') {
+                $limite = (new \DateTimeImmutable('today'))->modify('+30 days');
+                $qb->andWhere('cm.id IS NOT NULL AND cm.dataScadenza > :limite')
+                   ->setParameter('limite', $limite);
+            }
+        }
+
+        if ($filtroAbbonamento !== null && trim($filtroAbbonamento) !== '') {
+            if ($filtroAbbonamento === 'attivo') {
+                $qb->join('c.abbonamento', 'aa')
+                   ->andWhere('aa.dataFine >= :oggiAbb')
+                   ->setParameter('oggiAbb', new \DateTimeImmutable('today'));
+            } elseif ($filtroAbbonamento === 'scaduto') {
+                $qb->leftJoin('c.abbonamento', 'aa')
+                   ->andWhere('aa.id IS NULL OR aa.dataFine < :oggiAbb')
+                   ->setParameter('oggiAbb', new \DateTimeImmutable('today'));
+            }
+        }
+
+        if ($ordine === 'cognome_desc') {
+            $qb->orderBy('c.cognome', 'DESC')->addOrderBy('c.nome', 'ASC');
+        } elseif ($ordine === 'nome_asc') {
+            $qb->orderBy('c.nome', 'ASC')->addOrderBy('c.cognome', 'ASC');
+        } elseif ($ordine === 'nome_desc') {
+            $qb->orderBy('c.nome', 'DESC')->addOrderBy('c.cognome', 'ASC');
+        } else {
+            // Default: cognome_asc
+            $qb->orderBy('c.cognome', 'ASC')->addOrderBy('c.nome', 'ASC');
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     // -------------------------------------------------------------------------

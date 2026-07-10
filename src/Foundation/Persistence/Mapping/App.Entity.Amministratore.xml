@@ -11,8 +11,7 @@
         L'<id> non viene ridichiarato: è ereditato dalla root Utente.
     -->
     <entity name="App\Entity\Amministratore" 
-            table="Amministratore"
-            inheritance-type="JOINED">
+            table="Amministratore">
 
 
     </entity>
