@@ -1023,6 +1023,16 @@ code {
     margin-bottom: 1rem;
 }
 
+.gf-feature-icon svg {
+    width: 24px;
+    height: 24px;
+    display: block;
+}
+
+.gf-feature-icon .icon {
+    color: inherit;
+}
+
 .gf-feature-icon.color-1 { background: var(--gymfly-accent); color: var(--gymfly-text); }
 .gf-feature-icon.color-2 { background: rgba(153,205,234,0.2); color: #2d7ab5; }
 .gf-feature-icon.color-3 { background: rgba(197,224,252,0.25); color: #3b7dd8; }
