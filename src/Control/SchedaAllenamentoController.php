@@ -140,7 +140,7 @@ class SchedaAllenamentoController
             // Simula invio e-mail all'allenatore
             error_log("EMAIL CONFIRMATION: Inviata email a " . $allenatore->getEmail() . " per richiesta scheda da parte del cliente " . $cliente->getEmail());
 
-            $this->view->mostraStatoOperazione(true, "Richiesta inviata con successo al tuo Allenatore ed e-mail di notifica recapitata. La vecchia scheda è stata rimossa.", "dashboard-cliente");
+            $this->view->mostraStatoOperazione(true, "Richiesta inviata con successo al tuo Allenatore. La vecchia scheda è stata rimossa.", "dashboard-cliente");
         } catch (\Throwable $e) {
             $this->view->mostraStatoOperazione(false, "Errore durante l'invio della richiesta: " . $e->getMessage(), "richiedi-scheda");
         }

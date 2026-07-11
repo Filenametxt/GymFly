@@ -51,7 +51,7 @@
                         <!-- HEADER CON TITOLO E TASTO ELIMINA (Top-right con display flex inline per compatibilità) -->
                         <div style="display: flex; justify-content: space-between; align-items: center;" class="mb-5">
                             <h1 class="title is-2 style-theme-text mb-0">REALIZZA SCHEDA</h1>
-                            <a href="elimina-scheda?id={$scheda->getId()}" class="button is-danger" onclick="return confirm('Sei sicuro di voler eliminare questa scheda e tutti i suoi allenamenti?')">
+                            <a href="elimina-scheda?id={$scheda->getId()}" class="button is-danger">
                                 <span class="icon"><i class="fas fa-trash"></i></span>
                                 <span>Elimina</span>
                             </a>
