@@ -110,9 +110,9 @@
 
     </div>
 
-    <!-- PIEDE DELLA SIDEBAR (LOGOUT) -->
-    <div class="mt-auto">
-        <a href="logout" class="button is-danger is-light is-fullwidth">
+    <!-- PIEDE DELLA SIDEBAR FISSO (LOGOUT) -->
+    <div style="position: sticky; bottom: 0; background-color: var(--gymfly-card-bg); padding: 1rem 0 0 0; margin-top: auto; border-top: 2px solid var(--gymfly-primary); z-index: 10;">
+        <a href="logout" class="button is-danger is-light is-fullwidth" style="border-radius: 8px; font-weight: 600;">
             <span class="icon"><i class="fas fa-sign-out-alt"></i></span>
             <span>Log Out</span>
         </a>

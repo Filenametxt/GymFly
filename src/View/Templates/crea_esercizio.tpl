@@ -192,8 +192,8 @@
                                     <label class="label">Esecuzione *</label>
                                     <div class="select is-fullwidth">
                                         <select name="tracciamento_carico" id="tracciamento_carico" required>
-                                            <option value="1" {if $tracciamento_carico == 1}selected{/if}>Con Carico (Peso in Kg)</option>
-                                            <option value="0" {if $tracciamento_carico == 0}selected{/if}>A Corpo Libero (Tempo/Rip)</option>
+                                            <option value="1" {if $tracciamento_carico == 1}selected{/if}>Ripetizioni (Ripetizioni e Carico)</option>
+                                            <option value="0" {if $tracciamento_carico == 0}selected{/if}>Durata (Tempo/Durata e Carico)</option>
                                         </select>
                                     </div>
                                 </div>

@@ -16,6 +16,8 @@ use App\Entity\Amministratore;
 use App\Entity\Palestra;
 use App\Entity\Attivita;
 use App\Entity\Sala;
+use App\Entity\CodaAttesa;
+use App\Entity\Messaggio;
 use App\View\Interface\AttivitaPianificataView;
 use App\Foundation\Session;
 use Doctrine\ORM\EntityManagerInterface;
@@ -242,10 +244,16 @@ class AttivitaPianificataController
             if ($cliente) {
                 $datiView['cliente'] = $cliente;
                 $iscrittoMap = [];
+                $inQueueMap = [];
                 foreach ($attivitaPianificate as $ap) {
                     $iscrittoMap[$ap->getId()] = $this->clienteRepo->isIscrittoAAttivita($cliente, $ap);
+                    $inQueueMap[$ap->getId()] = (bool)$this->entityManager->getRepository(CodaAttesa::class)->findOneBy([
+                        'cliente' => $cliente,
+                        'attivitaPianificata' => $ap
+                    ]);
                 }
                 $datiView['iscrittoMap'] = $iscrittoMap;
+                $datiView['inQueueMap'] = $inQueueMap;
                 $datiView['puoPrenotare'] = $cliente->puoPrenotareAttivita();
             }
         }
@@ -507,7 +515,24 @@ class AttivitaPianificataController
         }
 
         if ($attivita->getPrenotati() >= $attivita->getMaxPartecipanti()) {
-            $this->view->mostraStatoOperazione(false, "L'attività pianificata ha raggiunto la capienza massima.");
+            // Se la capienza è al massimo, inseriamo nella coda di attesa
+            $existingQueue = $this->entityManager->getRepository(CodaAttesa::class)->findOneBy([
+                'cliente' => $cliente,
+                'attivitaPianificata' => $attivita
+            ]);
+            if ($existingQueue) {
+                $this->view->mostraStatoOperazione(false, "Sei già inserito nella coda di attesa per questa attività.");
+                return;
+            }
+
+            try {
+                $coda = new CodaAttesa($cliente, $attivita);
+                $this->entityManager->persist($coda);
+                $this->entityManager->flush();
+                $this->view->mostraStatoOperazione(true, "L'attività ha raggiunto la capienza massima. Sei stato inserito nella coda di attesa.");
+            } catch (\Throwable $e) {
+                $this->view->mostraStatoOperazione(false, "Impossibile inserire nella coda di attesa: " . $e->getMessage());
+            }
             return;
         }
 
@@ -570,14 +595,59 @@ class AttivitaPianificataController
             return;
         }
 
+        $inQueue = $this->entityManager->getRepository(CodaAttesa::class)->findOneBy([
+            'cliente' => $cliente,
+            'attivitaPianificata' => $attivita
+        ]);
+
         if (!$this->clienteRepo->isIscrittoAAttivita($cliente, $attivita)) {
-            $this->view->mostraStatoOperazione(false, "Il cliente non risulta iscritto a questa attività.");
+            if ($inQueue) {
+                try {
+                    $this->entityManager->remove($inQueue);
+                    $this->entityManager->flush();
+                    $this->view->mostraStatoOperazione(true, "Sei stato rimosso dalla coda di attesa.");
+                } catch (\Throwable $e) {
+                    $this->view->mostraStatoOperazione(false, "Impossibile rimuovere dalla coda di attesa: " . $e->getMessage());
+                }
+                return;
+            }
+
+            $this->view->mostraStatoOperazione(false, "Il cliente non risulta iscritto o in coda per questa attività.");
             return;
         }
 
         try {
             $cliente->cancellaIscrizioneAttivita($attivita);
             $attivita->setPrenotati(max(0, $attivita->getPrenotati() - 1));
+
+            // SCORRIMENTO DELLA CODA:
+            $codaRepo = $this->entityManager->getRepository(CodaAttesa::class);
+            $codaPrimo = $codaRepo->findOneBy(
+                ['attivitaPianificata' => $attivita],
+                ['dataInserimento' => 'ASC']
+            );
+
+            if ($codaPrimo) {
+                $clienteScelto = $codaPrimo->getCliente();
+                $clienteScelto->iscriviAAttivita($attivita);
+                $attivita->setPrenotati($attivita->getPrenotati() + 1);
+
+                // Rimuovi dalla coda
+                $this->entityManager->remove($codaPrimo);
+
+                // Invia messaggio in bacheca
+                $mittente = $attivita->getAllenatore();
+                $oggettoMsg = "Iscrizione automatica all'attività";
+                $contenutoMsg = "Ciao " . $clienteScelto->getNome() . ",\n\nti informiamo che si è liberato un posto e sei stato iscritto automaticamente all'attività: " . $attivita->getAttivita()->getNome() . " in data " . $attivita->getGiorno()->format('d/m/Y') . " alle ore " . $attivita->getOrario() . ":00.\n\nSaluti,\nLo staff di GymFly";
+                
+                $messaggio = new Messaggio($mittente, $oggettoMsg, $contenutoMsg);
+                $messaggio->aggiungiDestinatario($clienteScelto);
+                $this->entityManager->persist($messaggio);
+
+                // Invia email di notifica (se SMTP non è configurato non fa nulla)
+                $headers = "From: no-reply@gymfly.com\r\nReply-To: support@gymfly.com\r\nContent-Type: text/plain; charset=utf-8";
+                @mail($clienteScelto->getEmail(), $oggettoMsg, $contenutoMsg, $headers);
+            }
 
             $this->entityManager->flush();
             $this->view->mostraStatoOperazione(true, "Iscrizione cancellata con successo.");

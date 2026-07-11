@@ -252,8 +252,16 @@
                                                 <span class="icon"><i class="fas fa-calendar-minus"></i></span>
                                                 <span>Disdici la mia Prenotazione</span>
                                             </a>
+                                        {elseif isset($inQueueMap[$selectedAp->getId()]) && $inQueueMap[$selectedAp->getId()]}
+                                            <a href="disdici-prenotazione?id_attivita_pianificata={$selectedAp->getId()}" class="button is-danger is-light is-fullwidth">
+                                                <span class="icon"><i class="fas fa-calendar-minus"></i></span>
+                                                <span>Disdici Coda di Attesa</span>
+                                            </a>
                                         {elseif $selectedAp->getPrenotati() >= $selectedAp->getMaxPartecipanti()}
-                                            <button class="button is-static is-fullwidth" disabled>Al completo</button>
+                                            <a href="prenota-attivita?id_attivita_pianificata={$selectedAp->getId()}" class="button is-warning is-fullwidth" {if isset($puoPrenotare) && !$puoPrenotare}disabled onclick="return false;"{/if}>
+                                                <span class="icon"><i class="fas fa-hourglass-half"></i></span>
+                                                <span>Prenota</span>
+                                            </a>
                                         {else}
                                             <a href="prenota-attivita?id_attivita_pianificata={$selectedAp->getId()}" class="button is-gymfly is-fullwidth" {if isset($puoPrenotare) && !$puoPrenotare}disabled onclick="return false;"{/if}>
                                                 <span class="icon"><i class="fas fa-calendar-check"></i></span>

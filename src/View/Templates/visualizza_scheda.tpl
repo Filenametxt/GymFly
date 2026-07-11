@@ -299,12 +299,14 @@
                                                     </div>
 
                                                     <!-- EXERCISE PARAMS -->
+                                                    {assign var="nomeTipo" value=$dettaglio->getEsercizio()->getTipologia()->getNomeTipologia()|lower}
+                                                    {assign var="isDurata" value=($nomeTipo === 'durata' || $nomeTipo === 'tempo/ripetizioni')}
                                                     <div class="exercise-params">
-                                                        <div class="param-box">
+                                                        <div class="param-box" {if $isDurata}style="opacity: 0.5;"{/if}>
                                                             <div class="param-label">
                                                                 <i class="fas fa-redo mr-1"></i> Ripetizioni
                                                             </div>
-                                                            <div class="param-value">{$dettaglio->getRipetizioni()}</div>
+                                                            <div class="param-value">{if $isDurata}—{else}{$dettaglio->getRipetizioni()}{/if}</div>
                                                         </div>
                                                         <div class="param-box">
                                                             <div class="param-label">
@@ -312,11 +314,11 @@
                                                             </div>
                                                             <div class="param-value">{$dettaglio->getCarico()} Kg</div>
                                                         </div>
-                                                        <div class="param-box">
+                                                        <div class="param-box" {if !$isDurata}style="opacity: 0.5;"{/if}>
                                                             <div class="param-label">
-                                                                <i class="fas fa-stopwatch mr-1"></i> Recupero
+                                                                <i class="fas fa-stopwatch mr-1"></i> Tempo
                                                             </div>
-                                                            <div class="param-value">{$allenamento->getDescrizione()|estrai_recupero:$dettaglio->getEsercizio()->getNomeEsercizio():$dettaglio->getSerie():$dettaglio->getId()}</div>
+                                                            <div class="param-value">{if !$isDurata}—{else}{$dettaglio->getTempo()|default:'—'}{/if}</div>
                                                         </div>
                                                     </div>
 
