@@ -146,7 +146,7 @@
             <div class="mb-5">
                 <a href="calendario?nuovo=1" class="button is-gymfly" title="+ Nuovo Corso" style="border-radius: 10px;">
                     <span class="icon"><i class="fas fa-plus"></i></span>
-                    <span>Nuovo Corso</span>
+                    <span> Nuovo Corso</span>
                 </a>
             </div>
             {/if}

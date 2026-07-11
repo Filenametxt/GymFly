@@ -296,9 +296,20 @@ class VisualizzazioneController
         $parametriRepo = new \App\Foundation\Persistence\Repository\DoctrineParametriRepository($this->entityManager);
         $ultimaMisure = $parametriRepo->findUltimaByCliente($cliente);
 
+        $oggi = new \DateTimeImmutable('today');
+        $attivitaOggi = [];
+        if ($cliente) {
+            foreach ($cliente->getAttivitaPianificate() as $ap) {
+                if ($ap->getGiorno()->format('Y-m-d') === $oggi->format('Y-m-d')) {
+                    $attivitaOggi[] = $ap;
+                }
+            }
+        }
+
         $this->view->mostraDashboardCliente([
             'utente' => $cliente,
-            'ultimaMisure' => $ultimaMisure
+            'ultimaMisure' => $ultimaMisure,
+            'attivitaOggi' => $attivitaOggi
         ]);
     }
 
