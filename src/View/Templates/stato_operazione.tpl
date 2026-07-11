@@ -21,7 +21,7 @@
                         {if isset($ritorno)}
                             {if $ritorno === 'login'}
                                 Torna al Login
-                            {elseif $ritorno === 'calendario' || $ritorno|strpos:'calendario' !== false}
+                            {elseif $ritorno === 'calendario' || strpos($ritorno, 'calendario') !== false}
                                 Torna al Calendario
                             {else}
                                 Torna alla Dashboard
