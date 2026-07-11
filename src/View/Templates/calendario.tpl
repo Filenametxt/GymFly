@@ -105,24 +105,48 @@
     <div class="app-container">
         {include file='sidebar.tpl'}
         <main class="app-content">
-
-            <!-- HEADER -->
-            <div class="mb-5">
+            <!-- ================= DESKTOP HEADER ================= -->
+            {assign var="headerClass" value="dashboard-header"}
+            {if isset($smarty.session.ruolo_utente)}
+                {if $smarty.session.ruolo_utente === 'amministratore'}
+                    {assign var="headerClass" value="dashboard-header-admin"}
+                {elseif $smarty.session.ruolo_utente === 'allenatore'}
+                    {assign var="headerClass" value="dashboard-header-trainer"}
+                {/if}
+            {/if}
+            <div class="{$headerClass} is-hidden-mobile">
                 <div class="columns is-vcentered">
                     <div class="column">
-                        <h1 class="title is-2 style-theme-text mb-2">Calendario Corsi</h1>
-                        <p class="subtitle is-6 has-text-grey">Esplora la programmazione settimanale, iscriviti ai corsi o gestisci le tue sessioni private</p>
+                        <h1 class="title is-2 has-text-white mb-2">
+                            Calendario Corsi
+                        </h1>
+                        <p class="subtitle is-5 has-text-white-ter">
+                            Esplora la programmazione settimanale, iscriviti ai corsi o gestisci le tue sessioni private
+                        </p>
                     </div>
                     <div class="column is-narrow">
-                        {if $ruolo_utente === 'allenatore'}
-                            <a href="calendario?nuova_sessione=1" class="button is-gymfly">
-                                <span class="icon"><i class="fas fa-calendar-plus"></i></span>
-                                <span>Pianifica Sessione Privata</span>
-                            </a>
-                        {/if}
+                        <span class="icon is-large has-text-white" style="margin-right: 1.5rem;">
+                            <i class="fas fa-calendar-alt fa-3x"></i>
+                        </span>
                     </div>
                 </div>
             </div>
+
+            <!-- ================= MOBILE HEADER ================= -->
+            <div class="is-flex is-align-items-center mb-5 is-hidden-tablet" style="padding-top: 5px;">
+                <div style="width: 45px;"></div>
+                <strong class="is-size-4 style-theme-text" style="letter-spacing: 1px; flex-grow: 1;">CALENDARIO</strong>
+            </div>
+
+            <!-- ACTION TOOLBAR (Pianifica Sessione Privata) -->
+            {if $ruolo_utente === 'allenatore'}
+            <div class="mb-5">
+                <a href="calendario?nuova_sessione=1" class="button is-gymfly" title="Pianifica Sessione Privata" style="border-radius: 10px;">
+                    <span class="icon"><i class="fas fa-calendar-plus"></i></span>
+                    <span>Pianifica Sessione Privata</span>
+                </a>
+            </div>
+            {/if}
 
             <!-- CONTROLLO REQUISITI CLIENTE -->
             {if $ruolo_utente === 'cliente'}
@@ -204,7 +228,7 @@
                             {if $selectedAp}
                                 <div class="is-flex is-justify-content-between is-align-items-center mb-4">
                                     <h2 class="title is-4 mb-0 style-theme-text">Dettaglio Corso</h2>
-                                    <a href="calendario" class="delete" title="Chiudi dettaglio"></a>
+                                    <a href="calendario" class="delete is-medium" title="Chiudi dettaglio" style="margin-left: auto;"></a>
                                 </div>
 
                                 <div class="box mb-4" style="background-color: rgba(175, 175, 226, 0.05); border: 1px solid var(--gymfly-primary);">
@@ -243,7 +267,7 @@
                             {elseif $selectedSp}
                                 <div class="is-flex is-justify-content-between is-align-items-center mb-4">
                                      <h2 class="title is-4 mb-0 style-theme-text" style="color: #e65100;">Sessione Privata</h2>
-                                    <a href="calendario" class="delete" title="Chiudi dettaglio"></a>
+                                    <a href="calendario" class="delete is-medium" title="Chiudi dettaglio" style="margin-left: auto;"></a>
                                 </div>
 
                                  <div class="box mb-4" style="background-color: rgba(230, 81, 0, 0.04); border: 1px solid #e65100; border-radius: 10px;">
@@ -268,7 +292,7 @@
                             {elseif $nuova_sessione}
                                 <div class="is-flex is-justify-content-between is-align-items-center mb-4">
                                      <h2 class="title is-4 mb-0 style-theme-text" style="color: #e65100;">Pianifica Sessione</h2>
-                                    <a href="calendario" class="delete" title="Chiudi inserimento"></a>
+                                    <a href="calendario" class="delete is-medium" title="Chiudi inserimento" style="margin-left: auto;"></a>
                                 </div>
 
                                 <form action="prenota-sessione-privata" method="POST">
@@ -318,11 +342,18 @@
                                         </div>
                                     </div>
 
-                                    <!-- SUBMIT -->
-                                    <button type="submit" class="button is-gymfly is-fullwidth">
-                                        <span class="icon"><i class="fas fa-save"></i></span>
-                                        <span>Salva Prenotazione</span>
-                                    </button>
+                                     <!-- BOTTONI AZIONE -->
+                                     <div class="field is-grouped is-grouped-right mt-5">
+                                         <div class="control">
+                                             <button type="submit" class="button is-gymfly">
+                                                 <span class="icon"><i class="fas fa-save"></i></span>
+                                                 <span>Salva Prenotazione</span>
+                                             </button>
+                                         </div>
+                                         <div class="control">
+                                             <a href="calendario" class="button is-light">Chiudi</a>
+                                         </div>
+                                     </div>
 
                                 </form>
                             {/if}

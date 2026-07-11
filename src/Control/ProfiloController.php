@@ -559,9 +559,27 @@ class ProfiloController
             if ($tipo === 'peso') {
                 $valori[] = $m->getPeso();
             } elseif ($tipo === 'superiore') {
-                $valori[] = $m->getBicipiteDestro() ?? 0.0;
+                $subVals = [];
+                if ($m->getBicipiteDestro() !== null) $subVals[] = $m->getBicipiteDestro();
+                if ($m->getBicipiteSinistro() !== null) $subVals[] = $m->getBicipiteSinistro();
+                if ($m->getTricipiteDestro() !== null) $subVals[] = $m->getTricipiteDestro();
+                if ($m->getTricipiteSinistro() !== null) $subVals[] = $m->getTricipiteSinistro();
+                if ($m->getMisuraPetto() !== null) $subVals[] = $m->getMisuraPetto();
+                if ($m->getMisuraSpalle() !== null) $subVals[] = $m->getMisuraSpalle();
+                
+                $media = count($subVals) > 0 ? array_sum($subVals) / count($subVals) : 0.0;
+                $valori[] = round($media, 2);
             } else {
-                $valori[] = $m->getCosciaDestra() ?? 0.0;
+                $subVals = [];
+                if ($m->getCosciaDestra() !== null) $subVals[] = $m->getCosciaDestra();
+                if ($m->getCosciaSinistra() !== null) $subVals[] = $m->getCosciaSinistra();
+                if ($m->getPolpaccioDestro() !== null) $subVals[] = $m->getPolpaccioDestro();
+                if ($m->getPolpaccioSinistro() !== null) $subVals[] = $m->getPolpaccioSinistro();
+                if ($m->getMisuraVita() !== null) $subVals[] = $m->getMisuraVita();
+                if ($m->getMisuraFianchi() !== null) $subVals[] = $m->getMisuraFianchi();
+                
+                $media = count($subVals) > 0 ? array_sum($subVals) / count($subVals) : 0.0;
+                $valori[] = round($media, 2);
             }
         }
 
@@ -571,13 +589,7 @@ class ProfiloController
 
         $count = count($storico);
         foreach ($storico as $i => $m) {
-            if ($tipo === 'peso') {
-                $val = $m->getPeso();
-            } elseif ($tipo === 'superiore') {
-                $val = $m->getBicipiteDestro() ?? 0.0;
-            } else {
-                $val = $m->getCosciaDestra() ?? 0.0;
-            }
+            $val = $valori[$i];
 
             $x = $padX + ($i * ($width / ($count - 1 ?: 1)));
             $y = $padY + $height - (($val - $minVal) / $range * $height);
@@ -591,9 +603,9 @@ class ProfiloController
 
         $titolo = "Andamento Peso Corporeo";
         if ($tipo === 'superiore') {
-            $titolo = "Andamento Circonferenza Bicipite";
+            $titolo = "Andamento Misure Parte Superiore (Media)";
         } elseif ($tipo === 'inferiore') {
-            $titolo = "Andamento Circonferenza Coscia";
+            $titolo = "Andamento Misure Parte Inferiore (Media)";
         }
 
         $this->view->mostraGrafico([
