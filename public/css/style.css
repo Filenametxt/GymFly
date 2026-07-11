@@ -443,6 +443,22 @@ code {
     z-index: 1005;
     transform: translateX(0);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+}
+
+/* Custom Scrollbar for Sidebar */
+.app-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+.app-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.app-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(175, 175, 226, 0.2);
+    border-radius: 3px;
+}
+.app-sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(175, 175, 226, 0.4);
 }
 
 .sidebar-checkbox-state:checked ~ .app-sidebar {
@@ -497,6 +513,15 @@ code {
     color: #1e3a8a !important;
 }
 
+.sidebar-menu-link.is-logout {
+    color: #ff3860 !important;
+}
+
+.sidebar-menu-link.is-logout:hover {
+    background-color: rgba(255, 56, 96, 0.1) !important;
+    color: #ff3860 !important;
+}
+
 .sidebar-menu-link i {
     width: 24px;
     margin-right: 10px;
@@ -541,6 +566,7 @@ code {
         padding: 2rem 1.5rem;
         display: flex;
         flex-direction: column;
+        overflow-y: auto;
     }
     
     /* Pulsante hamburger in alto a sinistra su mobile */

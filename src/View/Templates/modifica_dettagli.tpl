@@ -153,9 +153,11 @@
                                     </div>
 
                                     <!-- PARAMETRI IN GRID -->
+                                    {assign var="nomeTipo" value=$dettaglio->getEsercizio()->getTipologia()->getNomeTipologia()|lower}
+                                    {assign var="isDurata" value=($nomeTipo === 'durata' || $nomeTipo === 'tempo/ripetizioni')}
                                     <div class="parametri-grid">
                                         <!-- RIPETIZIONI -->
-                                        <div class="parametro-field">
+                                        <div class="parametro-field" {if $isDurata}style="opacity: 0.6;"{/if}>
                                             <label class="parametro-label">
                                                 <i class="fas fa-sync-alt mr-1"></i>Ripetizioni
                                             </label>
@@ -164,8 +166,7 @@
                                                 type="number" 
                                                 name="dettagli[{$dettaglio->getId()}][ripetizioni]" 
                                                 value="{$dettaglio->getRipetizioni()}" 
-                                                required 
-                                                min="1"
+                                                {if !$isDurata}required min="1"{else}disabled{/if}
                                                 placeholder="Es: 10"
                                                 style="border-radius: 8px;">
                                         </div>
@@ -187,16 +188,17 @@
                                                 style="border-radius: 8px;">
                                         </div>
 
-                                        <!-- RECUPERO -->
-                                        <div class="parametro-field">
+                                        <!-- TEMPO -->
+                                        <div class="parametro-field" {if !$isDurata}style="opacity: 0.6;"{/if}>
                                             <label class="parametro-label">
-                                                <i class="fas fa-stopwatch mr-1"></i>Recupero
+                                                <i class="fas fa-stopwatch mr-1"></i>Tempo
                                             </label>
                                             <input 
                                                 class="input" 
                                                 type="text" 
-                                                name="dettagli[{$dettaglio->getId()}][recupero]" 
-                                                value="{$allenamento->getDescrizione()|estrai_recupero:$dettaglio->getEsercizio()->getNomeEsercizio():$dettaglio->getSerie():$dettaglio->getId()}" 
+                                                name="dettagli[{$dettaglio->getId()}][tempo]" 
+                                                value="{$dettaglio->getTempo()}" 
+                                                {if $isDurata}required{else}disabled{/if}
                                                 placeholder="Es: 90s"
                                                 style="border-radius: 8px;">
                                         </div>

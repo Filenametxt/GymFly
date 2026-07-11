@@ -15,7 +15,8 @@ class AttivitaPianificataViewSmarty implements AttivitaPianificataView
 
     private function determinaRitorno(): string
     {
-        return 'calendario';
+        $offset = isset($_REQUEST['offset']) ? (int)$_REQUEST['offset'] : 0;
+        return $offset !== 0 ? 'calendario?offset=' . $offset : 'calendario';
     }
 
     public function mostraCalendario(array $dati): void
@@ -24,6 +25,8 @@ class AttivitaPianificataViewSmarty implements AttivitaPianificataView
         foreach ($dati as $key => $value) {
             $this->smarty->assign($key, $value);
         }
+        $offset = isset($_REQUEST['offset']) ? (int)$_REQUEST['offset'] : 0;
+        $this->smarty->assign('offset', $offset);
         $this->smarty->assign('ritorno', $this->determinaRitorno());
         
         if ($dati['ruolo_utente'] === 'amministratore') {
@@ -39,6 +42,8 @@ class AttivitaPianificataViewSmarty implements AttivitaPianificataView
         foreach ($dati as $key => $value) {
             $this->smarty->assign($key, $value);
         }
+        $offset = isset($_REQUEST['offset']) ? (int)$_REQUEST['offset'] : 0;
+        $this->smarty->assign('offset', $offset);
         $this->smarty->assign('ritorno', $this->determinaRitorno());
         $this->smarty->display('prenota_sessione_privata.tpl');
     }

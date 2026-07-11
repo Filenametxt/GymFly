@@ -323,7 +323,8 @@ class SchedaAllenamentoController
                             $nuovoAll,
                             $srcDet->getSerie(),
                             $srcDet->getRipetizioni(),
-                            $srcDet->getCarico()
+                            $srcDet->getCarico(),
+                            $srcDet->getTempo()
                         );
                         $nuovoAll->addDettaglio($nuovoDet);
                         $this->entityManager->persist($nuovoDet);
@@ -407,46 +408,28 @@ class SchedaAllenamentoController
                     $idEsercizio = (int)($dData['esercizio_id'] ?? 0);
                     $esercizio = $this->entityManager->find(Esercizio::class, $idEsercizio);
 
-                    if ($esercizio) {
-                        $serie = (int)($dData['serie'] ?? 1);
-                        $ripetizioni = (int)($dData['ripetizioni'] ?? 1);
-                        $carico = (float)($dData['carico'] ?? 0.0);
-                        $recupero = trim($dData['recupero'] ?? '');
-
-                        $dettaglio = new DettaglioAllenamento(
-                            $esercizio,
-                            $allenamento,
-                            $serie,
-                            $ripetizioni,
-                            $carico
-                        );
-                        $allenamento->addDettaglio($dettaglio);
-                        $this->entityManager->persist($dettaglio);
-
-                        $recuperoMap[] = [
-                            'dettaglio' => $dettaglio,
-                            'allenamento' => $allenamento,
-                            'recupero' => $recupero
-                        ];
-                    }
-                }
-            }
-
-            // Flush per generare i dettagli id a DB
-            $this->entityManager->flush();
-
-            // Ora che gli ID dei dettagli esistono, aggiorniamo le descrizioni degli allenamenti con il tag univoco
-            foreach ($recuperoMap as $item) {
-                $det = $item['dettaglio'];
-                $all = $item['allenamento'];
-                $rec = $item['recupero'];
-                if ($rec !== '') {
-                    $all->setDescrizione($all->getDescrizione() . "\n[DetId - " . $det->getId() . " - Recupero: " . $rec . "]");
-                }
-            }
-
-            // Flush finale per salvare le descrizioni
-            $this->entityManager->flush();
+                     if ($esercizio) {
+                         $serie = (int)($dData['serie'] ?? 1);
+                         $ripetizioni = isset($dData['ripetizioni']) && $dData['ripetizioni'] !== '' ? (int)$dData['ripetizioni'] : null;
+                         $carico = (float)($dData['carico'] ?? 0.0);
+                         $tempo = isset($dData['tempo']) && trim($dData['tempo']) !== '' ? trim($dData['tempo']) : null;
+ 
+                         $dettaglio = new DettaglioAllenamento(
+                             $esercizio,
+                             $allenamento,
+                             $serie,
+                             $ripetizioni,
+                             $carico,
+                             $tempo
+                         );
+                         $allenamento->addDettaglio($dettaglio);
+                         $this->entityManager->persist($dettaglio);
+                     }
+                 }
+             }
+ 
+             // Flush per salvare i dati nel DB
+             $this->entityManager->flush();
 
             // Sincronizza ed esegue il salvataggio specifico
             if ($azione === 'invia') {
@@ -623,44 +606,18 @@ class SchedaAllenamentoController
 
         // Se POST, delega a modificaDatiScheda
         $dettagliModificati = $_POST['dettagli'] ?? [];
-        $recuperoMap = [];
         foreach ($dettagliModificati as $idDet => $data) {
-            $ripetizioni = isset($data['ripetizioni']) ? (int)$data['ripetizioni'] : 0;
+            $ripetizioni = isset($data['ripetizioni']) && $data['ripetizioni'] !== '' ? (int)$data['ripetizioni'] : null;
             $carico = isset($data['carico']) ? (float)$data['carico'] : 0.0;
-            $recupero = isset($data['recupero']) ? trim($data['recupero']) : '';
+            $tempo = isset($data['tempo']) && trim($data['tempo']) !== '' ? trim($data['tempo']) : null;
 
             $dettaglio = $this->entityManager->find(DettaglioAllenamento::class, (int)$idDet);
             if ($dettaglio && $dettaglio->getAllenamento()->getScheda()->getId() === $scheda->getId()) {
-                if ($ripetizioni > 0) {
-                    $dettaglio->setRipetizioni($ripetizioni);
-                }
+                $dettaglio->setRipetizioni($ripetizioni);
                 if ($carico >= 0) {
                     $dettaglio->setCarico($carico);
                 }
-                $recuperoMap[] = [
-                    'dettaglio' => $dettaglio,
-                    'allenamento' => $dettaglio->getAllenamento(),
-                    'recupero' => $recupero
-                ];
-            }
-        }
-        $this->entityManager->flush();
-
-        // Pulisce i vecchi e aggiunge i nuovi recuperi per gli allenamenti coinvolti
-        $allenamentiCoinvolti = [];
-        foreach ($recuperoMap as $item) {
-            $all = $item['allenamento'];
-            if (!in_array($all, $allenamentiCoinvolti, true)) {
-                $allenamentiCoinvolti[] = $all;
-                $all->setDescrizione(\App\View\SchedaAllenamentoViewSmarty::pulisciDescrizione($all->getDescrizione()));
-            }
-        }
-        foreach ($recuperoMap as $item) {
-            $all = $item['allenamento'];
-            $det = $item['dettaglio'];
-            $rec = $item['recupero'];
-            if ($rec !== '') {
-                $all->setDescrizione($all->getDescrizione() . "\n[DetId - " . $det->getId() . " - Recupero: " . $rec . "]");
+                $dettaglio->setTempo($tempo);
             }
         }
         $this->entityManager->flush();

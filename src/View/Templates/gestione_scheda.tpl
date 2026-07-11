@@ -218,36 +218,38 @@
                                                                 <thead>
                                                                     <tr>
                                                                         <th style="width: 80px;">Serie</th>
-                                                                        <th>Ripetizioni *</th>
+                                                                        <th>Ripetizioni</th>
                                                                         <th>Carico (Kg) *</th>
-                                                                        <th>Recupero *</th>
+                                                                        <th>Tempo</th>
                                                                         <th style="width: 50px;"></th>
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody class="series-container">
                                                     {/if}
                                                     
+                                                    {assign var="nomeTipo" value=$dettaglio->getEsercizio()->getTipologia()->getNomeTipologia()|lower}
+                                                    {assign var="isDurata" value=($nomeTipo === 'durata' || $nomeTipo === 'tempo/ripetizioni')}
                                                     <tr class="series-row">
-                                                        <td class="has-text-centered is-vcentered">
-                                                            <span class="series-number-label">{$dettaglio->getSerie()}</span>
-                                                            <input type="hidden" data-name="serie" value="{$dettaglio->getSerie()}">
-                                                            <input type="hidden" data-name="esercizio_id" value="{$dettaglio->getEsercizio()->getId()}">
-                                                        </td>
-                                                        <td>
-                                                            <input class="input" type="number" data-name="ripetizioni" value="{$dettaglio->getRipetizioni()}" required min="1">
-                                                        </td>
-                                                        <td>
-                                                            <input class="input" type="number" step="0.5" data-name="carico" value="{$dettaglio->getCarico()}" required min="0">
-                                                        </td>
-                                                        <td>
-                                                            <input class="input" type="text" data-name="recupero" placeholder="Es: 90s" value="{$allenamento->getDescrizione()|estrai_recupero:$dettaglio->getEsercizio()->getNomeEsercizio():$dettaglio->getSerie():$dettaglio->getId()}">
-                                                        </td>
-                                                        <td>
-                                                            <button type="button" class="button is-small is-danger remove-series-btn" title="Rimuovi Serie">
-                                                                <span class="icon is-small"><i class="fas fa-times"></i></span>
-                                                            </button>
-                                                        </td>
-                                                    </tr>
+                                                         <td class="has-text-centered is-vcentered">
+                                                             <span class="series-number-label">{$dettaglio->getSerie()}</span>
+                                                             <input type="hidden" data-name="serie" value="{$dettaglio->getSerie()}">
+                                                             <input type="hidden" data-name="esercizio_id" value="{$dettaglio->getEsercizio()->getId()}">
+                                                         </td>
+                                                         <td>
+                                                             <input class="input" type="number" data-name="ripetizioni" value="{$dettaglio->getRipetizioni()}" {if !$isDurata}required min="1"{else}disabled{/if}>
+                                                         </td>
+                                                         <td>
+                                                             <input class="input" type="number" step="0.5" data-name="carico" value="{$dettaglio->getCarico()}" required min="0">
+                                                         </td>
+                                                         <td>
+                                                             <input class="input" type="text" data-name="tempo" placeholder="Es: 90s" value="{$dettaglio->getTempo()}" {if $isDurata}required{else}disabled{/if}>
+                                                         </td>
+                                                         <td>
+                                                             <button type="button" class="button is-small is-danger remove-series-btn" title="Rimuovi Serie">
+                                                                 <span class="icon is-small"><i class="fas fa-times"></i></span>
+                                                             </button>
+                                                         </td>
+                                                     </tr>
                                                 {/foreach}
                                                 
                                                 {if !$firstGroup}
@@ -296,7 +298,7 @@
     <script>
         const eserciziDisponibili = [
             {foreach $esercizi as $ex}
-                { id: "{$ex->getId()}", nome: "{$ex->getNomeEsercizio()|escape:'javascript'}" },
+                { id: "{$ex->getId()}", nome: "{$ex->getNomeEsercizio()|escape:'javascript'}", tipologia: "{$ex->getTipologia()->getNomeTipologia()|lower|escape:'javascript'}" },
             {/foreach}
         ];
         const schedaId = "{$scheda->getId()}";
@@ -447,9 +449,9 @@
                                 <thead>
                                     <tr>
                                         <th style="width: 80px;">Serie</th>
-                                        <th>Ripetizioni *</th>
+                                        <th>Ripetizioni</th>
                                         <th>Carico (Kg) *</th>
-                                        <th>Recupero *</th>
+                                        <th>Tempo</th>
                                         <th style="width: 50px;"></th>
                                     </tr>
                                 </thead>
@@ -468,7 +470,7 @@
                                             <input class="input" type="number" step="0.5" data-name="carico" value="0" required min="0">
                                         </td>
                                         <td>
-                                            <input class="input" type="text" data-name="recupero" placeholder="Es: 90s" value="120s">
+                                            <input class="input" type="text" data-name="tempo" placeholder="Es: 90s" value="">
                                         </td>
                                         <td>
                                             <button type="button" class="button is-small is-danger remove-series-btn" title="Rimuovi Serie">
@@ -486,17 +488,17 @@
                             </div>
                         </div>
                     `;
-
-                    exercisesContainer.insertAdjacentHTML('beforeend', groupHtml);
-                    const newGroup = exercisesContainer.lastElementChild;
-                    bindExerciseGroupEvents(newGroup, exercisesContainer, wIndex);
-                    reindexExercises(exercisesContainer, wIndex);
-                });
-
-                // Collega eventi ai gruppi esistenti
-                Array.from(exercisesContainer.children).forEach(group => {
-                    bindExerciseGroupEvents(group, exercisesContainer, wIndex);
-                });
+ 
+                     exercisesContainer.insertAdjacentHTML('beforeend', groupHtml);
+                     const newGroup = exercisesContainer.lastElementChild;
+                     bindExerciseGroupEvents(newGroup, exercisesContainer, wIndex);
+                     reindexExercises(exercisesContainer, wIndex);
+                 });
+ 
+                 // Collega eventi ai gruppi esistenti
+                 Array.from(exercisesContainer.children).forEach(group => {
+                     bindExerciseGroupEvents(group, exercisesContainer, wIndex);
+                 });
             }
 
             function bindExerciseGroupEvents(group, exercisesContainer, wIndex) {
@@ -517,6 +519,7 @@
                     Array.from(seriesContainer.querySelectorAll('input[data-name="esercizio_id"]')).forEach(hiddenInput => {
                         hiddenInput.value = exId;
                     });
+                    aggiornaAbilitazioneCampiGruppo(group);
                 });
 
                 // Forza il valore iniziale di esercizio_id nelle serie esistenti
@@ -524,6 +527,9 @@
                 Array.from(seriesContainer.querySelectorAll('input[data-name="esercizio_id"]')).forEach(hiddenInput => {
                     hiddenInput.value = initialExId;
                 });
+
+                // Forza l'inizializzazione dell'abilitazione dei campi
+                aggiornaAbilitazioneCampiGruppo(group);
 
                 // Aggiungi Serie
                 addSeriesBtn.addEventListener('click', () => {
@@ -533,12 +539,15 @@
                     // Prendi valori dall'ultima serie (se presente) per agevolare l'inserimento
                     let lastReps = "10";
                     let lastCarico = "0";
-                    let lastRecupero = "120s";
+                    let lastTempo = "";
                     const lastRow = seriesContainer.lastElementChild;
                     if (lastRow) {
                         lastReps = lastRow.querySelector('input[data-name="ripetizioni"]').value;
                         lastCarico = lastRow.querySelector('input[data-name="carico"]').value;
-                        lastRecupero = lastRow.querySelector('input[data-name="recupero"]').value;
+                        const tInput = lastRow.querySelector('input[data-name="tempo"]');
+                        if (tInput) {
+                            lastTempo = tInput.value;
+                        }
                     }
 
                     const seriesHtml = `
@@ -555,7 +564,7 @@
                                 <input class="input" type="number" step="0.5" data-name="carico" value="${lastCarico}" required min="0">
                             </td>
                             <td>
-                                <input class="input" type="text" data-name="recupero" placeholder="Es: 90s" value="${lastRecupero}">
+                                <input class="input" type="text" data-name="tempo" placeholder="Es: 90s" value="${lastTempo}">
                             </td>
                             <td>
                                 <button type="button" class="button is-small is-danger remove-series-btn" title="Rimuovi Serie">
@@ -575,6 +584,7 @@
                     });
 
                     reindexSeriesRows(seriesContainer, selectEx.value);
+                    aggiornaAbilitazioneCampiGruppo(group);
                     reindexExercises(exercisesContainer, wIndex);
                 });
 
@@ -585,6 +595,38 @@
                         reindexSeriesRows(seriesContainer, selectEx.value);
                         reindexExercises(exercisesContainer, wIndex);
                     });
+                });
+            }
+
+            function aggiornaAbilitazioneCampiGruppo(group) {
+                const selectEx = group.querySelector('.select-esercizio');
+                const exId = selectEx.value;
+                const exData = eserciziDisponibili.find(ex => ex.id == exId);
+                const isDurata = exData && (exData.tipologia === 'durata' || exData.tipologia === 'tempo/ripetizioni');
+
+                const rows = group.querySelectorAll('.series-row');
+                rows.forEach(row => {
+                    const inputReps = row.querySelector('input[data-name="ripetizioni"]');
+                    const inputTempo = row.querySelector('input[data-name="tempo"]');
+
+                    if (isDurata) {
+                        inputReps.disabled = true;
+                        inputReps.required = false;
+                        inputReps.value = "";
+                        
+                        inputTempo.disabled = false;
+                        inputTempo.required = true;
+                    } else {
+                        inputReps.disabled = false;
+                        inputReps.required = true;
+                        if (!inputReps.value || inputReps.value == "") {
+                            inputReps.value = "10";
+                        }
+                        
+                        inputTempo.disabled = true;
+                        inputTempo.required = false;
+                        inputTempo.value = "";
+                    }
                 });
             }
 
@@ -631,13 +673,13 @@
                         const inputSerie = tr.querySelector('input[data-name="serie"]');
                         const inputReps = tr.querySelector('input[data-name="ripetizioni"]');
                         const inputCarico = tr.querySelector('input[data-name="carico"]');
-                        const inputRecupero = tr.querySelector('input[data-name="recupero"]');
+                        const inputTempo = tr.querySelector('input[data-name="tempo"]');
 
                         inputExId.setAttribute('name', `workouts[${wIndex}][dettagli][${globalExIndex}][esercizio_id]`);
                         inputSerie.setAttribute('name', `workouts[${wIndex}][dettagli][${globalExIndex}][serie]`);
                         inputReps.setAttribute('name', `workouts[${wIndex}][dettagli][${globalExIndex}][ripetizioni]`);
                         inputCarico.setAttribute('name', `workouts[${wIndex}][dettagli][${globalExIndex}][carico]`);
-                        inputRecupero.setAttribute('name', `workouts[${wIndex}][dettagli][${globalExIndex}][recupero]`);
+                        inputTempo.setAttribute('name', `workouts[${wIndex}][dettagli][${globalExIndex}][tempo]`);
 
                         globalExIndex++;
                     });

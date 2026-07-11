@@ -86,11 +86,11 @@
                 <div class="column is-12-mobile is-7-tablet is-8-desktop">
                     <div class="box" style="height: 100%;">
                         <h3 class="title is-4 mb-4 style-theme-text">
-                            <i class="fas fa-calendar-day mr-2" style="color: var(--gymfly-secondary);"></i> Corsi di Oggi
+                            <i class="fas fa-calendar-day mr-2" style="color: var(--gymfly-secondary);"></i> Attività di Oggi
                         </h3>
                         
                         <div class="event-list">
-                            {foreach $utente->getAttivitaPianificate() as $corso}
+                            {foreach $attivitaOggi as $corso}
                                 <div class="p-4 mb-3" style="background-color: var(--gymfly-bg); border-radius: 12px; border-left: 4px solid var(--gymfly-secondary);">
                                     <div class="is-flex is-align-items-center is-justify-content-between">
                                         <div class="is-flex is-align-items-center">
@@ -111,9 +111,9 @@
                                     </div>
                                 </div>
                             {foreachelse}
-                                <div class="has-text-centered has-text-grey py-5">
-                                    <span class="icon is-large mb-2"><i class="fas fa-calendar-times fa-2x"></i></span>
-                                    <p class="is-size-6">Nessun corso programmato per oggi.</p>
+                                <div class="has-text-centered py-5 my-auto">
+                                    <span class="icon is-large has-text-grey mb-2"><i class="fas fa-info-circle fa-2x"></i></span>
+                                    <p class="has-text-grey">Nessuna attività programmata per oggi.</p>
                                 </div>
                             {/foreach}
                         </div>

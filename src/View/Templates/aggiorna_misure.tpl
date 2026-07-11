@@ -33,10 +33,7 @@
             <!-- ================= MOBILE HEADER ================= -->
             <div class="is-flex is-align-items-center mb-5 is-hidden-tablet" style="padding-top: 5px;">
                 <div style="width: 45px;"></div>
-                <div class="client-logo-circle mr-3">
-                    logo
-                </div>
-                <strong class="is-size-4 style-theme-text mr-2">Parametri Biometrici</strong>
+                <strong class="is-size-4 style-theme-text" style="letter-spacing: 1px;">MISURE</strong>
             </div>
 
             <!-- BACK BUTTON -->
@@ -48,27 +45,30 @@
             </div>
 
             <!-- ================= DESKTOP HEADER ================= -->
-            <div class="box mb-5 is-hidden-mobile p-5" style="border: 2px solid var(--gymfly-accent); border-radius: 15px; box-shadow: 0 8px 16px rgba(0,0,0,0.02) !important;">
+            {assign var="headerClass" value="dashboard-header"}
+            {if isset($smarty.session.ruolo_utente)}
+                {if $smarty.session.ruolo_utente === 'amministratore'}
+                    {assign var="headerClass" value="dashboard-header-admin"}
+                {elseif $smarty.session.ruolo_utente === 'allenatore'}
+                    {assign var="headerClass" value="dashboard-header-trainer"}
+                {/if}
+            {/if}
+            <div class="{$headerClass} is-hidden-mobile">
                 <div class="columns is-vcentered">
                     <div class="column">
-                        <h1 class="title is-3 style-theme-text mb-1"><i class="fas fa-heartbeat mr-3" style="color: #ff3860;"></i> Parametri Biometrici</h1>
-                        <p class="subtitle is-6 has-text-grey mt-1">Visualizza lo storico e l'andamento delle tue misurazioni fisiche</p>
+                        <h1 class="title is-2 has-text-white mb-2">
+                            Parametri Biometrici
+                        </h1>
+                        <p class="subtitle is-5 has-text-white-ter">
+                            Visualizza lo storico e l'andamento delle tue misurazioni fisiche
+                        </p>
                     </div>
                     <div class="column is-narrow">
-                        <a href="inserisci-misure{if !$isSelf}?id={$utente->getId()}{/if}" class="button is-gymfly" title="Aggiorna parametri" style="border-radius: 10px;">
-                            <span class="icon"><i class="fas fa-pencil-alt mr-2"></i></span>
-                            <span>Aggiorna Misure</span>
-                        </a>
+                        <span class="icon is-large has-text-white" style="margin-right: 1.5rem;">
+                            <i class="fas fa-heartbeat fa-3x"></i>
+                        </span>
                     </div>
                 </div>
-            </div>
-
-            <!-- Action Button for Mobile -->
-            <div class="is-hidden-tablet mb-4">
-                <a href="inserisci-misure{if !$isSelf}?id={$utente->getId()}{/if}" class="button is-gymfly is-fullwidth" title="Aggiorna parametri" style="border-radius: 10px;">
-                    <span class="icon"><i class="fas fa-pencil-alt mr-2"></i></span>
-                    <span>Aggiorna Misure</span>
-                </a>
             </div>
 
             <!-- ================= CONTENUTI PRINCIPALI RESPONSIVE ================= -->
@@ -193,9 +193,18 @@
                         </div>
 
                     </div>
-
                 </div>
             </div>
+
+            <!-- TASTO AGGIORNA MISURE (in basso a destra) -->
+            {if $smarty.session.ruolo_utente !== 'allenatore'}
+            <div class="has-text-right mt-4 mb-5">
+                <a href="inserisci-misure{if !$isSelf}?id={$utente->getId()}{/if}" class="button is-gymfly" title="Aggiorna parametri" style="border-radius: 10px;">
+                    <span class="icon"><i class="fas fa-pencil-alt mr-2"></i></span>
+                    <span>Aggiorna Misure</span>
+                </a>
+            </div>
+            {/if}
 
         </main>
     </div>

@@ -15,20 +15,57 @@
         {include file='sidebar.tpl'}
         <main class="app-content">
 
-            <!-- HEADER -->
-            <div class="mb-5">
-                <div class="is-flex is-align-items-center is-flex-wrap-wrap mb-2">
-                    <h1 class="title is-2 style-theme-text mb-0 mr-3">Gestione utenti - Supervisione Allenatori</h1>
+            <!-- ================= DESKTOP HEADER ================= -->
+            {assign var="headerClass" value="dashboard-header"}
+            {if isset($smarty.session.ruolo_utente)}
+                {if $smarty.session.ruolo_utente === 'amministratore'}
+                    {assign var="headerClass" value="dashboard-header-admin"}
+                {elseif $smarty.session.ruolo_utente === 'allenatore'}
+                    {assign var="headerClass" value="dashboard-header-trainer"}
+                {/if}
+            {/if}
+            <div class="{$headerClass} is-hidden-mobile">
+                <div class="columns is-vcentered">
+                    <div class="column">
+                        <h1 class="title is-2 has-text-white mb-2">
+                            Supervisione Allenatori
+                        </h1>
+                        <p class="subtitle is-5 has-text-white-ter">
+                            Visualizza e supervisiona i profili degli allenatori della palestra
+                        </p>
+                    </div>
+                    <div class="column is-narrow">
+                        <figure class="image is-96x96">
+                            <span class="icon is-large has-text-white">
+                                <i class="fas fa-user-ninja fa-5x"></i>
+                            </span>
+                        </figure>
+                    </div>
                 </div>
-                <p class="subtitle is-6 has-text-grey">Elenco dei preparatori atletici abilitati per la palestra</p>
+            </div>
+
+            <!-- ================= MOBILE HEADER ================= -->
+            <div class="is-flex is-align-items-center mb-5 is-hidden-tablet" style="padding-top: 5px;">
+                <div style="width: 45px;"></div>
+                <strong class="is-size-4 style-theme-text" style="letter-spacing: 1px;">ALLENATORI</strong>
             </div>
 
             <!-- CONTROLS / TOOLBAR -->
-            <div class="is-flex is-justify-content-between is-align-items-center mb-5 is-flex-wrap-wrap" style="gap: 15px;">
-                <div class="buttons mb-0">
-                    <a href="crea-allenatore" class="button is-gymfly mr-2">
-                        <span>+ Nuovo</span>
-                    </a>
+            <div id="controls-toolbar" class="is-flex is-justify-content-between is-align-items-center mb-5 is-flex-wrap-wrap" style="gap: 15px;">
+                <div class="buttons mb-0" style="align-items: flex-start;">
+                    
+                    <!-- NUOVO CON TESTO FILTRI SOTTO -->
+                    <div class="is-relative mr-2" style="display: inline-block;">
+                        <a href="crea-allenatore" class="button is-gymfly mr-0">
+                            <span>+ Nuovo</span>
+                        </a>
+
+                        <!-- Stato Filtri Attivi (sotto il tasto Nuovo) -->
+                        <div id="active-filters-tags" class="is-flex is-align-items-center mt-2 is-hidden" style="position: absolute; top: 40px; left: 0; z-index: 5; gap: 5px; white-space: nowrap;">
+                            <span id="tag-activity" class="tag is-info font-weight-bold"></span>
+                            <a id="btn-reset-filters-shortcut" href="#" onclick="resetAllFilters(); return false;" class="delete is-small" style="margin-left: 2px;" title="Rimuovi Filtri"></a>
+                        </div>
+                    </div>
                     
                     <!-- DROPDOWN FILTRA -->
                     <div class="dropdown is-hoverable">
@@ -73,7 +110,7 @@
                 </div>
                 
                 <!-- CONTAINER RICERCA E STATO FILTRI -->
-                <div class="is-flex is-align-items-center" style="gap: 12px; flex-grow: 1; max-width: 700px; justify-content: flex-end; flex-wrap: wrap;">
+                <div class="is-flex is-align-items-center" style="gap: 12px; margin-left: auto; flex-wrap: wrap;">
                     
                     <!-- Toggles per Vista Griglia / Lista -->
                     <div class="field has-addons mb-0">
@@ -101,11 +138,6 @@
                         </div>
                     </div>
 
-                    <!-- Stato Filtri Attivi -->
-                    <div id="active-filters-tags" class="tags mb-0 is-flex is-align-items-center is-hidden" style="gap: 5px;">
-                        <span id="tag-activity" class="tag is-info font-weight-bold is-hidden"></span>
-                    </div>
-
                 </div>
             </div>
 
@@ -123,7 +155,7 @@
                          data-cognome="{$a.cognome|escape:'html'}" 
                          data-sesso="{$a.sesso}" 
                          data-attivita="{$a.attivita|escape:'html'}" 
-                         data-search="{$a.nome} {$a.cognome} {$a.email} {$a.cf}">
+                         data-search="{$a.nome} {$a.cognome}">
                         <a href="visualizza-profilo?id={$a.id}" class="box customer-card">
                             <div class="customer-avatar mb-3">
                                 <span class="icon is-large">
@@ -161,7 +193,7 @@
                        data-cognome="{$a.cognome|escape:'html'}" 
                        data-sesso="{$a.sesso}" 
                        data-attivita="{$a.attivita|escape:'html'}" 
-                       data-search="{$a.nome} {$a.cognome} {$a.email} {$a.cf}">
+                       data-search="{$a.nome} {$a.cognome}">
                         <div class="customer-avatar mr-4">
                             <span class="icon is-medium">
                                 <i class="fas fa-user-ninja fa-2x"></i>
@@ -340,6 +372,8 @@
         function updateFilterTags() {
             const tagsContainer = document.getElementById('active-filters-tags');
             const tagActivity = document.getElementById('tag-activity');
+            const toolbar = document.getElementById('controls-toolbar');
+            const resetBtn = document.getElementById('btn-reset-filters-shortcut');
             
             let hasFilters = false;
             
@@ -353,8 +387,22 @@
             
             if (hasFilters) {
                 tagsContainer.classList.remove('is-hidden');
+                if (resetBtn) {
+                    resetBtn.classList.remove('is-hidden');
+                }
+                if (toolbar) {
+                    toolbar.classList.remove('mb-5');
+                    toolbar.classList.add('mb-6', 'pb-2');
+                }
             } else {
                 tagsContainer.classList.add('is-hidden');
+                if (resetBtn) {
+                    resetBtn.classList.add('is-hidden');
+                }
+                if (toolbar) {
+                    toolbar.classList.add('mb-5');
+                    toolbar.classList.remove('mb-6', 'pb-2');
+                }
             }
         }
 

@@ -17,8 +17,18 @@
                     <div class="notification {if $successo}is-success{else}is-danger{/if} is-light">
                         <p class="is-size-5">{$messaggio}</p>
                     </div>
-                    <a href="{if isset($ritorno)}{$ritorno}{else}login{/if}" class="button is-link is-light mt-4">
-                        {if isset($ritorno) && $ritorno !== 'login'}Torna alla Dashboard{else}Torna al Login{/if}
+                    <a href="{if isset($ritorno)}{$ritorno}{else}login{/if}" class="button is-gymfly mt-4">
+                        {if isset($ritorno)}
+                            {if $ritorno === 'login'}
+                                Torna al Login
+                            {elseif $ritorno === 'calendario' || $ritorno|strpos:'calendario' !== false}
+                                Torna al Calendario
+                            {else}
+                                Torna alla Dashboard
+                            {/if}
+                        {else}
+                            Torna al Login
+                        {/if}
                     </a>
                 </div>
             </div>
