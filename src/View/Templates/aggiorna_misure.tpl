@@ -54,22 +54,26 @@
                         <h1 class="title is-3 style-theme-text mb-1"><i class="fas fa-heartbeat mr-3" style="color: #ff3860;"></i> Parametri Biometrici</h1>
                         <p class="subtitle is-6 has-text-grey mt-1">Visualizza lo storico e l'andamento delle tue misurazioni fisiche</p>
                     </div>
+                    {if $smarty.session.ruolo_utente !== 'allenatore'}
                     <div class="column is-narrow">
                         <a href="inserisci-misure{if !$isSelf}?id={$utente->getId()}{/if}" class="button is-gymfly" title="Aggiorna parametri" style="border-radius: 10px;">
                             <span class="icon"><i class="fas fa-pencil-alt mr-2"></i></span>
                             <span>Aggiorna Misure</span>
                         </a>
                     </div>
+                    {/if}
                 </div>
             </div>
 
             <!-- Action Button for Mobile -->
+            {if $smarty.session.ruolo_utente !== 'allenatore'}
             <div class="is-hidden-tablet mb-4">
                 <a href="inserisci-misure{if !$isSelf}?id={$utente->getId()}{/if}" class="button is-gymfly is-fullwidth" title="Aggiorna parametri" style="border-radius: 10px;">
                     <span class="icon"><i class="fas fa-pencil-alt mr-2"></i></span>
                     <span>Aggiorna Misure</span>
                 </a>
             </div>
+            {/if}
 
             <!-- ================= CONTENUTI PRINCIPALI RESPONSIVE ================= -->
             <div class="columns">

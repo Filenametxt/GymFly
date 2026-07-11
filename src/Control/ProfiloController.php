@@ -170,6 +170,11 @@ class ProfiloController
             $utente = $this->recuperaUtenteLoggato($entityManager, $idUtente, $ruolo);
             $isClient = ($utente instanceof Cliente);
         } else {
+            if ($ruolo === 'allenatore') {
+                $this->view->mostraErrore("Accesso negato. Gli allenatori non possono modificare i dati degli altri utenti.");
+                return;
+            }
+
             $targetId = isset($_GET['id']) ? (int)$_GET['id'] : (int)$_POST['id'];
             $utente = $entityManager->find(Utente::class, $targetId);
             $isClient = ($utente instanceof Cliente);
@@ -323,6 +328,11 @@ class ProfiloController
         $ruolo = $this->session->getLoggedUserRole();
         if (!$idUtente) {
             $this->view->mostraErrore("Effettua il login.");
+            return;
+        }
+
+        if ($ruolo === 'allenatore') {
+            $this->view->mostraErrore("Accesso negato. Gli allenatori non possono modificare le misure dei clienti.");
             return;
         }
 

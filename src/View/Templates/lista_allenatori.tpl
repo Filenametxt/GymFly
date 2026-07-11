@@ -123,7 +123,7 @@
                          data-cognome="{$a.cognome|escape:'html'}" 
                          data-sesso="{$a.sesso}" 
                          data-attivita="{$a.attivita|escape:'html'}" 
-                         data-search="{$a.nome} {$a.cognome} {$a.email} {$a.cf}">
+                         data-search="{$a.nome} {$a.cognome}">
                         <a href="visualizza-profilo?id={$a.id}" class="box customer-card">
                             <div class="customer-avatar mb-3">
                                 <span class="icon is-large">
@@ -161,7 +161,7 @@
                        data-cognome="{$a.cognome|escape:'html'}" 
                        data-sesso="{$a.sesso}" 
                        data-attivita="{$a.attivita|escape:'html'}" 
-                       data-search="{$a.nome} {$a.cognome} {$a.email} {$a.cf}">
+                       data-search="{$a.nome} {$a.cognome}">
                         <div class="customer-avatar mr-4">
                             <span class="icon is-medium">
                                 <i class="fas fa-user-ninja fa-2x"></i>

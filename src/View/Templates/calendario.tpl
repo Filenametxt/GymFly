@@ -18,73 +18,85 @@
         .planner-table th {
             text-align: center;
             padding: 10px;
-            background-color: var(--gymfly-card-bg);
-            color: #AFAFE2;
+            background: linear-gradient(135deg, var(--periwinkle-2) 0%, var(--gymfly-accent) 100%) !important;
+            color: var(--gymfly-text) !important;
             border-radius: 8px;
             border: 1px solid var(--gymfly-primary);
             font-size: 0.9rem;
+            font-weight: 700;
+        }
+        .planner-table th small {
+            color: rgba(75, 63, 114, 0.7) !important;
         }
         .planner-table td {
             height: 90px;
             vertical-align: top;
             padding: 6px;
-            background-color: rgba(26, 26, 46, 0.4);
+            background-color: var(--gymfly-card-bg);
             border-radius: 8px;
-            border: 1px dashed rgba(175, 175, 226, 0.2);
+            border: 1px solid rgba(175, 175, 226, 0.4);
             position: relative;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.01);
+            transition: background-color 0.2s ease;
+        }
+        .planner-table td:hover {
+            background-color: rgba(153, 205, 234, 0.05);
         }
         .planner-table .hour-col {
             width: 65px;
             vertical-align: middle;
             text-align: center;
-            background-color: var(--gymfly-card-bg);
-            color: var(--gymfly-text);
+            background: linear-gradient(135deg, var(--periwinkle-2) 0%, var(--gymfly-accent) 100%) !important;
+            color: var(--gymfly-text) !important;
             font-weight: bold;
             font-size: 0.85rem;
             border: 1px solid var(--gymfly-primary);
             height: auto;
+            border-radius: 8px;
         }
         .ap-block {
-            background: linear-gradient(135deg, var(--gymfly-primary) 0%, var(--gymfly-accent) 100%);
-            color: white;
+            background: linear-gradient(135deg, var(--periwinkle-2) 0%, var(--gymfly-accent) 100%);
+            color: var(--gymfly-text);
             padding: 6px 8px;
             border-radius: 6px;
             font-size: 0.72rem;
             font-weight: 600;
             margin-bottom: 4px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 2px 5px rgba(75, 63, 114, 0.08);
+            border-left: 3px solid var(--gymfly-primary);
             cursor: pointer;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             display: block;
         }
         .ap-block:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(175, 175, 226, 0.25);
+            box-shadow: 0 4px 10px rgba(75, 63, 114, 0.15);
         }
         .ap-block.is-selected {
-            border: 2px solid white;
-            box-shadow: 0 0 10px var(--gymfly-secondary);
+            border: 2px solid var(--gymfly-text);
+            box-shadow: 0 0 10px rgba(175, 175, 226, 0.5);
         }
         .sp-block {
-            background: linear-gradient(135deg, #f5af19 0%, #f12711 100%);
-            color: white;
+            background: linear-gradient(135deg, #ffe0cc 0%, #ffd0b0 100%);
+            color: #8a3c00;
             padding: 6px 8px;
             border-radius: 6px;
             font-size: 0.72rem;
             font-weight: 600;
             margin-bottom: 4px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 2px 5px rgba(138, 60, 0, 0.08);
+            border-left: 3px solid #e65100;
             cursor: pointer;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             display: block;
         }
         .sp-block:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(245, 175, 25, 0.25);
+            box-shadow: 0 4px 10px rgba(138, 60, 0, 0.15);
         }
         .sp-block.is-selected {
-            border: 2px solid white;
-            box-shadow: 0 0 10px #f5af19;
+            border: 2px solid #8a3c00;
+            box-shadow: 0 0 10px rgba(230, 81, 0, 0.3);
         }
     </style>
 </head>
@@ -230,11 +242,11 @@
                             <!-- DETTAGLIO SESSIONE PRIVATA -->
                             {elseif $selectedSp}
                                 <div class="is-flex is-justify-content-between is-align-items-center mb-4">
-                                    <h2 class="title is-4 mb-0 style-theme-text" style="color: #f5af19;">Sessione Privata</h2>
+                                     <h2 class="title is-4 mb-0 style-theme-text" style="color: #e65100;">Sessione Privata</h2>
                                     <a href="calendario" class="delete" title="Chiudi dettaglio"></a>
                                 </div>
 
-                                <div class="box mb-4" style="background-color: rgba(245, 175, 25, 0.05); border: 1px solid #f5af19;">
+                                 <div class="box mb-4" style="background-color: rgba(230, 81, 0, 0.04); border: 1px solid #e65100; border-radius: 10px;">
                                     <p class="is-size-5 mb-3"><strong>Incontro Individuale</strong></p>
                                     <p class="mb-2"><i class="fas fa-calendar-day mr-2"></i>Data: <strong>{$selectedSp->getData()->format('d/m/Y')}</strong></p>
                                     <p class="mb-2"><i class="fas fa-clock mr-2"></i>Inizio: <strong>{$selectedSp->getOraInizio()->format('H:i')}</strong></p>
@@ -255,7 +267,7 @@
                                 </div>
                             {elseif $nuova_sessione}
                                 <div class="is-flex is-justify-content-between is-align-items-center mb-4">
-                                    <h2 class="title is-4 mb-0 style-theme-text" style="color: #f5af19;">Pianifica Sessione</h2>
+                                     <h2 class="title is-4 mb-0 style-theme-text" style="color: #e65100;">Pianifica Sessione</h2>
                                     <a href="calendario" class="delete" title="Chiudi inserimento"></a>
                                 </div>
 

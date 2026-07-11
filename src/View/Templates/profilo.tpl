@@ -89,6 +89,7 @@
                             </div>
 
                             <!-- Form rapido caricamento foto profilo -->
+                            {if $isSelf}
                             <form action="carica-foto" method="POST" enctype="multipart/form-data">
                                 <div class="file is-small is-centered mt-2">
                                     <label class="file-label">
@@ -100,6 +101,7 @@
                                     </label>
                                 </div>
                             </form>
+                            {/if}
                         </div>
 
                     </div>
@@ -262,6 +264,7 @@
                     {/if}
 
                     <!-- Modifica Dati -->
+                    {if !($smarty.session.ruolo_utente === 'allenatore' && !$isSelf)}
                     <a href="modifica-anagrafica{if !$isSelf}?id={$utente->getId()}{/if}" class="navigation-box-card">
                         <span class="is-flex is-align-items-center">
                             <span class="icon mr-3 has-text-link"><i class="fas fa-pen fa-lg"></i></span>
@@ -269,6 +272,7 @@
                         </span>
                         <span class="icon has-text-grey"><i class="fas fa-chevron-right fa-lg"></i></span>
                     </a>
+                    {/if}
 
                     <!-- Cambia Password (se stesso utente) -->
                     {if $smarty.session.id_utente === $utente->getId()}
