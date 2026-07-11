@@ -51,7 +51,7 @@
                         <!-- HEADER CON TITOLO E TASTO ELIMINA (Top-right con display flex inline per compatibilità) -->
                         <div style="display: flex; justify-content: space-between; align-items: center;" class="mb-5">
                             <h1 class="title is-2 style-theme-text mb-0">REALIZZA SCHEDA</h1>
-                            <a href="elimina-scheda?id={$scheda->getId()}" class="button is-danger is-outlined" onclick="return confirm('Sei sicuro di voler eliminare questa scheda e tutti i suoi allenamenti?')">
+                            <a href="elimina-scheda?id={$scheda->getId()}" class="button is-danger">
                                 <span class="icon"><i class="fas fa-trash"></i></span>
                                 <span>Elimina</span>
                             </a>
@@ -60,26 +60,33 @@
                         <form id="form-scheda" action="salva-scheda" method="POST">
                             <input type="hidden" name="id_scheda" id="id_scheda" value="{$scheda->getId()}">
                             <input type="hidden" name="azione" id="azione-field" value="salva">
-
-                            {assign var="em" value=App\Infrastructure\Doctrine\EntityManagerFactory::create()}
-                            {assign var="clienti" value=$em->getRepository('App\Entity\Cliente')->findBy(['palestra' => $utente->getPalestra()])}
-
                             <!-- BOX METADATI CON NOME COGNOME ATLETA E INPUT (Layout bozza) -->
                             <div class="box mb-5">
-                                <div class="field mb-4">
-                                    <label class="label"><i class="fas fa-user-circle mr-2" style="color: var(--gymfly-primary);"></i> Atleta Cliente</label>
-                                    <div class="control">
-                                        <div class="select is-fullwidth">
-                                            <select id="select-cambia-cliente">
-                                                {foreach $clienti as $c}
-                                                    <option value="{$c->getCF()}" {if $c->getCF() === $scheda->getCliente()->getCF()}selected{/if} data-scheda-id="{if $c->getScheda()}{$c->getScheda()->getId()}{else}0{/if}">
-                                                        {$c->getNome()} {$c->getCognome()} ({$c->getCF()})
-                                                    </option>
-                                                {/foreach}
-                                            </select>
+                                {if isset($azione_rapida) && $azione_rapida == 1}
+                                    {assign var="em" value=App\Infrastructure\Doctrine\EntityManagerFactory::create()}
+                                    {assign var="clienti" value=$em->getRepository('App\Entity\Cliente')->findBy(['palestra' => $utente->getPalestra()])}
+                                    <div class="field mb-4">
+                                        <label class="label"><i class="fas fa-user-circle mr-2" style="color: var(--gymfly-primary);"></i> Atleta Cliente</label>
+                                        <div class="control">
+                                            <div class="select is-fullwidth">
+                                                <select id="select-cambia-cliente">
+                                                    {foreach $clienti as $c}
+                                                        <option value="{$c->getCF()}" {if $c->getCF() === $scheda->getCliente()->getCF()}selected{/if} data-scheda-id="{if $c->getScheda()}{$c->getScheda()->getId()}{else}0{/if}">
+                                                            {$c->getNome()} {$c->getCognome()} ({$c->getCF()})
+                                                        </option>
+                                                    {/foreach}
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                {else}
+                                    <div class="field mb-4">
+                                        <label class="label"><i class="fas fa-user-circle mr-2" style="color: var(--gymfly-primary);"></i> Atleta Cliente</label>
+                                        <div class="control">
+                                            <input class="input" type="text" readonly value="{$scheda->getCliente()->getNome()} {$scheda->getCliente()->getCognome()} ({$scheda->getCliente()->getCF()})">
+                                        </div>
+                                    </div>
+                                {/if}
                                 
                                 <div class="columns is-multiline">
                                     <!-- NOME SCHEDA -->
@@ -127,18 +134,23 @@
 
                             <!-- CONTENITORE ALLENAMENTI (Grande box centrale) -->
                             <div class="box mb-5 p-5">
-                                <div style="display: flex; justify-content: space-between; align-items: center;" class="mb-5">
+                                <div class="mb-5">
                                     <h3 class="title is-4 style-theme-text mb-0"><i class="fas fa-running mr-2"></i> Allenamenti della Scheda</h3>
-                                    <button type="button" class="button is-small is-success" id="add-workout-btn">
-                                        <i class="fas fa-plus mr-1"></i> Aggiungi Allenamento (A, B, C...)
-                                    </button>
                                 </div>
-
+                                {assign var="letters" value=['A','B','C','D','E','F','G','H','I','J']}
                                 <div id="workouts-container">
                                     {foreach $scheda->getAllenamenti() as $wIndex => $allenamento}
                                         <div class="box workout-box mb-4" data-workout-index="{$wIndex}">
-                                            <div class="columns is-vcentered">
-                                                <div class="column is-5">
+                                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 0.5rem; margin-bottom: 1rem;">
+                                                <h4 class="title is-5 style-theme-text mb-0 workout-title-label">ALLENAMENTO {$letters[$wIndex]}</h4>
+                                                <button type="button" class="button is-danger is-small remove-workout-btn" title="Rimuovi Allenamento">
+                                                    <span class="icon is-small"><i class="fas fa-trash"></i></span>
+                                                    <span>Rimuovi Allenamento</span>
+                                                </button>
+                                            </div>
+
+                                            <div class="columns">
+                                                <div class="column is-6">
                                                     <div class="field">
                                                         <label class="label">Nome Allenamento (Sessione)</label>
                                                         <div class="control">
@@ -146,7 +158,7 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="column is-5">
+                                                <div class="column is-6">
                                                     <div class="field">
                                                         <label class="label">Note / Descrizione</label>
                                                         <div class="control">
@@ -154,69 +166,115 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="column is-2 has-text-right">
-                                                    <button type="button" class="button is-danger remove-workout-btn mt-4" title="Rimuovi Allenamento">
-                                                        <span class="icon"><i class="fas fa-times"></i></span>
-                                                    </button>
-                                                </div>
                                             </div>
 
-                                            <div class="exercise-rows-container mt-4">
-                                                <table class="table is-fullwidth is-striped">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Esercizio *</th>
-                                                            <th style="width: 100px;">Serie</th>
-                                                            <th style="width: 100px;">Ripetizioni</th>
-                                                            <th style="width: 120px;">Carico (Kg)</th>
-                                                            <th style="width: 120px;">Recupero</th>
-                                                            <th style="width: 60px;"></th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {foreach $allenamento->getDettagli() as $dIndex => $dettaglio}
-                                                            <tr data-exercise-index="{$dIndex}">
-                                                                <td>
-                                                                    <div class="select is-fullwidth">
-                                                                        <select name="workouts[{$wIndex}][dettagli][{$dIndex}][esercizio_id]" required>
-                                                                            <option value="">-- Seleziona --</option>
-                                                                            {foreach $esercizi as $ex}
-                                                                                <option value="{$ex->getId()}" {if $dettaglio->getEsercizio()->getId() == $ex->getId()}selected{/if}>
-                                                                                    {$ex->getNomeEsercizio()}
-                                                                                </option>
-                                                                            {/foreach}
-                                                                        </select>
+                                            <div class="exercises-container mt-4">
+                                                {assign var="currentExId" value=""}
+                                                {assign var="firstGroup" value=true}
+                                                
+                                                {foreach $allenamento->getDettagli() as $dettaglio}
+                                                    {if $currentExId !== $dettaglio->getEsercizio()->getId()}
+                                                        {if !$firstGroup}
+                                                                </tbody>
+                                                            </table>
+                                                            <div class="has-text-right">
+                                                                <button type="button" class="button is-small is-link is-light add-series-btn">
+                                                                    <i class="fas fa-plus mr-1"></i> Aggiungi Serie
+                                                                </button>
+                                                            </div>
+                                                        </div> <!-- chiude exercise-group previous -->
+                                                        {/if}
+                                                        {assign var="firstGroup" value=false}
+                                                        {assign var="currentExId" value=$dettaglio->getEsercizio()->getId()}
+                                                        
+                                                        <div class="box exercise-group p-4 mb-4" style="border: 1px solid var(--gymfly-accent); border-radius: 12px; background-color: #fafafa;">
+                                                            <div class="columns is-vcentered mb-3">
+                                                                <div class="column is-8">
+                                                                    <div class="field">
+                                                                        <label class="label">Esercizio *</label>
+                                                                        <div class="control">
+                                                                            <div class="select is-fullwidth">
+                                                                                <select class="select-esercizio" required>
+                                                                                    <option value="">-- Seleziona --</option>
+                                                                                    {foreach $esercizi as $ex}
+                                                                                        <option value="{$ex->getId()}" {if $dettaglio->getEsercizio()->getId() == $ex->getId()}selected{/if}>
+                                                                                            {$ex->getNomeEsercizio()}
+                                                                                        </option>
+                                                                                    {/foreach}
+                                                                                </select>
+                                                                            </div>
+                                                                        </div>
                                                                     </div>
-                                                                </td>
-                                                                <td>
-                                                                    <input class="input" type="number" name="workouts[{$wIndex}][dettagli][{$dIndex}][serie]" value="{$dettaglio->getSerie()}" required min="1">
-                                                                </td>
-                                                                <td>
-                                                                    <input class="input" type="number" name="workouts[{$wIndex}][dettagli][{$dIndex}][ripetizioni]" value="{$dettaglio->getRipetizioni()}" required min="1">
-                                                                </td>
-                                                                <td>
-                                                                    <input class="input" type="number" step="0.5" name="workouts[{$wIndex}][dettagli][{$dIndex}][carico]" value="{$dettaglio->getCarico()}" required min="0">
-                                                                </td>
-                                                                <td>
-                                                                    <input class="input" type="text" name="workouts[{$wIndex}][dettagli][{$dIndex}][recupero]" placeholder="Es: 90s" value="">
-                                                                </td>
-                                                                <td>
-                                                                    <button type="button" class="button is-danger remove-exercise-btn" title="Rimuovi Esercizio">
-                                                                        <span class="icon"><i class="fas fa-times"></i></span>
+                                                                </div>
+                                                                <div class="column is-4 has-text-right">
+                                                                    <button type="button" class="button is-danger is-small remove-exercise-group-btn mt-4">
+                                                                        <span class="icon is-small"><i class="fas fa-trash"></i></span>
+                                                                        <span>Rimuovi Esercizio</span>
                                                                     </button>
-                                                                </td>
-                                                            </tr>
-                                                        {/foreach}
-                                                    </tbody>
-                                                </table>
-                                                <div class="has-text-left mt-2">
-                                                    <button type="button" class="button is-small is-link is-light add-exercise-btn">
-                                                        <i class="fas fa-plus mr-1"></i> Aggiungi Esercizio
-                                                    </button>
-                                                </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <table class="table is-fullwidth is-striped mb-2 series-table">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th style="width: 80px;">Serie</th>
+                                                                        <th>Ripetizioni *</th>
+                                                                        <th>Carico (Kg) *</th>
+                                                                        <th>Recupero *</th>
+                                                                        <th style="width: 50px;"></th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody class="series-container">
+                                                    {/if}
+                                                    
+                                                    <tr class="series-row">
+                                                        <td class="has-text-centered is-vcentered">
+                                                            <span class="series-number-label">{$dettaglio->getSerie()}</span>
+                                                            <input type="hidden" data-name="serie" value="{$dettaglio->getSerie()}">
+                                                            <input type="hidden" data-name="esercizio_id" value="{$dettaglio->getEsercizio()->getId()}">
+                                                        </td>
+                                                        <td>
+                                                            <input class="input" type="number" data-name="ripetizioni" value="{$dettaglio->getRipetizioni()}" required min="1">
+                                                        </td>
+                                                        <td>
+                                                            <input class="input" type="number" step="0.5" data-name="carico" value="{$dettaglio->getCarico()}" required min="0">
+                                                        </td>
+                                                        <td>
+                                                            <input class="input" type="text" data-name="recupero" placeholder="Es: 90s" value="{$allenamento->getDescrizione()|estrai_recupero:$dettaglio->getEsercizio()->getNomeEsercizio():$dettaglio->getSerie():$dettaglio->getId()}">
+                                                        </td>
+                                                        <td>
+                                                            <button type="button" class="button is-small is-danger remove-series-btn" title="Rimuovi Serie">
+                                                                <span class="icon is-small"><i class="fas fa-times"></i></span>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                {/foreach}
+                                                
+                                                {if !$firstGroup}
+                                                                </tbody>
+                                                            </table>
+                                                            <div class="has-text-right">
+                                                                <button type="button" class="button is-small is-gymfly add-series-btn">
+                                                                    <i class="fas fa-plus mr-1"></i> Aggiungi Serie
+                                                                </button>
+                                                            </div>
+                                                        </div> <!-- chiude l'ultimo exercise-group -->
+                                                {/if}
+                                            </div>
+
+                                            <div class="has-text-right mt-2">
+                                                <button type="button" class="button is-small is-gymfly add-exercise-group-btn">
+                                                    <i class="fas fa-plus mr-1"></i> Aggiungi Esercizio
+                                                </button>
                                             </div>
                                         </div>
                                     {/foreach}
+                                </div>
+
+                                <div class="has-text-right mt-3">
+                                    <button type="button" class="button is-gymfly" id="add-workout-btn">
+                                        <i class="fas fa-plus mr-1"></i> Aggiungi Allenamento (A, B, C...)
+                                    </button>
                                 </div>
                             </div>
 
@@ -274,9 +332,9 @@
                     const option = selectCliente.options[selectCliente.selectedIndex];
                     const targetSchedaId = parseInt(option.getAttribute('data-scheda-id') || '0');
                     if (targetSchedaId > 0) {
-                        window.location.href = `modifica-scheda?id=${targetSchedaId}`;
+                        window.location.href = `modifica-scheda?id=${targetSchedaId}&azione_rapida=1`;
                     } else {
-                        window.location.href = `crea-scheda?cf=${cf}`;
+                        window.location.href = `crea-scheda?cf=${cf}&azione_rapida=1`;
                     }
                 });
             }
@@ -290,10 +348,21 @@
             // 3. Aggiungi Sessione di Allenamento
             addWorkoutBtn.addEventListener('click', () => {
                 const wIndex = container.children.length;
+                if (wIndex >= 7) return;
+
+                const letter = String.fromCharCode(65 + wIndex);
                 const workoutHtml = `
                     <div class="box workout-box mb-4" data-workout-index="${wIndex}">
-                        <div class="columns is-vcentered">
-                            <div class="column is-5">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 0.5rem; margin-bottom: 1rem;">
+                            <h4 class="title is-5 style-theme-text mb-0 workout-title-label">ALLENAMENTO ${letter}</h4>
+                            <button type="button" class="button is-danger is-small remove-workout-btn" title="Rimuovi Allenamento">
+                                <span class="icon is-small"><i class="fas fa-trash"></i></span>
+                                <span>Rimuovi Allenamento</span>
+                            </button>
+                        </div>
+
+                        <div class="columns">
+                            <div class="column is-6">
                                 <div class="field">
                                     <label class="label">Nome Allenamento (Sessione)</label>
                                     <div class="control">
@@ -301,7 +370,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="column is-5">
+                            <div class="column is-6">
                                 <div class="field">
                                     <label class="label">Note / Descrizione</label>
                                     <div class="control">
@@ -309,50 +378,33 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="column is-2 has-text-right">
-                                <button type="button" class="button is-danger remove-workout-btn mt-4" title="Rimuovi Allenamento">
-                                    <span class="icon"><i class="fas fa-times"></i></span>
-                                </button>
-                            </div>
                         </div>
 
-                        <div class="exercise-rows-container mt-4">
-                            <table class="table is-fullwidth is-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Esercizio *</th>
-                                        <th style="width: 100px;">Serie</th>
-                                        <th style="width: 100px;">Ripetizioni</th>
-                                        <th style="width: 120px;">Carico (Kg)</th>
-                                        <th style="width: 120px;">Recupero</th>
-                                        <th style="width: 60px;"></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Righe di esercizi dinamiche -->
-                                </tbody>
-                            </table>
-                            <div class="has-text-left mt-2">
-                                <button type="button" class="button is-small is-link is-light add-exercise-btn">
-                                    <i class="fas fa-plus mr-1"></i> Aggiungi Esercizio
-                                </button>
-                            </div>
+                        <div class="exercises-container mt-4">
+                            <!-- Qui verranno inseriti i gruppi di esercizi -->
+                        </div>
+                        <div class="has-text-right mt-2">
+                            <button type="button" class="button is-small is-gymfly add-exercise-group-btn">
+                                <i class="fas fa-plus mr-1"></i> Aggiungi Esercizio
+                            </button>
                         </div>
                     </div>
                 `;
                 container.insertAdjacentHTML('beforeend', workoutHtml);
                 attachWorkoutEvents(container.lastElementChild);
+                reindexWorkouts();
             });
 
             // 4. Attach events to existing workout blocks
             Array.from(container.children).forEach(block => {
                 attachWorkoutEvents(block);
             });
+            reindexWorkouts();
 
             function attachWorkoutEvents(workoutBlock) {
                 const wIndex = workoutBlock.getAttribute('data-workout-index');
-                const tableBody = workoutBlock.querySelector('tbody');
-                const addExBtn = workoutBlock.querySelector('.add-exercise-btn');
+                const exercisesContainer = workoutBlock.querySelector('.exercises-container');
+                const addExGroupBtn = workoutBlock.querySelector('.add-exercise-group-btn');
                 const removeWBtn = workoutBlock.querySelector('.remove-workout-btn');
 
                 // Rimuovi Sessione
@@ -361,80 +413,234 @@
                     reindexWorkouts();
                 });
 
-                // Aggiungi Esercizio alla Sessione
-                addExBtn.addEventListener('click', () => {
-                    const exIndex = tableBody.children.length;
-                    
+                // Aggiungi Esercizio (nuovo gruppo)
+                addExGroupBtn.addEventListener('click', () => {
                     let optionsHtml = '<option value="">-- Seleziona --</option>';
                     eserciziDisponibili.forEach(ex => {
                         optionsHtml += `<option value="${ex.id}">${ex.nome}</option>`;
                     });
 
-                    const exHtml = `
-                        <tr data-exercise-index="${exIndex}">
-                            <td>
-                                <div class="select is-fullwidth">
-                                    <select name="workouts[${wIndex}][dettagli][${exIndex}][esercizio_id]" required>
-                                        ${optionsHtml}
-                                    </select>
+                    const groupHtml = `
+                        <div class="box exercise-group p-4 mb-4" style="border: 1px solid var(--gymfly-accent); border-radius: 12px; background-color: #fafafa;">
+                            <div class="columns is-vcentered mb-3">
+                                <div class="column is-8">
+                                    <div class="field">
+                                        <label class="label">Esercizio *</label>
+                                        <div class="control">
+                                            <div class="select is-fullwidth">
+                                                <select class="select-esercizio" required>
+                                                    ${optionsHtml}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
+                                <div class="column is-4 has-text-right">
+                                    <button type="button" class="button is-danger is-small remove-exercise-group-btn mt-4">
+                                        <span class="icon is-small"><i class="fas fa-trash"></i></span>
+                                        <span>Rimuovi Esercizio</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <table class="table is-fullwidth is-striped mb-2 series-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 80px;">Serie</th>
+                                        <th>Ripetizioni *</th>
+                                        <th>Carico (Kg) *</th>
+                                        <th>Recupero *</th>
+                                        <th style="width: 50px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody class="series-container">
+                                    <!-- Prima serie di default -->
+                                    <tr class="series-row">
+                                        <td class="has-text-centered is-vcentered">
+                                            <span class="series-number-label">1</span>
+                                            <input type="hidden" data-name="serie" value="1">
+                                            <input type="hidden" data-name="esercizio_id" value="">
+                                        </td>
+                                        <td>
+                                            <input class="input" type="number" data-name="ripetizioni" value="10" required min="1">
+                                        </td>
+                                        <td>
+                                            <input class="input" type="number" step="0.5" data-name="carico" value="0" required min="0">
+                                        </td>
+                                        <td>
+                                            <input class="input" type="text" data-name="recupero" placeholder="Es: 90s" value="120s">
+                                        </td>
+                                        <td>
+                                            <button type="button" class="button is-small is-danger remove-series-btn" title="Rimuovi Serie">
+                                                <span class="icon is-small"><i class="fas fa-times"></i></span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            
+                            <div class="has-text-right">
+                                <button type="button" class="button is-small is-gymfly add-series-btn">
+                                    <i class="fas fa-plus mr-1"></i> Aggiungi Serie
+                                </button>
+                            </div>
+                        </div>
+                    `;
+
+                    exercisesContainer.insertAdjacentHTML('beforeend', groupHtml);
+                    const newGroup = exercisesContainer.lastElementChild;
+                    bindExerciseGroupEvents(newGroup, exercisesContainer, wIndex);
+                    reindexExercises(exercisesContainer, wIndex);
+                });
+
+                // Collega eventi ai gruppi esistenti
+                Array.from(exercisesContainer.children).forEach(group => {
+                    bindExerciseGroupEvents(group, exercisesContainer, wIndex);
+                });
+            }
+
+            function bindExerciseGroupEvents(group, exercisesContainer, wIndex) {
+                const selectEx = group.querySelector('.select-esercizio');
+                const removeGroupBtn = group.querySelector('.remove-exercise-group-btn');
+                const addSeriesBtn = group.querySelector('.add-series-btn');
+                const seriesContainer = group.querySelector('.series-container');
+
+                // Rimuovi Esercizio (tutto il gruppo)
+                removeGroupBtn.addEventListener('click', () => {
+                    group.remove();
+                    reindexExercises(exercisesContainer, wIndex);
+                });
+
+                // Sincronizza esercizio_id nascosto nelle serie quando cambia il select dell'esercizio
+                selectEx.addEventListener('change', () => {
+                    const exId = selectEx.value;
+                    Array.from(seriesContainer.querySelectorAll('input[data-name="esercizio_id"]')).forEach(hiddenInput => {
+                        hiddenInput.value = exId;
+                    });
+                });
+
+                // Forza il valore iniziale di esercizio_id nelle serie esistenti
+                const initialExId = selectEx.value;
+                Array.from(seriesContainer.querySelectorAll('input[data-name="esercizio_id"]')).forEach(hiddenInput => {
+                    hiddenInput.value = initialExId;
+                });
+
+                // Aggiungi Serie
+                addSeriesBtn.addEventListener('click', () => {
+                    const sIndex = seriesContainer.children.length;
+                    const exId = selectEx.value;
+                    
+                    // Prendi valori dall'ultima serie (se presente) per agevolare l'inserimento
+                    let lastReps = "10";
+                    let lastCarico = "0";
+                    let lastRecupero = "120s";
+                    const lastRow = seriesContainer.lastElementChild;
+                    if (lastRow) {
+                        lastReps = lastRow.querySelector('input[data-name="ripetizioni"]').value;
+                        lastCarico = lastRow.querySelector('input[data-name="carico"]').value;
+                        lastRecupero = lastRow.querySelector('input[data-name="recupero"]').value;
+                    }
+
+                    const seriesHtml = `
+                        <tr class="series-row">
+                            <td class="has-text-centered is-vcentered">
+                                <span class="series-number-label">${sIndex + 1}</span>
+                                <input type="hidden" data-name="serie" value="${sIndex + 1}">
+                                <input type="hidden" data-name="esercizio_id" value="${exId}">
                             </td>
                             <td>
-                                <input class="input" type="number" name="workouts[${wIndex}][dettagli][${exIndex}][serie]" value="4" required min="1">
+                                <input class="input" type="number" data-name="ripetizioni" value="${lastReps}" required min="1">
                             </td>
                             <td>
-                                <input class="input" type="number" name="workouts[${wIndex}][dettagli][${exIndex}][ripetizioni]" value="10" required min="1">
+                                <input class="input" type="number" step="0.5" data-name="carico" value="${lastCarico}" required min="0">
                             </td>
                             <td>
-                                <input class="input" type="number" step="0.5" name="workouts[${wIndex}][dettagli][${exIndex}][carico]" value="0" required min="0">
+                                <input class="input" type="text" data-name="recupero" placeholder="Es: 90s" value="${lastRecupero}">
                             </td>
                             <td>
-                                <input class="input" type="text" name="workouts[${wIndex}][dettagli][${exIndex}][recupero]" placeholder="Es: 90s">
-                            </td>
-                            <td>
-                                <button type="button" class="button is-danger remove-exercise-btn" title="Rimuovi Esercizio">
-                                    <span class="icon"><i class="fas fa-times"></i></span>
+                                <button type="button" class="button is-small is-danger remove-series-btn" title="Rimuovi Serie">
+                                    <span class="icon is-small"><i class="fas fa-times"></i></span>
                                 </button>
                             </td>
                         </tr>
                     `;
-                    tableBody.insertAdjacentHTML('beforeend', exHtml);
+                    seriesContainer.insertAdjacentHTML('beforeend', seriesHtml);
                     
-                    // Rimuovi Riga Esercizio
-                    tableBody.lastElementChild.querySelector('.remove-exercise-btn').addEventListener('click', (e) => {
-                        e.target.closest('tr').remove();
-                        reindexExercises(tableBody, wIndex);
+                    // Associa eventi al pulsante rimozione della nuova serie
+                    const newRow = seriesContainer.lastElementChild;
+                    newRow.querySelector('.remove-series-btn').addEventListener('click', () => {
+                        newRow.remove();
+                        reindexSeriesRows(seriesContainer, selectEx.value);
+                        reindexExercises(exercisesContainer, wIndex);
                     });
+
+                    reindexSeriesRows(seriesContainer, selectEx.value);
+                    reindexExercises(exercisesContainer, wIndex);
                 });
 
-                // Collega rimozione esercizi esistenti
-                Array.from(tableBody.querySelectorAll('.remove-exercise-btn')).forEach(btn => {
+                // Associa eventi per rimozione serie esistenti
+                Array.from(seriesContainer.querySelectorAll('.remove-series-btn')).forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         e.target.closest('tr').remove();
-                        reindexExercises(tableBody, wIndex);
+                        reindexSeriesRows(seriesContainer, selectEx.value);
+                        reindexExercises(exercisesContainer, wIndex);
                     });
+                });
+            }
+
+            function reindexSeriesRows(seriesContainer, exId) {
+                Array.from(seriesContainer.children).forEach((tr, sIndex) => {
+                    tr.querySelector('.series-number-label').textContent = sIndex + 1;
+                    tr.querySelector('input[data-name="serie"]').value = sIndex + 1;
+                    tr.querySelector('input[data-name="esercizio_id"]').value = exId;
                 });
             }
 
             function reindexWorkouts() {
+                const count = container.children.length;
+                if (count >= 7) {
+                    addWorkoutBtn.style.display = 'none';
+                } else {
+                    addWorkoutBtn.style.display = 'inline-block';
+                }
+
                 Array.from(container.children).forEach((block, wIndex) => {
                     block.setAttribute('data-workout-index', wIndex);
+                    
+                    const letter = String.fromCharCode(65 + wIndex);
+                    block.querySelector('.workout-title-label').textContent = 'ALLENAMENTO ' + letter;
+
                     block.querySelector('input[name*="[nome]"]').setAttribute('name', `workouts[${wIndex}][nome]`);
                     block.querySelector('input[name*="[descrizione]"]').setAttribute('name', `workouts[${wIndex}][descrizione]`);
                     
-                    const tableBody = block.querySelector('tbody');
-                    reindexExercises(tableBody, wIndex);
+                    const exercisesContainer = block.querySelector('.exercises-container');
+                    reindexExercises(exercisesContainer, wIndex);
                 });
             }
 
-            function reindexExercises(tableBody, wIndex) {
-                Array.from(tableBody.children).forEach((tr, exIndex) => {
-                    tr.setAttribute('data-exercise-index', exIndex);
-                    tr.querySelector('select').setAttribute('name', `workouts[${wIndex}][dettagli][${exIndex}][esercizio_id]`);
-                    tr.querySelector('input[name*="[serie]"]').setAttribute('name', `workouts[${wIndex}][dettagli][${exIndex}][serie]`);
-                    tr.querySelector('input[name*="[ripetizioni]"]').setAttribute('name', `workouts[${wIndex}][dettagli][${exIndex}][ripetizioni]`);
-                    tr.querySelector('input[name*="[carico]"]').setAttribute('name', `workouts[${wIndex}][dettagli][${exIndex}][carico]`);
-                    tr.querySelector('input[name*="[recupero]"]').setAttribute('name', `workouts[${wIndex}][dettagli][${exIndex}][recupero]`);
+            function reindexExercises(exercisesContainer, wIndex) {
+                let globalExIndex = 0;
+                Array.from(exercisesContainer.children).forEach(group => {
+                    const selectEx = group.querySelector('.select-esercizio');
+                    const seriesContainer = group.querySelector('.series-container');
+                    
+                    Array.from(seriesContainer.children).forEach(tr => {
+                        tr.setAttribute('data-exercise-index', globalExIndex);
+                        
+                        const inputExId = tr.querySelector('input[data-name="esercizio_id"]');
+                        const inputSerie = tr.querySelector('input[data-name="serie"]');
+                        const inputReps = tr.querySelector('input[data-name="ripetizioni"]');
+                        const inputCarico = tr.querySelector('input[data-name="carico"]');
+                        const inputRecupero = tr.querySelector('input[data-name="recupero"]');
+
+                        inputExId.setAttribute('name', `workouts[${wIndex}][dettagli][${globalExIndex}][esercizio_id]`);
+                        inputSerie.setAttribute('name', `workouts[${wIndex}][dettagli][${globalExIndex}][serie]`);
+                        inputReps.setAttribute('name', `workouts[${wIndex}][dettagli][${globalExIndex}][ripetizioni]`);
+                        inputCarico.setAttribute('name', `workouts[${wIndex}][dettagli][${globalExIndex}][carico]`);
+                        inputRecupero.setAttribute('name', `workouts[${wIndex}][dettagli][${globalExIndex}][recupero]`);
+
+                        globalExIndex++;
+                    });
                 });
             }
         });

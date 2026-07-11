@@ -26,8 +26,22 @@
             <div class="{$headerClass} is-hidden-mobile">
                 <div class="columns is-vcentered">
                     <div class="column">
-                        <h1 class="title is-2 has-text-white mb-2">Il mio Profilo</h1>
-                        <p class="subtitle is-5 has-text-white-ter">Visualizza e gestisci le tue informazioni personali</p>
+                        <h1 class="title is-2 has-text-white mb-2">
+                            {if $isSelf}
+                                Il mio Profilo
+                            {elseif $isClient}
+                                Profilo Cliente
+                            {else}
+                                Profilo Allenatore
+                            {/if}
+                        </h1>
+                        <p class="subtitle is-5 has-text-white-ter">
+                            {if $isSelf}
+                                Visualizza e gestisci le tue informazioni personali
+                            {else}
+                                Visualizza e gestisci le informazioni dell'utente
+                            {/if}
+                        </p>
                     </div>
                     <div class="column is-narrow">
                         <figure class="image is-96x96">
@@ -127,8 +141,63 @@
                 </div>
                 {/if}
 
-                <!-- INFO SCHEDA ALLENAMENTO (Visibile a Coach e Admin se il profilo è di un cliente) -->
-                {if ($smarty.session.ruolo_utente === 'allenatore' || $smarty.session.ruolo_utente === 'amministratore') && $isClient}
+                <!-- ATTIVITÀ ABILITATE (Visibile solo per gli Allenatori) -->
+                {if isset($isTrainer) && $isTrainer}
+                <div class="box p-4 mb-4">
+                    <h3 class="title is-5 style-theme-text mb-3">
+                        <i class="fas fa-certificate mr-2"></i>Attività Abilitate
+                    </h3>
+
+                    {if $isSelf || $smarty.session.ruolo_utente === 'amministratore'}
+                        <!-- Form di gestione con Checkbox per abilitare/disabilitare più attività contemporaneamente -->
+                        <form action="aggiorna-abilitazioni-profilo" method="POST">
+                            <input type="hidden" name="id_allenatore" value="{$utente->getId()}">
+                            
+                            {if $tutteAttivita && count($tutteAttivita) > 0}
+                                <div class="field mb-4">
+                                    <label class="label is-size-7 has-text-grey-dark mb-3">Seleziona le attività per cui sei abilitato:</label>
+                                    <div class="control is-flex is-flex-wrap-wrap" style="gap: 0.75rem;">
+                                        {foreach from=$tutteAttivita item=att}
+                                            {assign var="isAbilitato" value=false}
+                                            {if $attivitaAbilitate}
+                                                {foreach from=$attivitaAbilitate item=aa}
+                                                    {if $aa->getId() === $att->getId()}
+                                                        {assign var="isAbilitato" value=true}
+                                                    {/if}
+                                                {/foreach}
+                                            {/if}
+                                            <label class="checkbox is-size-6" style="background: var(--gymfly-bg); padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid var(--gymfly-accent); display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; user-select: none;">
+                                                <input type="checkbox" name="attivita[]" value="{$att->getId()}" {if $isAbilitato}checked{/if}>
+                                                <span style="font-weight: 500;">{$att->getNome()}</span>
+                                            </label>
+                                        {/foreach}
+                                    </div>
+                                </div>
+                                <button type="submit" class="button is-gymfly is-small mt-2" style="border-radius: 8px;">
+                                    <span class="icon"><i class="fas fa-save"></i></span>
+                                    <span>Salva Abilitazioni</span>
+                                </button>
+                            {else}
+                                <p class="is-size-6 mb-0 has-text-grey">Nessuna attività presente nel catalogo della palestra.</p>
+                            {/if}
+                        </form>
+                    {else}
+                        <!-- Visualizzazione in sola lettura (per altri utenti) -->
+                        {if $attivitaAbilitate && count($attivitaAbilitate) > 0}
+                            <div class="tags">
+                                {foreach from=$attivitaAbilitate item=att}
+                                    <span class="tag is-light style-theme-text is-rounded" style="font-weight: 500; font-size: 0.95rem;">{$att->getNome()}</span>
+                                {/foreach}
+                            </div>
+                        {else}
+                            <p class="is-size-6 mb-0 has-text-grey">Nessuna attività abilitata per questo allenatore.</p>
+                        {/if}
+                    {/if}
+                </div>
+                {/if}
+
+                <!-- INFO SCHEDA ALLENAMENTO (Visibile a Coach se il profilo è di un cliente) -->
+                {if ($smarty.session.ruolo_utente === 'allenatore') && $isClient}
                 <div class="box p-4 mb-4">
                     <h3 class="title is-5 style-theme-text mb-3">
                         <i class="fas fa-dumbbell mr-2"></i>Scheda Allenamento
@@ -159,6 +228,7 @@
                     
                     {if $isClient}
                     <!-- Parametri -->
+                    {if $smarty.session.ruolo_utente !== 'amministratore'}
                     <a href="aggiorna-misure{if !$isSelf}?id={$utente->getId()}{/if}" class="navigation-box-card">
                         <span class="is-flex is-align-items-center">
                             <span class="icon mr-3 has-text-link"><i class="fas fa-chart-line fa-lg"></i></span>
@@ -166,8 +236,10 @@
                         </span>
                         <span class="icon has-text-grey"><i class="fas fa-chevron-right fa-lg"></i></span>
                     </a>
+                    {/if}
 
                     <!-- Certificato Medico -->
+                    {if $smarty.session.ruolo_utente !== 'allenatore'}
                     <a href="carica-certificato{if !$isSelf}?id={$utente->getId()}{/if}" class="navigation-box-card">
                         <span class="is-flex is-align-items-center">
                             {if $utente->isCertificatoValido()}
@@ -187,9 +259,10 @@
                         <span class="icon has-text-grey"><i class="fas fa-chevron-right fa-lg"></i></span>
                     </a>
                     {/if}
+                    {/if}
 
                     <!-- Modifica Dati -->
-                    <a href="modifica-anagrafica" class="navigation-box-card">
+                    <a href="modifica-anagrafica{if !$isSelf}?id={$utente->getId()}{/if}" class="navigation-box-card">
                         <span class="is-flex is-align-items-center">
                             <span class="icon mr-3 has-text-link"><i class="fas fa-pen fa-lg"></i></span>
                             <span class="has-text-weight-semibold is-size-5">modifica dati</span>

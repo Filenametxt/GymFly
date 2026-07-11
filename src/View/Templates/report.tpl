@@ -12,18 +12,20 @@
     <style>
         .report-card {
             background-color: var(--gymfly-card-bg);
-            border: 2px solid var(--gymfly-primary);
-            border-radius: 16px;
-            padding: 1.5rem;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: 2px solid var(--gymfly-accent);
+            border-radius: 15px;
+            padding: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
             position: relative;
             height: 100%;
             display: flex;
             flex-direction: column;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.02) !important;
         }
         .report-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(175, 175, 226, 0.15);
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(175, 175, 226, 0.15) !important;
+            border-color: var(--gymfly-secondary);
         }
         .pie-layout {
             display: flex;
@@ -37,23 +39,37 @@
         }
         .pie-details-container {
             width: 50%;
-            background-color: rgba(175, 175, 226, 0.05);
-            border: 1px dashed var(--gymfly-primary);
+            background-color: rgba(175, 175, 226, 0.04);
+            border: 2px dashed var(--gymfly-primary);
             border-radius: 12px;
-            padding: 1rem;
+            padding: 1.5rem;
             min-height: 150px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             color: var(--gymfly-text);
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+        .pie-details-container:hover {
+            background-color: rgba(175, 175, 226, 0.08);
+            border-color: var(--gymfly-secondary);
         }
         .chart-wrapper {
             position: relative;
             flex-grow: 1;
             height: 220px;
+        }
+        .select select {
+            border-radius: 12px !important;
+            font-weight: 600;
+            cursor: pointer;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .select select:hover {
+            border-color: var(--gymfly-secondary) !important;
         }
     </style>
 </head>
@@ -154,6 +170,10 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             
+            // Impostazioni globali di stile per Chart.js in linea con GymFly
+            Chart.defaults.font.family = "'Outfit', 'Inter', 'BlinkMacSystemFont', -apple-system, 'Segoe UI', 'Roboto', sans-serif";
+            Chart.defaults.color = "#4B3F72";
+
             {if count($abbonamentiDati) > 0}
             // 1. Grafico Tipologie Abbonamento (Pie Chart)
             const ctxTipologie = document.getElementById('chartTipologie').getContext('2d');
@@ -165,8 +185,16 @@
                     data: [
                         {foreach from=$abbonamentiDati item=count} {$count}, {/foreach}
                     ],
-                    backgroundColor: ['#209cee', '#23d160', '#ffdd57', '#ff3860', '#9b59b6', '#34495e'],
-                    borderWidth: 0
+                    backgroundColor: [
+                        '#afafe2', // periwinkle (primario)
+                        '#99cdea', // baby-blue (secondario)
+                        '#c5e0fc', // pale-sky (accento)
+                        '#d0d0f5', // periwinkle-2
+                        '#85a6cc', // darker baby blue
+                        '#6c6ca6'  // darker periwinkle
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
                 }]
             };
 
@@ -209,7 +237,7 @@
                     labels: labelsCorsi,
                     datasets: [{
                         data: datiCorsi,
-                        backgroundColor: '#ffdd57',
+                        backgroundColor: '#afafe2', // periwinkle (primario)
                         borderRadius: 6
                     }]
                 },
@@ -220,10 +248,16 @@
                     plugins: { legend: { display: false } },
                     scales: {
                         x: { 
-                            grid: { color: 'rgba(175, 175, 226, 0.1)' },
-                            ticks: { precision: 0 }
+                            grid: { color: 'rgba(175, 175, 226, 0.15)' },
+                            ticks: { 
+                                precision: 0,
+                                color: '#4B3F72'
+                            }
                         },
-                        y: { grid: { display: false } }
+                        y: { 
+                            grid: { display: false },
+                            ticks: { color: '#4B3F72' }
+                        }
                     }
                 }
             });
@@ -243,7 +277,7 @@
                     datasets: [{
                         label: 'Iscritti',
                         data: datiIscritti,
-                        backgroundColor: '#23d160',
+                        backgroundColor: '#99cdea', // baby blue (secondario)
                         borderRadius: 4
                     }]
                 },
@@ -253,10 +287,16 @@
                     plugins: { legend: { display: false } },
                     scales: {
                         y: { 
-                            grid: { color: 'rgba(175, 175, 226, 0.1)' },
-                            ticks: { precision: 0 }
+                            grid: { color: 'rgba(175, 175, 226, 0.15)' },
+                            ticks: { 
+                                precision: 0,
+                                color: '#4B3F72'
+                            }
                         },
-                        x: { grid: { display: false } }
+                        x: { 
+                            grid: { display: false },
+                            ticks: { color: '#4B3F72' }
+                        }
                     }
                 }
             });

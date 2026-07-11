@@ -8,6 +8,21 @@
     <link rel="stylesheet" href="css/bulma.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        .biometric-box {
+            border: 2px solid var(--gymfly-accent) !important;
+            border-radius: 15px !important;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.02) !important;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .biometric-box:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(175, 175, 226, 0.12) !important;
+        }
+        .biometric-box a.has-text-grey:hover {
+            color: var(--gymfly-primary) !important;
+        }
+    </style>
 </head>
 <body>
 
@@ -15,17 +30,13 @@
         {include file='sidebar.tpl'}
         <main class="app-content">
 
-            <!-- ================= MOBILE HEADER (Coerente con dashboard_cliente) ================= -->
+            <!-- ================= MOBILE HEADER ================= -->
             <div class="is-flex is-align-items-center mb-5 is-hidden-tablet" style="padding-top: 5px;">
-                <!-- Spazio per non sovrapporsi al tasto toggle fixed della sidebar su mobile -->
                 <div style="width: 45px;"></div>
                 <div class="client-logo-circle mr-3">
                     logo
                 </div>
-                <strong class="is-size-4 style-theme-text mr-2" style="letter-spacing: 1px;">PARAMETRI</strong>
-                <a href="inserisci-misure{if !$isSelf}?id={$utente->getId()}{/if}" class="button is-outlined is-link is-small" title="Modifica parametri">
-                    <span class="icon"><i class="fas fa-pencil-alt"></i></span>
-                </a>
+                <strong class="is-size-4 style-theme-text mr-2">Parametri Biometrici</strong>
             </div>
 
             <!-- BACK BUTTON -->
@@ -36,11 +47,27 @@
                 </a>
             </div>
 
-            <!-- HEADER (DESKTOP) -->
-            <div class="is-flex is-align-items-center mb-5 is-hidden-mobile">
-                <h1 class="title is-3 style-theme-text mb-0 mr-3" style="letter-spacing: 1px;">PARAMETRI</h1>
-                <a href="inserisci-misure{if !$isSelf}?id={$utente->getId()}{/if}" class="button is-outlined is-link" title="Modifica parametri">
-                    <span class="icon"><i class="fas fa-pencil-alt"></i></span>
+            <!-- ================= DESKTOP HEADER ================= -->
+            <div class="box mb-5 is-hidden-mobile p-5" style="border: 2px solid var(--gymfly-accent); border-radius: 15px; box-shadow: 0 8px 16px rgba(0,0,0,0.02) !important;">
+                <div class="columns is-vcentered">
+                    <div class="column">
+                        <h1 class="title is-3 style-theme-text mb-1"><i class="fas fa-heartbeat mr-3" style="color: #ff3860;"></i> Parametri Biometrici</h1>
+                        <p class="subtitle is-6 has-text-grey mt-1">Visualizza lo storico e l'andamento delle tue misurazioni fisiche</p>
+                    </div>
+                    <div class="column is-narrow">
+                        <a href="inserisci-misure{if !$isSelf}?id={$utente->getId()}{/if}" class="button is-gymfly" title="Aggiorna parametri" style="border-radius: 10px;">
+                            <span class="icon"><i class="fas fa-pencil-alt mr-2"></i></span>
+                            <span>Aggiorna Misure</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Button for Mobile -->
+            <div class="is-hidden-tablet mb-4">
+                <a href="inserisci-misure{if !$isSelf}?id={$utente->getId()}{/if}" class="button is-gymfly is-fullwidth" title="Aggiorna parametri" style="border-radius: 10px;">
+                    <span class="icon"><i class="fas fa-pencil-alt mr-2"></i></span>
+                    <span>Aggiorna Misure</span>
                 </a>
             </div>
 
@@ -50,26 +77,23 @@
                 <!-- COLONNA PARAMETRI (1/3 su Desktop, full width su Mobile) -->
                 <div class="column is-4-desktop is-12-tablet">
                     
-                    <!-- HEADER PARAMETRI BIOMETRICI -->
-                    <div class="mb-4">
-                        <h2 class="title is-4 style-theme-text mb-0" style="letter-spacing: 1px;">BIOMETRICI</h2>
-                    </div>
-
                     <!-- PARAMETRI BIOMETRICI BOX -->
-                    <div class="box p-5 mb-5" style="height: calc(100% - 2.5rem);">
-                        <div class="is-flex is-align-items-center is-justify-content-between pb-3 mb-3" style="border-bottom: 2px solid var(--gymfly-primary);">
-                            <h3 class="title is-5 style-theme-text mb-0">PARAMETRI BIOMETRICI</h3>
-                            <a href="visualizza-grafico?tipo=peso{if !$isSelf}&id={$utente->getId()}{/if}" class="has-text-grey">
+                    <div class="box biometric-box p-5 mb-5" style="height: 100%;">
+                        <div class="is-flex is-align-items-center is-justify-content-between pb-3 mb-4" style="border-bottom: 2px solid var(--gymfly-accent);">
+                            <h3 class="title is-5 style-theme-text mb-0"><i class="fas fa-weight-hanging mr-2 has-text-info"></i>Biometrici</h3>
+                            <a href="visualizza-grafico?tipo=peso{if !$isSelf}&id={$utente->getId()}{/if}" class="has-text-grey" title="Visualizza Grafico">
                                 <span class="icon"><i class="fas fa-chevron-right fa-lg"></i></span>
                             </a>
                         </div>
-                        <div class="py-2" style="border-bottom: 1px solid rgba(175, 175, 226, 0.2);">
-                            <span class="has-text-weight-semibold has-text-grey is-size-6">Peso:</span>
-                            <div class="is-size-5 mt-1">{if $ultimaMisure}{$ultimaMisure->getPeso()} kg{else}-{/if}</div>
+                        
+                        <div class="py-3 is-flex is-justify-content-between is-align-items-center" style="border-bottom: 1px solid rgba(175, 175, 226, 0.15);">
+                            <span class="has-text-weight-semibold has-text-grey"><i class="fas fa-weight mr-2 has-text-info"></i>Peso</span>
+                            <strong class="is-size-5 style-theme-text">{if $ultimaMisure}{$ultimaMisure->getPeso()} kg{else}-{/if}</strong>
                         </div>
-                        <div class="py-2">
-                            <span class="has-text-weight-semibold has-text-grey is-size-6">Altezza:</span>
-                            <div class="is-size-5 mt-1">{if $ultimaMisure}{$ultimaMisure->getAltezza()} cm{else}-{/if}</div>
+                        
+                        <div class="py-3 is-flex is-justify-content-between is-align-items-center">
+                            <span class="has-text-weight-semibold has-text-grey"><i class="fas fa-ruler-vertical mr-2 has-text-info"></i>Altezza</span>
+                            <strong class="is-size-5 style-theme-text">{if $ultimaMisure}{$ultimaMisure->getAltezza()} cm{else}-{/if}</strong>
                         </div>
                     </div>
                 </div>
@@ -77,90 +101,93 @@
                 <!-- COLONNA MISURE (2/3 su Desktop, full width su Mobile) -->
                 <div class="column is-8-desktop is-12-tablet">
                     
-                    <!-- HEADER MISURE -->
-                    <div class="mb-4">
-                        <h2 class="title is-4 style-theme-text mb-0" style="letter-spacing: 1px;">MISURE CORPOREE</h2>
-                    </div>
-
                     <!-- GRIGLIA MISURE: SUPERIORE E INFERIORE AFFIANCATI SU DESKTOP -->
                     <div class="columns">
                         
                         <!-- PARTE SUPERIORE -->
                         <div class="column is-6-desktop is-12-tablet">
-                            <div class="box p-5 mb-5" style="height: 100%;">
-                                <div class="is-flex is-align-items-center is-justify-content-between pb-3 mb-3" style="border-bottom: 2px solid var(--gymfly-primary);">
-                                    <h3 class="title is-5 style-theme-text mb-0">PARTE SUPERIORE</h3>
-                                    <a href="visualizza-grafico?tipo=superiore{if !$isSelf}&id={$utente->getId()}{/if}" class="has-text-grey">
+                            <div class="box biometric-box p-5 mb-5" style="height: 100%;">
+                                <div class="is-flex is-align-items-center is-justify-content-between pb-3 mb-4" style="border-bottom: 2px solid var(--gymfly-accent);">
+                                    <h3 class="title is-5 style-theme-text mb-0"><i class="fas fa-child mr-2 has-text-primary"></i>Parte Superiore</h3>
+                                    <a href="visualizza-grafico?tipo=superiore{if !$isSelf}&id={$utente->getId()}{/if}" class="has-text-grey" title="Visualizza Grafico">
                                         <span class="icon"><i class="fas fa-chevron-right fa-lg"></i></span>
                                     </a>
                                 </div>
-                                <div class="py-2" style="border-bottom: 1px solid rgba(175, 175, 226, 0.2);">
-                                    <span class="has-text-weight-semibold has-text-grey is-size-6">Misura bicipite dx/sx:</span>
-                                    <div class="is-size-5 mt-1">
+                                
+                                <div class="py-3 is-flex is-justify-content-between is-align-items-center" style="border-bottom: 1px solid rgba(175, 175, 226, 0.15);">
+                                    <span class="has-text-weight-semibold has-text-grey"><i class="fas fa-dumbbell mr-2 has-text-primary"></i>Bicipite dx/sx</span>
+                                    <strong class="is-size-6 style-theme-text">
                                         {if $ultimaMisure}
                                             {$ultimaMisure->getBicipiteDestro()|default:'0'} / {$ultimaMisure->getBicipiteSinistro()|default:'0'} cm
                                         {else}
                                             - / - cm
                                         {/if}
-                                    </div>
+                                    </strong>
                                 </div>
-                                <div class="py-2" style="border-bottom: 1px solid rgba(175, 175, 226, 0.2);">
-                                    <span class="has-text-weight-semibold has-text-grey is-size-6">Misura tricipite dx/sx:</span>
-                                    <div class="is-size-5 mt-1">
+                                
+                                <div class="py-3 is-flex is-justify-content-between is-align-items-center" style="border-bottom: 1px solid rgba(175, 175, 226, 0.15);">
+                                    <span class="has-text-weight-semibold has-text-grey"><i class="fas fa-dumbbell mr-2 has-text-primary"></i>Tricipite dx/sx</span>
+                                    <strong class="is-size-6 style-theme-text">
                                         {if $ultimaMisure}
                                             {$ultimaMisure->getTricipiteDestro()|default:'0'} / {$ultimaMisure->getTricipiteSinistro()|default:'0'} cm
                                         {else}
                                             - / - cm
                                         {/if}
-                                    </div>
+                                    </strong>
                                 </div>
-                                <div class="py-2" style="border-bottom: 1px solid rgba(175, 175, 226, 0.2);">
-                                    <span class="has-text-weight-semibold has-text-grey is-size-6">Misura petto:</span>
-                                    <div class="is-size-5 mt-1">{if $ultimaMisure && $ultimaMisure->getMisuraPetto()}{$ultimaMisure->getMisuraPetto()} cm{else}-{/if}</div>
+                                
+                                <div class="py-3 is-flex is-justify-content-between is-align-items-center" style="border-bottom: 1px solid rgba(175, 175, 226, 0.15);">
+                                    <span class="has-text-weight-semibold has-text-grey"><i class="fas fa-heart mr-2 has-text-primary"></i>Misura Petto</span>
+                                    <strong class="is-size-6 style-theme-text">{if $ultimaMisure && $ultimaMisure->getMisuraPetto()}{$ultimaMisure->getMisuraPetto()} cm{else}-{/if}</strong>
                                 </div>
-                                <div class="py-2">
-                                    <span class="has-text-weight-semibold has-text-grey is-size-6">Misura spalle:</span>
-                                    <div class="is-size-5 mt-1">{if $ultimaMisure && $ultimaMisure->getMisuraSpalle()}{$ultimaMisure->getMisuraSpalle()} cm{else}-{/if}</div>
+                                
+                                <div class="py-3 is-flex is-justify-content-between is-align-items-center">
+                                    <span class="has-text-weight-semibold has-text-grey"><i class="fas fa-arrows-alt-h mr-2 has-text-primary"></i>Misura Spalle</span>
+                                    <strong class="is-size-6 style-theme-text">{if $ultimaMisure && $ultimaMisure->getMisuraSpalle()}{$ultimaMisure->getMisuraSpalle()} cm{else}-{/if}</strong>
                                 </div>
                             </div>
                         </div>
 
                         <!-- PARTE INFERIORE -->
                         <div class="column is-6-desktop is-12-tablet">
-                            <div class="box p-5 mb-5" style="height: 100%;">
-                                <div class="is-flex is-align-items-center is-justify-content-between pb-3 mb-3" style="border-bottom: 2px solid var(--gymfly-primary);">
-                                    <h3 class="title is-5 style-theme-text mb-0">PARTE INFERIORE</h3>
-                                    <a href="visualizza-grafico?tipo=inferiore{if !$isSelf}&id={$utente->getId()}{/if}" class="has-text-grey">
+                            <div class="box biometric-box p-5 mb-5" style="height: 100%;">
+                                <div class="is-flex is-align-items-center is-justify-content-between pb-3 mb-4" style="border-bottom: 2px solid var(--gymfly-accent);">
+                                    <h3 class="title is-5 style-theme-text mb-0"><i class="fas fa-running mr-2 has-text-success"></i>Parte Inferiore</h3>
+                                    <a href="visualizza-grafico?tipo=inferiore{if !$isSelf}&id={$utente->getId()}{/if}" class="has-text-grey" title="Visualizza Grafico">
                                         <span class="icon"><i class="fas fa-chevron-right fa-lg"></i></span>
                                     </a>
                                 </div>
-                                <div class="py-2" style="border-bottom: 1px solid rgba(175, 175, 226, 0.2);">
-                                    <span class="has-text-weight-semibold has-text-grey is-size-6">Misura coscia dx/sx:</span>
-                                    <div class="is-size-5 mt-1">
+                                
+                                <div class="py-3 is-flex is-justify-content-between is-align-items-center" style="border-bottom: 1px solid rgba(175, 175, 226, 0.15);">
+                                    <span class="has-text-weight-semibold has-text-grey"><i class="fas fa-walking mr-2 has-text-success"></i>Coscia dx/sx</span>
+                                    <strong class="is-size-6 style-theme-text">
                                         {if $ultimaMisure}
                                             {$ultimaMisure->getCosciaDestra()|default:'0'} / {$ultimaMisure->getCosciaSinistra()|default:'0'} cm
                                         {else}
                                             - / - cm
                                         {/if}
-                                    </div>
+                                    </strong>
                                 </div>
-                                <div class="py-2" style="border-bottom: 1px solid rgba(175, 175, 226, 0.2);">
-                                    <span class="has-text-weight-semibold has-text-grey is-size-6">Misura polpaccio dx/sx:</span>
-                                    <div class="is-size-5 mt-1">
+                                
+                                <div class="py-3 is-flex is-justify-content-between is-align-items-center" style="border-bottom: 1px solid rgba(175, 175, 226, 0.15);">
+                                    <span class="has-text-weight-semibold has-text-grey"><i class="fas fa-shoe-prints mr-2 has-text-success"></i>Polpaccio dx/sx</span>
+                                    <strong class="is-size-6 style-theme-text">
                                         {if $ultimaMisure}
                                             {$ultimaMisure->getPolpaccioDestro()|default:'0'} / {$ultimaMisure->getPolpaccioSinistro()|default:'0'} cm
                                         {else}
                                             - / - cm
                                         {/if}
-                                    </div>
+                                    </strong>
                                 </div>
-                                <div class="py-2" style="border-bottom: 1px solid rgba(175, 175, 226, 0.2);">
-                                    <span class="has-text-weight-semibold has-text-grey is-size-6">Misura vita:</span>
-                                    <div class="is-size-5 mt-1">{if $ultimaMisure && $ultimaMisure->getMisuraVita()}{$ultimaMisure->getMisuraVita()} cm{else}-{/if}</div>
+                                
+                                <div class="py-3 is-flex is-justify-content-between is-align-items-center" style="border-bottom: 1px solid rgba(175, 175, 226, 0.15);">
+                                    <span class="has-text-weight-semibold has-text-grey"><i class="fas fa-compress-arrows-alt mr-2 has-text-success"></i>Misura Vita</span>
+                                    <strong class="is-size-6 style-theme-text">{if $ultimaMisure && $ultimaMisure->getMisuraVita()}{$ultimaMisure->getMisuraVita()} cm{else}-{/if}</strong>
                                 </div>
-                                <div class="py-2">
-                                    <span class="has-text-weight-semibold has-text-grey is-size-6">Misura fianchi:</span>
-                                    <div class="is-size-5 mt-1">{if $ultimaMisure && $ultimaMisure->getMisuraFianchi()}{$ultimaMisure->getMisuraFianchi()} cm{else}-{/if}</div>
+                                
+                                <div class="py-3 is-flex is-justify-content-between is-align-items-center">
+                                    <span class="has-text-weight-semibold has-text-grey"><i class="fas fa-expand-arrows-alt mr-2 has-text-success"></i>Misura Fianchi</span>
+                                    <strong class="is-size-6 style-theme-text">{if $ultimaMisure && $ultimaMisure->getMisuraFianchi()}{$ultimaMisure->getMisuraFianchi()} cm{else}-{/if}</strong>
                                 </div>
                             </div>
                         </div>

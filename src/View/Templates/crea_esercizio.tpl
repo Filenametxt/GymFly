@@ -133,14 +133,24 @@
                                 <div class="column is-6">
                                     <label class="label">Gruppo Muscolare *</label>
                                     <div class="select is-fullwidth">
-                                        <select name="gruppi_muscolari[]" id="gruppi_muscolari" required>
+                                        <select name="gruppi_muscolari[]" id="gruppi_muscolari" required onchange="if(this.value === 'nuovo_gruppo') { document.getElementById('container-nuovo-gruppo').classList.remove('is-hidden'); } else { document.getElementById('container-nuovo-gruppo').classList.add('is-hidden'); }">
                                             <option value="">-- Seleziona --</option>
                                             {foreach $gruppi_muscolari as $gm}
                                                 <option value="{$gm->getId()}" {if in_array($gm->getId(), $selected_gruppi)}selected{/if}>
                                                     {$gm->getNomeGruppoMuscolare()}
                                                 </option>
                                             {/foreach}
+                                            <option value="nuovo_gruppo" {if isset($smarty.post.nuovo_gruppo_nome) && $smarty.post.nuovo_gruppo_nome !== ''}selected{/if}>+ Aggiungi Nuovo Gruppo...</option>
                                         </select>
+                                    </div>
+                                    <!-- Input dinamico per nuovo gruppo muscolare (inline-JS Bulma style) -->
+                                    <div id="container-nuovo-gruppo" class="field mt-2 {if !isset($smarty.post.nuovo_gruppo_nome) || $smarty.post.nuovo_gruppo_nome == ''}is-hidden{/if}">
+                                        <div class="control has-icons-left">
+                                            <input class="input" type="text" name="nuovo_gruppo_nome" id="nuovo-gruppo-nome" placeholder="Inserisci nome gruppo" value="{if isset($smarty.post.nuovo_gruppo_nome)}{$smarty.post.nuovo_gruppo_nome|escape}{/if}">
+                                            <span class="icon is-small is-left">
+                                                <i class="fas fa-plus"></i>
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

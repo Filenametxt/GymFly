@@ -92,6 +92,8 @@
 
         <!-- Voci destinate solo al Cliente -->
         {if isset($smarty.session.ruolo_utente) && $smarty.session.ruolo_utente === 'cliente'}
+            <hr style="background-color: var(--gymfly-primary); height: 1px; margin: 1rem 0;">
+            
             <a href="visualizza-scheda" class="sidebar-menu-link">
                 <i class="fas fa-dumbbell"></i>
                 <span>La mia Scheda</span>

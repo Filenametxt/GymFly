@@ -25,7 +25,7 @@ class Esercizio
     private Collection $gruppiMuscolari;
 
     // Contenuto binario (BLOB) dell'immagine (gif/png/jpg)
-    private ?string $immagine = null;
+    private $immagine = null;
 
     public function __construct(
         ?string $nomeEsercizio,
@@ -81,6 +81,10 @@ class Esercizio
 
     public function getImmagine(): ?string
     {
+        if (is_resource($this->immagine)) {
+            rewind($this->immagine);
+            return stream_get_contents($this->immagine);
+        }
         return $this->immagine;
     }
 

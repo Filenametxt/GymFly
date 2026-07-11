@@ -55,16 +55,14 @@ class ReportController
         // Carica tutti i clienti della palestra
         $clienti = $this->entityManager->getRepository(Cliente::class)->findBy(['palestra' => $palestra]);
 
-        // 1. Tipologia Abbonamento (Attivi nel mese/anno selezionato)
+        // 1. Tipologia Abbonamento (Iniziati nel mese/anno selezionato)
         $abbonamentiDati = [];
         
         foreach ($clienti as $cliente) {
             $abb = $cliente->getAbbonamento();
             if ($abb) {
                 $start = $abb->getDataInizio();
-                $end = $abb->getDataFine();
-                // Verifica sovrapposizione temporale
-                if ($start <= $fineDelMese && ($end === null || $end >= $primoDelMese)) {
+                if ((int)$start->format('n') === $meseSelezionato && (int)$start->format('Y') === $annoSelezionato) {
                     $tipoObj = $abb->getAbbonamento();
                     if ($tipoObj) {
                         $tipologiaName = $tipoObj->getTipologia();
