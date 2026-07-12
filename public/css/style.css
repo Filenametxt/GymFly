@@ -97,7 +97,10 @@ code {
     background: var(--gymfly-header-gradient) !important;
     color: white !important;
     border-radius: 20px !important;
-    padding: 2.5rem !important;
+    height: 180px !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 0 2.5rem !important;
     margin-bottom: 2rem !important;
     box-shadow: 0 10px 20px rgba(175, 175, 226, 0.2) !important;
 }
@@ -106,7 +109,10 @@ code {
     background: var(--gymfly-header-gradient-admin) !important;
     color: white !important;
     border-radius: 20px !important;
-    padding: 2.5rem !important;
+    height: 180px !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 0 2.5rem !important;
     margin-bottom: 2rem !important;
     box-shadow: 0 10px 20px rgba(175, 175, 226, 0.2) !important;
 }
@@ -115,9 +121,16 @@ code {
     background: linear-gradient(135deg, var(--gymfly-secondary) 0%, var(--gymfly-accent) 100%) !important;
     color: white !important;
     border-radius: 20px !important;
-    padding: 2.5rem !important;
+    height: 180px !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 0 2.5rem !important;
     margin-bottom: 2rem !important;
     box-shadow: 0 10px 20px rgba(153, 205, 234, 0.2) !important;
+}
+
+.dashboard-header .columns, .dashboard-header-admin .columns, .dashboard-header-trainer .columns {
+    width: 100% !important;
 }
 
 /* Elementi di Contenuto (Cards e Boxes) */

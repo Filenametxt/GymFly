@@ -128,5 +128,59 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.setAttribute('href', 'visualizza-scheda');
         }
     });
+
+    // Uniforma l'altezza e la centratura di tutte le card dei titoli (solo su schermi non-mobile)
+    if (window.innerWidth >= 769) {
+        const headers = document.querySelectorAll('[class*="dashboard-header"]');
+        headers.forEach(h => {
+            h.style.setProperty('height', '180px', 'important');
+            h.style.setProperty('display', 'flex', 'important');
+            h.style.setProperty('align-items', 'center', 'important');
+            h.style.setProperty('padding', '0 2.5rem', 'important');
+            
+            const cols = h.querySelector('.columns');
+            if (cols) {
+                cols.style.setProperty('width', '100%', 'important');
+            }
+        });
+    }
+
+    // Rileva la pagina corrente per evidenziare il pulsante attivo nella sidebar
+    const currentPath = window.location.pathname;
+    const links = document.querySelectorAll('.app-sidebar .sidebar-menu-link');
+    links.forEach(link => {
+        const href = link.getAttribute('href');
+        if (!href) return;
+        
+        // Verifica se l'URL termina con l'href del link
+        if (currentPath.endsWith('/' + href) || currentPath.endsWith(href)) {
+            link.classList.add('is-active');
+        } else {
+            // Gestione dei sottomenu e delle pagine collegate
+            if (href === 'profilo' && (
+                currentPath.includes('modifica-anagrafica') || 
+                currentPath.includes('aggiorna-misure') || 
+                currentPath.includes('inserisci-misure') || 
+                currentPath.includes('carica-certificato') || 
+                currentPath.includes('cambia-password') || 
+                currentPath.includes('visualizza-grafico')
+            )) {
+                link.classList.add('is-active');
+            }
+            if (href === 'visualizza-scheda' && (
+                currentPath.includes('modifica-dettagli') || 
+                currentPath.includes('modifica-scheda') || 
+                currentPath.includes('crea-scheda')
+            )) {
+                link.classList.add('is-active');
+            }
+            if (href === 'clienti' && (
+                currentPath.includes('crea-cliente') || 
+                currentPath.includes('gestione-abbonamento')
+            )) {
+                link.classList.add('is-active');
+            }
+        }
+    });
 });
 </script>
