@@ -17,8 +17,8 @@
                 <div class="columns is-centered">
                     <div class="column is-six-fifths-tablet is-half-desktop">
                         
-                        <div class="mb-5">
-                            <a href="profilo{if $smarty.session.ruolo_utente !== 'cliente'}?id={$utente->getId()}{/if}" class="button is-ghost has-text-grey">
+                        <div class="mb-5 has-text-left">
+                            <a href="profilo{if $smarty.session.ruolo_utente !== 'cliente'}?id={$utente->getId()}{/if}" class="button is-ghost has-text-grey pl-0">
                                 <span class="icon"><i class="fas fa-arrow-left"></i></span>
                                 <span>Torna al Profilo</span>
                             </a>

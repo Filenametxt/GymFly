@@ -138,15 +138,37 @@
                 <strong class="is-size-4 style-theme-text" style="letter-spacing: 1px; flex-grow: 1;">CALENDARIO</strong>
             </div>
 
-            <!-- ACTION TOOLBAR (Pianifica Sessione Privata) -->
-            {if $ruolo_utente === 'allenatore'}
-            <div class="mb-5">
-                <a href="calendario?nuova_sessione=1" class="button is-gymfly" title="Pianifica Sessione Privata" style="border-radius: 10px;">
-                    <span class="icon"><i class="fas fa-calendar-plus"></i></span>
-                    <span>Pianifica Sessione Privata</span>
-                </a>
+            <!-- ACTION & NAVIGATION TOOLBAR -->
+            <div class="is-flex is-justify-content-between is-align-items-center mb-5 is-flex-wrap-wrap" style="gap: 12px;">
+                <!-- Bottone azione (solo allenatore) -->
+                <div>
+                    {if $ruolo_utente === 'allenatore'}
+                        <a href="calendario?nuova_sessione=1&data={$dataCorrente}" class="button is-gymfly" title="Pianifica Sessione Privata" style="border-radius: 10px;">
+                            <span class="icon"><i class="fas fa-calendar-plus"></i></span>
+                            <span>Pianifica Sessione Privata</span>
+                        </a>
+                    {/if}
+                </div>
+
+                <!-- Navigazione Settimana -->
+                <div class="is-flex is-align-items-center is-flex-wrap-wrap" style="gap: 15px; margin-left: auto;">
+                    <span class="is-size-4 has-text-weight-bold style-theme-text mr-2" style="letter-spacing: 0.5px;">
+                        {$meseAnno}
+                    </span>
+                    
+                    <div class="buttons has-addons mb-0">
+                        <a href="calendario?data={$dataPrecedente}" class="button is-light" title="Settimana Precedente">
+                            <span class="icon"><i class="fas fa-chevron-left"></i></span>
+                        </a>
+                        <a href="calendario" class="button is-light font-weight-bold" title="Settimana Corrente">
+                            Oggi
+                        </a>
+                        <a href="calendario?data={$dataSuccessiva}" class="button is-light" title="Settimana Successiva">
+                            <span class="icon"><i class="fas fa-chevron-right"></i></span>
+                        </a>
+                    </div>
+                </div>
             </div>
-            {/if}
 
             <!-- CONTROLLO REQUISITI CLIENTE -->
             {if $ruolo_utente === 'cliente'}
@@ -189,9 +211,9 @@
                                             <td>
                                                 {if isset($grid[$ora][$giorno])}
                                                     {foreach from=$grid[$ora][$giorno] item=item}
-                                                        {if $item->isPrivate}
+                                                        {if $item instanceof \App\Entity\SessionePrivata}
                                                             <!-- Sessione Privata (Gialla/Rossa) -->
-                                                            <a href="calendario?sel_allenatore={$item->getAllenatore()->getId()}&sel_ora_inizio={$item->getOraInizio()->format('H:i:s')}&sel_ora_fine={$item->getOraFine()->format('H:i:s')}" class="sp-block {if $selectedSp && $selectedSp->getAllenatore()->getId() === $item->getAllenatore()->getId() && $selectedSp->getOraInizio()->format('H:i:s') === $item->getOraInizio()->format('H:i:s')}is-selected{/if}">
+                                                            <a href="calendario?sel_allenatore={$item->getAllenatore()->getId()}&sel_ora_inizio={$item->getOraInizio()->format('H:i:s')}&sel_ora_fine={$item->getOraFine()->format('H:i:s')}&data={$dataCorrente}" class="sp-block {if $selectedSp && $selectedSp->getAllenatore()->getId() === $item->getAllenatore()->getId() && $selectedSp->getOraInizio()->format('H:i:s') === $item->getOraInizio()->format('H:i:s')}is-selected{/if}">
                                                                 <div class="has-text-weight-bold"><i class="fas fa-lock mr-1"></i>Sessione Privata</div>
                                                                 {if $ruolo_utente === 'cliente'}
                                                                     <div class="is-size-7">Coach: {$item->getAllenatore()->getNome()}</div>
@@ -201,7 +223,7 @@
                                                             </a>
                                                         {else}
                                                             <!-- Attività Pianificata (Blu) -->
-                                                            <a href="calendario?id_ap={$item->getId()}" class="ap-block {if $selectedAp && $selectedAp->getId() === $item->getId()}is-selected{/if}">
+                                                            <a href="calendario?id_ap={$item->getId()}&data={$dataCorrente}" class="ap-block {if $selectedAp && $selectedAp->getId() === $item->getId()}is-selected{/if}">
                                                                 <div class="has-text-weight-bold">{$item->getAttivita()->getNome()}</div>
                                                                 <div class="is-size-7">Sala: {$item->getSala()->getNome()}</div>
                                                                 <div class="is-size-7">PT: {$item->getAllenatore()->getNome()}</div>
@@ -228,7 +250,7 @@
                             {if $selectedAp}
                                 <div class="is-flex is-justify-content-between is-align-items-center mb-4">
                                     <h2 class="title is-4 mb-0 style-theme-text">Dettaglio Corso</h2>
-                                    <a href="calendario" class="delete is-medium" title="Chiudi dettaglio" style="margin-left: auto;"></a>
+                                    <a href="calendario?data={$dataCorrente}" class="delete is-medium" title="Chiudi dettaglio" style="margin-left: auto;"></a>
                                 </div>
 
                                 <div class="box mb-4" style="background-color: rgba(175, 175, 226, 0.05); border: 1px solid var(--gymfly-primary);">
@@ -275,7 +297,7 @@
                             {elseif $selectedSp}
                                 <div class="is-flex is-justify-content-between is-align-items-center mb-4">
                                      <h2 class="title is-4 mb-0 style-theme-text" style="color: #e65100;">Sessione Privata</h2>
-                                    <a href="calendario" class="delete is-medium" title="Chiudi dettaglio" style="margin-left: auto;"></a>
+                                    <a href="calendario?data={$dataCorrente}" class="delete is-medium" title="Chiudi dettaglio" style="margin-left: auto;"></a>
                                 </div>
 
                                  <div class="box mb-4" style="background-color: rgba(230, 81, 0, 0.04); border: 1px solid #e65100; border-radius: 10px;">
@@ -300,7 +322,7 @@
                             {elseif $nuova_sessione}
                                 <div class="is-flex is-justify-content-between is-align-items-center mb-4">
                                      <h2 class="title is-4 mb-0 style-theme-text" style="color: #e65100;">Pianifica Sessione</h2>
-                                    <a href="calendario" class="delete is-medium" title="Chiudi inserimento" style="margin-left: auto;"></a>
+                                    <a href="calendario?data={$dataCorrente}" class="delete is-medium" title="Chiudi inserimento" style="margin-left: auto;"></a>
                                 </div>
 
                                 <form action="prenota-sessione-privata" method="POST">
