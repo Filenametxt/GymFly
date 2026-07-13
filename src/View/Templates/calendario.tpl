@@ -151,7 +151,7 @@
                 </div>
 
                 <!-- Navigazione Settimana -->
-                <div class="is-flex is-align-items-center is-flex-wrap-wrap" style="gap: 15px; margin-left: auto;">
+                <div class="is-flex is-align-items-center calendar-nav-container" style="gap: 15px; margin-left: auto;">
                     <span class="is-size-4 has-text-weight-bold style-theme-text mr-2" style="letter-spacing: 0.5px;">
                         {$meseAnno}
                     </span>
@@ -243,7 +243,7 @@
 
                 <!-- COLONNA DETTAGLIO PLANNER SIDEBAR (Se selezionato un corso o una sessione privata o nuova sessione) -->
                 {if $selectedAp || $selectedSp || $nuova_sessione}
-                    <div class="column is-4">
+                    <div class="column is-4 calendar-details-panel">
                         <div class="card p-5" style="border: 2px solid var(--gymfly-primary); background-color: var(--gymfly-card-bg); height: 100%;">
                             
                             <!-- DETTAGLIO ATTIVITÀ PIANIFICATA -->

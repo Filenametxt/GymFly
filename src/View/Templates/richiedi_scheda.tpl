@@ -24,7 +24,7 @@
                     {assign var="headerClass" value="dashboard-header-trainer"}
                 {/if}
             {/if}
-            <div class="{$headerClass} is-hidden-mobile">
+            <div class="{$headerClass}">
                 <div class="columns is-vcentered">
                     <div class="column">
                         <h1 class="title is-2 has-text-white mb-2">
@@ -40,12 +40,6 @@
                         </span>
                     </div>
                 </div>
-            </div>
-
-            <!-- ================= MOBILE HEADER ================= -->
-            <div class="is-flex is-align-items-center mb-5 is-hidden-tablet" style="padding-top: 5px;">
-                <div style="width: 45px;"></div>
-                <strong class="is-size-4 style-theme-text" style="letter-spacing: 1px;">RICHIESTA SCHEDA</strong>
             </div>
 
             <!-- FORM PRINCIPALE -->
