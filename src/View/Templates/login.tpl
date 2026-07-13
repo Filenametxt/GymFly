@@ -78,18 +78,11 @@
                                     </div>
                                 </div>
 
-                                <div class="level mt-6">
-                                    <div class="level-left">
-                                        <div class="level-item">
-                                            <a href="#" class="is-size-7 has-text-grey-dark">Forgot password?</a>
-                                        </div>
-                                    </div>
-                                    <div class="level-right">
-                                        <div class="level-item">
-                                            <button type="submit" class="button is-gymfly px-5">
-                                                LOGIN
-                                            </button>
-                                        </div>
+                                <div class="level mt-6 is-justify-content-flex-end">
+                                    <div class="level-item">
+                                        <button type="submit" class="button is-gymfly px-5">
+                                            LOGIN
+                                        </button>
                                     </div>
                                 </div>
 
