@@ -57,7 +57,13 @@
 
         <a href="calendario" class="sidebar-menu-link">
             <i class="fas fa-calendar-alt"></i>
-            <span>Calendario Corsi</span>
+            <span>
+                {if isset($smarty.session.ruolo_utente) && $smarty.session.ruolo_utente === 'amministratore'}
+                    Weekly Planner
+                {else}
+                    Calendario Corsi
+                {/if}
+            </span>
         </a>
 
         <!-- Voci destinate solo ad Allenatori e Amministratori -->
