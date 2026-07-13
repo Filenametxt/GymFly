@@ -96,7 +96,7 @@
                 <div class="box mt-5">
                     <h3 class="title is-5 style-theme-text mb-3">Descrizione / Dettagli</h3>
                     <div class="control">
-                        <textarea class="textarea" name="descrizione" required placeholder="Fornisci una breve descrizione delle finalità e svolgimento del corso..." rows="5"></textarea>
+                        <textarea class="textarea" name="descrizione" required placeholder="Fornisci una breve descrizione delle finalità e svolgimento dell'attività..." rows="5"></textarea>
                     </div>
                 </div>
 

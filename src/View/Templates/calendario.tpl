@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="light">
-    <title>GymFly - Calendario Corsi</title>
+    <title>GymFly - Calendario Attività</title>
     <link rel="stylesheet" href="css/bulma.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
@@ -118,10 +118,10 @@
                 <div class="columns is-vcentered">
                     <div class="column">
                         <h1 class="title is-2 has-text-white mb-2">
-                            Calendario Corsi
+                            Calendario Attività
                         </h1>
                         <p class="subtitle is-5 has-text-white-ter">
-                            Esplora la programmazione settimanale, iscriviti ai corsi o gestisci le tue sessioni private
+                            Esplora la programmazione settimanale, iscriviti alle attività o gestisci le tue sessioni private
                         </p>
                     </div>
                     <div class="column is-narrow">
@@ -176,7 +176,7 @@
                     <div class="notification is-danger is-light mb-5">
                         <span class="icon"><i class="fas fa-exclamation-triangle"></i></span>
                         <strong>Attenzione:</strong>
-                        Non puoi prenotare corsi. Assicurati che l'iscrizione annuale sia valida, che l'abbonamento sia attivo e che il certificato medico non sia scaduto.
+                        Non puoi prenotare attività. Assicurati che l'iscrizione annuale sia valida, che l'abbonamento sia attivo e che il certificato medico non sia scaduto.
                     </div>
                 {/if}
             {/if}
@@ -241,7 +241,7 @@
                     </div>
                 </div>
 
-                <!-- COLONNA DETTAGLIO PLANNER SIDEBAR (Se selezionato un corso o una sessione privata o nuova sessione) -->
+                <!-- COLONNA DETTAGLIO PLANNER SIDEBAR (Se selezionata un'attività o una sessione privata o nuova sessione) -->
                 {if $selectedAp || $selectedSp || $nuova_sessione}
                     <div class="column is-4 calendar-details-panel">
                         <div class="card p-5" style="border: 2px solid var(--gymfly-primary); background-color: var(--gymfly-card-bg); height: 100%;">
@@ -249,7 +249,7 @@
                             <!-- DETTAGLIO ATTIVITÀ PIANIFICATA -->
                             {if $selectedAp}
                                 <div class="is-flex is-justify-content-between is-align-items-center mb-4">
-                                    <h2 class="title is-4 mb-0 style-theme-text">Dettaglio Corso</h2>
+                                    <h2 class="title is-4 mb-0 style-theme-text">Dettaglio Attività</h2>
                                     <a href="calendario?data={$dataCorrente}" class="delete is-medium" title="Chiudi dettaglio" style="margin-left: auto;"></a>
                                 </div>
 
@@ -287,7 +287,7 @@
                                         {else}
                                             <a href="prenota-attivita?id_attivita_pianificata={$selectedAp->getId()}" class="button is-gymfly is-fullwidth" {if isset($puoPrenotare) && !$puoPrenotare}disabled onclick="return false;"{/if}>
                                                 <span class="icon"><i class="fas fa-calendar-check"></i></span>
-                                                <span>Iscriviti al corso</span>
+                                                <span>Iscriviti all'attività</span>
                                             </a>
                                         {/if}
                                     </div>

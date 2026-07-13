@@ -50,7 +50,7 @@
                         <span class="icon is-large mb-2">
                             <i class="fas fa-dumbbell fa-2x" style="color: #AFAFE2 !important;"></i>
                         </span>
-                        <h3 class="title is-4 mb-1">Attivà</h3>
+                        <h3 class="title is-4 mb-1">Attiva</h3>
                         <p class="heading has-text-grey">Stato Palestra</p>
                     </div>
                 </div>

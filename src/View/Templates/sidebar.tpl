@@ -69,7 +69,7 @@
                 {if isset($smarty.session.ruolo_utente) && $smarty.session.ruolo_utente === 'amministratore'}
                     Weekly Planner
                 {else}
-                    Calendario Corsi
+                    Calendario Attività
                 {/if}
             </span>
         </a>
