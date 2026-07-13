@@ -2,6 +2,8 @@
 namespace App\Control;
 
 use App\View\Interface\VisualizzazioneView;
+use App\View\VisualizzazioneViewSmarty;
+use App\Foundation\Persistence\Repository\DoctrineParametriRepository;
 use App\Foundation\Session;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Amministratore;
@@ -23,7 +25,7 @@ class VisualizzazioneController
         private EntityManagerInterface $entityManager,
         private Session $session
     ) {
-        $this->view = new \App\View\VisualizzazioneViewSmarty();
+        $this->view = new VisualizzazioneViewSmarty();
     }
 
     /**
@@ -311,7 +313,7 @@ class VisualizzazioneController
             exit;
         }
         
-        $parametriRepo = new \App\Foundation\Persistence\Repository\DoctrineParametriRepository($this->entityManager);
+        $parametriRepo = new DoctrineParametriRepository($this->entityManager);
         $ultimaMisure = $parametriRepo->findUltimaByCliente($cliente);
 
         $oggi = new \DateTimeImmutable('today');

@@ -4,7 +4,11 @@ namespace App\Control;
 use App\Entity\Repository\ClienteRepositoryInterface;
 use App\Entity\Repository\AllenatoreRepositoryInterface;
 use App\Entity\Repository\AttivitaRepositoryInterface;
+use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
+use App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository;
+use App\Foundation\Persistence\Repository\DoctrineAttivitaRepository;
 use App\View\Interface\AmministratoreView;
+use App\View\AmministratoreViewSmarty;
 use App\Foundation\Session;
 use App\Enum\Sesso;
 use App\Entity\Amministratore;
@@ -26,10 +30,10 @@ class AmministratoreController
         private EntityManagerInterface $entityManager,
         private Session $session
     ) {
-        $this->clienteRepo = new \App\Foundation\Persistence\Repository\DoctrineClienteRepository($this->entityManager);
-        $this->allenatoreRepo = new \App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository($this->entityManager);
-        $this->attivitaRepo = new \App\Foundation\Persistence\Repository\DoctrineAttivitaRepository($this->entityManager);
-        $this->view = new \App\View\AmministratoreViewSmarty();
+        $this->clienteRepo = new DoctrineClienteRepository($this->entityManager);
+        $this->allenatoreRepo = new DoctrineAllenatoreRepository($this->entityManager);
+        $this->attivitaRepo = new DoctrineAttivitaRepository($this->entityManager);
+        $this->view = new AmministratoreViewSmarty();
     }
 
     /**

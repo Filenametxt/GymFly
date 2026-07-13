@@ -10,7 +10,12 @@ use App\Entity\Esercizio;
 use App\Entity\Messaggio;
 use App\Entity\Parametri;
 use App\Entity\Repository\SchedaRepositoryInterface;
+use App\Foundation\Persistence\Repository\DoctrineSchedaRepository;
 use App\View\Interface\SchedaAllenamentoView;
+use App\View\SchedaAllenamentoViewSmarty;
+use App\Entity\ProgressoCarico;
+use App\Entity\ProgressoRipetizioni;
+use App\Entity\ProgressoDurata;
 use App\Foundation\Session;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -23,8 +28,8 @@ class SchedaAllenamentoController
         private EntityManagerInterface $entityManager,
         private Session $session
     ) {
-        $this->schedaRepo = new \App\Foundation\Persistence\Repository\DoctrineSchedaRepository($this->entityManager);
-        $this->view = new \App\View\SchedaAllenamentoViewSmarty();
+        $this->schedaRepo = new DoctrineSchedaRepository($this->entityManager);
+        $this->view = new SchedaAllenamentoViewSmarty();
     }
 
     /**
@@ -630,17 +635,17 @@ class SchedaAllenamentoController
 
                 // Salvataggio dei progressi storici se i valori cambiano
                 if ($carico !== $oldCarico && $carico > 0) {
-                    $progCarico = new \App\Entity\ProgressoCarico($oggi, $cliente, $dettaglio->getEsercizio(), $carico);
+                    $progCarico = new ProgressoCarico($oggi, $cliente, $dettaglio->getEsercizio(), $carico);
                     $this->entityManager->persist($progCarico);
                 }
                 if ($ripetizioni !== $oldReps && $ripetizioni !== null && $ripetizioni > 0) {
-                    $progReps = new \App\Entity\ProgressoRipetizioni($oggi, $cliente, $dettaglio->getEsercizio(), (float)$ripetizioni);
+                    $progReps = new ProgressoRipetizioni($oggi, $cliente, $dettaglio->getEsercizio(), (float)$ripetizioni);
                     $this->entityManager->persist($progReps);
                 }
                 if ($tempo !== $oldTempo && $tempo !== null) {
                     $durataVal = (float)$tempo;
                     if ($durataVal > 0) {
-                        $progDurata = new \App\Entity\ProgressoDurata($oggi, $cliente, $dettaglio->getEsercizio(), $durataVal);
+                        $progDurata = new ProgressoDurata($oggi, $cliente, $dettaglio->getEsercizio(), $durataVal);
                         $this->entityManager->persist($progDurata);
                     }
                 }

@@ -5,7 +5,11 @@ namespace App\Control;
 use App\Entity\Repository\ClienteRepositoryInterface;
 use App\Entity\Repository\ParametriRepositoryInterface;
 use App\Entity\Repository\CertificatoMedicoRepositoryInterface;
+use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
+use App\Foundation\Persistence\Repository\DoctrineParametriRepository;
+use App\Foundation\Persistence\Repository\DoctrineCertificatoMedicoRepository;
 use App\View\Interface\ProfiloView;
+use App\View\ProfiloViewSmarty;
 use App\Foundation\Session;
 use App\Entity\Parametri;
 use App\Entity\CertificatoMedico;
@@ -15,6 +19,7 @@ use App\Entity\Palestra;
 use App\Entity\Allenatore;
 use App\Entity\Utente;
 use App\Entity\Cliente;
+use Doctrine\ORM\EntityManagerInterface;
 
 class ProfiloController 
 {
@@ -22,17 +27,17 @@ class ProfiloController
     private ParametriRepositoryInterface $parametriRepo;
     private CertificatoMedicoRepositoryInterface $certificatoRepo;
     private ProfiloView $view;
-    private \Doctrine\ORM\EntityManagerInterface $entityManager;
+    private EntityManagerInterface $entityManager;
 
     public function __construct(
-        \Doctrine\ORM\EntityManagerInterface $entityManager,
+        EntityManagerInterface $entityManager,
         private Session $session
     ) {
         $this->entityManager = $entityManager;
-        $this->clienteRepo = new \App\Foundation\Persistence\Repository\DoctrineClienteRepository($this->entityManager);
-        $this->parametriRepo = new \App\Foundation\Persistence\Repository\DoctrineParametriRepository($this->entityManager);
-        $this->certificatoRepo = new \App\Foundation\Persistence\Repository\DoctrineCertificatoMedicoRepository($this->entityManager);
-        $this->view = new \App\View\ProfiloViewSmarty();
+        $this->clienteRepo = new DoctrineClienteRepository($this->entityManager);
+        $this->parametriRepo = new DoctrineParametriRepository($this->entityManager);
+        $this->certificatoRepo = new DoctrineCertificatoMedicoRepository($this->entityManager);
+        $this->view = new ProfiloViewSmarty();
     }
 
     /**

@@ -8,6 +8,13 @@ use App\Entity\Repository\SessionePrivataRepositoryInterface;
 use App\Entity\Repository\SalaRepositoryInterface;
 use App\Entity\Repository\AttivitaRepositoryInterface;
 use App\Entity\Repository\AllenatoreRepositoryInterface;
+use App\Foundation\Persistence\Repository\DoctrineAttivitaPianificataRepository;
+use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
+use App\Foundation\Persistence\Repository\DoctrineSessionePrivataRepository;
+use App\Foundation\Persistence\Repository\DoctrineSalaRepository;
+use App\Foundation\Persistence\Repository\DoctrineAttivitaRepository;
+use App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository;
+use App\Foundation\Persistence\Type\DateTimeImmutableStringable;
 use App\Entity\AttivitaPianificata;
 use App\Entity\SessionePrivata;
 use App\Entity\Cliente;
@@ -19,6 +26,7 @@ use App\Entity\Sala;
 use App\Entity\CodaAttesa;
 use App\Entity\Messaggio;
 use App\View\Interface\AttivitaPianificataView;
+use App\View\AttivitaPianificataViewSmarty;
 use App\Foundation\Session;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -36,13 +44,13 @@ class AttivitaPianificataController
         private EntityManagerInterface $entityManager,
         private Session $session
     ) {
-        $this->attivitaPianificataRepo = new \App\Foundation\Persistence\Repository\DoctrineAttivitaPianificataRepository($this->entityManager);
-        $this->clienteRepo = new \App\Foundation\Persistence\Repository\DoctrineClienteRepository($this->entityManager);
-        $this->sessionePrivataRepo = new \App\Foundation\Persistence\Repository\DoctrineSessionePrivataRepository($this->entityManager);
-        $this->salaRepo = new \App\Foundation\Persistence\Repository\DoctrineSalaRepository($this->entityManager);
-        $this->attivitaRepo = new \App\Foundation\Persistence\Repository\DoctrineAttivitaRepository($this->entityManager);
-        $this->allenatoreRepo = new \App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository($this->entityManager);
-        $this->view = new \App\View\AttivitaPianificataViewSmarty();
+        $this->attivitaPianificataRepo = new DoctrineAttivitaPianificataRepository($this->entityManager);
+        $this->clienteRepo = new DoctrineClienteRepository($this->entityManager);
+        $this->sessionePrivataRepo = new DoctrineSessionePrivataRepository($this->entityManager);
+        $this->salaRepo = new DoctrineSalaRepository($this->entityManager);
+        $this->attivitaRepo = new DoctrineAttivitaRepository($this->entityManager);
+        $this->allenatoreRepo = new DoctrineAllenatoreRepository($this->entityManager);
+        $this->view = new AttivitaPianificataViewSmarty();
     }
 
     /**
@@ -225,8 +233,8 @@ class AttivitaPianificataController
             $selAllenatore = $this->entityManager->find(Allenatore::class, $selAllenatoreId);
             if ($selAllenatore) {
                 try {
-                    $oraInizioObj = new \App\Foundation\Persistence\Type\DateTimeImmutableStringable($selOraInizio);
-                    $oraFineObj = new \App\Foundation\Persistence\Type\DateTimeImmutableStringable($selOraFine);
+                    $oraInizioObj = new DateTimeImmutableStringable($selOraInizio);
+                    $oraFineObj = new DateTimeImmutableStringable($selOraFine);
                     $selectedSp = $this->sessionePrivataRepo->findByChiave($selAllenatore, $oraInizioObj, $oraFineObj);
                     
                     // Controllo accessi per la sessione privata caricata
@@ -739,8 +747,8 @@ class AttivitaPianificataController
 
         try {
             $dataObj = new \DateTimeImmutable($dataStr);
-            $oraInizioObj = new \App\Foundation\Persistence\Type\DateTimeImmutableStringable($dataStr . ' ' . $oraInizioStr);
-            $oraFineObj = new \App\Foundation\Persistence\Type\DateTimeImmutableStringable($dataStr . ' ' . $oraFineStr);
+            $oraInizioObj = new DateTimeImmutableStringable($dataStr . ' ' . $oraInizioStr);
+            $oraFineObj = new DateTimeImmutableStringable($dataStr . ' ' . $oraFineStr);
 
             if ($oraInizioObj >= $oraFineObj) {
                 $this->view->mostraStatoOperazione(false, "L'ora di inizio deve essere precedente all'ora di fine.");
@@ -799,8 +807,8 @@ class AttivitaPianificataController
         }
 
         try {
-            $oraInizioObj = new \App\Foundation\Persistence\Type\DateTimeImmutableStringable($oraInizioStr);
-            $oraFineObj = new \App\Foundation\Persistence\Type\DateTimeImmutableStringable($oraFineStr);
+            $oraInizioObj = new DateTimeImmutableStringable($oraInizioStr);
+            $oraFineObj = new DateTimeImmutableStringable($oraFineStr);
 
             $sessione = $this->sessionePrivataRepo->findByChiave($allenatore, $oraInizioObj, $oraFineObj);
             if (!$sessione) {

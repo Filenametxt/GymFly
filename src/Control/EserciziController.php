@@ -7,7 +7,9 @@ use App\Entity\Attrezzatura;
 use App\Entity\Tipologia;
 use App\Entity\Allenatore;
 use App\Entity\Repository\EsercizioRepositoryInterface;
+use App\Foundation\Persistence\Repository\DoctrineEsercizioRepository;
 use App\View\Interface\EserciziView;
+use App\View\EserciziViewSmarty;
 use App\Foundation\Session;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -20,8 +22,8 @@ class EserciziController
         private EntityManagerInterface $entityManager,
         private Session $session
     ) {
-        $this->esercizioRepo = new \App\Foundation\Persistence\Repository\DoctrineEsercizioRepository($this->entityManager);
-        $this->view = new \App\View\EserciziViewSmarty();
+        $this->esercizioRepo = new DoctrineEsercizioRepository($this->entityManager);
+        $this->view = new EserciziViewSmarty();
     }
 
     /**

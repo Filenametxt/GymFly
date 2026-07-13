@@ -2,6 +2,7 @@
 namespace App\Control;
 
 use App\View\Interface\AutenticazioneView;
+use App\View\AutenticazioneViewSmarty;
 use App\Foundation\Session;
 use App\Enum\Sesso;
 use App\Entity\Amministratore;
