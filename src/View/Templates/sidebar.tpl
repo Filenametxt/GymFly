@@ -18,6 +18,14 @@
     =============================================================================
 *}
 
+<!-- STYLE OVERRIDE PER IL BUG DEI TESTI BIANCHI NEI TAG STRONG -->
+<style>
+    /* Risolve il bug globale di style.css che forza a bianco tutti i tag strong */
+    strong {
+        color: inherit !important;
+    }
+</style>
+
 <!-- STATO SIDEBAR IN PURO CSS (SENZA JAVASCRIPT) -->
 <input type="checkbox" id="sidebar-toggle-checkbox" class="sidebar-checkbox-state" style="display: none;">
 
@@ -29,7 +37,7 @@
 <aside class="app-sidebar">
     <!-- LOGO / BRANDING -->
     <div class="has-text-centered mb-6 mt-6">
-        <strong class="is-size-3" style="color: #AFAFE2;">GymFly 🏋️‍♂️</strong>
+        <strong class="is-size-3" style="color: var(--gymfly-text) !important;">GymFly 🏋️‍♂️</strong>
     </div>
 
     <!-- LINK DI NAVIGAZIONE -->
