@@ -48,6 +48,10 @@ html, body {
     color: var(--gymfly-text) !important;
 }
 
+strong {
+    color: #FFFFFF !important;
+}
+
 /* Stili Globali per Input, Select e Textarea (Forzano lo sfondo panna/chiaro e prevengono il nero del dark mode) */
 .input, .textarea, .select select, select {
     background-color: var(--gymfly-bg) !important;
@@ -395,10 +399,6 @@ code {
 
     .title, .subtitle, .label, p, span, div:not(.navbar-burger), th, td, h1, h2, h3, h4, h5, h6 {
         color: var(--gymfly-text) !important;
-    }
-
-    strong {
-        color: #FFFFFF !important;
     }
 
     /* Manteniamo bianchi i testi all'interno delle intestazioni sfumate (dashboard) */
