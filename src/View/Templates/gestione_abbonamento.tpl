@@ -99,7 +99,7 @@
                                 <form action="gestione-abbonamento?id={$cliente->getId()}" method="POST">
                                     <input type="hidden" name="azione" value="crea_tipologia">
                                     <div class="field">
-                                        <label class="label">Nome Tipologia (es. Open, Corsi)</label>
+                                        <label class="label">Nome Tipologia (es. Open, Attività)</label>
                                         <div class="control">
                                             <input class="input" type="text" name="nuova_tipologia" required placeholder="es: Open">
                                         </div>

@@ -19,7 +19,6 @@
             <div class="dashboard-header-trainer">
                 <div class="columns is-vcentered is-mobile">
                     <div class="column">
-                        <strong class="is-size-6 has-text-white-ter" style="letter-spacing: 1px; text-transform: uppercase;">Allenatore - Home</strong>
                         <h1 class="title is-2 has-text-white mt-1 mb-2">Ciao, Coach {$utente->getNome()}!</h1>
                         <p class="subtitle is-5 has-text-white-ter">Prepara nuove schede di allenamento e segui i tuoi atleti</p>
                     </div>

@@ -156,10 +156,10 @@
                     </div>
                 </div>
 
-                <!-- 2. PRENOTAZIONI AI CORSI (HORIZONTAL BAR CHART) -->
+                <!-- 2. PRENOTAZIONI ALLE ATTIVITÀ (HORIZONTAL BAR CHART) -->
                 <div class="column is-6">
                     <div class="report-card">
-                        <h3 class="title is-5 mb-4 style-theme-text">Prenotazioni Corsi ({$mesiNomi[$meseSelezionato]} {$annoSelezionato})</h3>
+                        <h3 class="title is-5 mb-4 style-theme-text">Prenotazione Attività ({$mesiNomi[$meseSelezionato]} {$annoSelezionato})</h3>
                         {if count($prenotazioniCorsi) > 0}
                             <div class="chart-wrapper">
                                 <canvas id="chartCorsi"></canvas>
