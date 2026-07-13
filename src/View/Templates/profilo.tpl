@@ -213,18 +213,29 @@
                                     <span class="icon"><i class="fas fa-edit"></i></span>
                                     <span>Gestisci / Modifica Scheda</span>
                                 </a>
-                                <a href="progressi-cliente?id_cliente={$utente->getId()}" class="button is-small is-link is-fullwidth mb-2">
-                                    <span class="icon"><i class="fas fa-chart-line"></i></span>
-                                    <span>Visualizza Progressi Scheda</span>
-                                </a>
+                                {if $has_progress}
+                                    <a href="progressi-cliente?id_cliente={$utente->getId()}" class="button is-small is-link is-fullwidth mb-2">
+                                        <span class="icon"><i class="fas fa-chart-line"></i></span>
+                                        <span>Visualizza Progressi Scheda</span>
+                                    </a>
+                                {else}
+                                    <button class="button is-small is-fullwidth mb-2" disabled title="Il cliente non ha ancora registrato alcun progresso per questa scheda.">
+                                        <span class="icon"><i class="fas fa-chart-line"></i></span>
+                                        <span>Visualizza Progressi Scheda (Nessun dato)</span>
+                                    </button>
+                                {/if}
                             </div>
                         {else}
                             <p class="is-size-6 mb-3 has-text-grey">Nessuna scheda attiva per questo utente.</p>
                             <div class="buttons">
-                                <a href="crea-scheda?cf={$utente->getCF()}" class="button is-small is-success is-fullwidth">
+                                <a href="crea-scheda?cf={$utente->getCF()}" class="button is-small is-success is-fullwidth mb-2">
                                     <span class="icon"><i class="fas fa-plus"></i></span>
                                     <span>Crea Nuova Scheda</span>
                                 </a>
+                                <button class="button is-small is-fullwidth mb-2" disabled title="Associa prima una scheda attiva per tracciare i progressi.">
+                                    <span class="icon"><i class="fas fa-chart-line"></i></span>
+                                    <span>Visualizza Progressi Scheda</span>
+                                </button>
                             </div>
                         {/if}
                     </div>

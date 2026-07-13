@@ -82,11 +82,16 @@ class ProfiloController
             $ultimoCertificato = ($ruolo === 'allenatore') ? null : $this->certificatoRepo->findByCliente($utente);
             $abbonamento = $utente->getAbbonamento();
             $abbonamentoAttivo = $utente->isAbbonamentoAttivo();
+            
+            // Verifica la presenza di progressi registrati
+            $progressiCount = $entityManager->getRepository(\App\Entity\Progresso::class)->count(['cliente' => $utente]);
+            $hasProgress = ($progressiCount > 0);
         } else {
             $ultimiParametri = null;
             $ultimoCertificato = null;
             $abbonamento = null;
             $abbonamentoAttivo = false;
+            $hasProgress = false;
         }
 
         $attivitaAbilitate = null;
@@ -108,6 +113,7 @@ class ProfiloController
             'utente' => $utente,
             'isClient' => $isClient,
             'isTrainer' => $isTrainer,
+            'has_progress' => $hasProgress,
             'attivitaAbilitate' => $attivitaAbilitate,
             'attivitaNonAbilitate' => $attivitaNonAbilitate,
             'tutteAttivita' => $tutteAttivita,
