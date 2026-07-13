@@ -24,17 +24,26 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class AttivitaPianificataController
 {
+    private AttivitaPianificataRepositoryInterface $attivitaPianificataRepo;
+    private ClienteRepositoryInterface $clienteRepo;
+    private SessionePrivataRepositoryInterface $sessionePrivataRepo;
+    private SalaRepositoryInterface $salaRepo;
+    private AttivitaRepositoryInterface $attivitaRepo;
+    private AllenatoreRepositoryInterface $allenatoreRepo;
+    private AttivitaPianificataView $view;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private AttivitaPianificataRepositoryInterface $attivitaPianificataRepo,
-        private ClienteRepositoryInterface $clienteRepo,
-        private SessionePrivataRepositoryInterface $sessionePrivataRepo,
-        private SalaRepositoryInterface $salaRepo,
-        private AttivitaRepositoryInterface $attivitaRepo,
-        private AllenatoreRepositoryInterface $allenatoreRepo,
-        private AttivitaPianificataView $view,
         private Session $session
-    ) {}
+    ) {
+        $this->attivitaPianificataRepo = new \App\Foundation\Persistence\Repository\DoctrineAttivitaPianificataRepository($this->entityManager);
+        $this->clienteRepo = new \App\Foundation\Persistence\Repository\DoctrineClienteRepository($this->entityManager);
+        $this->sessionePrivataRepo = new \App\Foundation\Persistence\Repository\DoctrineSessionePrivataRepository($this->entityManager);
+        $this->salaRepo = new \App\Foundation\Persistence\Repository\DoctrineSalaRepository($this->entityManager);
+        $this->attivitaRepo = new \App\Foundation\Persistence\Repository\DoctrineAttivitaRepository($this->entityManager);
+        $this->allenatoreRepo = new \App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository($this->entityManager);
+        $this->view = new \App\View\AttivitaPianificataViewSmarty();
+    }
 
     /**
      * Recupera la palestra associata all'utente correntemente loggato.

@@ -12,13 +12,18 @@ use App\Entity\Palestra;
 
 class VisualizzazioneUtentiController 
 {
+    private ClienteRepositoryInterface $clienteRepo;
+    private AllenatoreRepositoryInterface $allenatoreRepo;
+    private VisualizzazioneUtentiView $view;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private ClienteRepositoryInterface $clienteRepo,
-        private AllenatoreRepositoryInterface $allenatoreRepo,
-        private VisualizzazioneUtentiView $view,
         private Session $session
-    ) {}
+    ) {
+        $this->clienteRepo = new \App\Foundation\Persistence\Repository\DoctrineClienteRepository($this->entityManager);
+        $this->allenatoreRepo = new \App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository($this->entityManager);
+        $this->view = new \App\View\VisualizzazioneUtentiViewSmarty();
+    }
 
     public function visualizzaClienti(): void 
     {

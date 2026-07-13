@@ -16,12 +16,16 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class SchedaAllenamentoController
 {
+    private SchedaRepositoryInterface $schedaRepo;
+    private SchedaAllenamentoView $view;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private SchedaRepositoryInterface $schedaRepo,
-        private SchedaAllenamentoView $view,
         private Session $session
-    ) {}
+    ) {
+        $this->schedaRepo = new \App\Foundation\Persistence\Repository\DoctrineSchedaRepository($this->entityManager);
+        $this->view = new \App\View\SchedaAllenamentoViewSmarty();
+    }
 
     /**
      * 1. Richiesta scheda ad allenatore (Caso 31)

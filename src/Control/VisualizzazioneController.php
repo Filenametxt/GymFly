@@ -17,11 +17,14 @@ use App\Entity\Attivita;
 
 class VisualizzazioneController
 {
+    private VisualizzazioneView $view;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private VisualizzazioneView $view,
         private Session $session
-    ) {}
+    ) {
+        $this->view = new \App\View\VisualizzazioneViewSmarty();
+    }
 
     /**
      * Mostra la dashboard dell'amministratore se autorizzato.

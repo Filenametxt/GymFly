@@ -12,13 +12,15 @@ use Doctrine\ORM\EntityManager;
 
 class ReportController
 {
-    private EntityManager $entityManager;
+    private \Doctrine\ORM\EntityManagerInterface $entityManager;
+    private ReportView $view;
 
     public function __construct(
-        private ReportView $view,
+        \Doctrine\ORM\EntityManagerInterface $entityManager,
         private Session $session
     ) {
-        $this->entityManager = EntityManagerFactory::create();
+        $this->entityManager = $entityManager;
+        $this->view = new \App\View\ReportViewSmarty();
     }
 
     /**

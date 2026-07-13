@@ -18,13 +18,22 @@ use App\Entity\Cliente;
 
 class ProfiloController 
 {
+    private ClienteRepositoryInterface $clienteRepo;
+    private ParametriRepositoryInterface $parametriRepo;
+    private CertificatoMedicoRepositoryInterface $certificatoRepo;
+    private ProfiloView $view;
+    private \Doctrine\ORM\EntityManagerInterface $entityManager;
+
     public function __construct(
-        private ClienteRepositoryInterface $clienteRepo,
-        private ParametriRepositoryInterface $parametriRepo,
-        private CertificatoMedicoRepositoryInterface $certificatoRepo,
-        private ProfiloView $view,
+        \Doctrine\ORM\EntityManagerInterface $entityManager,
         private Session $session
-    ) {}
+    ) {
+        $this->entityManager = $entityManager;
+        $this->clienteRepo = new \App\Foundation\Persistence\Repository\DoctrineClienteRepository($this->entityManager);
+        $this->parametriRepo = new \App\Foundation\Persistence\Repository\DoctrineParametriRepository($this->entityManager);
+        $this->certificatoRepo = new \App\Foundation\Persistence\Repository\DoctrineCertificatoMedicoRepository($this->entityManager);
+        $this->view = new \App\View\ProfiloViewSmarty();
+    }
 
     /**
      * 1. VISUALIZZA PROFILO (Pagina 17 del mock-up UX)

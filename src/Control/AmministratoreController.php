@@ -17,14 +17,20 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class AmministratoreController
 {
+    private ClienteRepositoryInterface $clienteRepo;
+    private AllenatoreRepositoryInterface $allenatoreRepo;
+    private AttivitaRepositoryInterface $attivitaRepo;
+    private AmministratoreView $view;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private ClienteRepositoryInterface $clienteRepo,
-        private AllenatoreRepositoryInterface $allenatoreRepo,
-        private AttivitaRepositoryInterface $attivitaRepo,
-        private AmministratoreView $view,
         private Session $session
-    ) {}
+    ) {
+        $this->clienteRepo = new \App\Foundation\Persistence\Repository\DoctrineClienteRepository($this->entityManager);
+        $this->allenatoreRepo = new \App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository($this->entityManager);
+        $this->attivitaRepo = new \App\Foundation\Persistence\Repository\DoctrineAttivitaRepository($this->entityManager);
+        $this->view = new \App\View\AmministratoreViewSmarty();
+    }
 
     /**
      * Recupera la palestra gestita dall'amministratore attualmente loggato.

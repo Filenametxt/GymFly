@@ -13,12 +13,16 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class EserciziController
 {
+    private EsercizioRepositoryInterface $esercizioRepo;
+    private EserciziView $view;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private EsercizioRepositoryInterface $esercizioRepo,
-        private EserciziView $view,
         private Session $session
-    ) {}
+    ) {
+        $this->esercizioRepo = new \App\Foundation\Persistence\Repository\DoctrineEsercizioRepository($this->entityManager);
+        $this->view = new \App\View\EserciziViewSmarty();
+    }
 
     /**
      * 1. Inizializzazione Nuovo Esercizio
