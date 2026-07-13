@@ -97,6 +97,7 @@ class FrontController
             '/rimuovi-scheda' => [SchedaAllenamentoController::class, 'eliminaScheda'],
             '/visualizza-scheda' => [SchedaAllenamentoController::class, 'visualizzaScheda'],
             '/modifica-dettagli' => [SchedaAllenamentoController::class, 'apriFormModificaSchedaCliente'],
+            '/progressi-cliente' => [SchedaAllenamentoController::class, 'visualizzaProgressiCliente'],
         ];
     }
 

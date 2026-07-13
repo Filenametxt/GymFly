@@ -36,6 +36,11 @@ class VisualizzazioneController
         }
 
         $admin = $this->entityManager->find(Amministratore::class, $id);
+        if (!$admin) {
+            $this->session->destroy();
+            header("Location: login");
+            exit;
+        }
         
         // Recupera la palestra gestita da questo amministratore
         $palestra = $this->entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $admin]);
@@ -204,6 +209,11 @@ class VisualizzazioneController
         }
 
         $allenatore = $this->entityManager->find(Allenatore::class, $id);
+        if (!$allenatore) {
+            $this->session->destroy();
+            header("Location: login");
+            exit;
+        }
         $palestra = $allenatore->getPalestra();
         
         // Filtra i clienti associati alla palestra dell'allenatore
@@ -292,6 +302,11 @@ class VisualizzazioneController
         }
 
         $cliente = $this->entityManager->find(Cliente::class, $id);
+        if (!$cliente) {
+            $this->session->destroy();
+            header("Location: login");
+            exit;
+        }
         
         $parametriRepo = new \App\Foundation\Persistence\Repository\DoctrineParametriRepository($this->entityManager);
         $ultimaMisure = $parametriRepo->findUltimaByCliente($cliente);

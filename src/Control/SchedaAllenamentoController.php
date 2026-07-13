@@ -606,6 +606,7 @@ class SchedaAllenamentoController
 
         // Se POST, delega a modificaDatiScheda
         $dettagliModificati = $_POST['dettagli'] ?? [];
+        $oggi = new \DateTimeImmutable('today');
         foreach ($dettagliModificati as $idDet => $data) {
             $ripetizioni = isset($data['ripetizioni']) && $data['ripetizioni'] !== '' ? (int)$data['ripetizioni'] : null;
             $carico = isset($data['carico']) ? (float)$data['carico'] : 0.0;
@@ -613,15 +614,190 @@ class SchedaAllenamentoController
 
             $dettaglio = $this->entityManager->find(DettaglioAllenamento::class, (int)$idDet);
             if ($dettaglio && $dettaglio->getAllenamento()->getScheda()->getId() === $scheda->getId()) {
+                $oldReps = $dettaglio->getRipetizioni();
+                $oldCarico = $dettaglio->getCarico();
+                $oldTempo = $dettaglio->getTempo();
+
                 $dettaglio->setRipetizioni($ripetizioni);
                 if ($carico >= 0) {
                     $dettaglio->setCarico($carico);
                 }
                 $dettaglio->setTempo($tempo);
+
+                // Salvataggio dei progressi storici se i valori cambiano
+                if ($carico !== $oldCarico && $carico > 0) {
+                    $progCarico = new \App\Entity\ProgressoCarico($oggi, $cliente, $dettaglio->getEsercizio(), $carico);
+                    $this->entityManager->persist($progCarico);
+                }
+                if ($ripetizioni !== $oldReps && $ripetizioni !== null && $ripetizioni > 0) {
+                    $progReps = new \App\Entity\ProgressoRipetizioni($oggi, $cliente, $dettaglio->getEsercizio(), (float)$ripetizioni);
+                    $this->entityManager->persist($progReps);
+                }
+                if ($tempo !== $oldTempo && $tempo !== null) {
+                    $durataVal = (float)$tempo;
+                    if ($durataVal > 0) {
+                        $progDurata = new \App\Entity\ProgressoDurata($oggi, $cliente, $dettaglio->getEsercizio(), $durataVal);
+                        $this->entityManager->persist($progDurata);
+                    }
+                }
             }
         }
         $this->entityManager->flush();
 
         $this->view->mostraStatoOperazione(true, "Dettagli tecnici della scheda aggiornati con successo.", "visualizza-scheda");
+    }
+
+    /**
+     * 7. Visualizzazione progressi cliente relativi ad una scheda (richiesto da allenatore)
+     */
+    public function visualizzaProgressiCliente(): void
+    {
+        $idUtente = $this->session->getLoggedUserId();
+        $ruolo = $this->session->getLoggedUserRole();
+
+        if (!$idUtente || $ruolo !== 'allenatore') {
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Questa pagina è riservata agli allenatori.", "login");
+            return;
+        }
+
+        $allenatore = $this->entityManager->find(Allenatore::class, $idUtente);
+        if (!$allenatore) {
+            $this->view->mostraStatoOperazione(false, "Allenatore non trovato.", "login");
+            return;
+        }
+
+        $idCliente = isset($_GET['id_cliente']) ? (int)$_GET['id_cliente'] : 0;
+        $cliente = $this->entityManager->find(Cliente::class, $idCliente);
+        if (!$cliente) {
+            $this->view->mostraStatoOperazione(false, "Cliente non trovato.", "clienti");
+            return;
+        }
+
+        // Controllo IDOR: l'allenatore deve essere nella stessa palestra del cliente
+        if ($cliente->getPalestra() && $cliente->getPalestra()->getId() !== $allenatore->getPalestra()->getId()) {
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Violazione sicurezza rilevata.", "dashboard-allenatore");
+            return;
+        }
+
+        $scheda = $cliente->getScheda();
+        if (!$scheda) {
+            // Cerca un'eventuale bozza/scheda compilata non ancora attiva se non c'è una attiva
+            $scheda = $this->entityManager->getRepository(Scheda::class)->findOneBy(['cliente' => $cliente]);
+        }
+
+        if (!$scheda) {
+            $this->view->mostraStatoOperazione(false, "Il cliente selezionato non ha ancora nessuna scheda di allenamento associata.", "clienti");
+            return;
+        }
+
+        $workoutsData = [];
+        foreach ($scheda->getAllenamenti() as $allenamento) {
+            $eserciziData = [];
+            foreach ($allenamento->getDettagli() as $dettaglio) {
+                $esercizio = $dettaglio->getEsercizio();
+                
+                // Carica tutti i progressi legati a questo cliente e questo esercizio, ordinati per data
+                $progressi = $this->entityManager->getRepository(\App\Entity\Progresso::class)->findBy(
+                    ['cliente' => $cliente, 'esercizio' => $esercizio],
+                    ['data' => 'ASC']
+                );
+
+                $puntiCarico = [];
+                $puntiReps = [];
+                $puntiDurata = [];
+                $storicoCompleto = [];
+
+                foreach ($progressi as $p) {
+                    $dataStr = $p->getData()->format('d/m/Y');
+                    $dataGrafico = $p->getData()->format('d/m');
+
+                    if ($p instanceof \App\Entity\ProgressoCarico) {
+                        $val = $p->getNuovoCarico();
+                        $puntiCarico[] = ['data' => $dataGrafico, 'valore' => $val];
+                        $storicoCompleto[] = ['data' => $dataStr, 'tipo' => 'Carico', 'valore' => $val . ' Kg'];
+                    } elseif ($p instanceof \App\Entity\ProgressoRipetizioni) {
+                        $val = $p->getNuovoNRipetizioni();
+                        $puntiReps[] = ['data' => $dataGrafico, 'valore' => $val];
+                        $storicoCompleto[] = ['data' => $dataStr, 'tipo' => 'Ripetizioni', 'valore' => $val . ' rip.'];
+                    } elseif ($p instanceof \App\Entity\ProgressoDurata) {
+                        $val = $p->getNuovaDurata();
+                        $puntiDurata[] = ['data' => $dataGrafico, 'valore' => $val];
+                        $storicoCompleto[] = ['data' => $dataStr, 'tipo' => 'Durata', 'valore' => $val . ' sec'];
+                    }
+                }
+
+                // Genera le coordinate SVG per ciascun grafico
+                $svgPuntiCarico = $this->calcolaCoordinateGrafico($puntiCarico);
+                $svgPuntiReps = $this->calcolaCoordinateGrafico($puntiReps);
+                $svgPuntiDurata = $this->calcolaCoordinateGrafico($puntiDurata);
+
+                // Ordina storico dal più recente al più vecchio per visualizzarlo in tabella
+                usort($storicoCompleto, function ($a, $b) {
+                    return strcmp($b['data'], $a['data']);
+                });
+
+                $eserciziData[] = [
+                    'dettaglio' => $dettaglio,
+                    'esercizio' => $esercizio,
+                    'puntiCarico' => $svgPuntiCarico,
+                    'puntiReps' => $svgPuntiReps,
+                    'puntiDurata' => $svgPuntiDurata,
+                    'storico' => $storicoCompleto,
+                    'hasCarico' => count($puntiCarico) > 0,
+                    'hasReps' => count($puntiReps) > 0,
+                    'hasDurata' => count($puntiDurata) > 0
+                ];
+            }
+
+            $workoutsData[] = [
+                'allenamento' => $allenamento,
+                'esercizi' => $eserciziData
+            ];
+        }
+
+        $this->view->mostraTemplate('progressi_cliente.tpl', [
+            'utente' => $allenatore,
+            'cliente' => $cliente,
+            'scheda' => $scheda,
+            'workouts' => $workoutsData
+        ]);
+    }
+
+    /**
+     * Helper per calcolare le coordinate SVG basato sui dati grezzi
+     */
+    private function calcolaCoordinateGrafico(array $puntiRaw): array
+    {
+        if (count($puntiRaw) === 0) {
+            return [];
+        }
+
+        $valori = array_column($puntiRaw, 'valore');
+        $minVal = min($valori) - 2;
+        if ($minVal < 0) {
+            $minVal = 0;
+        }
+        $maxVal = max($valori) + 2;
+        $range = $maxVal - $minVal ?: 1;
+
+        $width = 380;
+        $height = 80;
+        $padX = 35;
+        $padY = 15;
+
+        $puntiCoo = [];
+        $count = count($puntiRaw);
+        foreach ($puntiRaw as $i => $pt) {
+            $val = $pt['valore'];
+            $x = $padX + ($i * ($width / ($count - 1 ?: 1)));
+            $y = $padY + $height - (($val - $minVal) / $range * $height);
+            $puntiCoo[] = [
+                'x' => $x,
+                'y' => $y,
+                'valore' => $val,
+                'data' => $pt['data']
+            ];
+        }
+        return $puntiCoo;
     }
 }

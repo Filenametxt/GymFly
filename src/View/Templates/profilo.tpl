@@ -213,6 +213,10 @@
                                     <span class="icon"><i class="fas fa-edit"></i></span>
                                     <span>Gestisci / Modifica Scheda</span>
                                 </a>
+                                <a href="progressi-cliente?id_cliente={$utente->getId()}" class="button is-small is-link is-fullwidth mb-2">
+                                    <span class="icon"><i class="fas fa-chart-line"></i></span>
+                                    <span>Visualizza Progressi Scheda</span>
+                                </a>
                             </div>
                         {else}
                             <p class="is-size-6 mb-3 has-text-grey">Nessuna scheda attiva per questo utente.</p>
