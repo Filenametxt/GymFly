@@ -12,13 +12,18 @@ use App\Entity\Palestra;
 
 class VisualizzazioneUtentiController 
 {
+    private ClienteRepositoryInterface $clienteRepo;
+    private AllenatoreRepositoryInterface $allenatoreRepo;
+    private VisualizzazioneUtentiView $view;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private ClienteRepositoryInterface $clienteRepo,
-        private AllenatoreRepositoryInterface $allenatoreRepo,
-        private VisualizzazioneUtentiView $view,
         private Session $session
-    ) {}
+    ) {
+        $this->clienteRepo = new \App\Foundation\Persistence\Repository\DoctrineClienteRepository($this->entityManager);
+        $this->allenatoreRepo = new \App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository($this->entityManager);
+        $this->view = new \App\View\VisualizzazioneUtentiViewSmarty();
+    }
 
     public function visualizzaClienti(): void 
     {
@@ -58,6 +63,23 @@ class VisualizzazioneUtentiController
         $ordine = $_POST['ordine'] ?? $_GET['ordine'] ?? null;
 
         $clienti = $this->clienteRepo->findByPalestraAndFiltri($palestra, $query, $filtroCertificato, $filtroAbbonamento, $ordine);
+
+        // Filtro per stato scheda a livello applicativo (in-memory) per non modificare il repository o il DB
+        $filtroScheda = $_POST['filtro_scheda'] ?? $_GET['filtro_scheda'] ?? null;
+        if ($filtroScheda !== null && trim($filtroScheda) !== '') {
+            $oggi = new \DateTimeImmutable('today');
+            $clienti = array_filter($clienti, function($c) use ($filtroScheda, $oggi) {
+                $scheda = $c->getScheda();
+                if ($filtroScheda === 'scadute') {
+                    return $scheda !== null && $scheda->getData_fine() < $oggi;
+                } elseif ($filtroScheda === 'richieste') {
+                    return $scheda === null;
+                } elseif ($filtroScheda === 'in_regola') {
+                    return $scheda !== null && $scheda->getData_fine() >= $oggi;
+                }
+                return true;
+            });
+        }
 
         $clientiData = [];
         foreach ($clienti as $c) {
@@ -102,12 +124,18 @@ class VisualizzazioneUtentiController
         $allenatori = $this->allenatoreRepo->findByPalestra($palestra);
         $allenatoriData = [];
         foreach ($allenatori as $a) {
+            $attivitaNomi = [];
+            foreach ($a->getAttivitaAbilitate() as $att) {
+                $attivitaNomi[] = $att->getNome();
+            }
             $allenatoriData[] = [
                 'id' => $a->getId(),
                 'nome' => $a->getNome(),
                 'cognome' => $a->getCognome(),
                 'email' => $a->getEmail(),
-                'cf' => $a->getCF()
+                'cf' => $a->getCF(),
+                'sesso' => $a->getSesso()->value,
+                'attivita' => implode(',', $attivitaNomi)
             ];
         }
 

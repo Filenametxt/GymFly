@@ -13,11 +13,14 @@ use App\Entity\Iscrizione;
 
 class AbbonamentiController
 {
+    private AbbonamentiView $view;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private AbbonamentiView $view,
         private Session $session
-    ) {}
+    ) {
+        $this->view = new \App\View\AbbonamentiViewSmarty();
+    }
 
     public function gestisciAbbonamento(): void
     {

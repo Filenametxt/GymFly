@@ -17,11 +17,14 @@ use App\Entity\Attivita;
 
 class VisualizzazioneController
 {
+    private VisualizzazioneView $view;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private VisualizzazioneView $view,
         private Session $session
-    ) {}
+    ) {
+        $this->view = new \App\View\VisualizzazioneViewSmarty();
+    }
 
     /**
      * Mostra la dashboard dell'amministratore se autorizzato.
@@ -36,6 +39,11 @@ class VisualizzazioneController
         }
 
         $admin = $this->entityManager->find(Amministratore::class, $id);
+        if (!$admin) {
+            $this->session->destroy();
+            header("Location: login");
+            exit;
+        }
         
         // Recupera la palestra gestita da questo amministratore
         $palestra = $this->entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $admin]);
@@ -204,6 +212,11 @@ class VisualizzazioneController
         }
 
         $allenatore = $this->entityManager->find(Allenatore::class, $id);
+        if (!$allenatore) {
+            $this->session->destroy();
+            header("Location: login");
+            exit;
+        }
         $palestra = $allenatore->getPalestra();
         
         // Filtra i clienti associati alla palestra dell'allenatore
@@ -292,13 +305,29 @@ class VisualizzazioneController
         }
 
         $cliente = $this->entityManager->find(Cliente::class, $id);
+        if (!$cliente) {
+            $this->session->destroy();
+            header("Location: login");
+            exit;
+        }
         
         $parametriRepo = new \App\Foundation\Persistence\Repository\DoctrineParametriRepository($this->entityManager);
         $ultimaMisure = $parametriRepo->findUltimaByCliente($cliente);
 
+        $oggi = new \DateTimeImmutable('today');
+        $attivitaOggi = [];
+        if ($cliente) {
+            foreach ($cliente->getAttivitaPianificate() as $ap) {
+                if ($ap->getGiorno()->format('Y-m-d') === $oggi->format('Y-m-d')) {
+                    $attivitaOggi[] = $ap;
+                }
+            }
+        }
+
         $this->view->mostraDashboardCliente([
             'utente' => $cliente,
-            'ultimaMisure' => $ultimaMisure
+            'ultimaMisure' => $ultimaMisure,
+            'attivitaOggi' => $attivitaOggi
         ]);
     }
 

@@ -48,6 +48,10 @@ html, body {
     color: var(--gymfly-text) !important;
 }
 
+strong {
+    color: #FFFFFF !important;
+}
+
 /* Stili Globali per Input, Select e Textarea (Forzano lo sfondo panna/chiaro e prevengono il nero del dark mode) */
 .input, .textarea, .select select, select {
     background-color: var(--gymfly-bg) !important;
@@ -97,7 +101,10 @@ code {
     background: var(--gymfly-header-gradient) !important;
     color: white !important;
     border-radius: 20px !important;
-    padding: 2.5rem !important;
+    height: 180px !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 0 2.5rem !important;
     margin-bottom: 2rem !important;
     box-shadow: 0 10px 20px rgba(175, 175, 226, 0.2) !important;
 }
@@ -106,7 +113,10 @@ code {
     background: var(--gymfly-header-gradient-admin) !important;
     color: white !important;
     border-radius: 20px !important;
-    padding: 2.5rem !important;
+    height: 180px !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 0 2.5rem !important;
     margin-bottom: 2rem !important;
     box-shadow: 0 10px 20px rgba(175, 175, 226, 0.2) !important;
 }
@@ -115,9 +125,16 @@ code {
     background: linear-gradient(135deg, var(--gymfly-secondary) 0%, var(--gymfly-accent) 100%) !important;
     color: white !important;
     border-radius: 20px !important;
-    padding: 2.5rem !important;
+    height: 180px !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 0 2.5rem !important;
     margin-bottom: 2rem !important;
     box-shadow: 0 10px 20px rgba(153, 205, 234, 0.2) !important;
+}
+
+.dashboard-header .columns, .dashboard-header-admin .columns, .dashboard-header-trainer .columns {
+    width: 100% !important;
 }
 
 /* Elementi di Contenuto (Cards e Boxes) */
@@ -380,7 +397,7 @@ code {
         border-color: var(--gymfly-primary) !important;
     }
 
-    .title, .subtitle, .label, p, span, div:not(.navbar-burger), strong, th, td, h1, h2, h3, h4, h5, h6 {
+    .title, .subtitle, .label, p, span, div:not(.navbar-burger), th, td, h1, h2, h3, h4, h5, h6 {
         color: var(--gymfly-text) !important;
     }
 
@@ -443,6 +460,22 @@ code {
     z-index: 1005;
     transform: translateX(0);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+}
+
+/* Custom Scrollbar for Sidebar */
+.app-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+.app-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.app-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(175, 175, 226, 0.2);
+    border-radius: 3px;
+}
+.app-sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(175, 175, 226, 0.4);
 }
 
 .sidebar-checkbox-state:checked ~ .app-sidebar {
@@ -497,6 +530,15 @@ code {
     color: #1e3a8a !important;
 }
 
+.sidebar-menu-link.is-logout {
+    color: #ff3860 !important;
+}
+
+.sidebar-menu-link.is-logout:hover {
+    background-color: rgba(255, 56, 96, 0.1) !important;
+    color: #ff3860 !important;
+}
+
 .sidebar-menu-link i {
     width: 24px;
     margin-right: 10px;
@@ -541,6 +583,7 @@ code {
         padding: 2rem 1.5rem;
         display: flex;
         flex-direction: column;
+        overflow-y: auto;
     }
     
     /* Pulsante hamburger in alto a sinistra su mobile */
@@ -550,7 +593,7 @@ code {
     }
     
     .app-content {
-        padding: 2.5rem 1.5rem 2.5rem 4.5rem !important;
+        padding: 4.5rem 1.2rem 2.5rem 1.2rem !important;
     }
     
     /* Quando spuntato (checked) su mobile, mostriamo la sidebar */
@@ -559,7 +602,94 @@ code {
     }
     
     .sidebar-checkbox-state:checked ~ .app-content {
-        padding: 2.5rem 1.5rem 2.5rem 4.5rem !important; /* Conserva il padding fisso senza squeeze */
+        padding: 4.5rem 1.2rem 2.5rem 1.2rem !important; /* Conserva il padding fisso senza squeeze */
+    }
+
+    /* Rendi le intestazioni della dashboard responsive su mobile */
+    .dashboard-header, .dashboard-header-admin, .dashboard-header-trainer {
+        height: auto !important;
+        min-height: auto !important;
+        padding: 1.5rem 1.2rem !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        justify-content: center !important;
+        margin-bottom: 1.5rem !important;
+        display: flex !important; /* Forza la visualizzazione del riquadro colorato anche su mobile */
+    }
+    
+    .dashboard-header .columns, .dashboard-header-admin .columns, .dashboard-header-trainer .columns {
+        margin: 0 !important;
+        width: 100% !important;
+    }
+    
+    .dashboard-header .column, .dashboard-header-admin .column, .dashboard-header-trainer .column {
+        padding: 0 !important;
+    }
+    
+    .dashboard-header .title, .dashboard-header-admin .title, .dashboard-header-trainer .title {
+        font-size: 1.4rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .dashboard-header .subtitle, .dashboard-header-admin .subtitle, .dashboard-header-trainer .subtitle {
+        font-size: 0.85rem !important;
+    }
+    
+    .dashboard-header .column.is-narrow, .dashboard-header-admin .column.is-narrow, .dashboard-header-trainer .column.is-narrow {
+        display: none !important; /* Nascondi l'icona gigante su mobile per risparmiare spazio */
+    }
+
+    /* Nascondi completamente i vecchi header mobili testuali ridondanti (PROFILO, MESSAGGI, CALENDARIO, ecc.) */
+    .is-hidden-tablet.is-flex.is-align-items-center {
+        display: none !important;
+    }
+
+    /* Rendi la tabella del calendario scrollabile orizzontalmente su mobile per essere perfettamente leggibile */
+    .planner-table {
+        width: auto !important;
+        min-width: 800px !important;
+    }
+
+    /* Pannello dettagli fluttuante (modal overlay) su mobile per una UX premium */
+    .calendar-details-panel {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        z-index: 1050 !important;
+        background-color: rgba(0, 0, 0, 0.5) !important;
+        padding: 1.5rem !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin: 0 !important;
+    }
+    
+    .calendar-details-panel .card {
+        max-height: 85vh !important;
+        width: 100% !important;
+        max-width: 420px !important;
+        overflow-y: auto !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
+        border-radius: 15px !important;
+    }
+
+    /* Forza la barra di navigazione del calendario su mobile sulla stessa riga */
+    .calendar-nav-container {
+        width: 100% !important;
+        justify-content: space-between !important;
+        flex-wrap: nowrap !important;
+    }
+    
+    .calendar-nav-container span {
+        margin-right: 0 !important;
+        font-size: 1.1rem !important; /* Ridotto leggermente per far sì che entri anche su schermi strettissimi */
+        white-space: nowrap !important;
+    }
+    
+    .calendar-nav-container .buttons {
+        margin-left: auto !important;
     }
 }
 
@@ -1021,6 +1151,16 @@ code {
     justify-content: center;
     font-size: 1.15rem;
     margin-bottom: 1rem;
+}
+
+.gf-feature-icon svg {
+    width: 24px;
+    height: 24px;
+    display: block;
+}
+
+.gf-feature-icon .icon {
+    color: inherit;
 }
 
 .gf-feature-icon.color-1 { background: var(--gymfly-accent); color: var(--gymfly-text); }

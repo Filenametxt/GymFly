@@ -3,8 +3,9 @@
     <entity name="App\Entity\DettaglioAllenamento" table="DettaglioAllenamento">
         <id name="id" type="integer" column="id"><generator strategy="AUTO"/></id>
         <field name="serie" type="integer" column="serie" nullable="false"/>
-        <field name="ripetizioni" type="integer" column="ripetizioni" nullable="false"/>
+        <field name="ripetizioni" type="integer" column="ripetizioni" nullable="true"/>
         <field name="carico" type="float" column="carico" nullable="false"/>
+        <field name="tempo" type="string" column="tempo" nullable="true"/>
 
         <many-to-one field="esercizio" target-entity="App\Entity\Esercizio">
             <join-column name="id_esercizio" referenced-column-name="id" nullable="false"/>

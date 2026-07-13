@@ -19,7 +19,6 @@
             <div class="dashboard-header-trainer">
                 <div class="columns is-vcentered is-mobile">
                     <div class="column">
-                        <strong class="is-size-6 has-text-white-ter" style="letter-spacing: 1px; text-transform: uppercase;">Allenatore - Home</strong>
                         <h1 class="title is-2 has-text-white mt-1 mb-2">Ciao, Coach {$utente->getNome()}!</h1>
                         <p class="subtitle is-5 has-text-white-ter">Prepara nuove schede di allenamento e segui i tuoi atleti</p>
                     </div>
@@ -39,25 +38,31 @@
                         </h2>
                         <div class="columns is-mobile is-vcentered" style="margin-top: 0;">
                             <div class="column has-text-centered">
-                                <div class="notification is-danger is-light p-3" style="border-radius: 12px; border: 1px solid #ff3860;">
-                                    <span class="icon is-large"><i class="fas fa-times-circle fa-2x"></i></span>
-                                    <h4 class="title is-4 mt-2 mb-0">{$schede_scadute}</h4>
-                                    <p class="is-size-7 font-weight-bold">SCADUTE</p>
-                                </div>
+                                <a href="clienti?filtro_scheda=scadute" style="display: block; text-decoration: none;">
+                                    <div class="notification is-danger is-light p-3" style="border-radius: 12px; border: 1px solid #ff3860; cursor: pointer;">
+                                        <span class="icon is-large"><i class="fas fa-times-circle fa-2x"></i></span>
+                                        <h4 class="title is-4 mt-2 mb-0">{$schede_scadute}</h4>
+                                        <p class="is-size-7 font-weight-bold">SCADUTE</p>
+                                    </div>
+                                </a>
                             </div>
                             <div class="column has-text-centered">
-                                <div class="notification is-warning is-light p-3" style="border-radius: 12px; border: 1px solid #ffdd57;">
-                                    <span class="icon is-large"><i class="fas fa-exclamation-triangle fa-2x"></i></span>
-                                    <h4 class="title is-4 mt-2 mb-0">{$richieste_scheda}</h4>
-                                    <p class="is-size-7 font-weight-bold">RICHIESTE</p>
-                                </div>
+                                <a href="clienti?filtro_scheda=richieste" style="display: block; text-decoration: none;">
+                                    <div class="notification is-warning is-light p-3" style="border-radius: 12px; border: 1px solid #ffdd57; cursor: pointer;">
+                                        <span class="icon is-large"><i class="fas fa-exclamation-triangle fa-2x"></i></span>
+                                        <h4 class="title is-4 mt-2 mb-0">{$richieste_scheda}</h4>
+                                        <p class="is-size-7 font-weight-bold">RICHIESTE</p>
+                                    </div>
+                                </a>
                             </div>
                             <div class="column has-text-centered">
-                                <div class="notification is-info is-light p-3" style="border-radius: 12px; border: 1px solid #209cee;">
-                                    <span class="icon is-large"><i class="fas fa-check-circle fa-2x"></i></span>
-                                    <h4 class="title is-4 mt-2 mb-0">{$schede_in_regola}</h4>
-                                    <p class="is-size-7 font-weight-bold">IN REGOLA</p>
-                                </div>
+                                <a href="clienti?filtro_scheda=in_regola" style="display: block; text-decoration: none;">
+                                    <div class="notification is-info is-light p-3" style="border-radius: 12px; border: 1px solid #209cee; cursor: pointer;">
+                                        <span class="icon is-large"><i class="fas fa-check-circle fa-2x"></i></span>
+                                        <h4 class="title is-4 mt-2 mb-0">{$schede_in_regola}</h4>
+                                        <p class="is-size-7 font-weight-bold">IN REGOLA</p>
+                                    </div>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -70,7 +75,7 @@
                         <div class="columns is-mobile" style="margin-top: -0.5rem;">
                             <!-- Nuova Scheda -->
                             <div class="column is-4 has-text-centered py-2">
-                                <a href="clienti" class="button is-light is-medium is-flex is-flex-direction-column is-justify-content-center" style="height: 90px; width: 100%; border-radius: 12px; border: 1px solid var(--gymfly-accent);">
+                                <a href="modifica-scheda?azione_rapida=1" class="button is-light is-medium is-flex is-flex-direction-column is-justify-content-center" style="height: 90px; width: 100%; border-radius: 12px; border: 1px solid var(--gymfly-accent);">
                                     <span class="icon is-medium mb-1"><i class="fas fa-file-medical fa-lg" style="color: var(--gymfly-text);"></i></span>
                                     <span class="is-size-7 font-weight-bold" style="color: var(--gymfly-text); white-space: normal; line-height: 1.1;">Nuova Scheda</span>
                                 </a>

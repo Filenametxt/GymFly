@@ -6,7 +6,6 @@ use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\EntityManager;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\Mapping\Driver\XmlDriver;
-use Doctrine\Persistence\Mapping\Driver\MappingDriverChain;
 
 use App\Foundation\Persistence\Type\StringableTimeImmutableType;
 use Doctrine\DBAL\Types\Type;

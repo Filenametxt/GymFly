@@ -3,29 +3,6 @@ namespace App\Control;
 
 use App\Infrastructure\Doctrine\EntityManagerFactory;
 use App\Foundation\Session;
-use App\View\AutenticazioneViewSmarty;
-use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
-use App\Foundation\Persistence\Repository\DoctrineParametriRepository;
-use App\Foundation\Persistence\Repository\DoctrineCertificatoMedicoRepository;
-use App\View\ProfiloViewSmarty;
-use App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository;
-use App\View\VisualizzazioneUtentiViewSmarty;
-use App\View\AbbonamentiViewSmarty;
-use App\View\VisualizzazioneViewSmarty;
-use App\View\MessaggiViewSmarty;
-use App\Foundation\Persistence\Repository\DoctrineMessaggioRepository;
-use App\View\AmministratoreViewSmarty;
-use App\Foundation\Persistence\Repository\DoctrineEsercizioRepository;
-use App\View\EserciziViewSmarty;
-use App\Foundation\Persistence\Repository\DoctrineAttivitaPianificataRepository;
-use App\Foundation\Persistence\Repository\DoctrineSessionePrivataRepository;
-use App\View\AttivitaPianificataViewSmarty;
-use App\Foundation\Persistence\Repository\DoctrineSalaRepository;
-use App\Foundation\Persistence\Repository\DoctrineAttivitaRepository;
-use App\View\ReportViewSmarty;
-use App\Control\SchedaAllenamentoController;
-use App\Foundation\Persistence\Repository\DoctrineSchedaRepository;
-use App\View\SchedaAllenamentoViewSmarty;
 
 class FrontController
 {
@@ -50,6 +27,9 @@ class FrontController
             '/cambia-password' => [ProfiloController::class, 'cambiaPassword'],
             '/visualizza-grafico' => [ProfiloController::class, 'visualizzaGrafico'],
             '/carica-foto' => [ProfiloController::class, 'caricaFotoProfilo'],
+            '/aggiungi-attivita-profilo' => [ProfiloController::class, 'aggiungiAttivitaAllenatore'],
+            '/rimuovi-attivita-profilo' => [ProfiloController::class, 'rimuoviAttivitaAllenatore'],
+            '/aggiorna-abilitazioni-profilo' => [ProfiloController::class, 'aggiornaAbilitazioniAllenatore'],
             
             '/dashboard-admin' => [VisualizzazioneController::class, 'mostraDashboardAdmin'],
             '/dashboard-allenatore' => [VisualizzazioneController::class, 'mostraDashboardAllenatore'],
@@ -93,8 +73,8 @@ class FrontController
             '/elimina-scheda' => [SchedaAllenamentoController::class, 'eliminaScheda'],
             '/rimuovi-scheda' => [SchedaAllenamentoController::class, 'eliminaScheda'],
             '/visualizza-scheda' => [SchedaAllenamentoController::class, 'visualizzaScheda'],
-            '/esporta-scheda' => [SchedaAllenamentoController::class, 'esportaSchedaPDF'],
             '/modifica-dettagli' => [SchedaAllenamentoController::class, 'apriFormModificaSchedaCliente'],
+            '/progressi-cliente' => [SchedaAllenamentoController::class, 'visualizzaProgressiCliente'],
         ];
     }
 
@@ -113,175 +93,21 @@ class FrontController
 
         list($controllerClass, $method) = $this->routes[$route];
 
-        // Avvia la sessione
+        // Avvia la sessione ed istanzia l'EntityManager
         $session = new Session();
-
-        // Istanzia l'EntityManager
         $entityManager = EntityManagerFactory::create();
 
-        // Inizializza la View di Default per messaggi di autenticazione/errore generici
-        $authView = new AutenticazioneViewSmarty();
-
-        // Risoluzione delle dipendenze dei Controller tramite Switch basato sulla classe
-        switch ($controllerClass) {
-            case ProfiloController::class:
-                $clienteRepo = new DoctrineClienteRepository($entityManager);
-                $parametriRepo = new DoctrineParametriRepository($entityManager);
-                $certificatoRepo = new DoctrineCertificatoMedicoRepository($entityManager);
-                $profiloView = new ProfiloViewSmarty();
-                $controller = new ProfiloController(
-                    $clienteRepo,
-                    $parametriRepo,
-                    $certificatoRepo,
-                    $profiloView,
-                    $session
-                );
-                break;
-
-            case VisualizzazioneUtentiController::class:
-                $clienteRepo = new DoctrineClienteRepository($entityManager);
-                $allenatoreRepo = new DoctrineAllenatoreRepository($entityManager);
-                $utentiView = new VisualizzazioneUtentiViewSmarty();
-                $controller = new VisualizzazioneUtentiController(
-                    $entityManager,
-                    $clienteRepo,
-                    $allenatoreRepo,
-                    $utentiView,
-                    $session
-                );
-                break;
-
-            case AbbonamentiController::class:
-                $abbonamentoView = new AbbonamentiViewSmarty();
-                $controller = new AbbonamentiController(
-                    $entityManager,
-                    $abbonamentoView,
-                    $session
-                );
-                break;
-
-            case VisualizzazioneController::class:
-                $visualizzazioneView = new VisualizzazioneViewSmarty();
-                $controller = new VisualizzazioneController(
-                    $entityManager,
-                    $visualizzazioneView,
-                    $session
-                );
-                break;
-
-            case MessaggiController::class:
-                $messaggioRepo = new DoctrineMessaggioRepository($entityManager);
-                $messaggiView = new MessaggiViewSmarty();
-                $controller = new MessaggiController(
-                    $entityManager,
-                    $messaggioRepo,
-                    $messaggiView,
-                    $session
-                );
-                break;
-
-            case AmministratoreController::class:
-                $clienteRepo = new DoctrineClienteRepository($entityManager);
-                $allenatoreRepo = new DoctrineAllenatoreRepository($entityManager);
-                $attivitaRepo = new DoctrineAttivitaRepository($entityManager);
-                $adminView = new AmministratoreViewSmarty();
-                $controller = new AmministratoreController(
-                    $entityManager,
-                    $clienteRepo,
-                    $allenatoreRepo,
-                    $attivitaRepo,
-                    $adminView,
-                    $session
-                );
-                break;
-
-            case EserciziController::class:
-                $esercizioRepo = new DoctrineEsercizioRepository($entityManager);
-                $eserciziView = new EserciziViewSmarty();
-                $controller = new EserciziController(
-                    $entityManager,
-                    $esercizioRepo,
-                    $eserciziView,
-                    $session
-                );
-                break;
-
-            case AttivitaPianificataController::class:
-                $attivitaPianificataRepo = new DoctrineAttivitaPianificataRepository($entityManager);
-                $clienteRepo = new DoctrineClienteRepository($entityManager);
-                $sessionePrivataRepo = new DoctrineSessionePrivataRepository($entityManager);
-                $salaRepo = new DoctrineSalaRepository($entityManager);
-                $attivitaRepo = new DoctrineAttivitaRepository($entityManager);
-                $allenatoreRepo = new DoctrineAllenatoreRepository($entityManager);
-                $attivitaPianificataView = new AttivitaPianificataViewSmarty();
-                $controller = new AttivitaPianificataController(
-                    $entityManager,
-                    $attivitaPianificataRepo,
-                    $clienteRepo,
-                    $sessionePrivataRepo,
-                    $salaRepo,
-                    $attivitaRepo,
-                    $allenatoreRepo,
-                    $attivitaPianificataView,
-                    $session
-                );
-                break;
-
-            case ReportController::class:
-                $reportView = new ReportViewSmarty();
-                $controller = new ReportController($reportView, $session);
-                break;
-
-            case SchedaAllenamentoController::class:
-                $schedaRepo = new DoctrineSchedaRepository($entityManager);
-                $schedaView = new SchedaAllenamentoViewSmarty();
-                $controller = new SchedaAllenamentoController(
-                    $entityManager,
-                    $schedaRepo,
-                    $schedaView,
-                    $session
-                );
-                break;
-
-            default:
-                $controller = new $controllerClass($entityManager, $authView, $session);
-                break;
-        }
-
-        // Esegue l'azione specifica
+        // Istanziazione ed esecuzione dinamica del Controller
+        $controller = new $controllerClass($entityManager, $session);
         $controller->$method();
     }
 
     /**
-     * Risolve il percorso URL per estrarre la rotta pulita.
+     * Risolve il percorso URL per estrarre la rotta pulita tramite query parameter passato da .htaccess.
      */
     private function resolveRoute(): string
     {
-        if (!empty($_SERVER['PATH_INFO'])) {
-            return $_SERVER['PATH_INFO'];
-        }
-        
-        $requestUri = $_SERVER['REQUEST_URI'];
-        $scriptName = $_SERVER['SCRIPT_NAME'];
-        
-        if (strpos($requestUri, $scriptName) === 0) {
-            $route = substr($requestUri, strlen($scriptName));
-        } else {
-            $baseDir = dirname($scriptName);
-            $baseDir = str_replace('\\', '/', $baseDir);
-            if ($baseDir === '/') {
-                $route = $requestUri;
-            } else {
-                $route = substr($requestUri, strlen($baseDir));
-            }
-        }
-        
-        $pos = strpos($route, '?');
-        if ($pos !== false) {
-            $route = substr($route, 0, $pos);
-        }
-        
-        $route = '/' . ltrim($route, '/');
-        return $route;
+        $route = $_GET['route'] ?? '/';
+        return '/' . ltrim($route, '/');
     }
 }

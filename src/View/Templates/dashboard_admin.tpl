@@ -20,7 +20,7 @@
                 <div class="columns is-vcentered">
                     <div class="column">
                         <h1 class="title is-2 has-text-white mb-2">Benvenuto, {$utente->getNome()} {$utente->getCognome()}!</h1>
-                        <p class="subtitle is-5 has-text-white-ter">Dashboard di Supervisione e Amministrazione di <strong>GymFly</strong></p>
+                        <p class="subtitle is-5 has-text-white-ter">Dashboard di Supervisione e Amministrazione di <strong class="has-text-white">GymFly</strong></p>
                     </div>
                 </div>
             </div>

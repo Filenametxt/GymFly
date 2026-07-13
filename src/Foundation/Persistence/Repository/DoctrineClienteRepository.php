@@ -102,7 +102,7 @@ class DoctrineClienteRepository extends AbstractDoctrineUtenteRepository
             ->setParameter('palestra', $palestra);
 
         if ($query !== null && trim($query) !== '') {
-            $qb->andWhere('(LOWER(c.nome) LIKE LOWER(:search) OR LOWER(c.cognome) LIKE LOWER(:search) OR LOWER(c.email) LIKE LOWER(:search))')
+            $qb->andWhere('(LOWER(c.nome) LIKE LOWER(:search) OR LOWER(c.cognome) LIKE LOWER(:search))')
                ->setParameter('search', '%' . trim($query) . '%');
         }
 

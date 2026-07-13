@@ -16,23 +16,34 @@ use App\Entity\Amministratore;
 use App\Entity\Palestra;
 use App\Entity\Attivita;
 use App\Entity\Sala;
+use App\Entity\CodaAttesa;
+use App\Entity\Messaggio;
 use App\View\Interface\AttivitaPianificataView;
 use App\Foundation\Session;
 use Doctrine\ORM\EntityManagerInterface;
 
 class AttivitaPianificataController
 {
+    private AttivitaPianificataRepositoryInterface $attivitaPianificataRepo;
+    private ClienteRepositoryInterface $clienteRepo;
+    private SessionePrivataRepositoryInterface $sessionePrivataRepo;
+    private SalaRepositoryInterface $salaRepo;
+    private AttivitaRepositoryInterface $attivitaRepo;
+    private AllenatoreRepositoryInterface $allenatoreRepo;
+    private AttivitaPianificataView $view;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private AttivitaPianificataRepositoryInterface $attivitaPianificataRepo,
-        private ClienteRepositoryInterface $clienteRepo,
-        private SessionePrivataRepositoryInterface $sessionePrivataRepo,
-        private SalaRepositoryInterface $salaRepo,
-        private AttivitaRepositoryInterface $attivitaRepo,
-        private AllenatoreRepositoryInterface $allenatoreRepo,
-        private AttivitaPianificataView $view,
         private Session $session
-    ) {}
+    ) {
+        $this->attivitaPianificataRepo = new \App\Foundation\Persistence\Repository\DoctrineAttivitaPianificataRepository($this->entityManager);
+        $this->clienteRepo = new \App\Foundation\Persistence\Repository\DoctrineClienteRepository($this->entityManager);
+        $this->sessionePrivataRepo = new \App\Foundation\Persistence\Repository\DoctrineSessionePrivataRepository($this->entityManager);
+        $this->salaRepo = new \App\Foundation\Persistence\Repository\DoctrineSalaRepository($this->entityManager);
+        $this->attivitaRepo = new \App\Foundation\Persistence\Repository\DoctrineAttivitaRepository($this->entityManager);
+        $this->allenatoreRepo = new \App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository($this->entityManager);
+        $this->view = new \App\View\AttivitaPianificataViewSmarty();
+    }
 
     /**
      * Recupera la palestra associata all'utente correntemente loggato.
@@ -96,8 +107,13 @@ class AttivitaPianificataController
         $ruolo = $this->session->getLoggedUserRole();
         $idUtente = $this->session->getLoggedUserId();
 
-        // 1. Calcola i giorni della settimana corrente (da Lunedì a Domenica)
-        $oggi = new \DateTimeImmutable('today');
+        // 1. Calcola i giorni della settimana selezionata o corrente (da Lunedì a Domenica)
+        $dataStr = isset($_GET['data']) ? trim($_GET['data']) : 'today';
+        try {
+            $oggi = new \DateTimeImmutable($dataStr);
+        } catch (\Throwable $e) {
+            $oggi = new \DateTimeImmutable('today');
+        }
         $giornoSettimanaCorrente = (int)$oggi->format('N'); // 1 = Lun, ..., 7 = Dom
         $lunedi = $oggi->modify('-' . ($giornoSettimanaCorrente - 1) . ' days');
         
@@ -109,16 +125,28 @@ class AttivitaPianificataController
             $dateSettimanaStr[] = $d->format('Y-m-d');
         }
 
+        // Calcola le date della settimana precedente e successiva per la navigazione
+        $dataPrecedente = $lunedi->modify('-7 days')->format('Y-m-d');
+        $dataSuccessiva = $lunedi->modify('+7 days')->format('Y-m-d');
+        $dataCorrente = $lunedi->format('Y-m-d');
+
+        // Calcola mese e anno in italiano della settimana
+        $mesi = [
+            1 => 'Gennaio', 2 => 'Febbraio', 3 => 'Marzo', 4 => 'Aprile',
+            5 => 'Maggio', 6 => 'Giugno', 7 => 'Luglio', 8 => 'Agosto',
+            9 => 'Settembre', 10 => 'Ottobre', 11 => 'Novembre', 12 => 'Dicembre'
+        ];
+        $meseNum = (int)$lunedi->format('n');
+        $anno = $lunedi->format('Y');
+        $meseAnno = $mesi[$meseNum] . ' ' . $anno;
+
         // 2. Carica tutte le attività pianificate e filtra per la palestra dell'utente loggato
         $tutte = $this->attivitaPianificataRepo->findAll();
         $attivitaPianificate = array_filter($tutte, function(AttivitaPianificata $ap) use ($palestra) {
             return $ap->getSala()->getPalestra()->getId() === $palestra->getId();
         });
 
-        // Contrassegna le attività come NON private
-        foreach ($attivitaPianificate as $ap) {
-            $ap->isPrivate = false;
-        }
+        // Filtro per la palestra dell'utente loggato completo
 
         // 3. Carica le sessioni private se l'utente è Cliente o Allenatore
         $sessioniPrivateSettimana = [];
@@ -129,7 +157,6 @@ class AttivitaPianificataController
                 foreach ($privateRaw as $sp) {
                     $spDateStr = $sp->getData()->format('Y-m-d');
                     if (in_array($spDateStr, $dateSettimanaStr)) {
-                        $sp->isPrivate = true;
                         $sessioniPrivateSettimana[] = $sp;
                     }
                 }
@@ -141,7 +168,6 @@ class AttivitaPianificataController
                 foreach ($privateRaw as $sp) {
                     $spDateStr = $sp->getData()->format('Y-m-d');
                     if (in_array($spDateStr, $dateSettimanaStr)) {
-                        $sp->isPrivate = true;
                         $sessioniPrivateSettimana[] = $sp;
                     }
                 }
@@ -225,6 +251,10 @@ class AttivitaPianificataController
             'grid' => $grid,
             'fasceOrarie' => $fasceOrarie,
             'giorniSettimana' => $giorniSettimana,
+            'dataPrecedente' => $dataPrecedente,
+            'dataSuccessiva' => $dataSuccessiva,
+            'dataCorrente' => $dataCorrente,
+            'meseAnno' => $meseAnno,
             'ruolo_utente' => $ruolo,
             'sale' => $this->salaRepo->findByPalestra($palestra),
             'allenatori' => $this->allenatoreRepo->findByPalestra($palestra),
@@ -242,10 +272,16 @@ class AttivitaPianificataController
             if ($cliente) {
                 $datiView['cliente'] = $cliente;
                 $iscrittoMap = [];
+                $inQueueMap = [];
                 foreach ($attivitaPianificate as $ap) {
                     $iscrittoMap[$ap->getId()] = $this->clienteRepo->isIscrittoAAttivita($cliente, $ap);
+                    $inQueueMap[$ap->getId()] = (bool)$this->entityManager->getRepository(CodaAttesa::class)->findOneBy([
+                        'cliente' => $cliente,
+                        'attivitaPianificata' => $ap
+                    ]);
                 }
                 $datiView['iscrittoMap'] = $iscrittoMap;
+                $datiView['inQueueMap'] = $inQueueMap;
                 $datiView['puoPrenotare'] = $cliente->puoPrenotareAttivita();
             }
         }
@@ -507,7 +543,24 @@ class AttivitaPianificataController
         }
 
         if ($attivita->getPrenotati() >= $attivita->getMaxPartecipanti()) {
-            $this->view->mostraStatoOperazione(false, "L'attività pianificata ha raggiunto la capienza massima.");
+            // Se la capienza è al massimo, inseriamo nella coda di attesa
+            $existingQueue = $this->entityManager->getRepository(CodaAttesa::class)->findOneBy([
+                'cliente' => $cliente,
+                'attivitaPianificata' => $attivita
+            ]);
+            if ($existingQueue) {
+                $this->view->mostraStatoOperazione(false, "Sei già inserito nella coda di attesa per questa attività.");
+                return;
+            }
+
+            try {
+                $coda = new CodaAttesa($cliente, $attivita);
+                $this->entityManager->persist($coda);
+                $this->entityManager->flush();
+                $this->view->mostraStatoOperazione(true, "L'attività ha raggiunto la capienza massima. Sei stato inserito nella coda di attesa.", "calendario?data=" . $attivita->getGiorno()->format('Y-m-d'));
+            } catch (\Throwable $e) {
+                $this->view->mostraStatoOperazione(false, "Impossibile inserire nella coda di attesa: " . $e->getMessage());
+            }
             return;
         }
 
@@ -516,7 +569,7 @@ class AttivitaPianificataController
             $attivita->setPrenotati($attivita->getPrenotati() + 1);
 
             $this->entityManager->flush();
-            $this->view->mostraStatoOperazione(true, "Iscrizione registrata con successo.");
+            $this->view->mostraStatoOperazione(true, "Iscrizione registrata con successo.", "calendario?data=" . $attivita->getGiorno()->format('Y-m-d'));
         } catch (\Throwable $e) {
             $this->view->mostraStatoOperazione(false, "Impossibile salvare la prenotazione: " . $e->getMessage());
         }
@@ -570,8 +623,24 @@ class AttivitaPianificataController
             return;
         }
 
+        $inQueue = $this->entityManager->getRepository(CodaAttesa::class)->findOneBy([
+            'cliente' => $cliente,
+            'attivitaPianificata' => $attivita
+        ]);
+
         if (!$this->clienteRepo->isIscrittoAAttivita($cliente, $attivita)) {
-            $this->view->mostraStatoOperazione(false, "Il cliente non risulta iscritto a questa attività.");
+            if ($inQueue) {
+                try {
+                    $this->entityManager->remove($inQueue);
+                    $this->entityManager->flush();
+                    $this->view->mostraStatoOperazione(true, "Sei stato rimosso dalla coda di attesa.", "calendario?data=" . $attivita->getGiorno()->format('Y-m-d'));
+                } catch (\Throwable $e) {
+                    $this->view->mostraStatoOperazione(false, "Impossibile rimuovere dalla coda di attesa: " . $e->getMessage());
+                }
+                return;
+            }
+
+            $this->view->mostraStatoOperazione(false, "Il cliente non risulta iscritto o in coda per questa attività.");
             return;
         }
 
@@ -579,8 +648,37 @@ class AttivitaPianificataController
             $cliente->cancellaIscrizioneAttivita($attivita);
             $attivita->setPrenotati(max(0, $attivita->getPrenotati() - 1));
 
+            // SCORRIMENTO DELLA CODA:
+            $codaRepo = $this->entityManager->getRepository(CodaAttesa::class);
+            $codaPrimo = $codaRepo->findOneBy(
+                ['attivitaPianificata' => $attivita],
+                ['dataInserimento' => 'ASC']
+            );
+
+            if ($codaPrimo) {
+                $clienteScelto = $codaPrimo->getCliente();
+                $clienteScelto->iscriviAAttivita($attivita);
+                $attivita->setPrenotati($attivita->getPrenotati() + 1);
+
+                // Rimuovi dalla coda
+                $this->entityManager->remove($codaPrimo);
+
+                // Invia messaggio in bacheca
+                $mittente = $attivita->getAllenatore();
+                $oggettoMsg = "Iscrizione automatica all'attività";
+                $contenutoMsg = "Ciao " . $clienteScelto->getNome() . ",\n\nti informiamo che si è liberato un posto e sei stato iscritto automaticamente all'attività: " . $attivita->getAttivita()->getNome() . " in data " . $attivita->getGiorno()->format('d/m/Y') . " alle ore " . $attivita->getOrario() . ":00.\n\nSaluti,\nLo staff di GymFly";
+                
+                $messaggio = new Messaggio($mittente, $oggettoMsg, $contenutoMsg);
+                $messaggio->aggiungiDestinatario($clienteScelto);
+                $this->entityManager->persist($messaggio);
+
+                // Invia email di notifica (se SMTP non è configurato non fa nulla)
+                $headers = "From: no-reply@gymfly.com\r\nReply-To: support@gymfly.com\r\nContent-Type: text/plain; charset=utf-8";
+                @mail($clienteScelto->getEmail(), $oggettoMsg, $contenutoMsg, $headers);
+            }
+
             $this->entityManager->flush();
-            $this->view->mostraStatoOperazione(true, "Iscrizione cancellata con successo.");
+            $this->view->mostraStatoOperazione(true, "Iscrizione cancellata con successo.", "calendario?data=" . $attivita->getGiorno()->format('Y-m-d'));
         } catch (\Throwable $e) {
             $this->view->mostraStatoOperazione(false, "Impossibile cancellare l'iscrizione: " . $e->getMessage());
         }
@@ -662,7 +760,7 @@ class AttivitaPianificataController
             $sessione = new SessionePrivata($dataObj, $oraInizioObj, $oraFineObj, $cliente, $allenatore);
             $this->sessionePrivataRepo->save($sessione);
 
-            $this->view->mostraStatoOperazione(true, "Sessione privata pianificata con successo.");
+            $this->view->mostraStatoOperazione(true, "Sessione privata pianificata con successo.", "calendario?data=" . $dataStr);
         } catch (\Throwable $e) {
             $this->view->mostraStatoOperazione(false, "Impossibile salvare la sessione: " . $e->getMessage());
         }
@@ -725,7 +823,7 @@ class AttivitaPianificataController
             }
 
             $this->sessionePrivataRepo->delete($sessione);
-            $this->view->mostraStatoOperazione(true, "Sessione privata annullata con successo.");
+            $this->view->mostraStatoOperazione(true, "Sessione privata annullata con successo.", "calendario?data=" . $sessione->getData()->format('Y-m-d'));
         } catch (\Throwable $e) {
             $this->view->mostraStatoOperazione(false, "Impossibile annullare la sessione privata: " . $e->getMessage());
         }

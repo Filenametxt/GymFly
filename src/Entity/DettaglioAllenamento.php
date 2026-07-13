@@ -6,8 +6,9 @@ class DettaglioAllenamento
 {
     private ?int $id = null;
     private int $serie;
-    private int $ripetizioni;
+    private ?int $ripetizioni = null;
     private float $carico;
+    private ?string $tempo = null;
 
     // N-1 con Esercizio — NO biunivocità, DettaglioAllenamento conosce Esercizio
     private Esercizio $esercizio;
@@ -19,14 +20,16 @@ class DettaglioAllenamento
         Esercizio $esercizio,
         Allenamento $allenamento,
         int $serie,
-        int $ripetizioni,
+        ?int $ripetizioni,
         float $carico,
+        ?string $tempo = null
     ) {
         $this->setEsercizio($esercizio);
         $this->setAllenamento($allenamento);
         $this->setSerie($serie);
         $this->setRipetizioni($ripetizioni);
         $this->setCarico($carico);
+        $this->setTempo($tempo);
     }
 
     // -------------------------------------------------------------------------
@@ -49,9 +52,21 @@ class DettaglioAllenamento
     {
         return $this->serie;
     }
-    public function getRipetizioni(): int
+    public function getRipetizioni(): ?int
     {
         return $this->ripetizioni;
+    }
+    public function getTempo(): ?string
+    {
+        if ($this->tempo === null && isset($this->allenamento)) {
+            // fallback: estrae recupero dalla descrizione se esiste
+            $desc = $this->allenamento->getDescrizione();
+            $rec = \App\View\SchedaAllenamentoViewSmarty::estraiRecupero($desc, $this->esercizio->getNomeEsercizio(), $this->serie, $this->id);
+            if ($rec !== 'Non specificato' && $rec !== '') {
+                return $rec;
+            }
+        }
+        return $this->tempo;
     }
     public function getCarico(): float
     {
@@ -89,11 +104,17 @@ class DettaglioAllenamento
         return $this;
     }
 
-    public function setRipetizioni(int $ripetizioni): self
+    public function setRipetizioni(?int $ripetizioni): self
     {
-        if ($ripetizioni <= 0)
+        if ($ripetizioni !== null && $ripetizioni <= 0)
             throw new \InvalidArgumentException('Le ripetizioni devono essere maggiori di 0.');
         $this->ripetizioni = $ripetizioni;
+        return $this;
+    }
+
+    public function setTempo(?string $tempo): self
+    {
+        $this->tempo = $tempo;
         return $this;
     }
 

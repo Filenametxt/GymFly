@@ -11,11 +11,14 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class AutenticazioneController 
 {
+    private AutenticazioneView $view;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private AutenticazioneView $view,
         private Session $session
-    ) {}
+    ) {
+        $this->view = new AutenticazioneViewSmarty();
+    }
 
     public function login(): void
     {

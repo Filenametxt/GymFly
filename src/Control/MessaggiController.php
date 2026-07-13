@@ -14,12 +14,16 @@ use App\Entity\Repository\MessaggioRepositoryInterface;
 
 class MessaggiController
 {
+    private MessaggioRepositoryInterface $messaggioRepo;
+    private MessaggiView $view;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private MessaggioRepositoryInterface $messaggioRepo,
-        private MessaggiView $view,
         private Session $session
-    ) {}
+    ) {
+        $this->messaggioRepo = new \App\Foundation\Persistence\Repository\DoctrineMessaggioRepository($this->entityManager);
+        $this->view = new \App\View\MessaggiViewSmarty();
+    }
 
     public function mostraMessaggi(): void
     {

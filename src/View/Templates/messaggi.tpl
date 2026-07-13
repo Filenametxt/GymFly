@@ -16,18 +16,39 @@
         {include file='sidebar.tpl'}
         <main class="app-content">
             
-            
-            <div class="mb-5">
-                <a href="{$ritorno}" class="button is-ghost has-text-grey">
-                    <span class="icon"><i class="fas fa-arrow-left"></i></span>
-                    <span>Torna alla Dashboard</span>
-                </a>
+
+
+            <!-- ================= DESKTOP HEADER ================= -->
+            {assign var="headerClass" value="dashboard-header"}
+            {if isset($smarty.session.ruolo_utente)}
+                {if $smarty.session.ruolo_utente === 'amministratore'}
+                    {assign var="headerClass" value="dashboard-header-admin"}
+                {elseif $smarty.session.ruolo_utente === 'allenatore'}
+                    {assign var="headerClass" value="dashboard-header-trainer"}
+                {/if}
+            {/if}
+            <div class="{$headerClass} is-hidden-mobile">
+                <div class="columns is-vcentered">
+                    <div class="column">
+                        <h1 class="title is-2 has-text-white mb-2">
+                            Bacheca Messaggi
+                        </h1>
+                        <p class="subtitle is-5 has-text-white-ter">
+                            Leggi i messaggi ricevuti o invia nuove comunicazioni a utenti e gruppi della palestra
+                        </p>
+                    </div>
+                    <div class="column is-narrow">
+                        <span class="icon is-large has-text-white" style="margin-right: 1.5rem;">
+                            <i class="fas fa-envelope fa-3x"></i>
+                        </span>
+                    </div>
+                </div>
             </div>
 
-            <!-- HEADER BOX -->
-            <div class="box mb-5">
-                <h1 class="title is-3 style-theme-text"><i class="fas fa-envelope mr-3"></i> Bacheca Messaggi</h1>
-                <p class="subtitle is-6 has-text-grey mt-1">Leggi i messaggi ricevuti o invia nuove comunicazioni a utenti e gruppi della palestra</p>
+            <!-- ================= MOBILE HEADER ================= -->
+            <div class="is-flex is-align-items-center mb-5 is-hidden-tablet" style="padding-top: 5px;">
+                <div style="width: 45px;"></div>
+                <strong class="is-size-4 style-theme-text" style="letter-spacing: 1px;">MESSAGGI</strong>
             </div>
 
             <div class="columns">

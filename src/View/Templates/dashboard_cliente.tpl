@@ -8,6 +8,33 @@
     <link class="style-theme-link" rel="stylesheet" href="css/bulma.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        @media screen and (max-width: 768px) {
+            .dashboard-header {
+                height: auto !important;
+                min-height: auto !important;
+                padding: 1rem 1.2rem !important; /* Ridotto il padding verticale per rendere la card più corta */
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                justify-content: center !important;
+                margin-bottom: 1.5rem !important;
+            }
+            .dashboard-header .columns {
+                margin: 0 !important;
+                width: 100% !important;
+            }
+            .dashboard-header .column {
+                padding: 0 !important;
+            }
+            .dashboard-header .title {
+                font-size: 1.8rem !important; /* Testo più grande e leggibile */
+                margin-bottom: 0.3rem !important;
+            }
+            .dashboard-header .subtitle {
+                font-size: 1.1rem !important; /* Testo più grande e leggibile */
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -15,41 +42,14 @@
         {include file='sidebar.tpl'}
         <main class="app-content">
 
-            <!-- ================= DESKTOP HEADER (Coerente con le altre Dashboard) ================= -->
-            <div class="dashboard-header is-hidden-mobile">
+            <!-- ================= HEADER RESPONSIVO (Garantisce gli stessi elementi visuali) ================= -->
+            <div class="dashboard-header">
                 <div class="columns is-vcentered">
                     <div class="column">
                         <h1 class="title is-2 has-text-white mb-2">Ciao, {$utente->getNome()}!</h1>
                         <p class="subtitle is-5 has-text-white-ter">Pronto per l'allenamento di oggi?</p>
                     </div>
                 </div>
-            </div>
-
-            <!-- ================= MOBILE HEADER (Da mockup Screenshot) ================= -->
-            <div class="is-flex is-align-items-center mb-5 is-hidden-tablet" style="padding-top: 5px;">
-                <!-- Spazio per non sovrapporsi al tasto toggle fixed della sidebar su mobile -->
-                <div style="width: 45px;"></div>
-                <div class="client-logo-circle mr-3">
-                    logo
-                </div>
-                <strong class="is-size-4 style-theme-text" style="letter-spacing: 1px;">CLIENTE HOME</strong>
-            </div>
-
-            <!-- ================= MOBILE GREETING (Da mockup Screenshot - Diretto sullo sfondo) ================= -->
-            <div class="has-text-centered mb-6 is-hidden-tablet">
-                <div class="client-avatar-wrapper mb-3">
-                    <div class="client-avatar-inner" style="{if $fotoProfilo}padding: 0; background: transparent;{/if}">
-                        {if $fotoProfilo}
-                            <img src="data:image/jpeg;base64,{$fotoProfilo}" alt="Foto Profilo" class="is-rounded" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
-                        {else}
-                            <span class="icon is-large">
-                                <i class="fas fa-user fa-3x"></i>
-                            </span>
-                        {/if}
-                    </div>
-                </div>
-                <h2 class="title is-3 style-theme-text mb-1">Ciao, {$utente->getNome()}!</h2>
-                <p class="subtitle is-6 has-text-grey mt-1">Pronto per l'allenamento di oggi?</p>
             </div>
 
             <!-- ================= CONTENUTI PRINCIPALI ================= -->
@@ -86,11 +86,11 @@
                 <div class="column is-12-mobile is-7-tablet is-8-desktop">
                     <div class="box" style="height: 100%;">
                         <h3 class="title is-4 mb-4 style-theme-text">
-                            <i class="fas fa-calendar-day mr-2" style="color: var(--gymfly-secondary);"></i> Corsi di Oggi
+                            <i class="fas fa-calendar-day mr-2" style="color: var(--gymfly-secondary);"></i> Attività di Oggi
                         </h3>
                         
                         <div class="event-list">
-                            {foreach $utente->getAttivitaPianificate() as $corso}
+                            {foreach $attivitaOggi as $corso}
                                 <div class="p-4 mb-3" style="background-color: var(--gymfly-bg); border-radius: 12px; border-left: 4px solid var(--gymfly-secondary);">
                                     <div class="is-flex is-align-items-center is-justify-content-between">
                                         <div class="is-flex is-align-items-center">
@@ -111,9 +111,9 @@
                                     </div>
                                 </div>
                             {foreachelse}
-                                <div class="has-text-centered has-text-grey py-5">
-                                    <span class="icon is-large mb-2"><i class="fas fa-calendar-times fa-2x"></i></span>
-                                    <p class="is-size-6">Nessun corso programmato per oggi.</p>
+                                <div class="has-text-centered py-5 my-auto">
+                                    <span class="icon is-large has-text-grey mb-2"><i class="fas fa-info-circle fa-2x"></i></span>
+                                    <p class="has-text-grey">Nessuna attività programmata per oggi.</p>
                                 </div>
                             {/foreach}
                         </div>
@@ -136,21 +136,45 @@
 
                 {if $ultimaMisure}
                     <div class="columns is-multiline is-mobile is-centered">
-                        <div class="column is-6-mobile is-3-tablet has-text-centered py-3">
+                        <div class="column is-6-mobile is-3-tablet is-2-desktop has-text-centered py-3">
                             <p class="heading has-text-grey mb-1">Peso</p>
                             <p class="title is-4 style-theme-text">{$ultimaMisure->getPeso()} kg</p>
                         </div>
-                        <div class="column is-6-mobile is-3-tablet has-text-centered py-3">
+                        <div class="column is-6-mobile is-3-tablet is-2-desktop has-text-centered py-3">
                             <p class="heading has-text-grey mb-1">Altezza</p>
                             <p class="title is-4 style-theme-text">{$ultimaMisure->getAltezza()} cm</p>
                         </div>
-                        <div class="column is-6-mobile is-3-tablet has-text-centered py-3">
+                        <div class="column is-6-mobile is-3-tablet is-2-desktop has-text-centered py-3">
                             <p class="heading has-text-grey mb-1">Bicipite (Dx/Sx)</p>
                             <p class="title is-4 style-theme-text">{$ultimaMisure->getBicipiteDestro()|default:'0'}/{$ultimaMisure->getBicipiteSinistro()|default:'0'} cm</p>
                         </div>
-                        <div class="column is-6-mobile is-3-tablet has-text-centered py-3">
+                        <div class="column is-6-mobile is-3-tablet is-2-desktop has-text-centered py-3">
+                            <p class="heading has-text-grey mb-1">Tricipite (Dx/Sx)</p>
+                            <p class="title is-4 style-theme-text">{$ultimaMisure->getTricipiteDestro()|default:'0'}/{$ultimaMisure->getTricipiteSinistro()|default:'0'} cm</p>
+                        </div>
+                        <div class="column is-6-mobile is-3-tablet is-2-desktop has-text-centered py-3">
                             <p class="heading has-text-grey mb-1">Petto</p>
                             <p class="title is-4 style-theme-text">{if $ultimaMisure->getMisuraPetto()}{$ultimaMisure->getMisuraPetto()} cm{else}-{/if}</p>
+                        </div>
+                        <div class="column is-6-mobile is-3-tablet is-2-desktop has-text-centered py-3">
+                            <p class="heading has-text-grey mb-1">Spalle</p>
+                            <p class="title is-4 style-theme-text">{if $ultimaMisure->getMisuraSpalle()}{$ultimaMisure->getMisuraSpalle()} cm{else}-{/if}</p>
+                        </div>
+                        <div class="column is-6-mobile is-3-tablet is-2-desktop has-text-centered py-3">
+                            <p class="heading has-text-grey mb-1">Coscia (Dx/Sx)</p>
+                            <p class="title is-4 style-theme-text">{$ultimaMisure->getCosciaDestra()|default:'0'}/{$ultimaMisure->getCosciaSinistra()|default:'0'} cm</p>
+                        </div>
+                        <div class="column is-6-mobile is-3-tablet is-2-desktop has-text-centered py-3">
+                            <p class="heading has-text-grey mb-1">Polpaccio (Dx/Sx)</p>
+                            <p class="title is-4 style-theme-text">{$ultimaMisure->getPolpaccioDestro()|default:'0'}/{$ultimaMisure->getPolpaccioSinistro()|default:'0'} cm</p>
+                        </div>
+                        <div class="column is-6-mobile is-3-tablet is-2-desktop has-text-centered py-3">
+                            <p class="heading has-text-grey mb-1">Vita</p>
+                            <p class="title is-4 style-theme-text">{if $ultimaMisure->getMisuraVita()}{$ultimaMisure->getMisuraVita()} cm{else}-{/if}</p>
+                        </div>
+                        <div class="column is-6-mobile is-3-tablet is-2-desktop has-text-centered py-3">
+                            <p class="heading has-text-grey mb-1">Fianchi</p>
+                            <p class="title is-4 style-theme-text">{if $ultimaMisure->getMisuraFianchi()}{$ultimaMisure->getMisuraFianchi()} cm{else}-{/if}</p>
                         </div>
                     </div>
                 {else}

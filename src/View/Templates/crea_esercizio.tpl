@@ -14,14 +14,45 @@
         {include file='sidebar.tpl'}
         <main class="app-content">
 
-            <!-- INTRO / TITLE -->
-            <div class="mb-5">
-                <h1 class="title is-2 style-theme-text mb-2">
-                    {if $is_copia}Modifica Variante Esercizio{else}Crea Esercizio{/if}
-                </h1>
-                <p class="subtitle is-6 has-text-grey">
-                    Definisci i parametri dell'esercizio e salvalo nel catalogo.
-                </p>
+            <!-- ================= DESKTOP HEADER ================= -->
+            {assign var="headerClass" value="dashboard-header"}
+            {if isset($ruolo_utente)}
+                {if $ruolo_utente === 'amministratore'}
+                    {assign var="headerClass" value="dashboard-header-admin"}
+                {elseif $ruolo_utente === 'allenatore'}
+                    {assign var="headerClass" value="dashboard-header-trainer"}
+                {/if}
+            {elseif isset($smarty.session.ruolo_utente)}
+                {if $smarty.session.ruolo_utente === 'amministratore'}
+                    {assign var="headerClass" value="dashboard-header-admin"}
+                {elseif $smarty.session.ruolo_utente === 'allenatore'}
+                    {assign var="headerClass" value="dashboard-header-trainer"}
+                {/if}
+            {/if}
+            <div class="{$headerClass} is-hidden-mobile">
+                <div class="columns is-vcentered">
+                    <div class="column">
+                        <h1 class="title is-2 has-text-white mb-2">
+                            {if $is_copia}Modifica Esercizio{else}Crea Esercizio{/if}
+                        </h1>
+                        <p class="subtitle is-5 has-text-white-ter">
+                            Definisci i parametri dell'esercizio e salvalo nel catalogo
+                        </p>
+                    </div>
+                    <div class="column is-narrow">
+                        <figure class="image is-96x96">
+                            <span class="icon is-large has-text-white">
+                                <i class="fas fa-dumbbell fa-5x"></i>
+                            </span>
+                        </figure>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= MOBILE HEADER ================= -->
+            <div class="is-flex is-align-items-center mb-5 is-hidden-tablet" style="padding-top: 5px;">
+                <div style="width: 45px;"></div>
+                <strong class="is-size-4 style-theme-text" style="letter-spacing: 1px; flex-grow: 1;">CREA ESERCIZIO</strong>
             </div>
 
             <!-- OPTION: COPIA DA ESISTENTE (Coerente con lo stile) -->
@@ -133,14 +164,24 @@
                                 <div class="column is-6">
                                     <label class="label">Gruppo Muscolare *</label>
                                     <div class="select is-fullwidth">
-                                        <select name="gruppi_muscolari[]" id="gruppi_muscolari" required>
+                                        <select name="gruppi_muscolari[]" id="gruppi_muscolari" required onchange="if(this.value === 'nuovo_gruppo') { document.getElementById('container-nuovo-gruppo').classList.remove('is-hidden'); } else { document.getElementById('container-nuovo-gruppo').classList.add('is-hidden'); }">
                                             <option value="">-- Seleziona --</option>
                                             {foreach $gruppi_muscolari as $gm}
                                                 <option value="{$gm->getId()}" {if in_array($gm->getId(), $selected_gruppi)}selected{/if}>
                                                     {$gm->getNomeGruppoMuscolare()}
                                                 </option>
                                             {/foreach}
+                                            <option value="nuovo_gruppo" {if isset($smarty.post.nuovo_gruppo_nome) && $smarty.post.nuovo_gruppo_nome !== ''}selected{/if}>+ Aggiungi Nuovo Gruppo...</option>
                                         </select>
+                                    </div>
+                                    <!-- Input dinamico per nuovo gruppo muscolare (inline-JS Bulma style) -->
+                                    <div id="container-nuovo-gruppo" class="field mt-2 {if !isset($smarty.post.nuovo_gruppo_nome) || $smarty.post.nuovo_gruppo_nome == ''}is-hidden{/if}">
+                                        <div class="control has-icons-left">
+                                            <input class="input" type="text" name="nuovo_gruppo_nome" id="nuovo-gruppo-nome" placeholder="Inserisci nome gruppo" value="{if isset($smarty.post.nuovo_gruppo_nome)}{$smarty.post.nuovo_gruppo_nome|escape}{/if}">
+                                            <span class="icon is-small is-left">
+                                                <i class="fas fa-plus"></i>
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -151,8 +192,8 @@
                                     <label class="label">Esecuzione *</label>
                                     <div class="select is-fullwidth">
                                         <select name="tracciamento_carico" id="tracciamento_carico" required>
-                                            <option value="1" {if $tracciamento_carico == 1}selected{/if}>Con Carico (Peso in Kg)</option>
-                                            <option value="0" {if $tracciamento_carico == 0}selected{/if}>A Corpo Libero (Tempo/Rip)</option>
+                                            <option value="1" {if $tracciamento_carico == 1}selected{/if}>Ripetizioni (Ripetizioni e Carico)</option>
+                                            <option value="0" {if $tracciamento_carico == 0}selected{/if}>Durata (Tempo/Durata e Carico)</option>
                                         </select>
                                     </div>
                                 </div>

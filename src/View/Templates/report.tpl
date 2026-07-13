@@ -12,18 +12,20 @@
     <style>
         .report-card {
             background-color: var(--gymfly-card-bg);
-            border: 2px solid var(--gymfly-primary);
-            border-radius: 16px;
-            padding: 1.5rem;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: 2px solid var(--gymfly-accent);
+            border-radius: 15px;
+            padding: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
             position: relative;
             height: 100%;
             display: flex;
             flex-direction: column;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.02) !important;
         }
         .report-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(175, 175, 226, 0.15);
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(175, 175, 226, 0.15) !important;
+            border-color: var(--gymfly-secondary);
         }
         .pie-layout {
             display: flex;
@@ -37,23 +39,37 @@
         }
         .pie-details-container {
             width: 50%;
-            background-color: rgba(175, 175, 226, 0.05);
-            border: 1px dashed var(--gymfly-primary);
+            background-color: rgba(175, 175, 226, 0.04);
+            border: 2px dashed var(--gymfly-primary);
             border-radius: 12px;
-            padding: 1rem;
+            padding: 1.5rem;
             min-height: 150px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             color: var(--gymfly-text);
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+        .pie-details-container:hover {
+            background-color: rgba(175, 175, 226, 0.08);
+            border-color: var(--gymfly-secondary);
         }
         .chart-wrapper {
             position: relative;
             flex-grow: 1;
             height: 220px;
+        }
+        .select select {
+            border-radius: 12px !important;
+            font-weight: 600;
+            cursor: pointer;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .select select:hover {
+            border-color: var(--gymfly-secondary) !important;
         }
     </style>
 </head>
@@ -63,33 +79,55 @@
         {include file='sidebar.tpl'}
         <main class="app-content">
 
-            <!-- HEADER -->
-            <div class="mb-5">
+            <!-- ================= DESKTOP HEADER ================= -->
+            {assign var="headerClass" value="dashboard-header"}
+            {if isset($smarty.session.ruolo_utente)}
+                {if $smarty.session.ruolo_utente === 'amministratore'}
+                    {assign var="headerClass" value="dashboard-header-admin"}
+                {elseif $smarty.session.ruolo_utente === 'allenatore'}
+                    {assign var="headerClass" value="dashboard-header-trainer"}
+                {/if}
+            {/if}
+            <div class="{$headerClass} is-hidden-mobile">
                 <div class="columns is-vcentered">
                     <div class="column">
-                        <h1 class="title is-2 style-theme-text mb-2">Report & Analisi</h1>
-                        <p class="subtitle is-6 has-text-grey">Statistiche aziendali reali filtrate per mese ed anno selezionati</p>
+                        <h1 class="title is-2 has-text-white mb-2">Report & Analisi</h1>
+                        <p class="subtitle is-5 has-text-white-ter">Statistiche aziendali reali filtrate per mese ed anno selezionati</p>
                     </div>
                     <div class="column is-narrow">
-                        <!-- Filtri temporali -->
-                        <form action="report" method="GET" class="is-flex" style="gap: 0.5rem;">
-                            <div class="select">
-                                <select name="mese" onchange="this.form.submit()">
-                                    {foreach from=$mesiNomi key=num item=nome}
-                                        <option value="{$num}" {if $meseSelezionato === $num}selected{/if}>{$nome}</option>
-                                    {/foreach}
-                                </select>
-                            </div>
-                            <div class="select">
-                                <select name="anno" onchange="this.form.submit()">
-                                    {foreach from=$anniDisponibili item=a}
-                                        <option value="{$a}" {if $annoSelezionato === $a}selected{/if}>{$a}</option>
-                                    {/foreach}
-                                </select>
-                            </div>
-                        </form>
+                        <figure class="image is-96x96">
+                            <span class="icon is-large has-text-white">
+                                <i class="fas fa-chart-pie fa-5x"></i>
+                            </span>
+                        </figure>
                     </div>
                 </div>
+            </div>
+
+            <!-- ================= MOBILE HEADER ================= -->
+            <div class="is-flex is-align-items-center mb-5 is-hidden-tablet" style="padding-top: 5px;">
+                <div style="width: 45px;"></div>
+                <strong class="is-size-4 style-theme-text" style="letter-spacing: 1px;">REPORT & ANALISI</strong>
+            </div>
+
+            <!-- FILTRI TEMPORALI -->
+            <div class="is-flex is-justify-content-end mb-5">
+                <form action="report" method="GET" class="is-flex" style="gap: 0.5rem;">
+                    <div class="select">
+                        <select name="mese" onchange="this.form.submit()">
+                            {foreach from=$mesiNomi key=num item=nome}
+                                <option value="{$num}" {if $meseSelezionato === $num}selected{/if}>{$nome}</option>
+                            {/foreach}
+                        </select>
+                    </div>
+                    <div class="select">
+                        <select name="anno" onchange="this.form.submit()">
+                            {foreach from=$anniDisponibili item=a}
+                                <option value="{$a}" {if $annoSelezionato === $a}selected{/if}>{$a}</option>
+                            {/foreach}
+                        </select>
+                    </div>
+                </form>
             </div>
 
             <!-- LAYOUT GRAFICI -->
@@ -118,10 +156,10 @@
                     </div>
                 </div>
 
-                <!-- 2. PRENOTAZIONI AI CORSI (HORIZONTAL BAR CHART) -->
+                <!-- 2. PRENOTAZIONI ALLE ATTIVITÀ (HORIZONTAL BAR CHART) -->
                 <div class="column is-6">
                     <div class="report-card">
-                        <h3 class="title is-5 mb-4 style-theme-text">Prenotazioni Corsi ({$mesiNomi[$meseSelezionato]} {$annoSelezionato})</h3>
+                        <h3 class="title is-5 mb-4 style-theme-text">Prenotazione Attività ({$mesiNomi[$meseSelezionato]} {$annoSelezionato})</h3>
                         {if count($prenotazioniCorsi) > 0}
                             <div class="chart-wrapper">
                                 <canvas id="chartCorsi"></canvas>
@@ -154,6 +192,10 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             
+            // Impostazioni globali di stile per Chart.js in linea con GymFly
+            Chart.defaults.font.family = "'Outfit', 'Inter', 'BlinkMacSystemFont', -apple-system, 'Segoe UI', 'Roboto', sans-serif";
+            Chart.defaults.color = "#4B3F72";
+
             {if count($abbonamentiDati) > 0}
             // 1. Grafico Tipologie Abbonamento (Pie Chart)
             const ctxTipologie = document.getElementById('chartTipologie').getContext('2d');
@@ -165,8 +207,16 @@
                     data: [
                         {foreach from=$abbonamentiDati item=count} {$count}, {/foreach}
                     ],
-                    backgroundColor: ['#209cee', '#23d160', '#ffdd57', '#ff3860', '#9b59b6', '#34495e'],
-                    borderWidth: 0
+                    backgroundColor: [
+                        '#afafe2', // periwinkle (primario)
+                        '#99cdea', // baby-blue (secondario)
+                        '#c5e0fc', // pale-sky (accento)
+                        '#d0d0f5', // periwinkle-2
+                        '#85a6cc', // darker baby blue
+                        '#6c6ca6'  // darker periwinkle
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
                 }]
             };
 
@@ -209,7 +259,7 @@
                     labels: labelsCorsi,
                     datasets: [{
                         data: datiCorsi,
-                        backgroundColor: '#ffdd57',
+                        backgroundColor: '#afafe2', // periwinkle (primario)
                         borderRadius: 6
                     }]
                 },
@@ -220,10 +270,16 @@
                     plugins: { legend: { display: false } },
                     scales: {
                         x: { 
-                            grid: { color: 'rgba(175, 175, 226, 0.1)' },
-                            ticks: { precision: 0 }
+                            grid: { color: 'rgba(175, 175, 226, 0.15)' },
+                            ticks: { 
+                                precision: 0,
+                                color: '#4B3F72'
+                            }
                         },
-                        y: { grid: { display: false } }
+                        y: { 
+                            grid: { display: false },
+                            ticks: { color: '#4B3F72' }
+                        }
                     }
                 }
             });
@@ -243,7 +299,7 @@
                     datasets: [{
                         label: 'Iscritti',
                         data: datiIscritti,
-                        backgroundColor: '#23d160',
+                        backgroundColor: '#99cdea', // baby blue (secondario)
                         borderRadius: 4
                     }]
                 },
@@ -253,10 +309,16 @@
                     plugins: { legend: { display: false } },
                     scales: {
                         y: { 
-                            grid: { color: 'rgba(175, 175, 226, 0.1)' },
-                            ticks: { precision: 0 }
+                            grid: { color: 'rgba(175, 175, 226, 0.15)' },
+                            ticks: { 
+                                precision: 0,
+                                color: '#4B3F72'
+                            }
                         },
-                        x: { grid: { display: false } }
+                        x: { 
+                            grid: { display: false },
+                            ticks: { color: '#4B3F72' }
+                        }
                     }
                 }
             });

@@ -12,13 +12,15 @@ use Doctrine\ORM\EntityManager;
 
 class ReportController
 {
-    private EntityManager $entityManager;
+    private \Doctrine\ORM\EntityManagerInterface $entityManager;
+    private ReportView $view;
 
     public function __construct(
-        private ReportView $view,
+        \Doctrine\ORM\EntityManagerInterface $entityManager,
         private Session $session
     ) {
-        $this->entityManager = EntityManagerFactory::create();
+        $this->entityManager = $entityManager;
+        $this->view = new \App\View\ReportViewSmarty();
     }
 
     /**
@@ -55,16 +57,14 @@ class ReportController
         // Carica tutti i clienti della palestra
         $clienti = $this->entityManager->getRepository(Cliente::class)->findBy(['palestra' => $palestra]);
 
-        // 1. Tipologia Abbonamento (Attivi nel mese/anno selezionato)
+        // 1. Tipologia Abbonamento (Iniziati nel mese/anno selezionato)
         $abbonamentiDati = [];
         
         foreach ($clienti as $cliente) {
             $abb = $cliente->getAbbonamento();
             if ($abb) {
                 $start = $abb->getDataInizio();
-                $end = $abb->getDataFine();
-                // Verifica sovrapposizione temporale
-                if ($start <= $fineDelMese && ($end === null || $end >= $primoDelMese)) {
+                if ((int)$start->format('n') === $meseSelezionato && (int)$start->format('Y') === $annoSelezionato) {
                     $tipoObj = $abb->getAbbonamento();
                     if ($tipoObj) {
                         $tipologiaName = $tipoObj->getTipologia();

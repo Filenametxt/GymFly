@@ -18,52 +18,63 @@
         .planner-table th {
             text-align: center;
             padding: 10px;
-            background-color: var(--gymfly-card-bg);
-            color: #AFAFE2;
+            background: linear-gradient(135deg, var(--periwinkle-2) 0%, var(--gymfly-accent) 100%) !important;
+            color: var(--gymfly-text) !important;
             border-radius: 8px;
             border: 1px solid var(--gymfly-primary);
             font-size: 0.9rem;
+            font-weight: 700;
+        }
+        .planner-table th small {
+            color: rgba(75, 63, 114, 0.7) !important;
         }
         .planner-table td {
             height: 90px;
             vertical-align: top;
             padding: 6px;
-            background-color: rgba(26, 26, 46, 0.4);
+            background-color: var(--gymfly-card-bg);
             border-radius: 8px;
-            border: 1px dashed rgba(175, 175, 226, 0.2);
+            border: 1px solid rgba(175, 175, 226, 0.4);
             position: relative;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.01);
+            transition: background-color 0.2s ease;
+        }
+        .planner-table td:hover {
+            background-color: rgba(153, 205, 234, 0.05);
         }
         .planner-table .hour-col {
             width: 65px;
             vertical-align: middle;
             text-align: center;
-            background-color: var(--gymfly-card-bg);
-            color: var(--gymfly-text);
+            background: linear-gradient(135deg, var(--periwinkle-2) 0%, var(--gymfly-accent) 100%) !important;
+            color: var(--gymfly-text) !important;
             font-weight: bold;
             font-size: 0.85rem;
             border: 1px solid var(--gymfly-primary);
             height: auto;
+            border-radius: 8px;
         }
         .ap-block {
-            background: linear-gradient(135deg, var(--gymfly-primary) 0%, var(--gymfly-accent) 100%);
-            color: white;
+            background: linear-gradient(135deg, var(--periwinkle-2) 0%, var(--gymfly-accent) 100%);
+            color: var(--gymfly-text);
             padding: 6px 8px;
             border-radius: 6px;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             font-weight: 600;
             margin-bottom: 4px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 2px 5px rgba(75, 63, 114, 0.08);
+            border-left: 3px solid var(--gymfly-primary);
             cursor: pointer;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             display: block;
         }
         .ap-block:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(175, 175, 226, 0.25);
+            box-shadow: 0 4px 10px rgba(75, 63, 114, 0.15);
         }
         .ap-block.is-selected {
-            border: 2px solid white;
-            box-shadow: 0 0 10px var(--gymfly-secondary);
+            border: 2px solid var(--gymfly-text);
+            box-shadow: 0 0 10px rgba(175, 175, 226, 0.5);
         }
         .weekday-checkboxes label {
             display: inline-block;
@@ -91,21 +102,54 @@
         {include file='sidebar.tpl'}
         <main class="app-content">
 
-            <!-- HEADER -->
-            <div class="mb-5">
+            <!-- ================= DESKTOP HEADER ================= -->
+            {assign var="headerClass" value="dashboard-header"}
+            {if isset($ruolo_utente)}
+                {if $ruolo_utente === 'amministratore'}
+                    {assign var="headerClass" value="dashboard-header-admin"}
+                {elseif $ruolo_utente === 'allenatore'}
+                    {assign var="headerClass" value="dashboard-header-trainer"}
+                {/if}
+            {elseif isset($smarty.session.ruolo_utente)}
+                {if $smarty.session.ruolo_utente === 'amministratore'}
+                    {assign var="headerClass" value="dashboard-header-admin"}
+                {elseif $smarty.session.ruolo_utente === 'allenatore'}
+                    {assign var="headerClass" value="dashboard-header-trainer"}
+                {/if}
+            {/if}
+            <div class="{$headerClass} is-hidden-mobile">
                 <div class="columns is-vcentered">
                     <div class="column">
-                        <h1 class="title is-2 style-theme-text mb-2">Weekly Planner</h1>
-                        <p class="subtitle is-6 has-text-grey">Programmazione dell'agenda corsi e gestione delle attività pianificate</p>
+                        <h1 class="title is-2 has-text-white mb-2">
+                            Weekly Planner
+                        </h1>
+                        <p class="subtitle is-5 has-text-white-ter">
+                            Programmazione dell'agenda attività e gestione delle attività pianificate
+                        </p>
                     </div>
                     <div class="column is-narrow">
-                        <a href="calendario?nuovo=1" class="button is-gymfly">
-                            <span class="icon"><i class="fas fa-plus"></i></span>
-                            <span>+ Nuovo Corso</span>
-                        </a>
+                        <span class="icon is-large has-text-white" style="margin-right: 1.5rem;">
+                            <i class="fas fa-calendar-alt fa-3x"></i>
+                        </span>
                     </div>
                 </div>
             </div>
+
+            <!-- ================= MOBILE HEADER ================= -->
+            <div class="is-flex is-align-items-center mb-5 is-hidden-tablet" style="padding-top: 5px;">
+                <div style="width: 45px;"></div>
+                <strong class="is-size-4 style-theme-text" style="letter-spacing: 1px; flex-grow: 1;">PLANNER</strong>
+            </div>
+
+            <!-- ACTION TOOLBAR (Nuova Attività) -->
+            {if isset($smarty.session.ruolo_utente) && ($smarty.session.ruolo_utente === 'amministratore' || $smarty.session.ruolo_utente === 'allenatore')}
+            <div class="mb-5">
+                <a href="calendario?nuovo=1" class="button is-gymfly" title="+ Nuova Attività" style="border-radius: 10px;">
+                    <span class="icon"><i class="fas fa-plus"></i></span>
+                    <span> Nuova Attività</span>
+                </a>
+            </div>
+            {/if}
 
             <!-- LAYOUT SPLIT PANEL -->
             <div class="columns">
@@ -117,13 +161,13 @@
                             <thead>
                                 <tr>
                                     <th class="hour-col">Ora</th>
-                                    <th>Lun <br><small class="has-text-grey">{$giorniSettimana[0]->format('d/m')}</small></th>
-                                    <th>Mar <br><small class="has-text-grey">{$giorniSettimana[1]->format('d/m')}</small></th>
-                                    <th>Mer <br><small class="has-text-grey">{$giorniSettimana[2]->format('d/m')}</small></th>
-                                    <th>Gio <br><small class="has-text-grey">{$giorniSettimana[3]->format('d/m')}</small></th>
-                                    <th>Ven <br><small class="has-text-grey">{$giorniSettimana[4]->format('d/m')}</small></th>
-                                    <th>Sab <br><small class="has-text-grey">{$giorniSettimana[5]->format('d/m')}</small></th>
-                                    <th>Dom <br><small class="has-text-grey">{$giorniSettimana[6]->format('d/m')}</small></th>
+                                    <th>Lun</th>
+                                    <th>Mar</th>
+                                    <th>Mer</th>
+                                    <th>Gio</th>
+                                    <th>Ven</th>
+                                    <th>Sab</th>
+                                    <th>Dom</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -164,8 +208,8 @@
                             <!-- SE SELEZIONATA ATTIVITÀ ESISTENTE (DETTAGLIO/MODIFICA/ELIMINA) -->
                             {if $selectedAp}
                                 <div class="is-flex is-justify-content-between is-align-items-center mb-4">
-                                    <h2 class="title is-4 mb-0 style-theme-text">Dettaglio Corso</h2>
-                                    <a href="calendario" class="delete" title="Chiudi dettaglio"></a>
+                                    <h2 class="title is-4 mb-0 style-theme-text">Dettaglio Attività</h2>
+                                    <a href="calendario" class="delete is-medium" style="margin-left: auto;" title="Chiudi dettaglio"></a>
                                 </div>
 
                                 <div class="box" style="background-color: rgba(175, 175, 226, 0.05); border: 1px solid var(--gymfly-primary);">
@@ -227,43 +271,43 @@
                                     <!-- RIMOZIONE EVENTO -->
                                     <a href="rimuovi-attivita-pianificata?id_attivita_pianificata={$selectedAp->getId()}" class="button is-danger is-light is-fullwidth mt-4" onclick="return confirm('Sei sicuro di voler rimuovere questa attività pianificata dal calendario? Tutti gli iscritti saranno rimossi.');">
                                         <span class="icon"><i class="fas fa-trash-alt"></i></span>
-                                        <span>Elimina Corso Pianificato</span>
+                                        <span>Elimina Attività Pianificata</span>
                                     </a>
                                 </div>
 
-                            <!-- SE MODALITÀ NUOVO INSERIMENTO (CREA CORSO PIANIFICATO) -->
+                            <!-- SE MODALITÀ NUOVO INSERIMENTO (CREA ATTIVITÀ PIANIFICATA) -->
                             {elseif $nuovo}
                                 <div class="is-flex is-justify-content-between is-align-items-center mb-4">
-                                    <h2 class="title is-4 mb-0 style-theme-text">Pianifica Corso</h2>
-                                    <a href="calendario" class="delete" title="Chiudi inserimento"></a>
+                                    <h2 class="title is-4 mb-0 style-theme-text">Pianifica Attività</h2>
+                                    <a href="calendario" class="delete is-medium" style="margin-left: auto;" title="Chiudi inserimento"></a>
                                 </div>
 
                                 <form action="crea-attivita-pianificata" method="POST">
                                     
-                                    <!-- NOME CORSO -->
+                                    <!-- NOME ATTIVITÀ -->
                                     <div class="field mb-3">
-                                        <label class="label is-small style-theme-text">Corso da pianificare *</label>
+                                        <label class="label is-small style-theme-text">Attività da pianificare *</label>
                                         <div class="control">
                                             <div class="select is-fullwidth is-small">
                                                 <select name="id_attivita" id="select-corso" onchange="toggleNuovoCorsoForm(this.value)">
-                                                    <option value="">-- Seleziona corso esistente --</option>
+                                                    <option value="">-- Seleziona attività esistente --</option>
                                                     {foreach from=$attivita item=att}
                                                         <option value="{$att->getId()}">{$att->getNome()} (max: {$att->getMaxPartecipanti()})</option>
                                                     {/foreach}
-                                                    <option value="0">+ Registra nuovo corso nel catalogo</option>
+                                                    <option value="0">+ Registra nuova attività nel catalogo</option>
                                                 </select>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <!-- MINI FORM PER NUOVO CORSO NEL CATALOGO (MOSTRATO SOLO SE SELEZIONATO '0') -->
+                                    <!-- MINI FORM PER NUOVA ATTIVITÀ NEL CATALOGO (MOSTRATO SOLO SE SELEZIONATO '0') -->
                                     <div id="nuovo-corso-box" class="box p-3 mb-3" style="display: none; background-color: rgba(255,255,255,0.02); border: 1px dashed var(--gymfly-primary);">
-                                        <h4 class="title is-6 mb-2 style-theme-text">Dettagli Nuovo Corso</h4>
+                                        <h4 class="title is-6 mb-2 style-theme-text">Dettagli Nuova Attività</h4>
                                         <div class="field mb-2">
-                                            <input class="input is-small" type="text" name="nuova_attivita_nome" placeholder="Nome Corso (es: Spinning)">
+                                            <input class="input is-small" type="text" name="nuova_attivita_nome" placeholder="Nome Attività (es: Spinning)">
                                         </div>
                                         <div class="field mb-2">
-                                            <input class="input is-small" type="text" name="nuova_attivita_desc" placeholder="Descrizione del corso">
+                                            <input class="input is-small" type="text" name="nuova_attivita_desc" placeholder="Descrizione dell'attività">
                                         </div>
                                         <div class="field">
                                             <input class="input is-small" type="number" name="nuova_attivita_max" placeholder="Posti Max Consentiti (es: 15)">
@@ -349,11 +393,18 @@
                                         <p class="help has-text-grey-light">Se selezionate delle ripetizioni, l'evento verrà pianificato per le prossime 4 settimane nei giorni selezionati.</p>
                                     </div>
 
-                                    <!-- SUBMIT -->
-                                    <button type="submit" class="button is-gymfly is-fullwidth">
-                                        <span class="icon"><i class="fas fa-save"></i></span>
-                                        <span>Pianifica Corso</span>
-                                    </button>
+                                    <!-- ACTIONS GROUP -->
+                                    <div class="field is-grouped is-grouped-right mt-5">
+                                        <p class="control">
+                                            <a href="calendario" class="button is-light">Chiudi</a>
+                                        </p>
+                                        <p class="control">
+                                            <button type="submit" class="button is-gymfly">
+                                                <span class="icon"><i class="fas fa-save"></i></span>
+                                                <span>Pianifica Attività</span>
+                                            </button>
+                                        </p>
+                                    </div>
 
                                 </form>
                             {/if}
