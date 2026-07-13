@@ -393,8 +393,12 @@ code {
         border-color: var(--gymfly-primary) !important;
     }
 
-    .title, .subtitle, .label, p, span, div:not(.navbar-burger), strong, th, td, h1, h2, h3, h4, h5, h6 {
+    .title, .subtitle, .label, p, span, div:not(.navbar-burger), th, td, h1, h2, h3, h4, h5, h6 {
         color: var(--gymfly-text) !important;
+    }
+
+    strong {
+        color: #FFFFFF !important;
     }
 
     /* Manteniamo bianchi i testi all'interno delle intestazioni sfumate (dashboard) */
