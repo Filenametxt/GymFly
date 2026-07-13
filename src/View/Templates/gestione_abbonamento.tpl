@@ -16,8 +16,8 @@
         <main class="app-content">
             <div class="container">
                 
-                <div class="mb-5">
-                    <a href="visualizza-profilo?id={$cliente->getId()}" class="button is-ghost has-text-grey">
+                <div class="mb-5 has-text-left">
+                    <a href="visualizza-profilo?id={$cliente->getId()}" class="button is-ghost has-text-grey pl-0">
                         <span class="icon"><i class="fas fa-arrow-left"></i></span>
                         <span>Torna al Profilo Cliente</span>
                     </a>

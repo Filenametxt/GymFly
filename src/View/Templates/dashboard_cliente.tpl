@@ -28,7 +28,7 @@
             <!-- ================= MOBILE HEADER (Da mockup Screenshot) ================= -->
             <div class="is-flex is-align-items-center mb-5 is-hidden-tablet" style="padding-top: 5px;">
                 <!-- Spazio per non sovrapporsi al tasto toggle fixed della sidebar su mobile -->
-                <div style="width: 45px;"></div>
+                <div style="width: 18px;"></div>
                 <div class="client-logo-circle mr-3">
                     logo
                 </div>

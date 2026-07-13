@@ -37,7 +37,7 @@
             </div>
 
             <!-- BACK BUTTON -->
-            <div class="mb-4">
+            <div class="mb-4 has-text-left">
                 <a href="profilo{if !$isSelf}?id={$utente->getId()}{/if}" class="button is-ghost has-text-grey pl-0">
                     <span class="icon"><i class="fas fa-arrow-left"></i></span>
                     <span>Torna al Profilo</span>

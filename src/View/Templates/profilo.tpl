@@ -101,7 +101,7 @@
                                 {if $isClient}
                                     <p><strong>Data di Nascita:</strong> {$utente->getDataDiNascita()|date_format:"%d/%m/%Y"}</p>
                                 {/if}
-                                <p><strong>E-mail:</strong> <span class="is-size-4-mobile">{$utente->getEmail()}</span></p>
+                                <p><strong>E-mail:</strong> <span>{$utente->getEmail()}</span></p>
                                 <p><strong>Telefono:</strong> {$utente->getTelefono()|default:'-'}</p>
                             </div>
 
@@ -235,7 +235,7 @@
                         <a href="aggiorna-misure{if !$isSelf}?id={$utente->getId()}{/if}" class="navigation-box-card">
                             <span class="is-flex is-align-items-center">
                                 <span class="icon mr-3 has-text-link"><i class="fas fa-chart-line fa-lg"></i></span>
-                                <span class="has-text-weight-semibold is-size-5">parametri</span>
+                                <span class="has-text-weight-semibold is-size-5">Parametri</span>
                             </span>
                             <span class="icon has-text-grey"><i class="fas fa-chevron-right fa-lg"></i></span>
                         </a>
@@ -269,7 +269,7 @@
                         <a href="modifica-anagrafica{if !$isSelf}?id={$utente->getId()}{/if}" class="navigation-box-card">
                             <span class="is-flex is-align-items-center">
                                 <span class="icon mr-3 has-text-link"><i class="fas fa-pen fa-lg"></i></span>
-                                <span class="has-text-weight-semibold is-size-5">modifica dati</span>
+                                <span class="has-text-weight-semibold is-size-5">Modifica Dati</span>
                             </span>
                             <span class="icon has-text-grey"><i class="fas fa-chevron-right fa-lg"></i></span>
                         </a>
@@ -280,7 +280,7 @@
                             <a href="cambia-password" class="navigation-box-card">
                                 <span class="is-flex is-align-items-center">
                                     <span class="icon mr-3 has-text-link"><i class="fas fa-key fa-lg"></i></span>
-                                    <span class="has-text-weight-semibold is-size-5">cambia password</span>
+                                    <span class="has-text-weight-semibold is-size-5">Cambia Password</span>
                                 </span>
                                 <span class="icon has-text-grey"><i class="fas fa-chevron-right fa-lg"></i></span>
                             </a>

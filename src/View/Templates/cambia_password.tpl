@@ -15,16 +15,15 @@
         {include file='sidebar.tpl'}
         <main class="app-content">
             <div class="container">
-                
-                <div class="mb-5">
-                    <a href="profilo" class="button is-ghost has-text-grey">
-                        <span class="icon"><i class="fas fa-arrow-left"></i></span>
-                        <span>Torna al Profilo</span>
-                    </a>
-                </div>
 
                 <div class="columns is-centered">
                     <div class="column is-5">
+                        <div class="mb-5 has-text-left">
+                            <a href="profilo" class="button is-ghost has-text-grey pl-0">
+                                <span class="icon"><i class="fas fa-arrow-left"></i></span>
+                                <span>Torna al Profilo</span>
+                            </a>
+                        </div>
                         
                         <div class="box card-custom">
                             <div class="has-text-centered mb-5">
