@@ -6,19 +6,23 @@ use App\Entity\Palestra;
 use App\Entity\Cliente;
 use App\Entity\AttivitaPianificata;
 use App\View\Interface\ReportView;
+use App\View\ReportViewSmarty;
 use App\Infrastructure\Doctrine\EntityManagerFactory;
 use App\Foundation\Session;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 
 class ReportController
 {
-    private EntityManager $entityManager;
+    private EntityManagerInterface $entityManager;
+    private ReportView $view;
 
     public function __construct(
-        private ReportView $view,
+        EntityManagerInterface $entityManager,
         private Session $session
     ) {
-        $this->entityManager = EntityManagerFactory::create();
+        $this->entityManager = $entityManager;
+        $this->view = new ReportViewSmarty();
     }
 
     /**

@@ -7,18 +7,24 @@ use App\Entity\Attrezzatura;
 use App\Entity\Tipologia;
 use App\Entity\Allenatore;
 use App\Entity\Repository\EsercizioRepositoryInterface;
+use App\Foundation\Persistence\Repository\DoctrineEsercizioRepository;
 use App\View\Interface\EserciziView;
+use App\View\EserciziViewSmarty;
 use App\Foundation\Session;
 use Doctrine\ORM\EntityManagerInterface;
 
 class EserciziController
 {
+    private EsercizioRepositoryInterface $esercizioRepo;
+    private EserciziView $view;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private EsercizioRepositoryInterface $esercizioRepo,
-        private EserciziView $view,
         private Session $session
-    ) {}
+    ) {
+        $this->esercizioRepo = new DoctrineEsercizioRepository($this->entityManager);
+        $this->view = new EserciziViewSmarty();
+    }
 
     /**
      * 1. Inizializzazione Nuovo Esercizio

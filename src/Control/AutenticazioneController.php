@@ -2,6 +2,7 @@
 namespace App\Control;
 
 use App\View\Interface\AutenticazioneView;
+use App\View\AutenticazioneViewSmarty;
 use App\Foundation\Session;
 use App\Enum\Sesso;
 use App\Entity\Amministratore;
@@ -11,11 +12,14 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class AutenticazioneController 
 {
+    private AutenticazioneView $view;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private AutenticazioneView $view,
         private Session $session
-    ) {}
+    ) {
+        $this->view = new AutenticazioneViewSmarty();
+    }
 
     public function login(): void
     {

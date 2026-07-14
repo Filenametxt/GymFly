@@ -79,33 +79,55 @@
         {include file='sidebar.tpl'}
         <main class="app-content">
 
-            <!-- HEADER -->
-            <div class="mb-5">
+            <!-- ================= DESKTOP HEADER ================= -->
+            {assign var="headerClass" value="dashboard-header"}
+            {if isset($smarty.session.ruolo_utente)}
+                {if $smarty.session.ruolo_utente === 'amministratore'}
+                    {assign var="headerClass" value="dashboard-header-admin"}
+                {elseif $smarty.session.ruolo_utente === 'allenatore'}
+                    {assign var="headerClass" value="dashboard-header-trainer"}
+                {/if}
+            {/if}
+            <div class="{$headerClass} is-hidden-mobile">
                 <div class="columns is-vcentered">
                     <div class="column">
-                        <h1 class="title is-2 style-theme-text mb-2">Report & Analisi</h1>
-                        <p class="subtitle is-6 has-text-grey">Statistiche aziendali reali filtrate per mese ed anno selezionati</p>
+                        <h1 class="title is-2 has-text-white mb-2">Report & Analisi</h1>
+                        <p class="subtitle is-5 has-text-white-ter">Statistiche aziendali reali filtrate per mese ed anno selezionati</p>
                     </div>
                     <div class="column is-narrow">
-                        <!-- Filtri temporali -->
-                        <form action="report" method="GET" class="is-flex" style="gap: 0.5rem;">
-                            <div class="select">
-                                <select name="mese" onchange="this.form.submit()">
-                                    {foreach from=$mesiNomi key=num item=nome}
-                                        <option value="{$num}" {if $meseSelezionato === $num}selected{/if}>{$nome}</option>
-                                    {/foreach}
-                                </select>
-                            </div>
-                            <div class="select">
-                                <select name="anno" onchange="this.form.submit()">
-                                    {foreach from=$anniDisponibili item=a}
-                                        <option value="{$a}" {if $annoSelezionato === $a}selected{/if}>{$a}</option>
-                                    {/foreach}
-                                </select>
-                            </div>
-                        </form>
+                        <figure class="image is-96x96">
+                            <span class="icon is-large has-text-white">
+                                <i class="fas fa-chart-pie fa-5x"></i>
+                            </span>
+                        </figure>
                     </div>
                 </div>
+            </div>
+
+            <!-- ================= MOBILE HEADER ================= -->
+            <div class="is-flex is-align-items-center mb-5 is-hidden-tablet" style="padding-top: 5px;">
+                <div style="width: 45px;"></div>
+                <strong class="is-size-4 style-theme-text" style="letter-spacing: 1px;">REPORT & ANALISI</strong>
+            </div>
+
+            <!-- FILTRI TEMPORALI -->
+            <div class="is-flex is-justify-content-end mb-5">
+                <form action="report" method="GET" class="is-flex" style="gap: 0.5rem;">
+                    <div class="select">
+                        <select name="mese" onchange="this.form.submit()">
+                            {foreach from=$mesiNomi key=num item=nome}
+                                <option value="{$num}" {if $meseSelezionato === $num}selected{/if}>{$nome}</option>
+                            {/foreach}
+                        </select>
+                    </div>
+                    <div class="select">
+                        <select name="anno" onchange="this.form.submit()">
+                            {foreach from=$anniDisponibili item=a}
+                                <option value="{$a}" {if $annoSelezionato === $a}selected{/if}>{$a}</option>
+                            {/foreach}
+                        </select>
+                    </div>
+                </form>
             </div>
 
             <!-- LAYOUT GRAFICI -->
@@ -134,10 +156,10 @@
                     </div>
                 </div>
 
-                <!-- 2. PRENOTAZIONI AI CORSI (HORIZONTAL BAR CHART) -->
+                <!-- 2. PRENOTAZIONI ALLE ATTIVITÀ (HORIZONTAL BAR CHART) -->
                 <div class="column is-6">
                     <div class="report-card">
-                        <h3 class="title is-5 mb-4 style-theme-text">Prenotazioni Corsi ({$mesiNomi[$meseSelezionato]} {$annoSelezionato})</h3>
+                        <h3 class="title is-5 mb-4 style-theme-text">Prenotazione Attività ({$mesiNomi[$meseSelezionato]} {$annoSelezionato})</h3>
                         {if count($prenotazioniCorsi) > 0}
                             <div class="chart-wrapper">
                                 <canvas id="chartCorsi"></canvas>

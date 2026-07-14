@@ -4,7 +4,11 @@ namespace App\Control;
 use App\Entity\Repository\ClienteRepositoryInterface;
 use App\Entity\Repository\AllenatoreRepositoryInterface;
 use App\Entity\Repository\AttivitaRepositoryInterface;
+use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
+use App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository;
+use App\Foundation\Persistence\Repository\DoctrineAttivitaRepository;
 use App\View\Interface\AmministratoreView;
+use App\View\AmministratoreViewSmarty;
 use App\Foundation\Session;
 use App\Enum\Sesso;
 use App\Entity\Amministratore;
@@ -17,14 +21,20 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class AmministratoreController
 {
+    private ClienteRepositoryInterface $clienteRepo;
+    private AllenatoreRepositoryInterface $allenatoreRepo;
+    private AttivitaRepositoryInterface $attivitaRepo;
+    private AmministratoreView $view;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private ClienteRepositoryInterface $clienteRepo,
-        private AllenatoreRepositoryInterface $allenatoreRepo,
-        private AttivitaRepositoryInterface $attivitaRepo,
-        private AmministratoreView $view,
         private Session $session
-    ) {}
+    ) {
+        $this->clienteRepo = new DoctrineClienteRepository($this->entityManager);
+        $this->allenatoreRepo = new DoctrineAllenatoreRepository($this->entityManager);
+        $this->attivitaRepo = new DoctrineAttivitaRepository($this->entityManager);
+        $this->view = new AmministratoreViewSmarty();
+    }
 
     /**
      * Recupera la palestra gestita dall'amministratore attualmente loggato.

@@ -2,6 +2,8 @@
 namespace App\Control;
 
 use App\View\Interface\VisualizzazioneView;
+use App\View\VisualizzazioneViewSmarty;
+use App\Foundation\Persistence\Repository\DoctrineParametriRepository;
 use App\Foundation\Session;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Amministratore;
@@ -17,11 +19,14 @@ use App\Entity\Attivita;
 
 class VisualizzazioneController
 {
+    private VisualizzazioneView $view;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private VisualizzazioneView $view,
         private Session $session
-    ) {}
+    ) {
+        $this->view = new VisualizzazioneViewSmarty();
+    }
 
     /**
      * Mostra la dashboard dell'amministratore se autorizzato.
@@ -36,6 +41,11 @@ class VisualizzazioneController
         }
 
         $admin = $this->entityManager->find(Amministratore::class, $id);
+        if (!$admin) {
+            $this->session->destroy();
+            header("Location: login");
+            exit;
+        }
         
         // Recupera la palestra gestita da questo amministratore
         $palestra = $this->entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $admin]);
@@ -204,6 +214,11 @@ class VisualizzazioneController
         }
 
         $allenatore = $this->entityManager->find(Allenatore::class, $id);
+        if (!$allenatore) {
+            $this->session->destroy();
+            header("Location: login");
+            exit;
+        }
         $palestra = $allenatore->getPalestra();
         
         // Filtra i clienti associati alla palestra dell'allenatore
@@ -292,8 +307,13 @@ class VisualizzazioneController
         }
 
         $cliente = $this->entityManager->find(Cliente::class, $id);
+        if (!$cliente) {
+            $this->session->destroy();
+            header("Location: login");
+            exit;
+        }
         
-        $parametriRepo = new \App\Foundation\Persistence\Repository\DoctrineParametriRepository($this->entityManager);
+        $parametriRepo = new DoctrineParametriRepository($this->entityManager);
         $ultimaMisure = $parametriRepo->findUltimaByCliente($cliente);
 
         $oggi = new \DateTimeImmutable('today');

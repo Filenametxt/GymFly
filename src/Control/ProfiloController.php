@@ -5,7 +5,11 @@ namespace App\Control;
 use App\Entity\Repository\ClienteRepositoryInterface;
 use App\Entity\Repository\ParametriRepositoryInterface;
 use App\Entity\Repository\CertificatoMedicoRepositoryInterface;
+use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
+use App\Foundation\Persistence\Repository\DoctrineParametriRepository;
+use App\Foundation\Persistence\Repository\DoctrineCertificatoMedicoRepository;
 use App\View\Interface\ProfiloView;
+use App\View\ProfiloViewSmarty;
 use App\Foundation\Session;
 use App\Entity\Parametri;
 use App\Entity\CertificatoMedico;
@@ -15,16 +19,26 @@ use App\Entity\Palestra;
 use App\Entity\Allenatore;
 use App\Entity\Utente;
 use App\Entity\Cliente;
+use Doctrine\ORM\EntityManagerInterface;
 
 class ProfiloController 
 {
+    private ClienteRepositoryInterface $clienteRepo;
+    private ParametriRepositoryInterface $parametriRepo;
+    private CertificatoMedicoRepositoryInterface $certificatoRepo;
+    private ProfiloView $view;
+    private EntityManagerInterface $entityManager;
+
     public function __construct(
-        private ClienteRepositoryInterface $clienteRepo,
-        private ParametriRepositoryInterface $parametriRepo,
-        private CertificatoMedicoRepositoryInterface $certificatoRepo,
-        private ProfiloView $view,
+        EntityManagerInterface $entityManager,
         private Session $session
-    ) {}
+    ) {
+        $this->entityManager = $entityManager;
+        $this->clienteRepo = new DoctrineClienteRepository($this->entityManager);
+        $this->parametriRepo = new DoctrineParametriRepository($this->entityManager);
+        $this->certificatoRepo = new DoctrineCertificatoMedicoRepository($this->entityManager);
+        $this->view = new ProfiloViewSmarty();
+    }
 
     /**
      * 1. VISUALIZZA PROFILO (Pagina 17 del mock-up UX)
@@ -82,11 +96,16 @@ class ProfiloController
             $ultimoCertificato = ($ruolo === 'allenatore') ? null : $this->certificatoRepo->findByCliente($utente);
             $abbonamento = $utente->getAbbonamento();
             $abbonamentoAttivo = $utente->isAbbonamentoAttivo();
+            
+            // Verifica la presenza di progressi registrati
+            $progressiCount = $entityManager->getRepository(\App\Entity\Progresso::class)->count(['cliente' => $utente]);
+            $hasProgress = ($progressiCount > 0);
         } else {
             $ultimiParametri = null;
             $ultimoCertificato = null;
             $abbonamento = null;
             $abbonamentoAttivo = false;
+            $hasProgress = false;
         }
 
         $attivitaAbilitate = null;
@@ -108,6 +127,7 @@ class ProfiloController
             'utente' => $utente,
             'isClient' => $isClient,
             'isTrainer' => $isTrainer,
+            'has_progress' => $hasProgress,
             'attivitaAbilitate' => $attivitaAbilitate,
             'attivitaNonAbilitate' => $attivitaNonAbilitate,
             'tutteAttivita' => $tutteAttivita,
@@ -657,7 +677,7 @@ class ProfiloController
     /**
      * Recupera l'utente loggato instanziando la sua classe concreta specifica per evitare proxy casting issue
      */
-    private function recuperaUtenteLoggato(\Doctrine\ORM\EntityManagerInterface $entityManager, int $idUtente, ?string $ruolo): Utente
+    private function recuperaUtenteLoggato(\Doctrine\ORM\EntityManagerInterface $entityManager, int $idUtente, ?string $ruolo): ?Utente
     {
         if ($ruolo === 'cliente') {
             return $entityManager->find(Cliente::class, $idUtente);

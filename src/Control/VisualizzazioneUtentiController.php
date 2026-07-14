@@ -3,7 +3,10 @@ namespace App\Control;
 
 use App\Entity\Repository\ClienteRepositoryInterface;
 use App\Entity\Repository\AllenatoreRepositoryInterface;
+use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
+use App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository;
 use App\View\Interface\VisualizzazioneUtentiView;
+use App\View\VisualizzazioneUtentiViewSmarty;
 use App\Foundation\Session;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Amministratore;
@@ -12,13 +15,18 @@ use App\Entity\Palestra;
 
 class VisualizzazioneUtentiController 
 {
+    private ClienteRepositoryInterface $clienteRepo;
+    private AllenatoreRepositoryInterface $allenatoreRepo;
+    private VisualizzazioneUtentiView $view;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private ClienteRepositoryInterface $clienteRepo,
-        private AllenatoreRepositoryInterface $allenatoreRepo,
-        private VisualizzazioneUtentiView $view,
         private Session $session
-    ) {}
+    ) {
+        $this->clienteRepo = new DoctrineClienteRepository($this->entityManager);
+        $this->allenatoreRepo = new DoctrineAllenatoreRepository($this->entityManager);
+        $this->view = new VisualizzazioneUtentiViewSmarty();
+    }
 
     public function visualizzaClienti(): void 
     {

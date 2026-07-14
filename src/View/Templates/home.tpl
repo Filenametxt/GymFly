@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="light">
-    <meta name="description" content="GymFly - Il gestionale intelligente per palestre moderne. Gestisci atleti, corsi, abbonamenti e sessioni private in un unico posto.">
+    <meta name="description" content="GymFly - Il gestionale intelligente per palestre moderne. Gestisci atleti, attività, abbonamenti e sessioni private in un unico posto.">
     <title>GymFly - Il gestionale per palestre intelligente</title>
     <link rel="stylesheet" href="css/bulma.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -96,7 +96,7 @@
                         </span>
                     </div>
                     <div class="gf-feature-title">Calendario Attività</div>
-                    <p class="gf-feature-text">Planner settimanale interattivo. Pianifica corsi collettivi, gestisci le prenotazioni e controlla i posti disponibili in tempo reale.</p>
+                    <p class="gf-feature-text">Planner settimanale interattivo. Pianifica attività collettive, gestisci le prenotazioni e controlla i posti disponibili in tempo reale.</p>
                 </div>
                 <div class="gf-feature-card animate-on-scroll">
                     <div class="gf-feature-icon color-3">
@@ -168,7 +168,7 @@
                     <div class="gf-step animate-on-scroll">
                         <div class="gf-step-num">3</div>
                         <div class="gf-step-title">Dimentica il caos.</div>
-                        <p class="gf-step-text">Pianifica corsi, gestisci abbonamenti e sessioni private. GymFly fa il resto per te.</p>
+                        <p class="gf-step-text">Pianifica attività, gestisci abbonamenti e sessioni private. GymFly fa il resto per te.</p>
                     </div>
                 </div>
 

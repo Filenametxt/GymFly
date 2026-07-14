@@ -8,34 +8,6 @@
     <link rel="stylesheet" href="css/bulma.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
-    <style>
-        .custom-mobile-container {
-            max-width: 500px;
-            margin: 0 auto;
-        }
-        @media screen and (max-width: 768px) {
-            .app-content {
-                padding-top: 5rem !important;
-                padding-left: 1rem !important;
-                padding-right: 1rem !important;
-            }
-            .mobile-column-header {
-                display: flex !important;
-                flex-direction: column !important;
-                align-items: center !important;
-                text-align: center !important;
-            }
-            .mobile-column-header h1 {
-                display: block !important;
-                text-align: center !important;
-            }
-            .mobile-column-header h1 i {
-                margin-right: 0.5rem !important;
-                margin-bottom: 0 !important;
-                font-size: 1.8rem !important;
-            }
-        }
-    </style>
 </head>
 <body>
  
@@ -52,7 +24,7 @@
                     {assign var="headerClass" value="dashboard-header-trainer"}
                 {/if}
             {/if}
-            <div class="{$headerClass} is-hidden-mobile">
+            <div class="{$headerClass}">
                 <div class="columns is-vcentered">
                     <div class="column">
                         <h1 class="title is-2 has-text-white mb-2">
@@ -70,26 +42,14 @@
                 </div>
             </div>
 
-            <!-- ================= MOBILE HEADER ================= -->
-            <div class="is-flex is-align-items-center mb-5 is-hidden-tablet" style="padding-top: 5px;">
-                <div style="width: 45px;"></div>
-                <strong class="is-size-4 style-theme-text" style="letter-spacing: 1px;">RICHIESTA SCHEDA</strong>
-            </div>
-
-            <div class="columns is-centered">
-                <div class="column is-10-tablet is-8-desktop is-12-mobile">
-
-                    <div class="box p-5">
-                        <form action="richiedi-scheda" method="POST">
+            <!-- FORM PRINCIPALE -->
+            <form action="richiedi-scheda" method="POST">
+                
+                <div class="columns">
+                    <div class="column is-12">
+                        <div class="box">
+                            <h3 class="title is-5 mb-4 style-theme-text">Parametri Richiesta</h3>
                             
-                            <!-- OBIETTIVO -->
-                            <div class="field mb-4">
-                                <label class="label">Obiettivo principale della scheda *</label>
-                                <div class="control">
-                                    <textarea class="textarea" name="obiettivo" required placeholder="Es: Definizione estiva, Aumento massa ipertrofica, Ricondizionamento posturale, ecc." rows="4"></textarea>
-                                </div>
-                            </div>
-
                             <!-- NUMERO ALLENAMENTI -->
                             <div class="field mb-4">
                                 <label class="label">Numero allenamenti per ogni ciclo/settimana *</label>
@@ -102,7 +62,7 @@
                             </div>
 
                             <!-- ALLENATORE -->
-                            <div class="field mb-5">
+                            <div class="field mb-4">
                                 <label class="label">Seleziona Allenatore *</label>
                                 <div class="control has-icons-left">
                                     <div class="select is-fullwidth">
@@ -119,19 +79,28 @@
                                 </div>
                             </div>
 
-                            <!-- INVIA -->
-                            <div class="field mt-5">
-                                <div class="control">
-                                    <button class="button is-gymfly is-fullwidth" type="submit">
-                                        <i class="fas fa-check-circle mr-2"></i> Richiedi
-                                    </button>
-                                </div>
-                            </div>
-
-                        </form>
+                        </div>
                     </div>
                 </div>
-            </div>
+
+                <!-- BOX OBIETTIVO (Sotto) -->
+                <div class="box mt-5">
+                    <h3 class="title is-5 style-theme-text mb-3">Obiettivo principale della scheda *</h3>
+                    <div class="control">
+                        <textarea class="textarea" name="obiettivo" required placeholder="Es: Definizione estiva, Aumento massa ipertrofica, Ricondizionamento posturale, ecc." rows="5"></textarea>
+                    </div>
+                </div>
+
+                <!-- PULSANTI INVIA -->
+                <div class="field is-grouped mt-5">
+                    <div class="control is-expanded">
+                        <button class="button is-gymfly is-fullwidth" type="submit">
+                            <i class="fas fa-paper-plane mr-2"></i> Invia Richiesta
+                        </button>
+                    </div>
+                </div>
+
+            </form>
         </main>
     </div>
 

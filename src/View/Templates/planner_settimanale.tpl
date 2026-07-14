@@ -124,7 +124,7 @@
                             Weekly Planner
                         </h1>
                         <p class="subtitle is-5 has-text-white-ter">
-                            Programmazione dell'agenda corsi e gestione delle attività pianificate
+                            Programmazione dell'agenda attività e gestione delle attività pianificate
                         </p>
                     </div>
                     <div class="column is-narrow">
@@ -141,12 +141,12 @@
                 <strong class="is-size-4 style-theme-text" style="letter-spacing: 1px; flex-grow: 1;">PLANNER</strong>
             </div>
 
-            <!-- ACTION TOOLBAR (Nuovo Corso) -->
+            <!-- ACTION TOOLBAR (Nuova Attività) -->
             {if isset($smarty.session.ruolo_utente) && ($smarty.session.ruolo_utente === 'amministratore' || $smarty.session.ruolo_utente === 'allenatore')}
             <div class="mb-5">
-                <a href="calendario?nuovo=1" class="button is-gymfly" title="+ Nuovo Corso" style="border-radius: 10px;">
+                <a href="calendario?nuovo=1" class="button is-gymfly" title="+ Nuova Attività" style="border-radius: 10px;">
                     <span class="icon"><i class="fas fa-plus"></i></span>
-                    <span> Nuovo Corso</span>
+                    <span> Nuova Attività</span>
                 </a>
             </div>
             {/if}
@@ -161,13 +161,13 @@
                             <thead>
                                 <tr>
                                     <th class="hour-col">Ora</th>
-                                    <th>Lun <br><small class="has-text-grey">{$giorniSettimana[0]->format('d/m')}</small></th>
-                                    <th>Mar <br><small class="has-text-grey">{$giorniSettimana[1]->format('d/m')}</small></th>
-                                    <th>Mer <br><small class="has-text-grey">{$giorniSettimana[2]->format('d/m')}</small></th>
-                                    <th>Gio <br><small class="has-text-grey">{$giorniSettimana[3]->format('d/m')}</small></th>
-                                    <th>Ven <br><small class="has-text-grey">{$giorniSettimana[4]->format('d/m')}</small></th>
-                                    <th>Sab <br><small class="has-text-grey">{$giorniSettimana[5]->format('d/m')}</small></th>
-                                    <th>Dom <br><small class="has-text-grey">{$giorniSettimana[6]->format('d/m')}</small></th>
+                                    <th>Lun</th>
+                                    <th>Mar</th>
+                                    <th>Mer</th>
+                                    <th>Gio</th>
+                                    <th>Ven</th>
+                                    <th>Sab</th>
+                                    <th>Dom</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -208,7 +208,7 @@
                             <!-- SE SELEZIONATA ATTIVITÀ ESISTENTE (DETTAGLIO/MODIFICA/ELIMINA) -->
                             {if $selectedAp}
                                 <div class="is-flex is-justify-content-between is-align-items-center mb-4">
-                                    <h2 class="title is-4 mb-0 style-theme-text">Dettaglio Corso</h2>
+                                    <h2 class="title is-4 mb-0 style-theme-text">Dettaglio Attività</h2>
                                     <a href="calendario" class="delete is-medium" style="margin-left: auto;" title="Chiudi dettaglio"></a>
                                 </div>
 
@@ -271,43 +271,43 @@
                                     <!-- RIMOZIONE EVENTO -->
                                     <a href="rimuovi-attivita-pianificata?id_attivita_pianificata={$selectedAp->getId()}" class="button is-danger is-light is-fullwidth mt-4" onclick="return confirm('Sei sicuro di voler rimuovere questa attività pianificata dal calendario? Tutti gli iscritti saranno rimossi.');">
                                         <span class="icon"><i class="fas fa-trash-alt"></i></span>
-                                        <span>Elimina Corso Pianificato</span>
+                                        <span>Elimina Attività Pianificata</span>
                                     </a>
                                 </div>
 
-                            <!-- SE MODALITÀ NUOVO INSERIMENTO (CREA CORSO PIANIFICATO) -->
+                            <!-- SE MODALITÀ NUOVO INSERIMENTO (CREA ATTIVITÀ PIANIFICATA) -->
                             {elseif $nuovo}
                                 <div class="is-flex is-justify-content-between is-align-items-center mb-4">
-                                    <h2 class="title is-4 mb-0 style-theme-text">Pianifica Corso</h2>
+                                    <h2 class="title is-4 mb-0 style-theme-text">Pianifica Attività</h2>
                                     <a href="calendario" class="delete is-medium" style="margin-left: auto;" title="Chiudi inserimento"></a>
                                 </div>
 
                                 <form action="crea-attivita-pianificata" method="POST">
                                     
-                                    <!-- NOME CORSO -->
+                                    <!-- NOME ATTIVITÀ -->
                                     <div class="field mb-3">
-                                        <label class="label is-small style-theme-text">Corso da pianificare *</label>
+                                        <label class="label is-small style-theme-text">Attività da pianificare *</label>
                                         <div class="control">
                                             <div class="select is-fullwidth is-small">
                                                 <select name="id_attivita" id="select-corso" onchange="toggleNuovoCorsoForm(this.value)">
-                                                    <option value="">-- Seleziona corso esistente --</option>
+                                                    <option value="">-- Seleziona attività esistente --</option>
                                                     {foreach from=$attivita item=att}
                                                         <option value="{$att->getId()}">{$att->getNome()} (max: {$att->getMaxPartecipanti()})</option>
                                                     {/foreach}
-                                                    <option value="0">+ Registra nuovo corso nel catalogo</option>
+                                                    <option value="0">+ Registra nuova attività nel catalogo</option>
                                                 </select>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <!-- MINI FORM PER NUOVO CORSO NEL CATALOGO (MOSTRATO SOLO SE SELEZIONATO '0') -->
+                                    <!-- MINI FORM PER NUOVA ATTIVITÀ NEL CATALOGO (MOSTRATO SOLO SE SELEZIONATO '0') -->
                                     <div id="nuovo-corso-box" class="box p-3 mb-3" style="display: none; background-color: rgba(255,255,255,0.02); border: 1px dashed var(--gymfly-primary);">
-                                        <h4 class="title is-6 mb-2 style-theme-text">Dettagli Nuovo Corso</h4>
+                                        <h4 class="title is-6 mb-2 style-theme-text">Dettagli Nuova Attività</h4>
                                         <div class="field mb-2">
-                                            <input class="input is-small" type="text" name="nuova_attivita_nome" placeholder="Nome Corso (es: Spinning)">
+                                            <input class="input is-small" type="text" name="nuova_attivita_nome" placeholder="Nome Attività (es: Spinning)">
                                         </div>
                                         <div class="field mb-2">
-                                            <input class="input is-small" type="text" name="nuova_attivita_desc" placeholder="Descrizione del corso">
+                                            <input class="input is-small" type="text" name="nuova_attivita_desc" placeholder="Descrizione dell'attività">
                                         </div>
                                         <div class="field">
                                             <input class="input is-small" type="number" name="nuova_attivita_max" placeholder="Posti Max Consentiti (es: 15)">
@@ -401,7 +401,7 @@
                                         <p class="control">
                                             <button type="submit" class="button is-gymfly">
                                                 <span class="icon"><i class="fas fa-save"></i></span>
-                                                <span>Pianifica Corso</span>
+                                                <span>Pianifica Attività</span>
                                             </button>
                                         </p>
                                     </div>

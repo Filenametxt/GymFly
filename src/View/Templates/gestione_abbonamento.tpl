@@ -16,8 +16,8 @@
         <main class="app-content">
             <div class="container">
                 
-                <div class="mb-5">
-                    <a href="visualizza-profilo?id={$cliente->getId()}" class="button is-ghost has-text-grey">
+                <div class="mb-5 has-text-left">
+                    <a href="visualizza-profilo?id={$cliente->getId()}" class="button is-ghost has-text-grey pl-0">
                         <span class="icon"><i class="fas fa-arrow-left"></i></span>
                         <span>Torna al Profilo Cliente</span>
                     </a>
@@ -99,7 +99,7 @@
                                 <form action="gestione-abbonamento?id={$cliente->getId()}" method="POST">
                                     <input type="hidden" name="azione" value="crea_tipologia">
                                     <div class="field">
-                                        <label class="label">Nome Tipologia (es. Open, Corsi)</label>
+                                        <label class="label">Nome Tipologia (es. Open, Attività)</label>
                                         <div class="control">
                                             <input class="input" type="text" name="nuova_tipologia" required placeholder="es: Open">
                                         </div>

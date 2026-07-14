@@ -101,7 +101,7 @@
                                 {if $isClient}
                                     <p><strong>Data di Nascita:</strong> {$utente->getDataDiNascita()|date_format:"%d/%m/%Y"}</p>
                                 {/if}
-                                <p><strong>E-mail:</strong> <span class="is-size-4-mobile">{$utente->getEmail()}</span></p>
+                                <p><strong>E-mail:</strong> <span>{$utente->getEmail()}</span></p>
                                 <p><strong>Telefono:</strong> {$utente->getTelefono()|default:'-'}</p>
                             </div>
 
@@ -213,14 +213,29 @@
                                     <span class="icon"><i class="fas fa-edit"></i></span>
                                     <span>Gestisci / Modifica Scheda</span>
                                 </a>
+                                {if $has_progress}
+                                    <a href="progressi-cliente?id_cliente={$utente->getId()}" class="button is-small is-link is-fullwidth mb-2">
+                                        <span class="icon"><i class="fas fa-chart-line"></i></span>
+                                        <span>Visualizza Progressi Scheda</span>
+                                    </a>
+                                {else}
+                                    <button class="button is-small is-fullwidth mb-2" disabled title="Il cliente non ha ancora registrato alcun progresso per questa scheda.">
+                                        <span class="icon"><i class="fas fa-chart-line"></i></span>
+                                        <span>Visualizza Progressi Scheda (Nessun dato)</span>
+                                    </button>
+                                {/if}
                             </div>
                         {else}
                             <p class="is-size-6 mb-3 has-text-grey">Nessuna scheda attiva per questo utente.</p>
                             <div class="buttons">
-                                <a href="crea-scheda?cf={$utente->getCF()}" class="button is-small is-success is-fullwidth">
+                                <a href="crea-scheda?cf={$utente->getCF()}" class="button is-small is-success is-fullwidth mb-2">
                                     <span class="icon"><i class="fas fa-plus"></i></span>
                                     <span>Crea Nuova Scheda</span>
                                 </a>
+                                <button class="button is-small is-fullwidth mb-2" disabled title="Associa prima una scheda attiva per tracciare i progressi.">
+                                    <span class="icon"><i class="fas fa-chart-line"></i></span>
+                                    <span>Visualizza Progressi Scheda</span>
+                                </button>
                             </div>
                         {/if}
                     </div>
@@ -235,7 +250,7 @@
                         <a href="aggiorna-misure{if !$isSelf}?id={$utente->getId()}{/if}" class="navigation-box-card">
                             <span class="is-flex is-align-items-center">
                                 <span class="icon mr-3 has-text-link"><i class="fas fa-chart-line fa-lg"></i></span>
-                                <span class="has-text-weight-semibold is-size-5">parametri</span>
+                                <span class="has-text-weight-semibold is-size-5">Parametri</span>
                             </span>
                             <span class="icon has-text-grey"><i class="fas fa-chevron-right fa-lg"></i></span>
                         </a>
@@ -269,7 +284,7 @@
                         <a href="modifica-anagrafica{if !$isSelf}?id={$utente->getId()}{/if}" class="navigation-box-card">
                             <span class="is-flex is-align-items-center">
                                 <span class="icon mr-3 has-text-link"><i class="fas fa-pen fa-lg"></i></span>
-                                <span class="has-text-weight-semibold is-size-5">modifica dati</span>
+                                <span class="has-text-weight-semibold is-size-5">Modifica Dati</span>
                             </span>
                             <span class="icon has-text-grey"><i class="fas fa-chevron-right fa-lg"></i></span>
                         </a>
@@ -280,7 +295,7 @@
                             <a href="cambia-password" class="navigation-box-card">
                                 <span class="is-flex is-align-items-center">
                                     <span class="icon mr-3 has-text-link"><i class="fas fa-key fa-lg"></i></span>
-                                    <span class="has-text-weight-semibold is-size-5">cambia password</span>
+                                    <span class="has-text-weight-semibold is-size-5">Cambia Password</span>
                                 </span>
                                 <span class="icon has-text-grey"><i class="fas fa-chevron-right fa-lg"></i></span>
                             </a>

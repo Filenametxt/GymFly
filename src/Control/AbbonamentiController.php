@@ -2,6 +2,7 @@
 namespace App\Control;
 
 use App\View\Interface\AbbonamentiView;
+use App\View\AbbonamentiViewSmarty;
 use App\Foundation\Session;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Amministratore;
@@ -13,11 +14,14 @@ use App\Entity\Iscrizione;
 
 class AbbonamentiController
 {
+    private AbbonamentiView $view;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private AbbonamentiView $view,
         private Session $session
-    ) {}
+    ) {
+        $this->view = new AbbonamentiViewSmarty();
+    }
 
     public function gestisciAbbonamento(): void
     {

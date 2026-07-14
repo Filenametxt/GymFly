@@ -2,6 +2,7 @@
 namespace App\Control;
 
 use App\View\Interface\MessaggiView;
+use App\View\MessaggiViewSmarty;
 use App\Foundation\Session;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Utente;
@@ -11,15 +12,20 @@ use App\Entity\Amministratore;
 use App\Entity\Palestra;
 use App\Entity\Messaggio;
 use App\Entity\Repository\MessaggioRepositoryInterface;
+use App\Foundation\Persistence\Repository\DoctrineMessaggioRepository;
 
 class MessaggiController
 {
+    private MessaggioRepositoryInterface $messaggioRepo;
+    private MessaggiView $view;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private MessaggioRepositoryInterface $messaggioRepo,
-        private MessaggiView $view,
         private Session $session
-    ) {}
+    ) {
+        $this->messaggioRepo = new DoctrineMessaggioRepository($this->entityManager);
+        $this->view = new MessaggiViewSmarty();
+    }
 
     public function mostraMessaggi(): void
     {
