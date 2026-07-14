@@ -99,7 +99,6 @@
                                             </span>
                                             <strong class="is-size-5 style-theme-text">{$corso->getAttivita()->getNome()}</strong>
                                         </div>
-                                        <span class="icon has-text-grey"><i class="fas fa-chevron-right"></i></span>
                                     </div>
                                     <div class="mt-3 columns is-mobile is-gapless is-size-7 has-text-grey-dark">
                                         <div class="column">

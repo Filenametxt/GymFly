@@ -15,6 +15,12 @@
             box-shadow: 0 8px 16px rgba(0,0,0,0.02) !important;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
+        .measurement-row {
+            gap: 0.4rem;
+        }
+        .measurement-value {
+            white-space: nowrap;
+        }
         .biometric-box:hover {
             transform: translateY(-3px);
             box-shadow: 0 12px 24px rgba(175, 175, 226, 0.12) !important;
@@ -86,14 +92,14 @@
                             </a>
                         </div>
                         
-                        <div class="py-3 is-flex is-justify-content-between is-align-items-center" style="border-bottom: 1px solid rgba(175, 175, 226, 0.15);">
+                        <div class="measurement-row py-3 is-flex is-justify-content-between is-align-items-center" style="border-bottom: 1px solid rgba(175, 175, 226, 0.15);">
                             <span class="has-text-weight-semibold has-text-grey"><i class="fas fa-weight mr-2 has-text-info"></i>Peso</span>
-                            <strong class="is-size-5 style-theme-text">{if $ultimaMisure}{$ultimaMisure->getPeso()} kg{else}-{/if}</strong>
+                            <strong class="measurement-value is-size-6 style-theme-text">{if $ultimaMisure}{$ultimaMisure->getPeso()} kg{else}-{/if}</strong>
                         </div>
                         
-                        <div class="py-3 is-flex is-justify-content-between is-align-items-center">
+                        <div class="measurement-row py-3 is-flex is-justify-content-between is-align-items-center">
                             <span class="has-text-weight-semibold has-text-grey"><i class="fas fa-ruler-vertical mr-2 has-text-info"></i>Altezza</span>
-                            <strong class="is-size-5 style-theme-text">{if $ultimaMisure}{$ultimaMisure->getAltezza()} cm{else}-{/if}</strong>
+                            <strong class="measurement-value is-size-6 style-theme-text">{if $ultimaMisure}{$ultimaMisure->getAltezza()} cm{else}-{/if}</strong>
                         </div>
                     </div>
                 </div>
@@ -114,9 +120,9 @@
                                     </a>
                                 </div>
                                 
-                                <div class="py-3 is-flex is-justify-content-between is-align-items-center" style="border-bottom: 1px solid rgba(175, 175, 226, 0.15);">
+                                <div class="measurement-row py-3 is-flex is-justify-content-between is-align-items-center" style="border-bottom: 1px solid rgba(175, 175, 226, 0.15);">
                                     <span class="has-text-weight-semibold has-text-grey"><i class="fas fa-dumbbell mr-2 has-text-primary"></i>Bicipite dx/sx</span>
-                                    <strong class="is-size-6 style-theme-text">
+                                    <strong class="measurement-value is-size-6 style-theme-text">
                                         {if $ultimaMisure}
                                             {$ultimaMisure->getBicipiteDestro()|default:'0'} / {$ultimaMisure->getBicipiteSinistro()|default:'0'} cm
                                         {else}
@@ -125,9 +131,9 @@
                                     </strong>
                                 </div>
                                 
-                                <div class="py-3 is-flex is-justify-content-between is-align-items-center" style="border-bottom: 1px solid rgba(175, 175, 226, 0.15);">
+                                <div class="measurement-row py-3 is-flex is-justify-content-between is-align-items-center" style="border-bottom: 1px solid rgba(175, 175, 226, 0.15);">
                                     <span class="has-text-weight-semibold has-text-grey"><i class="fas fa-dumbbell mr-2 has-text-primary"></i>Tricipite dx/sx</span>
-                                    <strong class="is-size-6 style-theme-text">
+                                    <strong class="measurement-value is-size-6 style-theme-text">
                                         {if $ultimaMisure}
                                             {$ultimaMisure->getTricipiteDestro()|default:'0'} / {$ultimaMisure->getTricipiteSinistro()|default:'0'} cm
                                         {else}
@@ -136,14 +142,14 @@
                                     </strong>
                                 </div>
                                 
-                                <div class="py-3 is-flex is-justify-content-between is-align-items-center" style="border-bottom: 1px solid rgba(175, 175, 226, 0.15);">
+                                <div class="measurement-row py-3 is-flex is-justify-content-between is-align-items-center" style="border-bottom: 1px solid rgba(175, 175, 226, 0.15);">
                                     <span class="has-text-weight-semibold has-text-grey"><i class="fas fa-heart mr-2 has-text-primary"></i>Misura Petto</span>
-                                    <strong class="is-size-6 style-theme-text">{if $ultimaMisure && $ultimaMisure->getMisuraPetto()}{$ultimaMisure->getMisuraPetto()} cm{else}-{/if}</strong>
+                                    <strong class="measurement-value is-size-6 style-theme-text">{if $ultimaMisure && $ultimaMisure->getMisuraPetto()}{$ultimaMisure->getMisuraPetto()} cm{else}-{/if}</strong>
                                 </div>
                                 
-                                <div class="py-3 is-flex is-justify-content-between is-align-items-center">
+                                <div class="measurement-row py-3 is-flex is-justify-content-between is-align-items-center">
                                     <span class="has-text-weight-semibold has-text-grey"><i class="fas fa-arrows-alt-h mr-2 has-text-primary"></i>Misura Spalle</span>
-                                    <strong class="is-size-6 style-theme-text">{if $ultimaMisure && $ultimaMisure->getMisuraSpalle()}{$ultimaMisure->getMisuraSpalle()} cm{else}-{/if}</strong>
+                                    <strong class="measurement-value is-size-6 style-theme-text">{if $ultimaMisure && $ultimaMisure->getMisuraSpalle()}{$ultimaMisure->getMisuraSpalle()} cm{else}-{/if}</strong>
                                 </div>
                             </div>
                         </div>
@@ -158,9 +164,9 @@
                                     </a>
                                 </div>
                                 
-                                <div class="py-3 is-flex is-justify-content-between is-align-items-center" style="border-bottom: 1px solid rgba(175, 175, 226, 0.15);">
+                                <div class="measurement-row py-3 is-flex is-justify-content-between is-align-items-center" style="border-bottom: 1px solid rgba(175, 175, 226, 0.15);">
                                     <span class="has-text-weight-semibold has-text-grey"><i class="fas fa-walking mr-2 has-text-success"></i>Coscia dx/sx</span>
-                                    <strong class="is-size-6 style-theme-text">
+                                    <strong class="measurement-value is-size-6 style-theme-text">
                                         {if $ultimaMisure}
                                             {$ultimaMisure->getCosciaDestra()|default:'0'} / {$ultimaMisure->getCosciaSinistra()|default:'0'} cm
                                         {else}
@@ -169,9 +175,9 @@
                                     </strong>
                                 </div>
                                 
-                                <div class="py-3 is-flex is-justify-content-between is-align-items-center" style="border-bottom: 1px solid rgba(175, 175, 226, 0.15);">
+                                <div class="measurement-row py-3 is-flex is-justify-content-between is-align-items-center" style="border-bottom: 1px solid rgba(175, 175, 226, 0.15);">
                                     <span class="has-text-weight-semibold has-text-grey"><i class="fas fa-shoe-prints mr-2 has-text-success"></i>Polpaccio dx/sx</span>
-                                    <strong class="is-size-6 style-theme-text">
+                                    <strong class="measurement-value is-size-6 style-theme-text">
                                         {if $ultimaMisure}
                                             {$ultimaMisure->getPolpaccioDestro()|default:'0'} / {$ultimaMisure->getPolpaccioSinistro()|default:'0'} cm
                                         {else}
@@ -180,14 +186,14 @@
                                     </strong>
                                 </div>
                                 
-                                <div class="py-3 is-flex is-justify-content-between is-align-items-center" style="border-bottom: 1px solid rgba(175, 175, 226, 0.15);">
+                                <div class="measurement-row py-3 is-flex is-justify-content-between is-align-items-center" style="border-bottom: 1px solid rgba(175, 175, 226, 0.15);">
                                     <span class="has-text-weight-semibold has-text-grey"><i class="fas fa-compress-arrows-alt mr-2 has-text-success"></i>Misura Vita</span>
-                                    <strong class="is-size-6 style-theme-text">{if $ultimaMisure && $ultimaMisure->getMisuraVita()}{$ultimaMisure->getMisuraVita()} cm{else}-{/if}</strong>
+                                    <strong class="measurement-value is-size-6 style-theme-text">{if $ultimaMisure && $ultimaMisure->getMisuraVita()}{$ultimaMisure->getMisuraVita()} cm{else}-{/if}</strong>
                                 </div>
                                 
-                                <div class="py-3 is-flex is-justify-content-between is-align-items-center">
+                                <div class="measurement-row py-3 is-flex is-justify-content-between is-align-items-center">
                                     <span class="has-text-weight-semibold has-text-grey"><i class="fas fa-expand-arrows-alt mr-2 has-text-success"></i>Misura Fianchi</span>
-                                    <strong class="is-size-6 style-theme-text">{if $ultimaMisure && $ultimaMisure->getMisuraFianchi()}{$ultimaMisure->getMisuraFianchi()} cm{else}-{/if}</strong>
+                                    <strong class="measurement-value is-size-6 style-theme-text">{if $ultimaMisure && $ultimaMisure->getMisuraFianchi()}{$ultimaMisure->getMisuraFianchi()} cm{else}-{/if}</strong>
                                 </div>
                             </div>
                         </div>

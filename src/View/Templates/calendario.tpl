@@ -261,7 +261,7 @@
                                     <p class="mb-3"><i class="fas fa-user-ninja mr-2"></i>Coach: <strong>{$selectedAp->getAllenatore()->getNome()} {$selectedAp->getAllenatore()->getCognome()}</strong></p>
                                     
                                     <div class="mb-2 is-size-7 is-flex is-justify-content-between">
-                                        <span>Prenotati</span>
+                                        <span class="mr-2">Prenotati</span>
                                         <span><strong>{$selectedAp->getPrenotati()}</strong> / {$selectedAp->getMaxPartecipanti()}</span>
                                     </div>
                                     <progress class="progress is-link" value="{$selectedAp->getPrenotati()}" max="{$selectedAp->getMaxPartecipanti()}" style="height: 6px;"></progress>
