@@ -36,8 +36,8 @@
 
 <aside class="app-sidebar">
     <!-- LOGO / BRANDING -->
-    <div class="has-text-centered mb-6 mt-6">
-        <strong class="is-size-3" style="color: var(--gymfly-text) !important;">GymFly 🏋️‍♂️</strong>
+    <div class="has-text-centered mb-5" style="display: flex; justify-content: center; align-items: center; width: 100%; margin-top: -1.2rem !important;">
+        <strong class="is-size-3" style="color: var(--gymfly-text) !important; margin-left: 1.5rem;">GymFly 🏋️‍♂️</strong>
     </div>
 
     <!-- LINK DI NAVIGAZIONE -->
