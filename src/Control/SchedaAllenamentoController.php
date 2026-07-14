@@ -466,6 +466,17 @@ class SchedaAllenamentoController
             $scheda->getCliente()->setScheda($scheda);
             $this->entityManager->flush();
 
+            // Invia un messaggio interno al cliente
+            $coach = $scheda->getAllenatore();
+            $cliente = $scheda->getCliente();
+            $oggetto = "Nuova Scheda di Allenamento";
+            $contenuto = "Ciao " . $cliente->getNome() . ", ho realizzato la tua nuova scheda di allenamento: '" . $scheda->getNome_scheda() . "'. Puoi consultarla nella sezione dedicata.";
+            
+            $messaggio = new Messaggio($coach, $oggetto, $contenuto);
+            $messaggio->aggiungiDestinatario($cliente);
+            $this->entityManager->persist($messaggio);
+            $this->entityManager->flush();
+
             // Simula l'invio dell'e-mail di notifica al cliente (Passo 3.1)
             error_log("EMAIL CONFIRMATION: Inviata email a " . $scheda->getCliente()->getEmail() . " per notificare l'invio della scheda: " . $scheda->getNome_scheda());
             $this->view->mostraStatoOperazione(true, "Scheda di allenamento salvata e inviata al cliente con successo.", "dashboard-allenatore");

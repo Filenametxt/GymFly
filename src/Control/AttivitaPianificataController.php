@@ -777,6 +777,18 @@ class AttivitaPianificataController
             $sessione = new SessionePrivata($dataObj, $oraInizioObj, $oraFineObj, $cliente, $allenatore);
             $this->sessionePrivataRepo->save($sessione);
 
+            // Invia un messaggio interno al cliente
+            $oggetto = "Nuova Sessione Privata Pianificata";
+            $giorno = $dataObj->format('d/m/Y');
+            $inizio = $oraInizioObj->format('H:i');
+            $fine = $oraFineObj->format('H:i');
+            $contenuto = "Ciao " . $cliente->getNome() . ", ti comunico che ho pianificato una sessione privata con te per il giorno " . $giorno . " dalle ore " . $inizio . " alle " . $fine . ".";
+
+            $messaggio = new Messaggio($allenatore, $oggetto, $contenuto);
+            $messaggio->aggiungiDestinatario($cliente);
+            $this->entityManager->persist($messaggio);
+            $this->entityManager->flush();
+
             $this->view->mostraStatoOperazione(true, "Sessione privata pianificata con successo.", "calendario?data=" . $dataStr);
         } catch (\Throwable $e) {
             $this->view->mostraStatoOperazione(false, "Impossibile salvare la sessione: " . $e->getMessage());
@@ -837,6 +849,21 @@ class AttivitaPianificataController
             if (!$isAuthorized) {
                 $this->view->mostraStatoOperazione(false, "Accesso negato. Non sei autorizzato a disdire questa sessione.");
                 return;
+            }
+
+            // Se disdetta dall'allenatore, invia un messaggio interno al cliente
+            if ($ruolo === 'allenatore') {
+                $cliente = $sessione->getAtleta();
+                $oggetto = "Sessione Privata Annullata";
+                $giorno = $sessione->getData()->format('d/m/Y');
+                $inizio = $sessione->getOraInizio()->format('H:i');
+                $fine = $sessione->getOraFine()->format('H:i');
+                $contenuto = "Ciao " . $cliente->getNome() . ", ti comunico che ho annullato la sessione privata pianificata per il giorno " . $giorno . " dalle ore " . $inizio . " alle " . $fine . ".";
+
+                $messaggio = new Messaggio($allenatore, $oggetto, $contenuto);
+                $messaggio->aggiungiDestinatario($cliente);
+                $this->entityManager->persist($messaggio);
+                $this->entityManager->flush();
             }
 
             $this->sessionePrivataRepo->delete($sessione);

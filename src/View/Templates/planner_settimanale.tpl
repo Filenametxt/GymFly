@@ -297,7 +297,7 @@
                                     </div>
 
                                     <!-- RIMOZIONE EVENTO -->
-                                    <a href="rimuovi-attivita-pianificata?id_attivita_pianificata={$selectedAp->getId()}" class="button is-danger is-light is-fullwidth mt-4" onclick="return confirm('Sei sicuro di voler rimuovere questa attività pianificata dal calendario? Tutti gli iscritti saranno rimossi.');">
+                                    <a href="rimuovi-attivita-pianificata?id_attivita_pianificata={$selectedAp->getId()}" class="button is-danger is-light is-fullwidth mt-4">
                                         <span class="icon"><i class="fas fa-trash-alt"></i></span>
                                         <span>Elimina Attività Pianificata</span>
                                     </a>
