@@ -186,7 +186,8 @@
                                                             <div class="is-size-7">Sala: {$ap->getSala()->getNome()}</div>
                                                             <div class="is-size-7">PT: {$ap->getAllenatore()->getNome()}</div>
                                                             <div class="is-size-7 is-flex is-justify-content-between">
-                                                                <span><i class="fas fa-users mr-1"></i>{$ap->getPrenotati()}/{$ap->getMaxPartecipanti()}</span>
+                                                                <span class="mr-2"><i class="fas fa-users mr-1"></i>{$ap->getUtenti()|@count}/{$ap->getMaxPartecipanti()}</span>
+                                                                <span><i class="fas fa-clock mr-1"></i>{$ap->getPrenotati()}</span>
                                                             </div>
                                                         </a>
                                                     {/foreach}
