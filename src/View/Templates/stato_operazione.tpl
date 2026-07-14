@@ -23,6 +23,8 @@
                                 Torna al Login
                             {elseif $ritorno === 'calendario' || $ritorno|truncate:10:"" === 'calendario'}
                                 Torna al Calendario
+                            {elseif $ritorno === 'visualizza-scheda' || $ritorno|truncate:17:"" === 'visualizza-scheda'}
+                                Torna alla Scheda
                             {else}
                                 Torna alla Dashboard
                             {/if}

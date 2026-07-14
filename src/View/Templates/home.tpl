@@ -19,8 +19,8 @@
             GymFly
         </a>
         <div class="gf-navbar-actions">
-            <a href="login" class="gf-btn-outline">Accedi</a>
             <a href="registrazione" class="gf-btn-primary">Inizia</a>
+            <a href="login" class="gf-btn-outline">Accedi</a>
         </div>
     </nav>
 
