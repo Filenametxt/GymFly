@@ -91,7 +91,8 @@ class VisualizzazioneUtentiController
                 'nome' => $c->getNome(),
                 'cognome' => $c->getCognome(),
                 'email' => $c->getEmail(),
-                'cf' => $c->getCF()
+                'cf' => $c->getCF(),
+                'fotoProfilo' => $c->getProfilePicture() ? base64_encode($c->getProfilePicture()) : null
             ];
         }
 
@@ -138,7 +139,8 @@ class VisualizzazioneUtentiController
                 'email' => $a->getEmail(),
                 'cf' => $a->getCF(),
                 'sesso' => $a->getSesso()->value,
-                'attivita' => implode(',', $attivitaNomi)
+                'attivita' => implode(',', $attivitaNomi),
+                'fotoProfilo' => $a->getProfilePicture() ? base64_encode($a->getProfilePicture()) : null
             ];
         }
 
