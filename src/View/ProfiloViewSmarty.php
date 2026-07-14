@@ -28,15 +28,8 @@ class ProfiloViewSmarty implements ProfiloView
 
     private function determinaRitorno(): string
     {
-        if (isset($_SESSION['ruolo_utente'])) {
-            switch ($_SESSION['ruolo_utente']) {
-                case 'amministratore':
-                    return 'dashboard-admin';
-                case 'allenatore':
-                    return 'dashboard-allenatore';
-                case 'cliente':
-                    return 'dashboard-cliente';
-            }
+        if (isset($_SESSION['id_utente'])) {
+            return 'profilo';
         }
         return 'login';
     }

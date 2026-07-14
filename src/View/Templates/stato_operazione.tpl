@@ -25,6 +25,8 @@
                                 Torna al Calendario
                             {elseif $ritorno === 'visualizza-scheda' || $ritorno|truncate:17:"" === 'visualizza-scheda'}
                                 Torna alla Scheda
+                            {elseif $ritorno === 'profilo'}
+                                Torna al Profilo
                             {else}
                                 Torna alla Dashboard
                             {/if}

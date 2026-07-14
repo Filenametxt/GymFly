@@ -292,13 +292,43 @@ class ProfiloController
             return;
         }
 
+        if (isset($_FILES['foto_profilo'])) {
+            $error = $_FILES['foto_profilo']['error'];
+            if ($error === UPLOAD_ERR_INI_SIZE || $error === UPLOAD_ERR_FORM_SIZE) {
+                $this->view->mostraErrore("L'immagine caricata supera il limite massimo di dimensione consentito.");
+                return;
+            }
+        }
+
         if (!isset($_FILES['foto_profilo']) || $_FILES['foto_profilo']['error'] !== UPLOAD_ERR_OK) {
             $this->view->mostraErrore("File immagine non valido.");
             return;
         }
 
-        // Legge il contenuto binario del file temporaneo
         $fileTmpPath = $_FILES['foto_profilo']['tmp_name'];
+        $fileSize = $_FILES['foto_profilo']['size'];
+
+        // Limite massimo di 60 KB per stare all'interno del tipo BLOB del DB senza troncare l'immagine
+        $maxSize = 60 * 1024;
+        if ($fileSize > $maxSize) {
+            $this->view->mostraErrore("L'immagine caricata supera il limite massimo di dimensione consentito (60 KB).");
+            return;
+        }
+
+        // Validazione formato immagine (escludendo GIF ed altri formati non supportati)
+        $imageInfo = @getimagesize($fileTmpPath);
+        if ($imageInfo === false) {
+            $this->view->mostraErrore("Il file caricato non è un'immagine valida.");
+            return;
+        }
+
+        $allowedTypes = [IMAGETYPE_JPEG, IMAGETYPE_PNG];
+        if (!in_array($imageInfo[2], $allowedTypes)) {
+            $this->view->mostraErrore("Formato immagine non consentito. Sono ammessi solo JPG, JPEG e PNG.");
+            return;
+        }
+
+        // Legge il contenuto binario del file temporaneo
         $fileContent = file_get_contents($fileTmpPath);
 
         if ($fileContent !== false) {
