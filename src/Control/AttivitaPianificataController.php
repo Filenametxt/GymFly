@@ -255,6 +255,14 @@ class AttivitaPianificataController
             }
         }
 
+        $codaAttesaAp = [];
+        if ($selectedAp) {
+            $codaAttesaAp = $this->entityManager->getRepository(CodaAttesa::class)->findBy(
+                ['attivitaPianificata' => $selectedAp],
+                ['dataInserimento' => 'ASC']
+            );
+        }
+
         $datiView = [
             'grid' => $grid,
             'fasceOrarie' => $fasceOrarie,
@@ -269,6 +277,7 @@ class AttivitaPianificataController
             'attivita' => $this->attivitaRepo->findAll(),
             'clienti' => $this->clienteRepo->findByPalestra($palestra),
             'selectedAp' => $selectedAp,
+            'codaAttesa' => $codaAttesaAp,
             'selectedSp' => $selectedSp,
             'nuovo' => isset($_GET['nuovo']) ? 1 : 0,
             'nuova_sessione' => isset($_GET['nuova_sessione']) ? 1 : 0

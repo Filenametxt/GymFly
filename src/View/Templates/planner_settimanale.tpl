@@ -231,13 +231,41 @@
                                     {if $selectedAp->getUtenti()|@count === 0}
                                         <p class="is-size-7 has-text-grey mb-4 is-italic">Nessun utente iscritto a questa classe.</p>
                                     {else}
-                                        <ul class="mb-4" style="max-height: 150px; overflow-y: auto; background-color: rgba(0,0,0,0.1); padding: 8px; border-radius: 8px;">
+                                        <ul class="mb-4" style="max-height: 180px; overflow-y: auto; background-color: rgba(0,0,0,0.05); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
                                             {foreach from=$selectedAp->getUtenti() item=ut}
-                                                <li class="is-flex is-justify-content-between is-align-items-center mb-2" style="border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 4px;">
-                                                    <span class="is-size-7">{$ut->getNome()} {$ut->getCognome()}</span>
-                                                    <a href="disdici-prenotazione?id_attivita_pianificata={$selectedAp->getId()}&id_cliente={$ut->getId()}" class="button is-danger is-small is-light" title="Rimuovi iscrizione" style="padding: 2px 6px; height: auto;">
-                                                        <i class="fas fa-trash-alt"></i>
-                                                    </a>
+                                                <li class="mb-2 p-2" style="position: relative; background: rgba(255,255,255,0.05); border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); {if $smarty.session.ruolo_utente === 'amministratore' || $smarty.session.id_utente === $ut->getId()}padding-right: 32px !important;{else}padding-right: 12px !important;{/if} padding-left: 12px !important;">
+                                                    {if $smarty.session.ruolo_utente === 'amministratore' || $smarty.session.id_utente === $ut->getId()}
+                                                        <a href="disdici-prenotazione?id_attivita_pianificata={$selectedAp->getId()}&id_cliente={$ut->getId()}" class="delete is-small" title="Rimuovi iscrizione" style="position: absolute; right: 8px; top: 8px; background-color: #ff3860;"></a>
+                                                    {/if}
+                                                    <span class="is-size-7 style-theme-text" style="display: block; font-weight: 500;">
+                                                        {$ut->getNome()} {$ut->getCognome()}
+                                                        {if $smarty.session.id_utente === $ut->getId()} <span class="tag is-info is-light is-small py-0 px-1 ml-1">Tu</span>{/if}
+                                                    </span>
+                                                </li>
+                                            {/foreach}
+                                        </ul>
+                                    {/if}
+
+                                    <!-- LISTA D'ATTESA -->
+                                    <h3 class="title is-5 style-theme-text mb-3 mt-4">
+                                        <i class="fas fa-hourglass-half mr-2" style="color: var(--gymfly-primary);"></i>Lista d'Attesa
+                                    </h3>
+                                    {if $codaAttesa|@count === 0}
+                                        <p class="is-size-7 has-text-grey mb-4 is-italic">Nessun utente in lista d'attesa.</p>
+                                    {else}
+                                        <ul class="mb-4" style="max-height: 180px; overflow-y: auto; background-color: rgba(0,0,0,0.05); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                                            {foreach from=$codaAttesa item=coda}
+                                                <li class="mb-2 p-2" style="position: relative; background: rgba(255,255,255,0.03); border-radius: 6px; border: 1px dashed rgba(255,255,255,0.1); {if $smarty.session.ruolo_utente === 'amministratore' || $smarty.session.id_utente === $coda->getCliente()->getId()}padding-right: 32px !important;{else}padding-right: 12px !important;{/if} padding-left: 12px !important;">
+                                                    {if $smarty.session.ruolo_utente === 'amministratore' || $smarty.session.id_utente === $coda->getCliente()->getId()}
+                                                        <a href="disdici-prenotazione?id_attivita_pianificata={$selectedAp->getId()}&id_cliente={$coda->getCliente()->getId()}" class="delete is-small" title="Rimuovi dalla lista d'attesa" style="position: absolute; right: 8px; top: 8px; background-color: #ff3860;"></a>
+                                                    {/if}
+                                                    <div style="line-height: 1.2;">
+                                                        <span class="is-size-7 style-theme-text" style="display: block; font-weight: 500;">
+                                                            {$coda->getCliente()->getNome()} {$coda->getCliente()->getCognome()}
+                                                            {if $smarty.session.id_utente === $coda->getCliente()->getId()} <span class="tag is-info is-light is-small py-0 px-1 ml-1">Tu</span>{/if}
+                                                        </span>
+                                                        <span class="is-size-7 has-text-grey" style="font-size: 0.65rem !important;">Inserito il {$coda->getDataInserimento()->format('d/m/Y H:i')}</span>
+                                                    </div>
                                                 </li>
                                             {/foreach}
                                         </ul>
