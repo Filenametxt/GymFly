@@ -314,7 +314,7 @@
                                 </div>
 
                                 <div class="mt-4">
-                                    <a href="disdici-sessione-privata?id_allenatore={$selectedSp->getAllenatore()->getId()}&ora_inizio={$selectedSp->getOraInizio()->format('H:i:s')}&ora_fine={$selectedSp->getOraFine()->format('H:i:s')}" class="button is-danger is-light is-fullwidth" onclick="return confirm('Sei sicuro di voler annullare questa sessione privata?');">
+                                    <a href="disdici-sessione-privata?id_allenatore={$selectedSp->getAllenatore()->getId()}&ora_inizio={$selectedSp->getOraInizio()->format('H:i:s')}&ora_fine={$selectedSp->getOraFine()->format('H:i:s')}" class="button is-danger is-light is-fullwidth">
                                         <span class="icon"><i class="fas fa-calendar-times"></i></span>
                                         <span>Disdici Sessione</span>
                                     </a>
