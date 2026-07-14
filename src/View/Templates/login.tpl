@@ -14,8 +14,8 @@
     <nav class="navbar" role="navigation" aria-label="main navigation">
         <div class="container">
             <div class="navbar-brand">
-                <a class="navbar-item" href="{$baseUrl|default:'/'}">
-                    <strong class="is-size-4" style="color: #AFAFE2;">GymFly</strong>
+                <a class="navbar-item" href="home">
+                    <strong class="is-size-4" style="color: var(--gymfly-text) !important;">GymFly</strong>
                 </a>
             </div>
 
@@ -38,7 +38,7 @@
         </div>
     </nav>
 
-    <section class="hero is-fullheight-with-navbar">
+    <section class="hero is-fullheight-with-navbar" style="background: var(--gradient-bottom-right) !important;">
         <div class="hero-body">
             <div class="container">
                 <div class="columns is-centered">
