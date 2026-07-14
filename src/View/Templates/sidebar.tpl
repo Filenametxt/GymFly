@@ -125,7 +125,7 @@
     </div>
 
     <!-- PIEDE DELLA SIDEBAR FISSO (LOGOUT) -->
-    <div style="position: sticky; bottom: 0; background-color: var(--gymfly-card-bg); padding: 1rem 0 0 0; margin-top: auto; border-top: 2px solid var(--gymfly-primary); z-index: 10;">
+    <div style="position: sticky; bottom: -2rem; background-color: var(--gymfly-card-bg) !important; padding: 1rem 1.5rem 2rem 1.5rem; margin-top: auto; margin-left: -1.5rem; margin-right: -1.5rem; margin-bottom: -2rem; border-top: 2px solid var(--gymfly-primary); z-index: 10;">
         <a href="logout" class="button is-danger is-light is-fullwidth" style="border-radius: 8px; font-weight: 600;">
             <span class="icon"><i class="fas fa-sign-out-alt"></i></span>
             <span>Log Out</span>
@@ -162,39 +162,132 @@ document.addEventListener('DOMContentLoaded', () => {
     // Rileva la pagina corrente per evidenziare il pulsante attivo nella sidebar
     const currentPath = window.location.pathname;
     const links = document.querySelectorAll('.app-sidebar .sidebar-menu-link');
+
+    // Determina se stiamo visualizzando il profilo dell'utente loggato o di un altro utente (assegnato da ProfiloController)
+    const isSelfProfile = {if isset($isSelf) && !$isSelf}false{else}true{/if};
+    const isClientProfile = {if isset($isClient) && $isClient}true{else}false{/if};
+    const isTrainerProfile = {if isset($isTrainer) && $isTrainer}true{else}false{/if};
+
+    // Determina il ruolo dell'utente a partire dall'href del primo link (Home Dashboard)
+    let userRole = '';
+    const homeLink = document.querySelector('.app-sidebar .sidebar-menu-link');
+    if (homeLink) {
+        const homeHref = homeLink.getAttribute('href');
+        if (homeHref === 'dashboard-admin') {
+            userRole = 'amministratore';
+        } else if (homeHref === 'dashboard-allenatore') {
+            userRole = 'allenatore';
+        } else if (homeHref === 'dashboard-cliente') {
+            userRole = 'cliente';
+        }
+    }
+
+    // Aggiungi event listener a tutti i link della sidebar per salvare la selezione in sessionStorage
     links.forEach(link => {
-        const href = link.getAttribute('href');
-        if (!href) return;
+        link.addEventListener('click', () => {
+            const href = link.getAttribute('href');
+            if (href) {
+                sessionStorage.setItem('activeSidebarHref', href);
+            }
+        });
+    });
+
+    // Funzione per determinare l'elemento attivo basandosi sull'URL corrente
+    function getActiveLinkByUrl() {
+        let activeLink = null;
         
-        // Verifica se l'URL termina con l'href del link
-        if (currentPath.endsWith('/' + href) || currentPath.endsWith(href)) {
-            link.classList.add('is-active');
-        } else {
-            // Gestione dei sottomenu e delle pagine collegate
-            if (href === 'profilo' && (
+        links.forEach(link => {
+            if (activeLink) return;
+            const href = link.getAttribute('href');
+            if (!href) return;
+
+            // Se stiamo guardando il profilo di qualcun altro, evitiamo il match esatto con la voce "profilo" (il mio profilo)
+            if (href === 'profilo' && !isSelfProfile) {
+                // Procedi con il controllo dei sottomenu in basso, non fare il match esatto
+            } else if (currentPath.endsWith('/' + href) || currentPath === href) {
+                activeLink = link;
+                return;
+            }
+
+            // Gestione robusta dei sottomenu e delle pagine collegate (fallback)
+            if (href === 'profilo' && isSelfProfile && (
                 currentPath.includes('modifica-anagrafica') || 
                 currentPath.includes('aggiorna-misure') || 
                 currentPath.includes('inserisci-misure') || 
                 currentPath.includes('carica-certificato') || 
                 currentPath.includes('cambia-password') || 
-                currentPath.includes('visualizza-grafico')
+                currentPath.includes('visualizza-grafico') ||
+                currentPath.includes('carica-foto') ||
+                (currentPath.includes('visualizza-profilo') && userRole === 'cliente') ||
+                (currentPath.includes('progressi-cliente') && userRole === 'cliente')
             )) {
-                link.classList.add('is-active');
+                activeLink = link;
             }
             if (href === 'visualizza-scheda' && (
                 currentPath.includes('modifica-dettagli') || 
                 currentPath.includes('modifica-scheda') || 
-                currentPath.includes('crea-scheda')
+                currentPath.includes('crea-scheda') ||
+                currentPath.includes('salva-scheda') ||
+                currentPath.includes('invia-scheda')
             )) {
-                link.classList.add('is-active');
+                activeLink = link;
             }
             if (href === 'clienti' && (
                 currentPath.includes('crea-cliente') || 
-                currentPath.includes('gestione-abbonamento')
+                currentPath.includes('gestione-abbonamento') ||
+                currentPath.includes('abbonamento') ||
+                (!isSelfProfile && isClientProfile) ||
+                (currentPath.includes('visualizza-profilo') && (userRole === 'allenatore' || userRole === 'amministratore')) ||
+                (currentPath.includes('progressi-cliente') && (userRole === 'allenatore' || userRole === 'amministratore'))
             )) {
-                link.classList.add('is-active');
+                activeLink = link;
             }
+            if (href === 'allenatori' && (
+                currentPath.includes('crea-allenatore') ||
+                currentPath.includes('abilita-attivita-allenatore') ||
+                currentPath.includes('rimuovi-allenatore') ||
+                (!isSelfProfile && isTrainerProfile)
+            )) {
+                activeLink = link;
+            }
+            if (href === 'messaggi' && (
+                currentPath.includes('invia-messaggio')
+            )) {
+                activeLink = link;
+            }
+            if (href === 'calendario' && (
+                currentPath.includes('prenota-attivita') ||
+                currentPath.includes('disdici-prenotazione') ||
+                currentPath.includes('prenota-sessione-privata') ||
+                currentPath.includes('crea-attivita-pianificata') ||
+                currentPath.includes('rimuovi-attivita-pianificata') ||
+                currentPath.includes('disdici-sessione-privata')
+            )) {
+                activeLink = link;
+            }
+        });
+
+        return activeLink;
+    }
+
+    // 1. Cerchiamo prima se l'URL corrente definisce un link attivo (esatto o sotto-pagina)
+    let activeLinkElement = getActiveLinkByUrl();
+
+    // 2. Se l'URL non corrisponde a nulla di noto, usiamo l'ultimo stato salvato in sessionStorage
+    if (!activeLinkElement) {
+        const storedHref = sessionStorage.getItem('activeSidebarHref');
+        if (storedHref) {
+            activeLinkElement = Array.from(links).find(link => link.getAttribute('href') === storedHref);
         }
-    });
+    }
+
+    // 3. Applica lo stato attivo e memorizza in sessionStorage
+    if (activeLinkElement) {
+        activeLinkElement.classList.add('is-active');
+        const href = activeLinkElement.getAttribute('href');
+        if (href) {
+            sessionStorage.setItem('activeSidebarHref', href);
+        }
+    }
 });
 </script>
