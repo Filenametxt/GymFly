@@ -28,6 +28,91 @@ class VisualizzazioneUtentiController
         $this->view = new VisualizzazioneUtentiViewSmarty();
     }
 
+    private function applicaFiltriClienti(array $clienti, ?string $query, ?string $filtroCertificato, ?string $filtroAbbonamento, ?string $filtroScheda): array
+    {
+        if ($query !== null && trim($query) !== '') {
+            $search = strtolower(trim($query));
+            $clienti = array_filter($clienti, function($c) use ($search) {
+                return str_contains(strtolower($c->getNome()), $search) || 
+                       str_contains(strtolower($c->getCognome()), $search);
+            });
+        }
+
+        switch ($filtroCertificato) {
+            case 'scaduti':
+                $clienti = array_filter($clienti, function($c) {
+                    $cm = $c->getCertificatoMedico();
+                    return $cm === null || $cm->giorniAllaScadenza() < 0;
+                });
+                break;
+            case 'in_scadenza':
+                $clienti = array_filter($clienti, function($c) {
+                    $cm = $c->getCertificatoMedico();
+                    return $cm !== null && $cm->giorniAllaScadenza() >= 0 && $cm->giorniAllaScadenza() <= 30;
+                });
+                break;
+            case 'in_regola':
+                $clienti = array_filter($clienti, function($c) {
+                    $cm = $c->getCertificatoMedico();
+                    return $cm !== null && $cm->giorniAllaScadenza() > 30;
+                });
+                break;
+        }
+
+        switch ($filtroAbbonamento) {
+            case 'attivo':
+                $clienti = array_filter($clienti, function($c) {
+                    return $c->isAbbonamentoAttivo();
+                });
+                break;
+            case 'scaduto':
+                $clienti = array_filter($clienti, function($c) {
+                    return !$c->isAbbonamentoAttivo();
+                });
+                break;
+        }
+
+        if ($filtroScheda !== null && trim($filtroScheda) !== '') {
+            $oggi = new \DateTimeImmutable('today');
+            $clienti = array_filter($clienti, function($c) use ($filtroScheda, $oggi) {
+                $scheda = $c->getScheda();
+                switch ($filtroScheda) {
+                    case 'scadute':
+                        return $scheda !== null && $scheda->getData_fine() < $oggi;
+                    case 'richieste':
+                        return $scheda === null;
+                    case 'in_regola':
+                        return $scheda !== null && $scheda->getData_fine() >= $oggi;
+                    default:
+                        return true;
+                }
+            });
+        }
+
+        return $clienti;
+    }
+
+    private function ordinaClienti(array $clienti, ?string $ordine): array
+    {
+        usort($clienti, function($a, $b) use ($ordine) {
+            switch ($ordine) {
+                case 'cognome_desc':
+                    $cmp = strcmp($b->getCognome(), $a->getCognome());
+                    return $cmp !== 0 ? $cmp : strcmp($a->getNome(), $b->getNome());
+                case 'nome_asc':
+                    $cmp = strcmp($a->getNome(), $b->getNome());
+                    return $cmp !== 0 ? $cmp : strcmp($a->getCognome(), $b->getCognome());
+                case 'nome_desc':
+                    $cmp = strcmp($b->getNome(), $a->getNome());
+                    return $cmp !== 0 ? $cmp : strcmp($a->getCognome(), $b->getCognome());
+                default:
+                    $cmp = strcmp($a->getCognome(), $b->getCognome());
+                    return $cmp !== 0 ? $cmp : strcmp($a->getNome(), $b->getNome());
+            }
+        });
+        return $clienti;
+    }
+
     public function visualizzaClienti(): void 
     {
         $idUtente = $this->session->getLoggedUserId();
@@ -37,7 +122,6 @@ class VisualizzazioneUtentiController
             return;
         }
 
-        // Verifica permessi ed estrazione della palestra
         $palestra = null;
         if ($ruolo === 'amministratore') {
             $admin = $this->entityManager->find(Amministratore::class, $idUtente);
@@ -49,40 +133,22 @@ class VisualizzazioneUtentiController
             if ($trainer) {
                 $palestra = $trainer->getPalestra();
             }
-        } else {
-            $this->view->mostraErrore("Accesso negato. Questa area è riservata ad Amministratori ed Allenatori.");
-            return;
         }
 
         if (!$palestra) {
-            $this->view->mostraErrore("Palestra associata non trovata.");
+            $this->view->mostraErrore("Accesso negato o palestra non trovata.");
             return;
         }
 
-        // Recupero dei clienti filtrati per palestra, ricerca, certificato medico, abbonamento e ordinamento
         $query = $_POST['search_query'] ?? $_GET['search_query'] ?? null;
         $filtroCertificato = $_POST['filtro_certificato'] ?? $_GET['filtro_certificato'] ?? null;
         $filtroAbbonamento = $_POST['filtro_abbonamento'] ?? $_GET['filtro_abbonamento'] ?? null;
+        $filtroScheda = $_POST['filtro_scheda'] ?? $_GET['filtro_scheda'] ?? null;
         $ordine = $_POST['ordine'] ?? $_GET['ordine'] ?? null;
 
-        $clienti = $this->clienteRepo->findByPalestraAndFiltri($palestra, $query, $filtroCertificato, $filtroAbbonamento, $ordine);
-
-        // Filtro per stato scheda a livello applicativo (in-memory) per non modificare il repository o il DB
-        $filtroScheda = $_POST['filtro_scheda'] ?? $_GET['filtro_scheda'] ?? null;
-        if ($filtroScheda !== null && trim($filtroScheda) !== '') {
-            $oggi = new \DateTimeImmutable('today');
-            $clienti = array_filter($clienti, function($c) use ($filtroScheda, $oggi) {
-                $scheda = $c->getScheda();
-                if ($filtroScheda === 'scadute') {
-                    return $scheda !== null && $scheda->getData_fine() < $oggi;
-                } elseif ($filtroScheda === 'richieste') {
-                    return $scheda === null;
-                } elseif ($filtroScheda === 'in_regola') {
-                    return $scheda !== null && $scheda->getData_fine() >= $oggi;
-                }
-                return true;
-            });
-        }
+        $clienti = $this->clienteRepo->findByPalestra($palestra);
+        $clienti = $this->applicaFiltriClienti($clienti, $query, $filtroCertificato, $filtroAbbonamento, $filtroScheda);
+        $clienti = $this->ordinaClienti($clienti, $ordine);
 
         $clientiData = [];
         foreach ($clienti as $c) {

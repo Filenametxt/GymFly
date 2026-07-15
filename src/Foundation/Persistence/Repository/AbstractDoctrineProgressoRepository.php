@@ -130,7 +130,7 @@ abstract class AbstractDoctrineProgressoRepository implements ProgressoRepositor
     
     /** 
      * Trova l'ultimo progresso registrato per un cliente e un esercizio, restituendo un singolo oggetto Progresso o null se non esiste
-     * @return Progresso[] */
+     * @return Progresso */
     public function findUltimoByClienteAndEsercizio(
         Cliente $cliente,
         Esercizio $esercizio

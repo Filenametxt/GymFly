@@ -19,7 +19,7 @@ class StringableTimeImmutableType extends TimeImmutableType
 {
     public function convertToPHPValue(mixed $value, AbstractPlatform $platform): ?DateTimeImmutable
     {
-        if ($value === null) {
+        if ($value == null) {
             return null;
         }
 
