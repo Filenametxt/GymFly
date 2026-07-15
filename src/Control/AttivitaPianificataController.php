@@ -84,22 +84,7 @@ class AttivitaPianificataController
         return null;
     }
 
-    /**
-     * Helper per convertire il giorno della settimana di un oggetto DateTime in carattere 'L', 'M', 'M', 'G', 'V', 'S', 'D'
-     */
-    private function getGiornoSettimanaCar(int $n): string
-    {
-        $map = [
-            1 => 'L',
-            2 => 'M',
-            3 => 'M',
-            4 => 'G',
-            5 => 'V',
-            6 => 'S',
-            7 => 'D'
-        ];
-        return $map[$n] ?? 'L';
-    }
+
 
     /**
      * Visualizza il planner o calendario settimanale
@@ -419,9 +404,8 @@ class AttivitaPianificataController
                     $currentDate = clone $startDate;
                     $currentDate->modify("+$i days");
                     $nGiorno = (int)$currentDate->format('N');
-                    $giornoCar = $this->getGiornoSettimanaCar($nGiorno);
 
-                    if (in_array($giornoCar, $ripetizioni)) {
+                    if (in_array((string)$nGiorno, $ripetizioni)) {
                         $giornoImmutable = \DateTimeImmutable::createFromMutable($currentDate);
                         
                         $esistente = $this->entityManager->getRepository(AttivitaPianificata::class)->findOneBy([

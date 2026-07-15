@@ -411,13 +411,13 @@
                                     <div class="field mb-4">
                                         <label class="label is-small style-theme-text">Ripeti settimanalmente nei giorni:</label>
                                         <div class="weekday-checkboxes">
-                                            <label><input type="checkbox" name="ripetizione[]" value="L"><span>L</span></label>
-                                            <label><input type="checkbox" name="ripetizione[]" value="M"><span>M</span></label>
-                                            <label><input type="checkbox" name="ripetizione[]" value="M"><span>M</span></label>
-                                            <label><input type="checkbox" name="ripetizione[]" value="G"><span>G</span></label>
-                                            <label><input type="checkbox" name="ripetizione[]" value="V"><span>V</span></label>
-                                            <label><input type="checkbox" name="ripetizione[]" value="S"><span>S</span></label>
-                                            <label><input type="checkbox" name="ripetizione[]" value="D"><span>D</span></label>
+                                            <label><input type="checkbox" name="ripetizione[]" value="1"><span>L</span></label>
+                                            <label><input type="checkbox" name="ripetizione[]" value="2"><span>M</span></label>
+                                            <label><input type="checkbox" name="ripetizione[]" value="3"><span>M</span></label>
+                                            <label><input type="checkbox" name="ripetizione[]" value="4"><span>G</span></label>
+                                            <label><input type="checkbox" name="ripetizione[]" value="5"><span>V</span></label>
+                                            <label><input type="checkbox" name="ripetizione[]" value="6"><span>S</span></label>
+                                            <label><input type="checkbox" name="ripetizione[]" value="7"><span>D</span></label>
                                         </div>
                                         <p class="help has-text-grey-light">Se selezionate delle ripetizioni, l'evento verrà pianificato per le prossime 4 settimane nei giorni selezionati.</p>
                                     </div>
