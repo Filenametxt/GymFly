@@ -11,9 +11,11 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class DoctrineAttivitaPianificataRepository implements AttivitaPianificataRepositoryInterface
 {
-    public function __construct(
-        private EntityManagerInterface $em
-    ) {}
+    public function __construct(private EntityManagerInterface $em) {}
+
+    // -------------------------------------------------------------------------
+    // CRUD base
+    // -------------------------------------------------------------------------
 
     public function findById(int $id): ?AttivitaPianificata
     {
@@ -37,9 +39,13 @@ class DoctrineAttivitaPianificataRepository implements AttivitaPianificataReposi
         return $this->em->getRepository(AttivitaPianificata::class)->findAll();
     }
 
+    // -------------------------------------------------------------------------
+    // Metodi specifici del dominio
+    // -------------------------------------------------------------------------
+
     public function findByGiorno(\DateTimeImmutable $giorno): array
     {
-        // confronta solo la data, ignorando l'orario
+        // confronta solo la data, indipendentemente dall'orario specifico: prende l'intera giornata
         $inizioGiorno = $giorno->setTime(0, 0, 0);
         $fineGiorno   = $giorno->setTime(23, 59, 59);
 
@@ -81,7 +87,6 @@ class DoctrineAttivitaPianificataRepository implements AttivitaPianificataReposi
 
     public function findByCliente(Cliente $cliente): array
     {
-        // join sulla tabella ISCRITTO tramite la relazione N-N
         return $this->em->createQueryBuilder()
             ->select('ap')
             ->from(AttivitaPianificata::class, 'ap')
@@ -93,32 +98,4 @@ class DoctrineAttivitaPianificataRepository implements AttivitaPianificataReposi
             ->getResult();
     }
 
-    public function findDisponibiliPerGiorno(\DateTimeImmutable $giorno): array
-    {
-        $inizioGiorno = $giorno->setTime(0, 0, 0);
-        $fineGiorno   = $giorno->setTime(23, 59, 59);
-
-        // carica anche sala e attività per calcolare getMaxPartecipanti()
-        // il filtro sui posti disponibili viene fatto in memoria
-        // perché getMaxPartecipanti() confronta sala.maxPartecipanti e attivita.maxPartecipanti
-        $tutte = $this->em->createQueryBuilder()
-            ->select('ap', 's', 'att')
-            ->from(AttivitaPianificata::class, 'ap')
-            ->join('ap.sala', 's')
-            ->join('ap.attivitaDiRiferimento', 'att')
-            ->where('ap.giorno >= :inizio')
-            ->andWhere('ap.giorno <= :fine')
-            ->setParameter('inizio', $inizioGiorno)
-            ->setParameter('fine', $fineGiorno)
-            ->orderBy('ap.orario', 'ASC')
-            ->getQuery()
-            ->getResult();
-
-        // delega il calcolo dei posti all'Entity — regola di dominio
-        return array_values(
-            array_filter($tutte, fn(AttivitaPianificata $ap) =>
-                $ap->getPrenotati() < $ap->getMaxPartecipanti()
-            )
-        );
-    }
 }

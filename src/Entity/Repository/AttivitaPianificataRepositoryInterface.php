@@ -61,11 +61,4 @@ interface AttivitaPianificataRepositoryInterface
      */
     public function findByCliente(Cliente $cliente): array;
 
-    /**
-     * Trova le attività pianificate con posti ancora disponibili in una data.
-     * Caso d'uso: mostrare al cliente cosa può ancora prenotare.
-     *
-     * @return AttivitaPianificata[]
-     */
-    public function findDisponibiliPerGiorno(\DateTimeImmutable $giorno): array;
 }

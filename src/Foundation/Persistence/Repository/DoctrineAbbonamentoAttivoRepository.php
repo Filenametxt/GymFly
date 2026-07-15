@@ -9,9 +9,7 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class DoctrineAbbonamentoAttivoRepository implements AbbonamentoAttivoRepositoryInterface
 {
-    public function __construct(
-        private EntityManagerInterface $em
-    ) {}
+    public function __construct(private EntityManagerInterface $em) {}
 
     // -------------------------------------------------------------------------
     // CRUD base
@@ -43,6 +41,9 @@ class DoctrineAbbonamentoAttivoRepository implements AbbonamentoAttivoRepository
     // Metodi specifici del dominio
     // -------------------------------------------------------------------------
 
+    /*
+    * Trova tutti gli abbonamenti attivi associati a un determinato abbonamento.
+    */
     public function findByAbbonamento(Abbonamento $abbonamento): array
     {
         return $this->em->createQueryBuilder()
@@ -54,6 +55,9 @@ class DoctrineAbbonamentoAttivoRepository implements AbbonamentoAttivoRepository
             ->getResult();
     }
 
+    /*
+    * Trova tutti gli abbonamenti attivi che sono scaduti, ovvero quelli con una data di fine non nulla e inferiore alla data odierna.
+    */
     public function findScaduti(): array
     {
         return $this->em->createQueryBuilder()
@@ -66,30 +70,24 @@ class DoctrineAbbonamentoAttivoRepository implements AbbonamentoAttivoRepository
             ->getResult();
     }
 
+    /*
+    * Trova tutti gli abbonamenti attivi che sono in scadenza entro un certo numero di giorni.
+    */
     public function findInScadenza(int $giorni): array
     {
-        $oggi   = new \DateTimeImmutable();
+        $oggi   = new \DateTimeImmutable(); //oggi non viene definito
         $limite = $oggi->modify("+{$giorni} days");
 
         return $this->em->createQueryBuilder()
             ->select('a')
             ->from(AbbonamentoAttivo::class, 'a')
             ->where('a.dataFine IS NOT NULL')
-            ->andWhere('a.dataFine >= :oggi')
-            ->andWhere('a.dataFine <= :limite')
+            ->andWhere('a.dataFine >= :oggi') //compreso tra oggi e il limite
+            ->andWhere('a.dataFine <= :limite') //limite = oggi + giorni che gli mettiamo noi in ingresso
             ->setParameter('oggi', $oggi)
             ->setParameter('limite', $limite)
             ->getQuery()
             ->getResult();
     }
 
-    public function findSenzaDataFine(): array
-    {
-        return $this->em->createQueryBuilder()
-            ->select('a')
-            ->from(AbbonamentoAttivo::class, 'a')
-            ->where('a.dataFine IS NULL')
-            ->getQuery()
-            ->getResult();
-    }
 }

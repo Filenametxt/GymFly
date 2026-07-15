@@ -58,7 +58,7 @@ class DoctrineClienteRepository extends AbstractDoctrineUtenteRepository
         return $this->em->createQueryBuilder()
             ->select('c')
             ->from(Cliente::class, 'c')
-            ->where('LOWER(c.nome) LIKE LOWER(:query)')
+            ->where('LOWER(c.nome) LIKE LOWER(:query)') //il nome è uguale a quello scritto nella query, senza distinzione tra maiuscole e minuscole
             ->orWhere('LOWER(c.cognome) LIKE LOWER(:query)')
             ->orWhere('LOWER(c.email) LIKE LOWER(:query)')
             ->setParameter('query', '%' . $query . '%')
@@ -80,7 +80,7 @@ class DoctrineClienteRepository extends AbstractDoctrineUtenteRepository
             ->where('c.palestra = :palestra')
             ->setParameter('palestra', $palestra)
             ->orderBy('c.cognome', 'ASC')
-            ->addOrderBy('c.nome', 'ASC')
+            ->addOrderBy('c.nome', 'ASC') //nel caso di cognome uguale, ordina per nome
             ->getQuery()
             ->getResult();
     }
