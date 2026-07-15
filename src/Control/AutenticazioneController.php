@@ -8,17 +8,21 @@ use App\Enum\Sesso;
 use App\Entity\Amministratore;
 use App\Entity\Utente;
 use App\Entity\Palestra;
+use App\Entity\Repository\UtenteRepositoryInterface;
+use App\Foundation\Persistence\Repository\DoctrineUtenteRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
 class AutenticazioneController 
 {
     private AutenticazioneView $view;
+    private UtenteRepositoryInterface $utenteRepo;
 
     public function __construct(
         private EntityManagerInterface $entityManager,
         private Session $session
     ) {
         $this->view = new AutenticazioneViewSmarty();
+        $this->utenteRepo = new DoctrineUtenteRepository($this->entityManager);
     }
 
     public function login(): void
@@ -37,7 +41,7 @@ class AutenticazioneController
             return;
         }
 
-        $utente = $this->entityManager->getRepository(Utente::class)->findOneBy(['email' => $email]);
+        $utente = $this->utenteRepo->findByEmail($email);
 
         if ($utente === null || !$utente->verificaPassword($password)) {
             $this->view->mostraStatoOperazione(false, "Credenziali errate.");
@@ -78,7 +82,7 @@ class AutenticazioneController
             }
         }
 
-        $existingUser = $this->entityManager->getRepository(Utente::class)->findOneBy(['email' => $dati['email']]);
+        $existingUser = $this->utenteRepo->findByEmail($dati['email']);
         if ($existingUser) {
             $this->view->mostraStatoOperazione(false, "L'email dell'amministratore è già registrata.");
             return;

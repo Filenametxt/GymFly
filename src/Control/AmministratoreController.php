@@ -4,9 +4,19 @@ namespace App\Control;
 use App\Entity\Repository\ClienteRepositoryInterface;
 use App\Entity\Repository\AllenatoreRepositoryInterface;
 use App\Entity\Repository\AttivitaRepositoryInterface;
+use App\Entity\Repository\CodaAttesaRepositoryInterface;
+use App\Entity\Repository\UtenteRepositoryInterface;
+use App\Entity\Repository\SessionePrivataRepositoryInterface;
+use App\Entity\Repository\ParametriRepositoryInterface;
+use App\Entity\Repository\SchedaRepositoryInterface;
 use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
 use App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository;
 use App\Foundation\Persistence\Repository\DoctrineAttivitaRepository;
+use App\Foundation\Persistence\Repository\DoctrineCodaAttesaRepository;
+use App\Foundation\Persistence\Repository\DoctrineUtenteRepository;
+use App\Foundation\Persistence\Repository\DoctrineSessionePrivataRepository;
+use App\Foundation\Persistence\Repository\DoctrineParametriRepository;
+use App\Foundation\Persistence\Repository\DoctrineSchedaRepository;
 use App\View\Interface\AmministratoreView;
 use App\View\AmministratoreViewSmarty;
 use App\Foundation\Session;
@@ -24,6 +34,11 @@ class AmministratoreController
     private ClienteRepositoryInterface $clienteRepo;
     private AllenatoreRepositoryInterface $allenatoreRepo;
     private AttivitaRepositoryInterface $attivitaRepo;
+    private CodaAttesaRepositoryInterface $codaAttesaRepo;
+    private UtenteRepositoryInterface $utenteRepo;
+    private SessionePrivataRepositoryInterface $sessionePrivataRepo;
+    private ParametriRepositoryInterface $parametriRepo;
+    private SchedaRepositoryInterface $schedaRepo;
     private AmministratoreView $view;
 
     public function __construct(
@@ -33,6 +48,11 @@ class AmministratoreController
         $this->clienteRepo = new DoctrineClienteRepository($this->entityManager);
         $this->allenatoreRepo = new DoctrineAllenatoreRepository($this->entityManager);
         $this->attivitaRepo = new DoctrineAttivitaRepository($this->entityManager);
+        $this->codaAttesaRepo = new DoctrineCodaAttesaRepository($this->entityManager);
+        $this->utenteRepo = new DoctrineUtenteRepository($this->entityManager);
+        $this->sessionePrivataRepo = new DoctrineSessionePrivataRepository($this->entityManager);
+        $this->parametriRepo = new DoctrineParametriRepository($this->entityManager);
+        $this->schedaRepo = new DoctrineSchedaRepository($this->entityManager);
         $this->view = new AmministratoreViewSmarty();
     }
 
@@ -115,7 +135,7 @@ class AmministratoreController
         }
 
         // Verifica unicità email
-        $existingUser = $this->entityManager->getRepository(Utente::class)->findOneBy(['email' => $email]);
+        $existingUser = $this->utenteRepo->findByEmail($email);
         if ($existingUser) {
             $this->view->mostraStatoOperazione(false, "Errore: l'indirizzo email inserito è già associato ad un altro utente.", $ritorno, "Torna a Gestione Clienti");
             return;
@@ -194,7 +214,7 @@ class AmministratoreController
             return;
         }
 
-        $existingUser = $this->entityManager->getRepository(Utente::class)->findOneBy(['email' => $email]);
+        $existingUser = $this->utenteRepo->findByEmail($email);
         if ($existingUser) {
             $this->view->mostraStatoOperazione(false, "Errore: l'indirizzo email inserito è già associato ad un altro utente.", $ritorno, "Torna a Gestione Allenatori");
             return;
@@ -396,11 +416,7 @@ class AmministratoreController
                 $attivita->setPrenotati(max(0, $attivita->getPrenotati() - 1));
 
                 // Scorrimento della coda
-                $codaRepo = $this->entityManager->getRepository(\App\Entity\CodaAttesa::class);
-                $codaPrimo = $codaRepo->findOneBy(
-                    ['attivitaPianificata' => $attivita],
-                    ['dataInserimento' => 'ASC']
-                );
+                $codaPrimo = $this->codaAttesaRepo->findPrimoInCoda($attivita);
 
                 if ($codaPrimo) {
                     $clienteScelto = $codaPrimo->getCliente();
@@ -408,7 +424,7 @@ class AmministratoreController
                     $attivita->setPrenotati($attivita->getPrenotati() + 1);
 
                     // Rimuovi dalla coda
-                    $this->entityManager->remove($codaPrimo);
+                    $this->codaAttesaRepo->delete($codaPrimo);
 
                     // Invia messaggio in bacheca
                     $mittente = $attivita->getAllenatore();
@@ -426,34 +442,30 @@ class AmministratoreController
             }
 
             // 2. Rimuovi iscrizioni alle code d'attesa per altre attività
-            $codaRepo = $this->entityManager->getRepository(\App\Entity\CodaAttesa::class);
-            $codas = $codaRepo->findBy(['cliente' => $cliente]);
+            $codas = $this->codaAttesaRepo->findByCliente($cliente);
             foreach ($codas as $c) {
-                $this->entityManager->remove($c);
+                $this->codaAttesaRepo->delete($c);
             }
 
             // 3. Rimuovi sessioni private associate
-            $sessRepo = $this->entityManager->getRepository(\App\Entity\SessionePrivata::class);
-            $sessions = $sessRepo->findBy(['atleta' => $cliente]);
+            $sessions = $this->sessionePrivataRepo->findByCliente($cliente);
             foreach ($sessions as $s) {
-                $this->entityManager->remove($s);
+                $this->sessionePrivataRepo->delete($s);
             }
 
             // 4. Rimuovi parametri biometrici associati
-            $paramRepo = $this->entityManager->getRepository(\App\Entity\Parametri::class);
-            $params = $paramRepo->findBy(['cliente' => $cliente]);
+            $params = $this->parametriRepo->findByCliente($cliente);
             foreach ($params as $p) {
-                $this->entityManager->remove($p);
+                $this->parametriRepo->delete($p);
             }
 
             // 5. Rimuovi scheda di allenamento (con i relativi allenamenti in cascata)
             // Cerchiamo la scheda direttamente dal repository per essere sicuri di trovarla
             // anche se l'associazione id_scheda su Cliente è null o disallineata.
-            $schRepo = $this->entityManager->getRepository(\App\Entity\Scheda::class);
-            $sch = $schRepo->findOneBy(['cliente' => $cliente]);
-            if ($sch) {
+            $sch = $this->schedaRepo->findByCliente($cliente);
+            foreach ($sch as $s) {
                 $cliente->setScheda(null);
-                $this->entityManager->remove($sch);
+                $this->schedaRepo->delete($s);
             }
 
             // Salva gli oggetti 1-1 prima di nullificarli sul cliente per evitare constraint violations al flush

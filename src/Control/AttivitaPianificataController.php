@@ -8,12 +8,14 @@ use App\Entity\Repository\SessionePrivataRepositoryInterface;
 use App\Entity\Repository\SalaRepositoryInterface;
 use App\Entity\Repository\AttivitaRepositoryInterface;
 use App\Entity\Repository\AllenatoreRepositoryInterface;
+use App\Entity\Repository\CodaAttesaRepositoryInterface;
 use App\Foundation\Persistence\Repository\DoctrineAttivitaPianificataRepository;
 use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
 use App\Foundation\Persistence\Repository\DoctrineSessionePrivataRepository;
 use App\Foundation\Persistence\Repository\DoctrineSalaRepository;
 use App\Foundation\Persistence\Repository\DoctrineAttivitaRepository;
 use App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository;
+use App\Foundation\Persistence\Repository\DoctrineCodaAttesaRepository;
 use App\Foundation\Persistence\Type\DateTimeImmutableStringable;
 use App\Entity\AttivitaPianificata;
 use App\Entity\SessionePrivata;
@@ -38,6 +40,7 @@ class AttivitaPianificataController
     private SalaRepositoryInterface $salaRepo;
     private AttivitaRepositoryInterface $attivitaRepo;
     private AllenatoreRepositoryInterface $allenatoreRepo;
+    private CodaAttesaRepositoryInterface $codaAttesaRepo;
     private AttivitaPianificataView $view;
 
     public function __construct(
@@ -50,6 +53,7 @@ class AttivitaPianificataController
         $this->salaRepo = new DoctrineSalaRepository($this->entityManager);
         $this->attivitaRepo = new DoctrineAttivitaRepository($this->entityManager);
         $this->allenatoreRepo = new DoctrineAllenatoreRepository($this->entityManager);
+        $this->codaAttesaRepo = new DoctrineCodaAttesaRepository($this->entityManager);
         $this->view = new AttivitaPianificataViewSmarty();
     }
 
@@ -242,10 +246,7 @@ class AttivitaPianificataController
 
         $codaAttesaAp = [];
         if ($selectedAp) {
-            $codaAttesaAp = $this->entityManager->getRepository(CodaAttesa::class)->findBy(
-                ['attivitaPianificata' => $selectedAp],
-                ['dataInserimento' => 'ASC']
-            );
+            $codaAttesaAp = $this->codaAttesaRepo->findByAttivitaPianificata($selectedAp);
         }
 
         $datiView = [
@@ -277,10 +278,7 @@ class AttivitaPianificataController
                 $inQueueMap = [];
                 foreach ($attivitaPianificate as $ap) {
                     $iscrittoMap[$ap->getId()] = $this->clienteRepo->isIscrittoAAttivita($cliente, $ap);
-                    $inQueueMap[$ap->getId()] = (bool)$this->entityManager->getRepository(CodaAttesa::class)->findOneBy([
-                        'cliente' => $cliente,
-                        'attivitaPianificata' => $ap
-                    ]);
+                    $inQueueMap[$ap->getId()] = $this->codaAttesaRepo->existsInCoda($cliente, $ap);
                 }
                 $datiView['iscrittoMap'] = $iscrittoMap;
                 $datiView['inQueueMap'] = $inQueueMap;
@@ -547,10 +545,7 @@ class AttivitaPianificataController
 
         if ($attivita->getPrenotati() >= $attivita->getMaxPartecipanti()) {
             // Se la capienza è al massimo, inseriamo nella coda di attesa
-            $existingQueue = $this->entityManager->getRepository(CodaAttesa::class)->findOneBy([
-                'cliente' => $cliente,
-                'attivitaPianificata' => $attivita
-            ]);
+            $existingQueue = $this->codaAttesaRepo->findOneByClienteAndAttivita($cliente, $attivita);
             if ($existingQueue) {
                 $this->view->mostraStatoOperazione(false, "Sei già inserito nella coda di attesa per questa attività.");
                 return;
@@ -558,8 +553,7 @@ class AttivitaPianificataController
 
             try {
                 $coda = new CodaAttesa($cliente, $attivita);
-                $this->entityManager->persist($coda);
-                $this->entityManager->flush();
+                $this->codaAttesaRepo->save($coda);
                 $this->view->mostraStatoOperazione(true, "L'attività ha raggiunto la capienza massima. Sei stato inserito nella coda di attesa.", "calendario?data=" . $attivita->getGiorno()->format('Y-m-d'));
             } catch (\Throwable $e) {
                 $this->view->mostraStatoOperazione(false, "Impossibile inserire nella coda di attesa: " . $e->getMessage());
@@ -626,16 +620,12 @@ class AttivitaPianificataController
             return;
         }
 
-        $inQueue = $this->entityManager->getRepository(CodaAttesa::class)->findOneBy([
-            'cliente' => $cliente,
-            'attivitaPianificata' => $attivita
-        ]);
+        $inQueue = $this->codaAttesaRepo->findOneByClienteAndAttivita($cliente, $attivita);
 
         if (!$this->clienteRepo->isIscrittoAAttivita($cliente, $attivita)) {
             if ($inQueue) {
                 try {
-                    $this->entityManager->remove($inQueue);
-                    $this->entityManager->flush();
+                    $this->codaAttesaRepo->delete($inQueue);
                     $this->view->mostraStatoOperazione(true, "Sei stato rimosso dalla coda di attesa.", "calendario?data=" . $attivita->getGiorno()->format('Y-m-d'));
                 } catch (\Throwable $e) {
                     $this->view->mostraStatoOperazione(false, "Impossibile rimuovere dalla coda di attesa: " . $e->getMessage());
@@ -652,11 +642,7 @@ class AttivitaPianificataController
             $attivita->setPrenotati(max(0, $attivita->getPrenotati() - 1));
 
             // SCORRIMENTO DELLA CODA:
-            $codaRepo = $this->entityManager->getRepository(CodaAttesa::class);
-            $codaPrimo = $codaRepo->findOneBy(
-                ['attivitaPianificata' => $attivita],
-                ['dataInserimento' => 'ASC']
-            );
+            $codaPrimo = $this->codaAttesaRepo->findPrimoInCoda($attivita);
 
             if ($codaPrimo) {
                 $clienteScelto = $codaPrimo->getCliente();
@@ -664,7 +650,7 @@ class AttivitaPianificataController
                 $attivita->setPrenotati($attivita->getPrenotati() + 1);
 
                 // Rimuovi dalla coda
-                $this->entityManager->remove($codaPrimo);
+                $this->codaAttesaRepo->delete($codaPrimo);
 
                 // Invia messaggio in bacheca
                 $mittente = $attivita->getAllenatore();

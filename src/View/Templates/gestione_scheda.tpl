@@ -14,50 +14,86 @@
     <div class="app-container">
         {include file='sidebar.tpl'}
         <main class="app-content">
-                    
-                    <!-- OPTION: COPIA DA UN ALTRO CLIENTE -->
-                    {if $altre_schede|@count > 0}
-                    <div class="control-box mb-5">
-                        <h3 class="title is-5 mb-3" style="color: #AFAFE2;">
-                            <i class="fas fa-copy mr-2"></i> Copia Programma da altro Cliente
-                        </h3>
-                        <p class="subtitle is-6 has-text-grey-dark mb-4">
-                            Scegli una scheda esistente nel sistema per importarne l'elenco degli allenamenti e degli esercizi in questa scheda.
+            
+            <!-- BACK LINK -->
+            <div class="mb-4">
+                <a href="visualizza-profilo?id={$scheda->getCliente()->getId()}" class="button is-ghost has-text-grey pl-0">
+                    <span class="icon"><i class="fas fa-arrow-left"></i></span>
+                    <span>Torna al Profilo Cliente</span>
+                </a>
+            </div>
+
+            <!-- ================= DESKTOP HEADER ================= -->
+            {assign var="headerClass" value="dashboard-header"}
+            {if isset($smarty.session.ruolo_utente)}
+                {if $smarty.session.ruolo_utente === 'amministratore'}
+                    {assign var="headerClass" value="dashboard-header-admin"}
+                {elseif $smarty.session.ruolo_utente === 'allenatore'}
+                    {assign var="headerClass" value="dashboard-header-trainer"}
+                {/if}
+            {/if}
+            <div class="{$headerClass} is-hidden-mobile">
+                <div class="columns is-vcentered">
+                    <div class="column">
+                        <h1 class="title is-2 has-text-white mb-2">
+                            Realizza Scheda
+                        </h1>
+                        <p class="subtitle is-5 has-text-white-ter">
+                            Crea e personalizza la scheda di allenamento per il cliente
                         </p>
-                        <div class="field has-addons">
-                            <div class="control is-expanded">
-                                <div class="select is-fullwidth">
-                                    <select id="select-copia-scheda">
-                                        <option value="">-- Seleziona Scheda Sorgente --</option>
-                                        {foreach $altre_schede as $als}
-                                            <option value="{$als->getId()}">
-                                                {$als->getCliente()->getNome()} {$als->getCliente()->getCognome()} - {$als->getNome_scheda()}
-                                            </option>
-                                        {/foreach}
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="control">
-                                <button type="button" class="button is-gymfly" id="btn-copia-scheda">
-                                    <i class="fas fa-clone mr-2"></i> Copia Struttura
-                                </button>
-                            </div>
+                    </div>
+                    <div class="column is-narrow">
+                        <figure class="image is-96x96">
+                            <span class="icon is-large has-text-white">
+                                <i class="fas fa-file-medical fa-5x"></i>
+                            </span>
+                        </figure>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= MOBILE HEADER ================= -->
+            <div class="is-flex is-align-items-center mb-5 is-hidden-tablet" style="padding-top: 5px;">
+                <a href="visualizza-profilo?id={$scheda->getCliente()->getId()}" class="has-text-grey-dark" style="width: 45px; display: flex; align-items: center; justify-content: center;">
+                    <span class="icon is-medium"><i class="fas fa-arrow-left fa-lg"></i></span>
+                </a>
+                <strong class="is-size-4 style-theme-text" style="letter-spacing: 1px; flex-grow: 1;">REALIZZA SCHEDA</strong>
+            </div>
+
+            <!-- OPTION: COPIA DA UN ALTRO CLIENTE -->
+            {if $altre_schede|@count > 0}
+            <div class="control-box mb-5">
+                <h3 class="title is-5 mb-3" style="color: #AFAFE2;">
+                    <i class="fas fa-copy mr-2"></i> Copia Programma da altro Cliente
+                </h3>
+                <p class="subtitle is-6 has-text-grey-dark mb-4">
+                    Scegli una scheda esistente nel sistema per importarne l'elenco degli allenamenti e degli esercizi in questa scheda.
+                </p>
+                <div class="field has-addons">
+                    <div class="control is-expanded">
+                        <div class="select is-fullwidth">
+                            <select id="select-copia-scheda">
+                                <option value="">-- Seleziona Scheda Sorgente --</option>
+                                {foreach $altre_schede as $als}
+                                    <option value="{$als->getId()}">
+                                        {$als->getCliente()->getNome()} {$als->getCliente()->getCognome()} - {$als->getNome_scheda()}
+                                    </option>
+                                {/foreach}
+                            </select>
                         </div>
                     </div>
-                    {/if}
+                    <div class="control">
+                        <button type="button" class="button is-gymfly" id="btn-copia-scheda">
+                            <i class="fas fa-clone mr-2"></i> Copia Struttura
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {/if}
 
-                    <!-- SCHEDA FORM -->
-                    <div class="control-box">
-                        <!-- HEADER CON TITOLO E TASTO ELIMINA (Top-right con display flex inline per compatibilità) -->
-                        <div style="display: flex; justify-content: space-between; align-items: center;" class="mb-5">
-                            <h1 class="title is-2 style-theme-text mb-0">REALIZZA SCHEDA</h1>
-                            <a href="elimina-scheda?id={$scheda->getId()}" class="button is-danger">
-                                <span class="icon"><i class="fas fa-trash"></i></span>
-                                <span>Elimina</span>
-                            </a>
-                        </div>
-
-                        <form id="form-scheda" action="salva-scheda" method="POST">
+            <!-- SCHEDA FORM -->
+            <div class="control-box">
+                <form id="form-scheda" action="salva-scheda" method="POST">
                             <input type="hidden" name="id_scheda" id="id_scheda" value="{$scheda->getId()}">
                             <input type="hidden" name="azione" id="azione-field" value="salva">
                             <!-- BOX METADATI CON NOME COGNOME ATLETA E INPUT (Layout bozza) -->
@@ -178,7 +214,7 @@
                                                                 </tbody>
                                                             </table>
                                                             <div class="has-text-right">
-                                                                <button type="button" class="button is-small is-link is-light add-series-btn">
+                                                                <button type="button" class="button is-small is-gymfly add-series-btn">
                                                                     <i class="fas fa-plus mr-1"></i> Aggiungi Serie
                                                                 </button>
                                                             </div>
@@ -281,7 +317,13 @@
                             </div>
 
                             <!-- ACTION BUTTONS (In basso a destra come da bozza: "Manda") -->
+                            <!-- ACTION BUTTONS -->
                             <div class="field is-grouped is-grouped-right mt-5">
+                                <div class="control">
+                                    <a href="elimina-scheda?id={$scheda->getId()}" class="button is-danger">
+                                        <i class="fas fa-trash-alt mr-2"></i> Elimina Scheda
+                                    </a>
+                                </div>
                                 <div class="control">
                                     <button type="button" class="button is-success" id="btn-save-send">
                                         <i class="fas fa-paper-plane mr-2"></i> Manda
