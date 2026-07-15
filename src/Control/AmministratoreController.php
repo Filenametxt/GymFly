@@ -383,7 +383,107 @@ class AmministratoreController
 
         try {
             $nomeCompleto = $cliente->getNome() . " " . $cliente->getCognome();
+
+            // 1. Disiscrizione da tutte le attività pianificate e gestione coda
+            foreach ($cliente->getAttivitaPianificate() as $attivita) {
+                $cliente->cancellaIscrizioneAttivita($attivita);
+                $attivita->setPrenotati(max(0, $attivita->getPrenotati() - 1));
+
+                // Scorrimento della coda
+                $codaRepo = $this->entityManager->getRepository(\App\Entity\CodaAttesa::class);
+                $codaPrimo = $codaRepo->findOneBy(
+                    ['attivitaPianificata' => $attivita],
+                    ['dataInserimento' => 'ASC']
+                );
+
+                if ($codaPrimo) {
+                    $clienteScelto = $codaPrimo->getCliente();
+                    $clienteScelto->iscriviAAttivita($attivita);
+                    $attivita->setPrenotati($attivita->getPrenotati() + 1);
+
+                    // Rimuovi dalla coda
+                    $this->entityManager->remove($codaPrimo);
+
+                    // Invia messaggio in bacheca
+                    $mittente = $attivita->getAllenatore();
+                    $oggettoMsg = "Iscrizione automatica all'attività";
+                    $contenutoMsg = "Ciao " . $clienteScelto->getNome() . ",\n\nti informiamo che si è liberato un posto e sei stato iscritto automaticamente all'attività: " . $attivita->getAttivita()->getNome() . " in data " . $attivita->getGiorno()->format('d/m/Y') . " alle ore " . $attivita->getOrario() . ":00.\n\nSaluti,\nLo staff di GymFly";
+                    
+                    $messaggio = new \App\Entity\Messaggio($mittente, $oggettoMsg, $contenutoMsg);
+                    $messaggio->aggiungiDestinatario($clienteScelto);
+                    $this->entityManager->persist($messaggio);
+
+                    // Invia email di notifica (se SMTP non è configurato non fa nulla)
+                    $headers = "From: no-reply@gymfly.com\r\nReply-To: support@gymfly.com\r\nContent-Type: text/plain; charset=utf-8";
+                    @mail($clienteScelto->getEmail(), $oggettoMsg, $contenutoMsg, $headers);
+                }
+            }
+
+            // 2. Rimuovi iscrizioni alle code d'attesa per altre attività
+            $codaRepo = $this->entityManager->getRepository(\App\Entity\CodaAttesa::class);
+            $codas = $codaRepo->findBy(['cliente' => $cliente]);
+            foreach ($codas as $c) {
+                $this->entityManager->remove($c);
+            }
+
+            // 3. Rimuovi sessioni private associate
+            $sessRepo = $this->entityManager->getRepository(\App\Entity\SessionePrivata::class);
+            $sessions = $sessRepo->findBy(['atleta' => $cliente]);
+            foreach ($sessions as $s) {
+                $this->entityManager->remove($s);
+            }
+
+            // 4. Rimuovi parametri biometrici associati
+            $paramRepo = $this->entityManager->getRepository(\App\Entity\Parametri::class);
+            $params = $paramRepo->findBy(['cliente' => $cliente]);
+            foreach ($params as $p) {
+                $this->entityManager->remove($p);
+            }
+
+            // 5. Rimuovi scheda di allenamento (con i relativi allenamenti in cascata)
+            // Cerchiamo la scheda direttamente dal repository per essere sicuri di trovarla
+            // anche se l'associazione id_scheda su Cliente è null o disallineata.
+            $schRepo = $this->entityManager->getRepository(\App\Entity\Scheda::class);
+            $sch = $schRepo->findOneBy(['cliente' => $cliente]);
+            if ($sch) {
+                $cliente->setScheda(null);
+                $this->entityManager->remove($sch);
+            }
+
+            // Salva gli oggetti 1-1 prima di nullificarli sul cliente per evitare constraint violations al flush
+            $cert = $cliente->getCertificatoMedico();
+            $abb = $cliente->getAbbonamento();
+            $isc = $cliente->getIscrizione();
+
+            if ($cert) {
+                $cliente->setCertificatoMedico(null);
+            }
+            if ($abb) {
+                $cliente->setAbbonamento(null);
+            }
+            if ($isc) {
+                $cliente->setIscrizione(null);
+            }
+
+            // Eseguiamo un primo flush per scrivere a NULL i campi FK (id_abbonamento_attivo, id_certificato_medico, id_iscrizione ed id_scheda)
+            // ed eliminare effettivamente i Parametri, SessioniPrivate, CodeAttesa e Schede
+            $this->entityManager->flush();
+
+            // Ora eliminiamo il Cliente stesso (e quindi la riga in Cliente ed Utente)
             $this->clienteRepo->delete($cliente);
+
+            // Infine, ora che non c'è più alcun riferimento FK da parte del cliente, eliminiamo le entità 1-1 orfane
+            if ($cert) {
+                $this->entityManager->remove($cert);
+            }
+            if ($abb) {
+                $this->entityManager->remove($abb);
+            }
+            if ($isc) {
+                $this->entityManager->remove($isc);
+            }
+            $this->entityManager->flush();
+
             $this->view->mostraStatoOperazione(true, "Cliente " . $nomeCompleto . " rimosso con successo dal database.");
         } catch (\Throwable $e) {
             $this->view->mostraStatoOperazione(false, "Impossibile eliminare il cliente: " . $e->getMessage());

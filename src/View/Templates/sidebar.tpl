@@ -236,6 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentPath.includes('crea-cliente') || 
                 currentPath.includes('gestione-abbonamento') ||
                 currentPath.includes('abbonamento') ||
+                currentPath.includes('rimuovi-cliente') ||
                 (!isSelfProfile && isClientProfile) ||
                 (currentPath.includes('visualizza-profilo') && (userRole === 'allenatore' || userRole === 'amministratore')) ||
                 (currentPath.includes('progressi-cliente') && (userRole === 'allenatore' || userRole === 'amministratore'))
