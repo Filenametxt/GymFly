@@ -241,7 +241,8 @@ class ProfiloController
             $this->view->mostraFormModifica([
                 'utente' => $utente,
                 'isClient' => $isClient,
-                'isSelf' => $isSelf
+                'isSelf' => $isSelf,
+                'ruolo' => $ruolo
             ]);
             return;
         }
@@ -260,7 +261,7 @@ class ProfiloController
             return;
         }
 
-        if ($isClient && empty($nuovoMetodoPagamento)) {
+        if ($isClient && $ruolo === 'amministratore' && empty($nuovoMetodoPagamento)) {
             $this->view->mostraErrore("Il campo Metodo di Pagamento è obbligatorio per i clienti.", $ritorno, "Torna al Profilo");
             return;
         }
@@ -275,7 +276,9 @@ class ProfiloController
                 if (method_exists($utente, 'setIndirizzoDiDomicilio')) {
                     $utente->setIndirizzoDiDomicilio($nuovoIndirizzoDomicilio);
                 }
-                $utente->setMetodoDiPagamento($nuovoMetodoPagamento);
+                if ($ruolo === 'amministratore') {
+                    $utente->setMetodoDiPagamento($nuovoMetodoPagamento);
+                }
             }
 
             $entityManager->flush();

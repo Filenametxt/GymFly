@@ -141,11 +141,21 @@ class AttivitaPianificataController
         $anno = $lunedi->format('Y');
         $meseAnno = $mesi[$meseNum] . ' ' . $anno;
 
-        // 2. Carica tutte le attività pianificate e filtra per la palestra dell'utente loggato
-        $tutte = $this->attivitaPianificataRepo->findAll();
-        $attivitaPianificate = array_filter($tutte, function(AttivitaPianificata $ap) use ($palestra) {
-            return $ap->getSala()->getPalestra()->getId() === $palestra->getId();
-        });
+        // 2. Carica le attività pianificate. Se l'utente è un allenatore, carica solo i suoi corsi
+        // utilizzando il repository specifico. Altrimenti, carica tutti i corsi della palestra.
+        if ($ruolo === 'allenatore') {
+            $allenatore = $this->allenatoreRepo->findById($idUtente);
+            if ($allenatore) {
+                $attivitaPianificate = $this->attivitaPianificataRepo->findByAllenatore($allenatore);
+            } else {
+                $attivitaPianificate = [];
+            }
+        } else {
+            $tutte = $this->attivitaPianificataRepo->findAll();
+            $attivitaPianificate = array_filter($tutte, function(AttivitaPianificata $ap) use ($palestra) {
+                return $ap->getSala()->getPalestra()->getId() === $palestra->getId();
+            });
+        }
 
         // Filtro per la palestra dell'utente loggato completo
 
@@ -213,8 +223,12 @@ class AttivitaPianificataController
         $idAp = isset($_GET['id_ap']) ? (int)$_GET['id_ap'] : 0;
         if ($idAp > 0) {
             $selectedAp = $this->attivitaPianificataRepo->findById($idAp);
-            if ($selectedAp && $selectedAp->getSala()->getPalestra()->getId() !== $palestra->getId()) {
-                $selectedAp = null;
+            if ($selectedAp) {
+                $belongsToPalestra = $selectedAp->getSala()->getPalestra()->getId() === $palestra->getId();
+                $isTrainerCourse = ($ruolo === 'allenatore') ? ($selectedAp->getAllenatore()->getId() === $idUtente) : true;
+                if (!$belongsToPalestra || !$isTrainerCourse) {
+                    $selectedAp = null;
+                }
             }
         }
 

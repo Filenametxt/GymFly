@@ -184,9 +184,9 @@ class DoctrineSchedaRepository implements SchedaRepositoryInterface
             ->select('s')
             ->from(Scheda::class, 's')
             ->where('s.cliente = :cliente')
-            ->andWhere('s.stato = :stato')
+            ->andWhere('s.nome_scheda = :nomeScheda')
             ->setParameter('cliente', $cliente)
-            ->setParameter('stato', 'Pendente')
+            ->setParameter('nomeScheda', 'Richiesta Nuova Scheda')
             ->getQuery()
             ->getOneOrNullResult();
     }
