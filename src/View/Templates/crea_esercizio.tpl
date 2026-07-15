@@ -164,7 +164,7 @@
                                 <div class="column is-6">
                                     <label class="label">Gruppo Muscolare *</label>
                                     <div class="select is-fullwidth">
-                                        <select name="gruppi_muscolari[]" id="gruppi_muscolari" required onchange="if(this.value === 'nuovo_gruppo') { document.getElementById('container-nuovo-gruppo').classList.remove('is-hidden'); } else { document.getElementById('container-nuovo-gruppo').classList.add('is-hidden'); }">
+                                        <select name="gruppi_muscolari[]" id="gruppi_muscolari" required onchange="toggleNuovoGruppoForm(this.value)">
                                             <option value="">-- Seleziona --</option>
                                             {foreach $gruppi_muscolari as $gm}
                                                 <option value="{$gm->getId()}" {if in_array($gm->getId(), $selected_gruppi)}selected{/if}>
@@ -174,13 +174,16 @@
                                             <option value="nuovo_gruppo" {if isset($smarty.post.nuovo_gruppo_nome) && $smarty.post.nuovo_gruppo_nome !== ''}selected{/if}>+ Aggiungi Nuovo Gruppo...</option>
                                         </select>
                                     </div>
-                                    <!-- Input dinamico per nuovo gruppo muscolare (inline-JS Bulma style) -->
-                                    <div id="container-nuovo-gruppo" class="field mt-2 {if !isset($smarty.post.nuovo_gruppo_nome) || $smarty.post.nuovo_gruppo_nome == ''}is-hidden{/if}">
-                                        <div class="control has-icons-left">
-                                            <input class="input" type="text" name="nuovo_gruppo_nome" id="nuovo-gruppo-nome" placeholder="Inserisci nome gruppo" value="{if isset($smarty.post.nuovo_gruppo_nome)}{$smarty.post.nuovo_gruppo_nome|escape}{/if}">
-                                            <span class="icon is-small is-left">
-                                                <i class="fas fa-plus"></i>
-                                            </span>
+                                    <!-- Input dinamico per nuovo gruppo muscolare (coerente con gli altri panel di inserimento) -->
+                                    <div id="container-nuovo-gruppo" class="box p-3 mt-2 {if !isset($smarty.post.nuovo_gruppo_nome) || $smarty.post.nuovo_gruppo_nome == ''}is-hidden{/if}" style="background-color: rgba(255,255,255,0.02); border: 1px dashed var(--gymfly-primary);">
+                                        <h4 class="title is-6 mb-2 style-theme-text">Nuovo Gruppo Muscolare</h4>
+                                        <div class="field">
+                                            <div class="control has-icons-left">
+                                                <input class="input is-small" type="text" name="nuovo_gruppo_nome" id="nuovo-gruppo-nome" placeholder="Es. Bicipiti, Addominali" value="{if isset($smarty.post.nuovo_gruppo_nome)}{$smarty.post.nuovo_gruppo_nome|escape}{/if}">
+                                                <span class="icon is-small is-left">
+                                                    <i class="fas fa-plus"></i>
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -247,6 +250,30 @@
     <!-- SCRIPT VALIDAZIONE E PREVIEW DIMOSTRATIVA -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // 0. Gestione inserimento dinamico gruppo muscolare
+            window.toggleNuovoGruppoForm = function(val) {
+                const box = document.getElementById('container-nuovo-gruppo');
+                const input = document.getElementById('nuovo-gruppo-nome');
+                if (val === 'nuovo_gruppo') {
+                    box.classList.remove('is-hidden');
+                    input.setAttribute('required', 'true');
+                } else {
+                    box.classList.add('is-hidden');
+                    input.removeAttribute('required');
+                }
+            };
+            toggleNuovoGruppoForm(document.getElementById('gruppi_muscolari').value);
+
+            // Previene il submit del form se l'utente preme Invio nell'input del nuovo gruppo muscolare
+            const nuovoGruppoInput = document.getElementById('nuovo-gruppo-nome');
+            if (nuovoGruppoInput) {
+                nuovoGruppoInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                    }
+                });
+            }
+
             const nomeInput = document.getElementById('nome-esercizio');
             const fileInput = document.getElementById('immagine-input');
             const errorNome = document.getElementById('error-nome');
