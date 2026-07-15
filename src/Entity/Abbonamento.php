@@ -4,7 +4,7 @@ namespace App\Entity;
 
 abstract class Abbonamento
 {
-    protected ?int $id = null;
+    protected ?int $id = null; //protected: così vanno all'interno delle classi figlie, possono richiamarli direttamente senza fare richieste al database
     protected string $tipologia;
     protected string $categoria;
 
@@ -39,11 +39,11 @@ abstract class Abbonamento
     }
 
     // Forza le sottoclassi a definire se e come calcolare la data di fine temporale
-    abstract public function calcolaDataFine(\DateTimeImmutable $dataInizio): ?\DateTimeImmutable;
+    abstract public function calcolaDataFine(\DateTimeImmutable $dataInizio): ?\DateTimeImmutable; //astratto perchè viene implementato in altre parti
 
     // La sottoclasse valuta se il contesto (AbbonamentoAttivo) è scaduto
     abstract public function isScaduto(AbbonamentoAttivo $context): bool;
 
     // Genera la stringa descrittiva basandosi sullo stato del contesto
-    abstract public function descrizioneScadenza(AbbonamentoAttivo $context): string;
+    abstract public function descrizioneScadenza(AbbonamentoAttivo $context): string; //ci restituisce la data di scadenza dell'abbonamento attivo, che viene calcolata in base alla data di inizio e alla durata dell'abbonamento
 }
