@@ -203,14 +203,27 @@
                                 <div class="column is-6">
                                     <label class="label">Attrezzatura</label>
                                     <div class="select is-fullwidth">
-                                        <select name="attrezzatura_id">
+                                        <select name="attrezzatura_id" id="attrezzatura_id" onchange="toggleNuovaAttrezzaturaForm(this.value)">
                                             <option value="">Corpo Libero (Nessuna)</option>
                                             {foreach $attrezzature as $att}
                                                 <option value="{$att->getId()}" {if $selected_attrezzatura == $att->getId()}selected{/if}>
                                                     {$att->getNomeAttrezzatura()}
                                                 </option>
                                             {/foreach}
+                                            <option value="nuova_attrezzatura" {if isset($smarty.post.nuova_attrezzatura_nome) && $smarty.post.nuova_attrezzatura_nome !== ''}selected{/if}>+ Aggiungi Nuova Attrezzatura...</option>
                                         </select>
+                                    </div>
+                                    <!-- Input dinamico per nuova attrezzatura -->
+                                    <div id="container-nuova-attrezzatura" class="box p-3 mt-2 {if !isset($smarty.post.nuova_attrezzatura_nome) || $smarty.post.nuova_attrezzatura_nome == ''}is-hidden{/if}" style="background-color: rgba(255,255,255,0.02); border: 1px dashed var(--gymfly-primary);">
+                                        <h4 class="title is-6 mb-2 style-theme-text">Nuova Attrezzatura</h4>
+                                        <div class="field">
+                                            <div class="control has-icons-left">
+                                                <input class="input is-small" type="text" name="nuova_attrezzatura_nome" id="nuova-attrezzatura-nome" placeholder="Es. Bilanciere, Manubri" value="{if isset($smarty.post.nuova_attrezzatura_nome)}{$smarty.post.nuova_attrezzatura_nome|escape}{/if}">
+                                                <span class="icon is-small is-left">
+                                                    <i class="fas fa-plus"></i>
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -268,6 +281,30 @@
             const nuovoGruppoInput = document.getElementById('nuovo-gruppo-nome');
             if (nuovoGruppoInput) {
                 nuovoGruppoInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                    }
+                });
+            }
+
+            // 0b. Gestione inserimento dinamico attrezzatura
+            window.toggleNuovaAttrezzaturaForm = function(val) {
+                const box = document.getElementById('container-nuova-attrezzatura');
+                const input = document.getElementById('nuova-attrezzatura-nome');
+                if (val === 'nuova_attrezzatura') {
+                    box.classList.remove('is-hidden');
+                    input.setAttribute('required', 'true');
+                } else {
+                    box.classList.add('is-hidden');
+                    input.removeAttribute('required');
+                }
+            };
+            toggleNuovaAttrezzaturaForm(document.getElementById('attrezzatura_id').value);
+
+            // Previene il submit del form se l'utente preme Invio nell'input della nuova attrezzatura
+            const nuovaAttrezzaturaInput = document.getElementById('nuova-attrezzatura-nome');
+            if (nuovaAttrezzaturaInput) {
+                nuovaAttrezzaturaInput.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') {
                         e.preventDefault();
                     }

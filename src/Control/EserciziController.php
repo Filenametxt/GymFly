@@ -168,8 +168,9 @@ class EserciziController
         $descrizione = trim($_POST['descrizione'] ?? '');
         $tracciamentoCarico = isset($_POST['tracciamento_carico']) ? (int)$_POST['tracciamento_carico'] : 1;
         $gruppiSelezionati = $_POST['gruppi_muscolari'] ?? [];
-        $idAttrezzatura = isset($_POST['attrezzatura_id']) && $_POST['attrezzatura_id'] !== '' ? (int)$_POST['attrezzatura_id'] : null;
+        $idAttrezzaturaPost = $_POST['attrezzatura_id'] ?? '';
         $nuovoGruppoNome = trim($_POST['nuovo_gruppo_nome'] ?? '');
+        $nuovaAttrezzaturaNome = trim($_POST['nuova_attrezzatura_nome'] ?? '');
 
         // Validazione finale obbligatoria lato server
         if ($nome === '') {
@@ -197,10 +198,20 @@ class EserciziController
             $this->tipologiaRepo->save($tipologia);
         }
 
-        // Trova l'attrezzatura necessaria se specificata
+        // Trova l'attrezzatura necessaria se specificata o creata
         $attrezzatura = null;
-        if ($idAttrezzatura !== null) {
-            $attrezzatura = $this->entityManager->find(Attrezzatura::class, $idAttrezzatura);
+        if ($idAttrezzaturaPost === 'nuova_attrezzatura') {
+            if ($nuovaAttrezzaturaNome === '') {
+                $this->view->mostraStatoOperazione(false, "Il nome della nuova attrezzatura è obbligatorio se hai selezionato di aggiungerne una nuova.", "crea-esercizio");
+                return;
+            }
+            $attrezzatura = $this->attrezzaturaRepo->findByNome($nuovaAttrezzaturaNome);
+            if (!$attrezzatura) {
+                $attrezzatura = new Attrezzatura($nuovaAttrezzaturaNome);
+                $this->attrezzaturaRepo->save($attrezzatura);
+            }
+        } elseif (is_numeric($idAttrezzaturaPost) && $idAttrezzaturaPost !== '') {
+            $attrezzatura = $this->attrezzaturaRepo->findById((int)$idAttrezzaturaPost);
         }
 
         // Gestione immagine (GIF/Immagine)
