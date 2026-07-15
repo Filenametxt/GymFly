@@ -161,7 +161,7 @@ class AttivitaPianificataController
         if ($ruolo === 'cliente') {
             $cliente = $this->clienteRepo->findById($idUtente);
             if ($cliente) {
-                $privateRaw = $this->sessionePrivataRepo->findByAtleta($cliente);
+                $privateRaw = $this->sessionePrivataRepo->findByCliente($cliente);
                 foreach ($privateRaw as $sp) {
                     $spDateStr = $sp->getData()->format('Y-m-d');
                     if (in_array($spDateStr, $dateSettimanaStr)) {
@@ -769,7 +769,7 @@ class AttivitaPianificataController
                 return;
             }
 
-            if ($this->sessionePrivataRepo->existsSovrapposizioneAtleta($cliente, $dataObj, $oraInizioObj, $oraFineObj)) {
+            if ($this->sessionePrivataRepo->existsSovrapposizioneCliente($cliente, $dataObj, $oraInizioObj, $oraFineObj)) {
                 $this->view->mostraStatoOperazione(false, "Il cliente ha già un impegno in questa fascia oraria.");
                 return;
             }
