@@ -5,9 +5,17 @@ namespace App\Control;
 use App\Entity\Repository\ClienteRepositoryInterface;
 use App\Entity\Repository\ParametriRepositoryInterface;
 use App\Entity\Repository\CertificatoMedicoRepositoryInterface;
+use App\Entity\Repository\PalestraRepositoryInterface;
+use App\Entity\Repository\ProgressoRepositoryInterface;
+use App\Entity\Repository\AttivitaRepositoryInterface;
+use App\Entity\Repository\UtenteRepositoryInterface;
 use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
 use App\Foundation\Persistence\Repository\DoctrineParametriRepository;
 use App\Foundation\Persistence\Repository\DoctrineCertificatoMedicoRepository;
+use App\Foundation\Persistence\Repository\DoctrinePalestraRepository;
+use App\Foundation\Persistence\Repository\DoctrineProgressoRepository;
+use App\Foundation\Persistence\Repository\DoctrineAttivitaRepository;
+use App\Foundation\Persistence\Repository\DoctrineUtenteRepository;
 use App\View\Interface\ProfiloView;
 use App\View\ProfiloViewSmarty;
 use App\Foundation\Session;
@@ -15,7 +23,6 @@ use App\Entity\Parametri;
 use App\Entity\CertificatoMedico;
 use App\Infrastructure\Doctrine\EntityManagerFactory;
 use App\Entity\Amministratore;
-use App\Entity\Palestra;
 use App\Entity\Allenatore;
 use App\Entity\Utente;
 use App\Entity\Cliente;
@@ -26,6 +33,10 @@ class ProfiloController
     private ClienteRepositoryInterface $clienteRepo;
     private ParametriRepositoryInterface $parametriRepo;
     private CertificatoMedicoRepositoryInterface $certificatoRepo;
+    private PalestraRepositoryInterface $palestraRepo;
+    private ProgressoRepositoryInterface $progressoRepo;
+    private AttivitaRepositoryInterface $attivitaRepo;
+    private UtenteRepositoryInterface $utenteRepo;
     private ProfiloView $view;
     private EntityManagerInterface $entityManager;
 
@@ -37,6 +48,10 @@ class ProfiloController
         $this->clienteRepo = new DoctrineClienteRepository($this->entityManager);
         $this->parametriRepo = new DoctrineParametriRepository($this->entityManager);
         $this->certificatoRepo = new DoctrineCertificatoMedicoRepository($this->entityManager);
+        $this->palestraRepo = new DoctrinePalestraRepository($this->entityManager);
+        $this->progressoRepo = new DoctrineProgressoRepository($this->entityManager);
+        $this->attivitaRepo = new DoctrineAttivitaRepository($this->entityManager);
+        $this->utenteRepo = new DoctrineUtenteRepository($this->entityManager);
         $this->view = new ProfiloViewSmarty();
     }
 
@@ -69,7 +84,7 @@ class ProfiloController
                 $palestraUtente = null;
                 if ($ruolo === 'amministratore') {
                     $adminObj = $entityManager->find(Amministratore::class, $idUtente);
-                    $palestraUtente = $entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $adminObj]);
+                    $palestraUtente = $this->palestraRepo->findByAmministratore($adminObj);
                 } else {
                     $allenatoreObj = $entityManager->find(Allenatore::class, $idUtente);
                     $palestraUtente = $allenatoreObj ? $allenatoreObj->getPalestra() : null;
@@ -98,7 +113,7 @@ class ProfiloController
             $abbonamentoAttivo = $utente->isAbbonamentoAttivo();
             
             // Verifica la presenza di progressi registrati
-            $progressiCount = $entityManager->getRepository(\App\Entity\Progresso::class)->count(['cliente' => $utente]);
+            $progressiCount = count($this->progressoRepo->findByCliente($utente));
             $hasProgress = ($progressiCount > 0);
         } else {
             $ultimiParametri = null;
@@ -114,7 +129,7 @@ class ProfiloController
         if ($isTrainer) {
             /** @var Allenatore $utente */
             $attivitaAbilitate = $utente->getAttivitaAbilitate();
-            $tutteAttivita = $entityManager->getRepository(\App\Entity\Attivita::class)->findAll();
+            $tutteAttivita = $this->attivitaRepo->findAll();
             foreach ($tutteAttivita as $att) {
                 if (!$attivitaAbilitate->contains($att)) {
                     $attivitaNonAbilitate[] = $att;
@@ -204,7 +219,7 @@ class ProfiloController
                 $palestraUtente = null;
                 if ($ruolo === 'amministratore') {
                     $adminObj = $entityManager->find(Amministratore::class, $idUtente);
-                    $palestraUtente = $entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $adminObj]);
+                    $palestraUtente = $this->palestraRepo->findByAmministratore($adminObj);
                 } else {
                     $allenatoreObj = $entityManager->find(Allenatore::class, $idUtente);
                     $palestraUtente = $allenatoreObj ? $allenatoreObj->getPalestra() : null;
@@ -694,7 +709,7 @@ class ProfiloController
             $palestraUtente = null;
             if ($ruolo === 'amministratore') {
                 $adminObj = $entityManager->find(Amministratore::class, $idUtente);
-                $palestraUtente = $entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $adminObj]);
+                $palestraUtente = $this->palestraRepo->findByAmministratore($adminObj);
             } else {
                 $allenatoreObj = $entityManager->find(Allenatore::class, $idUtente);
                 $palestraUtente = $allenatoreObj ? $allenatoreObj->getPalestra() : null;
@@ -763,7 +778,7 @@ class ProfiloController
         // Se l'utente loggato è l'admin, controlliamo che l'allenatore sia nella palestra dell'admin
         if ($ruoloLoggato === 'amministratore') {
             $adminObj = $entityManager->find(Amministratore::class, $idLoggato);
-            $palestraAdmin = $entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $adminObj]);
+            $palestraAdmin = $this->palestraRepo->findByAmministratore($adminObj);
             if (!$palestraAdmin || $allenatore->getPalestra()->getId() !== $palestraAdmin->getId()) {
                 $this->view->mostraErrore("L'allenatore non appartiene alla tua palestra.");
                 return;
@@ -826,7 +841,7 @@ class ProfiloController
         // Se l'utente loggato è l'admin, controlliamo che l'allenatore sia nella palestra dell'admin
         if ($ruoloLoggato === 'amministratore') {
             $adminObj = $entityManager->find(Amministratore::class, $idLoggato);
-            $palestraAdmin = $entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $adminObj]);
+            $palestraAdmin = $this->palestraRepo->findByAmministratore($adminObj);
             if (!$palestraAdmin || $allenatore->getPalestra()->getId() !== $palestraAdmin->getId()) {
                 $this->view->mostraErrore("L'allenatore non appartiene alla tua palestra.");
                 return;
@@ -887,7 +902,7 @@ class ProfiloController
         // Se l'utente loggato è l'admin, controlliamo che l'allenatore sia nella palestra dell'admin
         if ($ruoloLoggato === 'amministratore') {
             $adminObj = $entityManager->find(Amministratore::class, $idLoggato);
-            $palestraAdmin = $entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $adminObj]);
+            $palestraAdmin = $this->palestraRepo->findByAmministratore($adminObj);
             if (!$palestraAdmin || $allenatore->getPalestra()->getId() !== $palestraAdmin->getId()) {
                 $this->view->mostraErrore("L'allenatore non appartiene alla tua palestra.");
                 return;

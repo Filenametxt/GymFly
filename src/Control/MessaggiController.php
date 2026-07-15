@@ -5,18 +5,28 @@ use App\View\Interface\MessaggiView;
 use App\View\MessaggiViewSmarty;
 use App\Foundation\Session;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Entity\Utente;
 use App\Entity\Cliente;
 use App\Entity\Allenatore;
 use App\Entity\Amministratore;
-use App\Entity\Palestra;
 use App\Entity\Messaggio;
 use App\Entity\Repository\MessaggioRepositoryInterface;
+use App\Entity\Repository\PalestraRepositoryInterface;
+use App\Entity\Repository\ClienteRepositoryInterface;
+use App\Entity\Repository\AllenatoreRepositoryInterface;
+use App\Entity\Repository\UtenteRepositoryInterface;
 use App\Foundation\Persistence\Repository\DoctrineMessaggioRepository;
+use App\Foundation\Persistence\Repository\DoctrinePalestraRepository;
+use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
+use App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository;
+use App\Foundation\Persistence\Repository\DoctrineUtenteRepository;
 
 class MessaggiController
 {
     private MessaggioRepositoryInterface $messaggioRepo;
+    private PalestraRepositoryInterface $palestraRepo;
+    private ClienteRepositoryInterface $clienteRepo;
+    private AllenatoreRepositoryInterface $allenatoreRepo;
+    private UtenteRepositoryInterface $utenteRepo;
     private MessaggiView $view;
 
     public function __construct(
@@ -24,6 +34,10 @@ class MessaggiController
         private Session $session
     ) {
         $this->messaggioRepo = new DoctrineMessaggioRepository($this->entityManager);
+        $this->palestraRepo = new DoctrinePalestraRepository($this->entityManager);
+        $this->clienteRepo = new DoctrineClienteRepository($this->entityManager);
+        $this->allenatoreRepo = new DoctrineAllenatoreRepository($this->entityManager);
+        $this->utenteRepo = new DoctrineUtenteRepository($this->entityManager);
         $this->view = new MessaggiViewSmarty();
     }
 
@@ -36,7 +50,7 @@ class MessaggiController
             return;
         }
 
-        $utente = $this->entityManager->find(Utente::class, $idUtente);
+        $utente = $this->utenteRepo->findById($idUtente);
         if (!$utente) {
             $this->view->mostraErrore("Utente non trovato.");
             return;
@@ -44,10 +58,12 @@ class MessaggiController
 
         // Recupera la palestra associata in base al ruolo dell'utente loggato
         $palestra = null;
-        if ($ruolo === 'cliente' || $ruolo === 'allenatore') {
+        if ($ruolo === 'cliente' && $utente instanceof Cliente) {
             $palestra = $utente->getPalestra();
-        } elseif ($ruolo === 'amministratore') {
-            $palestra = $this->entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $utente]);
+        } elseif ($ruolo === 'allenatore' && $utente instanceof Allenatore) {
+            $palestra = $utente->getPalestra();
+        } elseif ($ruolo === 'amministratore' && $utente instanceof Amministratore) {
+            $palestra = $this->palestraRepo->findByAmministratore($utente);
         }
 
         if (!$palestra) {
@@ -68,10 +84,10 @@ class MessaggiController
             $messaggiInviati = $this->messaggioRepo->findByMittente($utente);
 
             // Carica gli utenti candidati della stessa palestra per l'invio individuale
-            $clientiCandidati = $this->entityManager->getRepository(Cliente::class)->findBy(['palestra' => $palestra]);
+            $clientiCandidati = $this->clienteRepo->findByPalestra($palestra);
             
             if ($ruolo === 'amministratore') {
-                $allenatoriCandidati = $this->entityManager->getRepository(Allenatore::class)->findBy(['palestra' => $palestra]);
+                $allenatoriCandidati = $this->allenatoreRepo->findByPalestra($palestra);
                 
                 // Eventuali altri amministratori (nel nostro caso c'è l'amministratore principale della palestra)
                 $adminGym = $palestra->getAmministratore();
@@ -102,7 +118,7 @@ class MessaggiController
             return;
         }
 
-        $utente = $this->entityManager->find(Utente::class, $idUtente);
+        $utente = $this->utenteRepo->findById($idUtente);
         if (!$utente) {
             $this->view->mostraErrore("Utente non trovato.");
             return;
@@ -120,10 +136,10 @@ class MessaggiController
 
         // Estrae la palestra
         $palestra = null;
-        if ($ruolo === 'allenatore') {
+        if ($ruolo === 'allenatore' && $utente instanceof Allenatore) {
             $palestra = $utente->getPalestra();
-        } elseif ($ruolo === 'amministratore') {
-            $palestra = $this->entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $utente]);
+        } elseif ($ruolo === 'amministratore' && $utente instanceof Amministratore) {
+            $palestra = $this->palestraRepo->findByAmministratore($utente);
         }
 
         if (!$palestra) {
@@ -150,14 +166,14 @@ class MessaggiController
             }
 
             foreach ($destinatariIds as $idStr) {
-                $recipient = $this->entityManager->find(Utente::class, (int)$idStr);
+                $recipient = $this->utenteRepo->findById((int)$idStr);
                 if ($recipient) {
                     // Controllo di sicurezza Anti-IDOR
                     $recipientPalestra = null;
-                    if ($recipient->getRuolo() === 'cliente' || $recipient->getRuolo() === 'allenatore') {
+                    if ($recipient instanceof Cliente || $recipient instanceof Allenatore) {
                         $recipientPalestra = $recipient->getPalestra();
-                    } elseif ($recipient->getRuolo() === 'amministratore') {
-                        $recipientPalestra = $this->entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $recipient]);
+                    } elseif ($recipient instanceof Amministratore) {
+                        $recipientPalestra = $this->palestraRepo->findByAmministratore($recipient);
                     }
 
                     if ($recipientPalestra && $recipientPalestra->getId() === $palestra->getId()) {
@@ -169,15 +185,15 @@ class MessaggiController
             $gruppoTipo = $_POST['gruppo_tipo'] ?? '';
             
             if ($gruppoTipo === 'tutti_clienti') {
-                $recipients = $this->entityManager->getRepository(Cliente::class)->findBy(['palestra' => $palestra]);
+                $recipients = $this->clienteRepo->findByPalestra($palestra);
             } elseif ($gruppoTipo === 'tutti_allenatori' && $ruolo === 'amministratore') {
-                $recipients = $this->entityManager->getRepository(Allenatore::class)->findBy(['palestra' => $palestra]);
+                $recipients = $this->allenatoreRepo->findByPalestra($palestra);
             } elseif ($gruppoTipo === 'tutti_palestra') {
-                $clienti = $this->entityManager->getRepository(Cliente::class)->findBy(['palestra' => $palestra]);
+                $clienti = $this->clienteRepo->findByPalestra($palestra);
                 $recipients = $clienti;
 
                 if ($ruolo === 'amministratore') {
-                    $allenatori = $this->entityManager->getRepository(Allenatore::class)->findBy(['palestra' => $palestra]);
+                    $allenatori = $this->allenatoreRepo->findByPalestra($palestra);
                     $recipients = array_merge($recipients, $allenatori);
                 } elseif ($ruolo === 'allenatore') {
                     $admin = $palestra->getAmministratore();

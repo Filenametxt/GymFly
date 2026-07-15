@@ -9,6 +9,7 @@ use App\Entity\Repository\UtenteRepositoryInterface;
 use App\Entity\Repository\SessionePrivataRepositoryInterface;
 use App\Entity\Repository\ParametriRepositoryInterface;
 use App\Entity\Repository\SchedaRepositoryInterface;
+use App\Entity\Repository\PalestraRepositoryInterface;
 use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
 use App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository;
 use App\Foundation\Persistence\Repository\DoctrineAttivitaRepository;
@@ -17,16 +18,15 @@ use App\Foundation\Persistence\Repository\DoctrineUtenteRepository;
 use App\Foundation\Persistence\Repository\DoctrineSessionePrivataRepository;
 use App\Foundation\Persistence\Repository\DoctrineParametriRepository;
 use App\Foundation\Persistence\Repository\DoctrineSchedaRepository;
+use App\Foundation\Persistence\Repository\DoctrinePalestraRepository;
 use App\View\Interface\AmministratoreView;
 use App\View\AmministratoreViewSmarty;
 use App\Foundation\Session;
 use App\Enum\Sesso;
-use App\Entity\Amministratore;
 use App\Entity\Allenatore;
 use App\Entity\Cliente;
 use App\Entity\Attivita;
 use App\Entity\Palestra;
-use App\Entity\Utente;
 use Doctrine\ORM\EntityManagerInterface;
 
 class AmministratoreController
@@ -39,6 +39,7 @@ class AmministratoreController
     private SessionePrivataRepositoryInterface $sessionePrivataRepo;
     private ParametriRepositoryInterface $parametriRepo;
     private SchedaRepositoryInterface $schedaRepo;
+    private PalestraRepositoryInterface $palestraRepo;
     private AmministratoreView $view;
 
     public function __construct(
@@ -53,6 +54,7 @@ class AmministratoreController
         $this->sessionePrivataRepo = new DoctrineSessionePrivataRepository($this->entityManager);
         $this->parametriRepo = new DoctrineParametriRepository($this->entityManager);
         $this->schedaRepo = new DoctrineSchedaRepository($this->entityManager);
+        $this->palestraRepo = new DoctrinePalestraRepository($this->entityManager);
         $this->view = new AmministratoreViewSmarty();
     }
 
@@ -67,12 +69,12 @@ class AmministratoreController
             return null;
         }
 
-        $admin = $this->entityManager->find(Amministratore::class, $idAdmin);
+        $admin = $this->utenteRepo->findById($idAdmin);
         if (!$admin) {
             return null;
         }
 
-        return $this->entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $admin]);
+        return $this->palestraRepo->findByAmministratore($admin);
     }
 
     /**

@@ -4,23 +4,35 @@ namespace App\Control;
 use App\View\Interface\AbbonamentiView;
 use App\View\AbbonamentiViewSmarty;
 use App\Foundation\Session;
+use App\Entity\Repository\PalestraRepositoryInterface;
+use App\Entity\Repository\AbbonamentoRepositoryInterface;
+use App\Entity\Repository\ClienteRepositoryInterface;
+use App\Entity\Repository\AmministratoreRepositoryInterface;
+use App\Foundation\Persistence\Repository\DoctrinePalestraRepository;
+use App\Foundation\Persistence\Repository\DoctrineAbbonamentoRepository;
+use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
+use App\Foundation\Persistence\Repository\DoctrineAmministratoreRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Entity\Amministratore;
-use App\Entity\Cliente;
-use App\Entity\Palestra;
-use App\Entity\Abbonamento;
 use App\Entity\AbbonamentoAttivo;
 use App\Entity\Iscrizione;
 
 class AbbonamentiController
 {
     private AbbonamentiView $view;
+    private PalestraRepositoryInterface $palestraRepo;
+    private AbbonamentoRepositoryInterface $abbonamentoRepo;
+    private ClienteRepositoryInterface $clienteRepo;
+    private AmministratoreRepositoryInterface $amministratoreRepo;
 
     public function __construct(
         private EntityManagerInterface $entityManager,
         private Session $session
     ) {
         $this->view = new AbbonamentiViewSmarty();
+        $this->palestraRepo = new DoctrinePalestraRepository($this->entityManager);
+        $this->abbonamentoRepo = new DoctrineAbbonamentoRepository($this->entityManager);
+        $this->clienteRepo = new DoctrineClienteRepository($this->entityManager);
+        $this->amministratoreRepo = new DoctrineAmministratoreRepository($this->entityManager);
     }
 
     public function gestisciAbbonamento(): void
@@ -39,26 +51,26 @@ class AbbonamentiController
             return;
         }
 
-        $cliente = $this->entityManager->find(Cliente::class, (int)$idCliente);
+        $cliente = $this->clienteRepo->findById((int)$idCliente);
         if (!$cliente) {
             $this->view->mostraErrore("Cliente non trovato.");
             return;
         }
 
         // Prevenzione IDOR: verifica multitenant
-        $admin = $this->entityManager->find(Amministratore::class, $idAdmin);
+        $admin = $this->amministratoreRepo->findById($idAdmin);
         if (!$admin) {
             $this->view->mostraErrore("Amministratore non trovato.");
             return;
         }
 
-        $palestra = $this->entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $admin]);
+        $palestra = $this->palestraRepo->findByAmministratore($admin);
         if (!$palestra || !$cliente->getPalestra() || $cliente->getPalestra()->getId() !== $palestra->getId()) {
             $this->view->mostraErrore("Accesso negato. Il cliente non appartiene alla palestra gestita.", "dashboard-admin", "Torna alla Dashboard");
             return;
         }
 
-        $abbonamentiDisponibili = $this->entityManager->getRepository(Abbonamento::class)->findAll();
+        $abbonamentiDisponibili = $this->abbonamentoRepo->findAll();
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $azione = $_POST['azione'] ?? '';
@@ -72,7 +84,7 @@ class AbbonamentiController
                     return;
                 }
 
-                $abbonamentoPlan = $this->entityManager->find(Abbonamento::class, (int)$idAbbonamentoScelto);
+                $abbonamentoPlan = $this->abbonamentoRepo->findById((int)$idAbbonamentoScelto);
                 if (!$abbonamentoPlan) {
                     $this->view->mostraErrore("Piano di abbonamento non valido.", "visualizza-profilo?id=" . $cliente->getId(), "Torna al Profilo");
                     return;

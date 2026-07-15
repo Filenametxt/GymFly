@@ -98,4 +98,18 @@ class DoctrineAttivitaPianificataRepository implements AttivitaPianificataReposi
             ->getResult();
     }
 
+    public function findOneByGiornoOrarioAndSala(\DateTimeImmutable $giorno, int $orario, Sala $sala): ?AttivitaPianificata
+    {
+        return $this->em->createQueryBuilder()
+            ->select('ap')
+            ->from(AttivitaPianificata::class, 'ap')
+            ->where('ap.giorno = :giorno')
+            ->andWhere('ap.orario = :orario')
+            ->andWhere('ap.sala = :sala')
+            ->setParameter('giorno', $giorno)
+            ->setParameter('orario', $orario)
+            ->setParameter('sala', $sala)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

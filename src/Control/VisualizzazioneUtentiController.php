@@ -3,20 +3,22 @@ namespace App\Control;
 
 use App\Entity\Repository\ClienteRepositoryInterface;
 use App\Entity\Repository\AllenatoreRepositoryInterface;
+use App\Entity\Repository\PalestraRepositoryInterface;
 use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
 use App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository;
+use App\Foundation\Persistence\Repository\DoctrinePalestraRepository;
 use App\View\Interface\VisualizzazioneUtentiView;
 use App\View\VisualizzazioneUtentiViewSmarty;
 use App\Foundation\Session;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Amministratore;
 use App\Entity\Allenatore;
-use App\Entity\Palestra;
 
 class VisualizzazioneUtentiController 
 {
     private ClienteRepositoryInterface $clienteRepo;
     private AllenatoreRepositoryInterface $allenatoreRepo;
+    private PalestraRepositoryInterface $palestraRepo;
     private VisualizzazioneUtentiView $view;
 
     public function __construct(
@@ -25,6 +27,7 @@ class VisualizzazioneUtentiController
     ) {
         $this->clienteRepo = new DoctrineClienteRepository($this->entityManager);
         $this->allenatoreRepo = new DoctrineAllenatoreRepository($this->entityManager);
+        $this->palestraRepo = new DoctrinePalestraRepository($this->entityManager);
         $this->view = new VisualizzazioneUtentiViewSmarty();
     }
 
@@ -126,7 +129,7 @@ class VisualizzazioneUtentiController
         if ($ruolo === 'amministratore') {
             $admin = $this->entityManager->find(Amministratore::class, $idUtente);
             if ($admin) {
-                $palestra = $this->entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $admin]);
+                $palestra = $this->palestraRepo->findByAmministratore($admin);
             }
         } elseif ($ruolo === 'allenatore') {
             $trainer = $this->entityManager->find(Allenatore::class, $idUtente);
@@ -185,7 +188,7 @@ class VisualizzazioneUtentiController
             return;
         }
 
-        $palestra = $this->entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $admin]);
+        $palestra = $this->palestraRepo->findByAmministratore($admin);
         if (!$palestra) {
             $this->view->mostraErrore("Palestra associata non trovata.");
             return;

@@ -61,4 +61,8 @@ interface AttivitaPianificataRepositoryInterface
      */
     public function findByCliente(Cliente $cliente): array;
 
+    /**
+     * Cerca un'attività pianificata per giorno, orario e sala.
+     */
+    public function findOneByGiornoOrarioAndSala(\DateTimeImmutable $giorno, int $orario, Sala $sala): ?AttivitaPianificata;
 }

@@ -24,6 +24,8 @@ interface AllenatoreRepositoryInterface extends UtenteRepositoryInterface
 
     public function findByEmail(string $email): ?Allenatore;
 
+    public function findByCF(string $CF): ?Allenatore;
+
     // -------------------------------------------------------------------------
     // Filtro per palestra
     // -------------------------------------------------------------------------

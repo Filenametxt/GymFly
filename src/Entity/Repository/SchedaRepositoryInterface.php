@@ -95,4 +95,9 @@ interface SchedaRepositoryInterface
      * @return Scheda[]
      */
     public function findAltreByPalestra(Palestra $palestra, int $escludiSchedaId): array;
+
+    /**
+     * Cerca la scheda con stato 'Pendente' per un determinato cliente.
+     */
+    public function findPendenteByCliente(Cliente $cliente): ?Scheda;
 }

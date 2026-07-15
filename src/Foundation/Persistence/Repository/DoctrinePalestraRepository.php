@@ -86,4 +86,15 @@ class DoctrinePalestraRepository implements PalestraRepositoryInterface
 
         return $count > 0;
     }
+
+    public function findByAmministratore(Amministratore $admin): ?Palestra
+    {
+        return $this->em->createQueryBuilder()
+            ->select('p')
+            ->from(Palestra::class, 'p')
+            ->where('p.amministratore = :admin')
+            ->setParameter('admin', $admin)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

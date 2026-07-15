@@ -6,7 +6,6 @@ use App\View\AutenticazioneViewSmarty;
 use App\Foundation\Session;
 use App\Enum\Sesso;
 use App\Entity\Amministratore;
-use App\Entity\Utente;
 use App\Entity\Palestra;
 use App\Entity\Repository\UtenteRepositoryInterface;
 use App\Foundation\Persistence\Repository\DoctrineUtenteRepository;

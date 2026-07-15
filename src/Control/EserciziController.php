@@ -7,7 +7,13 @@ use App\Entity\Attrezzatura;
 use App\Entity\Tipologia;
 use App\Entity\Allenatore;
 use App\Entity\Repository\EsercizioRepositoryInterface;
+use App\Entity\Repository\GruppoMuscolareRepositoryInterface;
+use App\Entity\Repository\AttrezzaturaRepositoryInterface;
+use App\Entity\Repository\TipologiaRepositoryInterface;
 use App\Foundation\Persistence\Repository\DoctrineEsercizioRepository;
+use App\Foundation\Persistence\Repository\DoctrineGruppoMuscolareRepository;
+use App\Foundation\Persistence\Repository\DoctrineAttrezzaturaRepository;
+use App\Foundation\Persistence\Repository\DoctrineTipologiaRepository;
 use App\View\Interface\EserciziView;
 use App\View\EserciziViewSmarty;
 use App\Foundation\Session;
@@ -16,6 +22,9 @@ use Doctrine\ORM\EntityManagerInterface;
 class EserciziController
 {
     private EsercizioRepositoryInterface $esercizioRepo;
+    private GruppoMuscolareRepositoryInterface $gruppoMuscolareRepo;
+    private AttrezzaturaRepositoryInterface $attrezzaturaRepo;
+    private TipologiaRepositoryInterface $tipologiaRepo;
     private EserciziView $view;
 
     public function __construct(
@@ -23,6 +32,9 @@ class EserciziController
         private Session $session
     ) {
         $this->esercizioRepo = new DoctrineEsercizioRepository($this->entityManager);
+        $this->gruppoMuscolareRepo = new DoctrineGruppoMuscolareRepository($this->entityManager);
+        $this->attrezzaturaRepo = new DoctrineAttrezzaturaRepository($this->entityManager);
+        $this->tipologiaRepo = new DoctrineTipologiaRepository($this->entityManager);
         $this->view = new EserciziViewSmarty();
     }
 
@@ -55,8 +67,8 @@ class EserciziController
         ];
 
         // Carica dati per la classificazione
-        $gruppiMuscolari = $this->entityManager->getRepository(GruppoMuscolare::class)->findAll();
-        $attrezzature = $this->entityManager->getRepository(Attrezzatura::class)->findAll();
+        $gruppiMuscolari = $this->gruppoMuscolareRepo->findAll();
+        $attrezzature = $this->attrezzaturaRepo->findAll();
         $eserciziEsistenti = $this->esercizioRepo->findAll();
 
         $this->view->mostraFormEsercizio([
@@ -179,12 +191,10 @@ class EserciziController
 
         // Trova o crea la Tipologia adatta
         $nomeTipologia = ($tracciamentoCarico === 1) ? 'Ripetizioni' : 'Durata';
-        $tipologiaRepo = $this->entityManager->getRepository(Tipologia::class);
-        $tipologia = $tipologiaRepo->findOneBy(['nomeTipologia' => $nomeTipologia]);
+        $tipologia = $this->tipologiaRepo->findByNome($nomeTipologia);
         if (!$tipologia) {
             $tipologia = new Tipologia($nomeTipologia);
-            $this->entityManager->persist($tipologia);
-            $this->entityManager->flush();
+            $this->tipologiaRepo->save($tipologia);
         }
 
         // Trova l'attrezzatura necessaria se specificata
@@ -212,7 +222,7 @@ class EserciziController
             $descrizione,
             $tipologia,
             $attrezzatura,
-            $allenatore,
+            $idAllenatore ? $this->entityManager->find(Allenatore::class, $idAllenatore) : null,
             $immagineBin
         );
 
@@ -223,16 +233,14 @@ class EserciziController
                     $this->view->mostraStatoOperazione(false, "Il nome del nuovo gruppo muscolare è obbligatorio se hai selezionato di aggiungerne uno nuovo.", "crea-esercizio");
                     return;
                 }
-                $gruppoMuscolare = $this->entityManager->getRepository(GruppoMuscolare::class)
-                    ->findOneBy(['nomeGruppoMuscolare' => $nuovoGruppoNome]);
+                $gruppoMuscolare = $this->gruppoMuscolareRepo->findByNome($nuovoGruppoNome);
                 if (!$gruppoMuscolare) {
                     $gruppoMuscolare = new GruppoMuscolare($nuovoGruppoNome);
-                    $this->entityManager->persist($gruppoMuscolare);
-                    $this->entityManager->flush();
+                    $this->gruppoMuscolareRepo->save($gruppoMuscolare);
                 }
                 $esercizio->aggiungiGruppoMuscolare($gruppoMuscolare);
             } else {
-                $gruppoMuscolare = $this->entityManager->find(GruppoMuscolare::class, (int)$idGm);
+                $gruppoMuscolare = $this->gruppoMuscolareRepo->findById((int)$idGm);
                 if ($gruppoMuscolare) {
                     $esercizio->aggiungiGruppoMuscolare($gruppoMuscolare);
                 }
@@ -300,8 +308,8 @@ class EserciziController
         ];
 
         // Carica dati per la classificazione
-        $gruppiMuscolari = $this->entityManager->getRepository(GruppoMuscolare::class)->findAll();
-        $attrezzature = $this->entityManager->getRepository(Attrezzatura::class)->findAll();
+        $gruppiMuscolari = $this->gruppoMuscolareRepo->findAll();
+        $attrezzature = $this->attrezzaturaRepo->findAll();
         $eserciziEsistenti = $this->esercizioRepo->findAll();
 
         $immaginePreview = $sorgente->getImmagine() ? base64_encode($sorgente->getImmagine()) : null;

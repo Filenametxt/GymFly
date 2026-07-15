@@ -37,4 +37,8 @@ interface PalestraRepositoryInterface
      */
     public function existsByNomeAndIndirizzo(string $nome, string $indirizzo): bool;
 
+    /**
+     * Cerca una palestra gestita dall'amministratore specificato.
+     */
+    public function findByAmministratore(Amministratore $admin): ?Palestra;
 }

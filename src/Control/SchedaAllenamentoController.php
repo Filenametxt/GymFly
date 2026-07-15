@@ -8,9 +8,16 @@ use App\Entity\Cliente;
 use App\Entity\Allenatore;
 use App\Entity\Esercizio;
 use App\Entity\Messaggio;
-use App\Entity\Parametri;
 use App\Entity\Repository\SchedaRepositoryInterface;
+use App\Entity\Repository\AllenatoreRepositoryInterface;
+use App\Entity\Repository\ClienteRepositoryInterface;
+use App\Entity\Repository\EsercizioRepositoryInterface;
+use App\Entity\Repository\ProgressoRepositoryInterface;
 use App\Foundation\Persistence\Repository\DoctrineSchedaRepository;
+use App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository;
+use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
+use App\Foundation\Persistence\Repository\DoctrineEsercizioRepository;
+use App\Foundation\Persistence\Repository\DoctrineProgressoRepository;
 use App\View\Interface\SchedaAllenamentoView;
 use App\View\SchedaAllenamentoViewSmarty;
 use App\Entity\ProgressoCarico;
@@ -22,6 +29,10 @@ use Doctrine\ORM\EntityManagerInterface;
 class SchedaAllenamentoController
 {
     private SchedaRepositoryInterface $schedaRepo;
+    private AllenatoreRepositoryInterface $allenatoreRepo;
+    private ClienteRepositoryInterface $clienteRepo;
+    private EsercizioRepositoryInterface $esercizioRepo;
+    private ProgressoRepositoryInterface $progressoRepo;
     private SchedaAllenamentoView $view;
 
     public function __construct(
@@ -29,6 +40,10 @@ class SchedaAllenamentoController
         private Session $session
     ) {
         $this->schedaRepo = new DoctrineSchedaRepository($this->entityManager);
+        $this->allenatoreRepo = new DoctrineAllenatoreRepository($this->entityManager);
+        $this->clienteRepo = new DoctrineClienteRepository($this->entityManager);
+        $this->esercizioRepo = new DoctrineEsercizioRepository($this->entityManager);
+        $this->progressoRepo = new DoctrineProgressoRepository($this->entityManager);
         $this->view = new SchedaAllenamentoViewSmarty();
     }
 
@@ -46,17 +61,14 @@ class SchedaAllenamentoController
             return;
         }
 
-        $cliente = $this->entityManager->find(Cliente::class, $idCliente);
+        $cliente = $this->clienteRepo->findById($idCliente);
         if (!$cliente) {
             $this->view->mostraStatoOperazione(false, "Cliente non trovato.", "login");
             return;
         }
 
         // Impedisce l'invio di più richieste contemporanee se c'è già una richiesta pendente
-        $schedaPendente = $this->entityManager->getRepository(Scheda::class)->findOneBy([
-            'cliente' => $cliente,
-            'nome_scheda' => 'Richiesta Nuova Scheda'
-        ]);
+        $schedaPendente = $this->schedaRepo->findPendenteByCliente($cliente);
         if ($schedaPendente !== null) {
             $this->view->mostraStatoOperazione(false, "Hai già una richiesta di scheda in attesa di essere creata dal tuo allenatore.", "dashboard-cliente");
             return;
@@ -66,7 +78,7 @@ class SchedaAllenamentoController
             // Recupera gli allenatori della palestra del cliente
             $palestra = $cliente->getPalestra();
             $allenatori = $palestra 
-                ? $this->entityManager->getRepository(Allenatore::class)->findBy(['palestra' => $palestra])
+                ? $this->allenatoreRepo->findByPalestra($palestra)
                 : [];
 
             $this->view->mostraTemplate('richiedi_scheda.tpl', [
@@ -90,7 +102,7 @@ class SchedaAllenamentoController
     public function richiestaSchedaAllenatore(string $obiettivo, int $nAllenamenti, string $cfAllenatore): void
     {
         $idCliente = $this->session->getLoggedUserId();
-        $cliente = $this->entityManager->find(Cliente::class, $idCliente);
+        $cliente = $this->clienteRepo->findById($idCliente);
 
         if (!$cliente) {
             $this->view->mostraStatoOperazione(false, "Cliente non trovato.", "login");
@@ -102,7 +114,7 @@ class SchedaAllenamentoController
             return;
         }
 
-        $allenatore = $this->entityManager->getRepository(Allenatore::class)->findOneBy(['CF' => $cfAllenatore]);
+        $allenatore = $this->allenatoreRepo->findByCF($cfAllenatore);
         if (!$allenatore) {
             $this->view->mostraStatoOperazione(false, "Allenatore selezionato non trovato.", "richiedi-scheda");
             return;
@@ -116,11 +128,11 @@ class SchedaAllenamentoController
 
         try {
             // Quando il cliente richiede la nuova scheda, quella presente attualmente deve essere eliminata
-            $vecchieSchede = $this->entityManager->getRepository(Scheda::class)->findBy(['cliente' => $cliente]);
+            $vecchieSchede = $this->schedaRepo->findByCliente($cliente);
             foreach ($vecchieSchede as $vs) {
                 $cliente->setScheda(null);
                 $this->entityManager->flush();
-                $this->entityManager->remove($vs);
+                $this->schedaRepo->delete($vs);
             }
             $this->entityManager->flush();
 
@@ -193,9 +205,9 @@ class SchedaAllenamentoController
     public function selezionaUtentePerScheda(string $cf): void
     {
         $idAllenatore = $this->session->getLoggedUserId();
-        $allenatore = $this->entityManager->find(Allenatore::class, $idAllenatore);
+        $allenatore = $this->allenatoreRepo->findById($idAllenatore);
 
-        $cliente = $this->entityManager->getRepository(Cliente::class)->findOneBy(['CF' => $cf]);
+        $cliente = $this->clienteRepo->findByCF($cf);
 
         if (!$cliente || ($cliente->getPalestra() && $cliente->getPalestra()->getId() !== $allenatore->getPalestra()->getId())) {
             $this->view->mostraStatoOperazione(false, "Cliente non valido o appartenente ad altra palestra (Prevenzione IDOR).", "dashboard-allenatore");
@@ -203,19 +215,16 @@ class SchedaAllenamentoController
         }
 
         // Trova la scheda di richiesta creata dal cliente
-        $scheda = $this->entityManager->getRepository(Scheda::class)->findOneBy([
-            'cliente' => $cliente,
-            'nome_scheda' => 'Richiesta Nuova Scheda'
-        ]);
+        $scheda = $this->schedaRepo->findPendenteByCliente($cliente);
 
         if (!$scheda) {
             // Se non c'è una richiesta pendente, creiamo una nuova scheda vuota (bozza)
             // Prima eliminiamo eventuali vecchie schede del cliente per evitare accumuli
-            $vecchieSchede = $this->entityManager->getRepository(Scheda::class)->findBy(['cliente' => $cliente]);
+            $vecchieSchede = $this->schedaRepo->findByCliente($cliente);
             foreach ($vecchieSchede as $vs) {
                 $cliente->setScheda(null);
                 $this->entityManager->flush();
-                $this->entityManager->remove($vs);
+                $this->schedaRepo->delete($vs);
             }
             $this->entityManager->flush();
 
@@ -326,6 +335,7 @@ class SchedaAllenamentoController
                     $scheda->addAllenamento($nuovoAll);
                     $this->entityManager->persist($nuovoAll);
 
+                    /** @var DettaglioAllenamento $srcDet */
                     foreach ($srcAll->getDettagli() as $srcDet) {
                         $nuovoDet = new DettaglioAllenamento(
                             $srcDet->getEsercizio(),
@@ -343,7 +353,7 @@ class SchedaAllenamentoController
             }
         }
 
-        $esercizi = $this->entityManager->getRepository(Esercizio::class)->findAll();
+        $esercizi = $this->esercizioRepo->findAll();
         
         // Trova le altre schede attive nella palestra per l'azione "Copia da esistente"
         $altreSchede = $this->schedaRepo->findAltreByPalestra($allenatore->getPalestra(), $idScheda);
@@ -687,7 +697,7 @@ class SchedaAllenamentoController
         }
 
         $idCliente = isset($_GET['id_cliente']) ? (int)$_GET['id_cliente'] : 0;
-        $cliente = $this->entityManager->find(Cliente::class, $idCliente);
+        $cliente = $this->clienteRepo->findById($idCliente);
         if (!$cliente) {
             $this->view->mostraStatoOperazione(false, "Cliente non trovato.", "clienti");
             return;
@@ -702,7 +712,10 @@ class SchedaAllenamentoController
         $scheda = $cliente->getScheda();
         if (!$scheda) {
             // Cerca un'eventuale bozza/scheda compilata non ancora attiva se non c'è una attiva
-            $scheda = $this->entityManager->getRepository(Scheda::class)->findOneBy(['cliente' => $cliente]);
+            $schede = $this->schedaRepo->findByCliente($cliente);
+            if (!empty($schede)) {
+                $scheda = $schede[0];
+            }
         }
 
         if (!$scheda) {
@@ -713,14 +726,12 @@ class SchedaAllenamentoController
         $workoutsData = [];
         foreach ($scheda->getAllenamenti() as $allenamento) {
             $eserciziData = [];
+            /** @var DettaglioAllenamento $dettaglio */
             foreach ($allenamento->getDettagli() as $dettaglio) {
                 $esercizio = $dettaglio->getEsercizio();
                 
                 // Carica tutti i progressi legati a questo cliente e questo esercizio, ordinati per data
-                $progressi = $this->entityManager->getRepository(\App\Entity\Progresso::class)->findBy(
-                    ['cliente' => $cliente, 'esercizio' => $esercizio],
-                    ['data' => 'ASC']
-                );
+                $progressi = $this->progressoRepo->findByClienteAndEsercizio($cliente, $esercizio);
 
                 $puntiCarico = [];
                 $puntiReps = [];

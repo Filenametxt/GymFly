@@ -9,6 +9,7 @@ use App\Entity\Repository\SalaRepositoryInterface;
 use App\Entity\Repository\AttivitaRepositoryInterface;
 use App\Entity\Repository\AllenatoreRepositoryInterface;
 use App\Entity\Repository\CodaAttesaRepositoryInterface;
+use App\Entity\Repository\PalestraRepositoryInterface;
 use App\Foundation\Persistence\Repository\DoctrineAttivitaPianificataRepository;
 use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
 use App\Foundation\Persistence\Repository\DoctrineSessionePrivataRepository;
@@ -16,6 +17,7 @@ use App\Foundation\Persistence\Repository\DoctrineSalaRepository;
 use App\Foundation\Persistence\Repository\DoctrineAttivitaRepository;
 use App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository;
 use App\Foundation\Persistence\Repository\DoctrineCodaAttesaRepository;
+use App\Foundation\Persistence\Repository\DoctrinePalestraRepository;
 use App\Foundation\Persistence\Type\DateTimeImmutableStringable;
 use App\Entity\AttivitaPianificata;
 use App\Entity\SessionePrivata;
@@ -41,6 +43,7 @@ class AttivitaPianificataController
     private AttivitaRepositoryInterface $attivitaRepo;
     private AllenatoreRepositoryInterface $allenatoreRepo;
     private CodaAttesaRepositoryInterface $codaAttesaRepo;
+    private PalestraRepositoryInterface $palestraRepo;
     private AttivitaPianificataView $view;
 
     public function __construct(
@@ -54,6 +57,7 @@ class AttivitaPianificataController
         $this->attivitaRepo = new DoctrineAttivitaRepository($this->entityManager);
         $this->allenatoreRepo = new DoctrineAllenatoreRepository($this->entityManager);
         $this->codaAttesaRepo = new DoctrineCodaAttesaRepository($this->entityManager);
+        $this->palestraRepo = new DoctrinePalestraRepository($this->entityManager);
         $this->view = new AttivitaPianificataViewSmarty();
     }
 
@@ -71,7 +75,7 @@ class AttivitaPianificataController
         if ($ruolo === 'amministratore') {
             $admin = $this->entityManager->find(Amministratore::class, $idUtente);
             if ($admin) {
-                return $this->entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $admin]);
+                return $this->palestraRepo->findByAmministratore($admin);
             }
         } elseif ($ruolo === 'allenatore') {
             $allenatore = $this->entityManager->find(Allenatore::class, $idUtente);
@@ -408,11 +412,7 @@ class AttivitaPianificataController
                     if (in_array((string)$nGiorno, $ripetizioni)) {
                         $giornoImmutable = \DateTimeImmutable::createFromMutable($currentDate);
                         
-                        $esistente = $this->entityManager->getRepository(AttivitaPianificata::class)->findOneBy([
-                            'giorno' => $giornoImmutable,
-                            'orario' => $orario,
-                            'sala' => $sala
-                        ]);
+                        $esistente = $this->attivitaPianificataRepo->findOneByGiornoOrarioAndSala($giornoImmutable, $orario, $sala);
 
                         if (!$esistente) {
                             $ap = new AttivitaPianificata($giornoImmutable, $orario, $sala, $allenatore, $attivita);
@@ -422,11 +422,7 @@ class AttivitaPianificataController
                 }
             } else {
                 $giornoImmutable = \DateTimeImmutable::createFromMutable($startDate);
-                $esistente = $this->entityManager->getRepository(AttivitaPianificata::class)->findOneBy([
-                    'giorno' => $giornoImmutable,
-                    'orario' => $orario,
-                    'sala' => $sala
-                ]);
+                $esistente = $this->attivitaPianificataRepo->findOneByGiornoOrarioAndSala($giornoImmutable, $orario, $sala);
 
                 if ($esistente) {
                     $this->view->mostraStatoOperazione(false, "In questa sala è già pianificato un corso per il giorno e l'ora specificati.", $ritorno, "Torna al Calendario");

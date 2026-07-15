@@ -73,4 +73,15 @@ class DoctrineAllenatoreRepository extends AbstractDoctrineUtenteRepository //pr
             ->getQuery()
             ->getResult();
     }
+
+    public function findByCF(string $CF): ?Allenatore
+    {
+        return $this->em->createQueryBuilder()
+            ->select('a')
+            ->from(Allenatore::class, 'a')
+            ->where('a.CF = :cf')
+            ->setParameter('cf', $CF)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

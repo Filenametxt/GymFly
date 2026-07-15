@@ -5,26 +5,44 @@ use App\View\Interface\VisualizzazioneView;
 use App\View\VisualizzazioneViewSmarty;
 use App\Foundation\Persistence\Repository\DoctrineParametriRepository;
 use App\Foundation\Session;
+use App\Entity\Repository\PalestraRepositoryInterface;
+use App\Entity\Repository\ClienteRepositoryInterface;
+use App\Entity\Repository\AllenatoreRepositoryInterface;
+use App\Entity\Repository\UtenteRepositoryInterface;
+use App\Entity\Repository\AttivitaRepositoryInterface;
+use App\Entity\Repository\EsercizioRepositoryInterface;
+use App\Foundation\Persistence\Repository\DoctrinePalestraRepository;
+use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
+use App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository;
+use App\Foundation\Persistence\Repository\DoctrineUtenteRepository;
+use App\Foundation\Persistence\Repository\DoctrineAttivitaRepository;
+use App\Foundation\Persistence\Repository\DoctrineEsercizioRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Entity\Amministratore;
 use App\Entity\Cliente;
 use App\Entity\Allenatore;
-use App\Entity\Esercizio;
-use App\Entity\Palestra;
-use App\Entity\AttivitaPianificata;
-use App\Entity\Messaggio;
 use App\Foundation\Persistence\Repository\DoctrineMessaggioRepository;
 use App\Foundation\Persistence\Repository\DoctrineAttivitaPianificataRepository;
-use App\Entity\Attivita;
 
 class VisualizzazioneController
 {
     private VisualizzazioneView $view;
+    private PalestraRepositoryInterface $palestraRepo;
+    private ClienteRepositoryInterface $clienteRepo;
+    private AllenatoreRepositoryInterface $allenatoreRepo;
+    private UtenteRepositoryInterface $utenteRepo;
+    private AttivitaRepositoryInterface $attivitaRepo;
+    private EsercizioRepositoryInterface $esercizioRepo;
 
     public function __construct(
         private EntityManagerInterface $entityManager,
         private Session $session
     ) {
+        $this->palestraRepo = new DoctrinePalestraRepository($this->entityManager);
+        $this->clienteRepo = new DoctrineClienteRepository($this->entityManager);
+        $this->allenatoreRepo = new DoctrineAllenatoreRepository($this->entityManager);
+        $this->utenteRepo = new DoctrineUtenteRepository($this->entityManager);
+        $this->attivitaRepo = new DoctrineAttivitaRepository($this->entityManager);
+        $this->esercizioRepo = new DoctrineEsercizioRepository($this->entityManager);
         $this->view = new VisualizzazioneViewSmarty();
     }
 
@@ -40,19 +58,19 @@ class VisualizzazioneController
             return;
         }
 
-        $admin = $this->entityManager->find(Amministratore::class, $id);
+        $admin = $this->utenteRepo->findById($id);
         if (!$admin) {
-            $this->session->destroy();
+            $this->session->logout();
             header("Location: login");
             exit;
         }
         
         // Recupera la palestra gestita da questo amministratore
-        $palestra = $this->entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $admin]);
+        $palestra = $this->palestraRepo->findByAmministratore($admin);
         
         if ($palestra) {
-            $clienti = $this->entityManager->getRepository(Cliente::class)->findBy(['palestra' => $palestra]);
-            $allenatori = $this->entityManager->getRepository(Allenatore::class)->findBy(['palestra' => $palestra]);
+            $clienti = $this->clienteRepo->findByPalestra($palestra);
+            $allenatori = $this->allenatoreRepo->findByPalestra($palestra);
         } else {
             $clienti = [];
             $allenatori = [];
@@ -166,7 +184,7 @@ class VisualizzazioneController
             ];
         }
 
-        $attivita = $this->entityManager->getRepository(Attivita::class)->findAll();
+        $attivita = $this->attivitaRepo->findAll();
 
         $this->view->mostraDashboardAdmin([
             'utente' => $admin,
@@ -199,7 +217,7 @@ class VisualizzazioneController
 
         $allenatore = $this->entityManager->find(Allenatore::class, $id);
         if (!$allenatore) {
-            $this->session->destroy();
+            $this->session->logout();
             header("Location: login");
             exit;
         }
@@ -207,10 +225,10 @@ class VisualizzazioneController
         
         // Filtra i clienti associati alla palestra dell'allenatore
         $clienti = $palestra 
-            ? $this->entityManager->getRepository(Cliente::class)->findBy(['palestra' => $palestra])
+            ? $this->clienteRepo->findByPalestra($palestra)
             : [];
             
-        $esercizi = $this->entityManager->getRepository(Esercizio::class)->findAll();
+        $esercizi = $this->esercizioRepo->findAll();
 
         // 1. Semaforo Schede per i clienti dell'allenatore (Rosso: scadute, Giallo: nessuna scheda, Blu: in regola)
         $schedeScadute = 0;
@@ -276,7 +294,7 @@ class VisualizzazioneController
 
         $cliente = $this->entityManager->find(Cliente::class, $id);
         if (!$cliente) {
-            $this->session->destroy();
+            $this->session->logout();
             header("Location: login");
             exit;
         }
