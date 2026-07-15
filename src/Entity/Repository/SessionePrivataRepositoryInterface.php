@@ -41,14 +41,6 @@ interface SessionePrivataRepositoryInterface
      */
     public function findByAllenatore(Allenatore $allenatore): array;
 
-    /**
-     * Sessioni future di un allenatore (data >= oggi).
-     * Caso d'uso: agenda prossimi appuntamenti.
-     *
-     * @return SessionePrivata[]
-     */
-    public function findFutureByAllenatore(Allenatore $allenatore): array;
-
     // -------------------------------------------------------------------------
     // Query per atleta (cliente)
     // -------------------------------------------------------------------------
@@ -60,14 +52,6 @@ interface SessionePrivataRepositoryInterface
      * @return SessionePrivata[]
      */
     public function findByAtleta(Cliente $atleta): array;
-
-    /**
-     * Sessioni future di un atleta (data >= oggi).
-     * Caso d'uso: prossimi appuntamenti nella dashboard cliente.
-     *
-     * @return SessionePrivata[]
-     */
-    public function findFutureByAtleta(Cliente $atleta): array;
 
     // -------------------------------------------------------------------------
     // Query per data

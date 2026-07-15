@@ -13,11 +13,18 @@ class DoctrineClienteRepository extends AbstractDoctrineUtenteRepository impleme
         return Cliente::class;
     }
 
+    // -------------------------------------------------------------------------
+    // CRUD base
+    // -------------------------------------------------------------------------
+
     public function findById(int $id): ?Cliente
     {
         return $this->em->find(Cliente::class, $id);
     }
 
+    // -------------------------------------------------------------------------
+    // Metodi specifici del dominio
+    // -------------------------------------------------------------------------
     public function findByEmail(string $email): ?Cliente
     {
         return $this->em->createQueryBuilder()
@@ -92,7 +99,7 @@ class DoctrineClienteRepository extends AbstractDoctrineUtenteRepository impleme
 
     public function findConCertificatoInScadenzaEntro(int $giorni): array
     {
-        $limite = (new \DateTimeImmutable())->modify('+' . $giorni . ' days');
+        $limite = (new \DateTimeImmutable())->modify('+' . $giorni . ' days'); //limite è una data che prende i giorni e li aggiunge al giorno di oggi
         return $this->em->createQueryBuilder()
             ->select('c')
             ->from(Cliente::class, 'c')

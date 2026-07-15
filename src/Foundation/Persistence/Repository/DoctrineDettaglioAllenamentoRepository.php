@@ -10,11 +10,12 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class DoctrineDettaglioAllenamentoRepository implements DettaglioAllenamentoRepositoryInterface
 {
-    public function __construct(
-        private readonly EntityManagerInterface $em,
-    ) {}
+    public function __construct(private readonly EntityManagerInterface $em) {}
 
-    // --- CRUD base ---
+    // -------------------------------------------------------------------------
+    // CRUD base
+    // -------------------------------------------------------------------------
+
 
     public function findById(int $id): ?DettaglioAllenamento
     {
@@ -41,14 +42,16 @@ class DoctrineDettaglioAllenamentoRepository implements DettaglioAllenamentoRepo
             ->findAll();
     }
 
-    // --- Metodi di dominio ---
+    // -------------------------------------------------------------------------
+    // Metodi di dominio
+    // -------------------------------------------------------------------------
 
     /** @return DettaglioAllenamento[] */
     public function findByAllenamento(Allenamento $allenamento): array
     {
         return $this->em->createQueryBuilder()
             ->select('d')
-            ->from(DettaglioAllenamento::class, 'd')
+            ->from(DettaglioAllenamento::class, 'd') //serie, carico, tempo, ripetizioni
             ->where('d.allenamento = :allenamento')
             ->setParameter('allenamento', $allenamento)
             ->orderBy('d.id', 'ASC')
@@ -56,23 +59,7 @@ class DoctrineDettaglioAllenamentoRepository implements DettaglioAllenamentoRepo
             ->getResult();
     }
 
-    /** @return DettaglioAllenamento[] */
-    public function findByEsercizio(Esercizio $esercizio): array
-    {
-        return $this->em->createQueryBuilder()
-            ->select('d')
-            ->from(DettaglioAllenamento::class, 'd')
-            ->where('d.esercizio = :esercizio')
-            ->setParameter('esercizio', $esercizio)
-            ->orderBy('d.id', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
-
-    public function findByAllenamentoAndEsercizio(
-        Allenamento $allenamento,
-        Esercizio   $esercizio,
-    ): ?DettaglioAllenamento {
+    public function findByAllenamentoAndEsercizio(Allenamento $allenamento, Esercizio   $esercizio): ?DettaglioAllenamento {
         return $this->em->createQueryBuilder()
             ->select('d')
             ->from(DettaglioAllenamento::class, 'd')
@@ -82,23 +69,6 @@ class DoctrineDettaglioAllenamentoRepository implements DettaglioAllenamentoRepo
             ->setParameter('esercizio',   $esercizio)
             ->getQuery()
             ->getOneOrNullResult();
-    }
-
-    public function existsInAllenamento(
-        Allenamento $allenamento,
-        Esercizio   $esercizio,
-    ): bool {
-        $count = (int) $this->em->createQueryBuilder()
-            ->select('COUNT(d.id)')
-            ->from(DettaglioAllenamento::class, 'd')
-            ->where('d.allenamento = :allenamento')
-            ->andWhere('d.esercizio = :esercizio')
-            ->setParameter('allenamento', $allenamento)
-            ->setParameter('esercizio',   $esercizio)
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        return $count > 0;
     }
 
     public function countByAllenamento(Allenamento $allenamento): int

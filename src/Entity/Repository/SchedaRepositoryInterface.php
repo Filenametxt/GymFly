@@ -5,6 +5,7 @@ namespace App\Entity\Repository;
 use App\Entity\Allenatore;
 use App\Entity\Cliente;
 use App\Entity\Scheda;
+use App\Entity\Palestra;
 
 interface SchedaRepositoryInterface
 {
@@ -86,12 +87,12 @@ interface SchedaRepositoryInterface
      *
      * @return Scheda[]
      */
-    public function findByPalestra(\App\Entity\Palestra $palestra): array;
+    public function findByPalestra(Palestra $palestra): array;
 
     /**
      * Altre schede attive o storiche dei clienti della palestra escludendo la scheda corrente.
      *
      * @return Scheda[]
      */
-    public function findAltreByPalestra(\App\Entity\Palestra $palestra, int $escludiSchedaId): array;
+    public function findAltreByPalestra(Palestra $palestra, int $escludiSchedaId): array;
 }

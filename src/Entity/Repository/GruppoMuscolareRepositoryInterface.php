@@ -39,19 +39,4 @@ interface GruppoMuscolareRepositoryInterface
      */
     public function findByNomeContaining(string $partial): array;
 
-    /**
-     * Tutti i gruppi muscolari allenati da un dato esercizio.
-     * Attraversa la N-N ALLENA (Esercizio owner, GruppoMuscolare inverso).
-     *
-     * @return GruppoMuscolare[]
-     */
-    public function findByEsercizio(Esercizio $esercizio): array;
-
-    /**
-     * Gruppi muscolari che non hanno ancora alcun esercizio associato.
-     * Utile per rilevare gruppi "orfani" in fase di gestione catalogo.
-     *
-     * @return GruppoMuscolare[]
-     */
-    public function findSenzaEsercizi(): array;
 }

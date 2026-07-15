@@ -9,11 +9,11 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class DoctrineGruppoMuscolareRepository implements GruppoMuscolareRepositoryInterface
 {
-    public function __construct(
-        private readonly EntityManagerInterface $em,
-    ) {}
+    public function __construct(private readonly EntityManagerInterface $em) {}
 
-    // --- CRUD base ---
+    // -------------------------------------------------------------------------
+    // CRUD base
+    // -------------------------------------------------------------------------
 
     public function findById(int $id): ?GruppoMuscolare
     {
@@ -40,7 +40,9 @@ class DoctrineGruppoMuscolareRepository implements GruppoMuscolareRepositoryInte
             ->findAll();
     }
 
-    // --- Metodi di dominio ---
+    // -------------------------------------------------------------------------
+    // Metodi specifici del dominio
+    // -------------------------------------------------------------------------
 
     public function findByNome(string $nome): ?GruppoMuscolare
     {
@@ -79,30 +81,4 @@ class DoctrineGruppoMuscolareRepository implements GruppoMuscolareRepositoryInte
             ->getResult();
     }
 
-    /** @return GruppoMuscolare[] */
-    public function findByEsercizio(Esercizio $esercizio): array
-    {
-        return $this->em->createQueryBuilder()
-            ->select('g')
-            ->from(GruppoMuscolare::class, 'g')
-            ->join('g.esercizi', 'e')
-            ->where('e = :esercizio')
-            ->setParameter('esercizio', $esercizio)
-            ->orderBy('g.nomeGruppoMuscolare', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
-
-    /** @return GruppoMuscolare[] */
-    public function findSenzaEsercizi(): array
-    {
-        return $this->em->createQueryBuilder()
-            ->select('g')
-            ->from(GruppoMuscolare::class, 'g')
-            ->leftJoin('g.esercizi', 'e')
-            ->where('e.id IS NULL')
-            ->orderBy('g.nomeGruppoMuscolare', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
 }
