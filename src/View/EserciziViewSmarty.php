@@ -31,4 +31,21 @@ class EserciziViewSmarty implements EserciziView
         $this->smarty->assign('testo_bottone', $testoBottone);
         $this->smarty->display('stato_operazione.tpl');
     }
+
+    public function mostraListaEsercizi(array $eserciziData): void
+    {
+        header('Content-Type: text/html; charset=utf-8');
+        $this->smarty->assign('esercizi', $eserciziData);
+        $this->smarty->assign('search_query', $_POST['search_query'] ?? $_GET['search_query'] ?? null);
+        $this->smarty->display('lista_esercizi.tpl');
+    }
+
+    public function mostraDettaglioEsercizio(array $dati): void
+    {
+        header('Content-Type: text/html; charset=utf-8');
+        foreach ($dati as $key => $value) {
+            $this->smarty->assign($key, $value);
+        }
+        $this->smarty->display('dettaglio_esercizio.tpl');
+    }
 }

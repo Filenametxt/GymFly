@@ -56,6 +56,8 @@ class FrontController
             '/salva-esercizio' => [EserciziController::class, 'salvaEsercizio'],
             '/copia-esercizio' => [EserciziController::class, 'copiaEsercizio'],
             '/elimina-bozza' => [EserciziController::class, 'eliminaBozzaEsercizio'],
+            '/esercizi' => [EserciziController::class, 'listaEsercizi'],
+            '/visualizza-esercizio' => [EserciziController::class, 'visualizzaEsercizio'],
             
             '/calendario' => [AttivitaPianificataController::class, 'visualizzaCalendario'],
             '/prenota-attivita' => [AttivitaPianificataController::class, 'prenotaAttivita'],
