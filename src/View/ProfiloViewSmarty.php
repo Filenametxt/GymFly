@@ -37,24 +37,26 @@ class ProfiloViewSmarty implements ProfiloView
     /**
      * Mostra un messaggio di conferma per una modifica andata a buon fine.
      */
-    public function mostraConfermaModifica(string $messaggio): void
+    public function mostraConfermaModifica(string $messaggio, ?string $ritorno = null, ?string $testoBottone = null): void
     {
         header('Content-Type: text/html; charset=utf-8');
         $this->smarty->assign('successo', true);
         $this->smarty->assign('messaggio', $messaggio);
-        $this->smarty->assign('ritorno', $this->determinaRitorno());
+        $this->smarty->assign('ritorno', $ritorno ?? $this->determinaRitorno());
+        $this->smarty->assign('testo_bottone', $testoBottone);
         $this->smarty->display('stato_operazione.tpl');
     }
 
     /**
      * Mostra una schermata di errore in caso di fallimento o accesso vietato.
      */
-    public function mostraErrore(string $messaggio): void
+    public function mostraErrore(string $messaggio, ?string $ritorno = null, ?string $testoBottone = null): void
     {
         header('Content-Type: text/html; charset=utf-8');
         $this->smarty->assign('successo', false);
         $this->smarty->assign('messaggio', $messaggio);
-        $this->smarty->assign('ritorno', $this->determinaRitorno());
+        $this->smarty->assign('ritorno', $ritorno ?? $this->determinaRitorno());
+        $this->smarty->assign('testo_bottone', $testoBottone);
         $this->smarty->display('stato_operazione.tpl');
     }
 

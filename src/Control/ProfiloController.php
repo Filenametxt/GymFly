@@ -238,13 +238,15 @@ class ProfiloController
         $nuovoIndirizzoDomicilio = $_POST['indirizzo_domicilio'] ?? null; // Specifico di Cliente
         $nuovoMetodoPagamento = $_POST['metodo_pagamento'] ?? null;
 
+        $ritorno = $isSelf ? 'profilo' : 'visualizza-profilo?id=' . $utente->getId();
+
         if (empty($nuovoNome) || empty($nuovoCognome) || empty($nuovoIndirizzoResidenza)) {
-            $this->view->mostraErrore("I campi Nome, Cognome e Residenza sono obbligatori.");
+            $this->view->mostraErrore("I campi Nome, Cognome e Residenza sono obbligatori.", $ritorno, "Torna al Profilo");
             return;
         }
 
         if ($isClient && empty($nuovoMetodoPagamento)) {
-            $this->view->mostraErrore("Il campo Metodo di Pagamento è obbligatorio per i clienti.");
+            $this->view->mostraErrore("Il campo Metodo di Pagamento è obbligatorio per i clienti.", $ritorno, "Torna al Profilo");
             return;
         }
 
@@ -269,7 +271,7 @@ class ProfiloController
             }
             exit();
         } catch (\InvalidArgumentException $e) {
-            $this->view->mostraErrore("Errore di validazione: " . $e->getMessage());
+            $this->view->mostraErrore("Errore di validazione: " . $e->getMessage(), $ritorno, "Torna al Profilo");
         }
     }
 
@@ -475,9 +477,11 @@ class ProfiloController
             return;
         }
 
+        $ritorno = ($ruolo === 'cliente') ? 'profilo' : 'visualizza-profilo?id=' . $cliente->getId();
+
         // Controlla se l'upload ha superato il limite di post_max_size del server
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST) && empty($_FILES) && isset($_SERVER['CONTENT_LENGTH']) && $_SERVER['CONTENT_LENGTH'] > 0) {
-            $this->view->mostraErrore("La dimensione del file supera il limite massimo consentito dal server (post_max_size). Riduci le dimensioni del file PDF.");
+            $this->view->mostraErrore("La dimensione del file supera il limite massimo consentito dal server (post_max_size). Riduci le dimensioni del file PDF.", $ritorno, "Torna al Profilo");
             return;
         }
 
@@ -485,12 +489,12 @@ class ProfiloController
         $dataEmissioneStr = $_POST['data_emissione'] ?? null;
 
         if (empty($medico) || empty($dataEmissioneStr)) {
-            $this->view->mostraErrore("Dati del certificato incompleti. Assicurati di aver inserito il nome del medico e la data di emissione.");
+            $this->view->mostraErrore("Dati del certificato incompleti. Assicurati di aver inserito il nome del medico e la data di emissione.", $ritorno, "Torna al Profilo");
             return;
         }
 
         if (!isset($_FILES['file_certificato']) || $_FILES['file_certificato']['error'] !== UPLOAD_ERR_OK) {
-            $this->view->mostraErrore("File PDF del certificato mancante o corrotto.");
+            $this->view->mostraErrore("File PDF del certificato mancante o corrotto.", $ritorno, "Torna al Profilo");
             return;
         }
 
@@ -520,9 +524,9 @@ class ProfiloController
                 $this->certificatoRepo->delete($vecchioCertificato);
             }
             
-            $this->view->mostraConfermaModifica("Certificato medico caricato correttamente. La nuova scadenza è il " . $certificato->getDataScadenza()->format('d/m/Y'));
+            $this->view->mostraConfermaModifica("Certificato medico caricato correttamente. La nuova scadenza è il " . $certificato->getDataScadenza()->format('d/m/Y'), $ritorno, "Torna al Profilo");
         } catch (\Exception $e) {
-            $this->view->mostraErrore("Errore nell'elaborazione del certificato: " . $e->getMessage());
+            $this->view->mostraErrore("Errore nell'elaborazione del certificato: " . $e->getMessage(), $ritorno, "Torna al Profilo");
         }
     }
 

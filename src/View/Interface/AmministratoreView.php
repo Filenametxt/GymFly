@@ -11,5 +11,5 @@ interface AmministratoreView
 
     public function mostraFormAbilitaAttivita(array $dati): void;
 
-    public function mostraStatoOperazione(bool $successo, string $messaggio, ?string $ritorno = null): void;
+    public function mostraStatoOperazione(bool $successo, string $messaggio, ?string $ritorno = null, ?string $testoBottone = null): void;
 }

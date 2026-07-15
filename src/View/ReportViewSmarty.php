@@ -22,12 +22,13 @@ class ReportViewSmarty implements ReportView
         $this->smarty->display('report.tpl');
     }
 
-    public function mostraErrore(string $messaggio): void
+    public function mostraErrore(string $messaggio, ?string $ritorno = null, ?string $testoBottone = null): void
     {
         header('Content-Type: text/html; charset=utf-8');
         $this->smarty->assign('successo', false);
         $this->smarty->assign('messaggio', $messaggio);
-        $this->smarty->assign('ritorno', 'dashboard-admin');
+        $this->smarty->assign('ritorno', $ritorno ?? 'dashboard-admin');
+        $this->smarty->assign('testo_bottone', $testoBottone);
         $this->smarty->display('stato_operazione.tpl');
     }
 }
