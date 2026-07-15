@@ -30,6 +30,8 @@
                             Torna a Gestione Clienti
                         {elseif isset($ritorno) && $ritorno === 'allenatori'}
                             Torna a Gestione Allenatori
+                        {elseif isset($ritorno) && $ritorno === 'esercizi'}
+                            Torna a Gestione Esercizi
                         {elseif isset($ritorno) && $ritorno === 'crea-attivita'}
                             Torna all'Attività
                         {elseif isset($ritorno) && $ritorno|replace:'calendario':'' !== $ritorno}

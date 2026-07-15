@@ -265,8 +265,7 @@ class EserciziController
             if ($idProvvisorio !== '') {
                 unset($_SESSION['bozze_esercizi'][$idProvvisorio]);
             }
-
-            $this->view->mostraStatoOperazione(true, "Esercizio aggiunto alla libreria con successo.", "dashboard-allenatore");
+            $this->view->mostraStatoOperazione(true, "Esercizio aggiunto alla libreria con successo.", "esercizi", "Torna a Gestione Esercizi");
         } catch (\Throwable $e) {
             $this->view->mostraStatoOperazione(false, "Errore durante il salvataggio dell'esercizio: " . $e->getMessage(), "crea-esercizio");
         }
@@ -362,7 +361,7 @@ class EserciziController
             unset($_SESSION['bozze_esercizi'][$idProvvisorio]);
         }
 
-        $this->view->mostraStatoOperazione(true, "Creazione esercizio annullata e cache pulita.", "dashboard-allenatore");
+        $this->view->mostraStatoOperazione(true, "Creazione esercizio annullata e cache pulita.", "esercizi", "Torna a Gestione Esercizi");
     }
 
     /**
