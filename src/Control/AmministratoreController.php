@@ -84,7 +84,7 @@ class AmministratoreController
     {
         $palestra = $this->recuperaPalestraAdmin();
         if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato. Solo l'amministratore di una palestra può effettuare questa operazione.");
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Solo l'amministratore di una palestra può effettuare questa operazione.", "dashboard-admin", "Torna alla Dashboard");
             return;
         }
 
@@ -92,6 +92,8 @@ class AmministratoreController
             $this->view->mostraFormCreaCliente([]);
             return;
         }
+
+        $ritorno = "clienti";
 
         // Recupero campi e conversione delle stringhe vuote in null
         $nome = !empty($_POST['nome']) ? trim($_POST['nome']) : '';
@@ -108,21 +110,21 @@ class AmministratoreController
         $indirizzoDomicilio = !empty($_POST['indirizzo_domicilio']) ? trim($_POST['indirizzo_domicilio']) : null;
 
         if ($nome === '' || $cognome === '' || $email === '' || $cf === '' || $indirizzo === '' || $sessoVal === '' || $dataNascitaStr === '' || $luogoNascita === '' || $metodoPagamento === '') {
-            $this->view->mostraStatoOperazione(false, "Tutti i campi contrassegnati con l'asterisco sono obbligatori.");
+            $this->view->mostraStatoOperazione(false, "Tutti i campi contrassegnati con l'asterisco sono obbligatori.", $ritorno, "Torna a Gestione Clienti");
             return;
         }
 
         // Verifica unicità email
         $existingUser = $this->entityManager->getRepository(Utente::class)->findOneBy(['email' => $email]);
         if ($existingUser) {
-            $this->view->mostraStatoOperazione(false, "Errore: l'indirizzo email inserito è già associato ad un altro utente.");
+            $this->view->mostraStatoOperazione(false, "Errore: l'indirizzo email inserito è già associato ad un altro utente.", $ritorno, "Torna a Gestione Clienti");
             return;
         }
 
         try {
             $dataDiNascita = new \DateTimeImmutable($dataNascitaStr);
             if ($dataDiNascita > new \DateTimeImmutable()) {
-                $this->view->mostraStatoOperazione(false, "Errore: la data di nascita non può essere futura.");
+                $this->view->mostraStatoOperazione(false, "Errore: la data di nascita non può essere futura.", $ritorno, "Torna a Gestione Clienti");
                 return;
             }
 
@@ -150,14 +152,14 @@ class AmministratoreController
             $invioOk = $this->inviaMailPasswordTemporanea($email, $nome, $tempPassword);
 
             if ($invioOk) {
-                $this->view->mostraStatoOperazione(true, "Cliente registrato con successo. Le credenziali temporanee sono state inviate via email.");
+                $this->view->mostraStatoOperazione(true, "Cliente registrato con successo. Le credenziali temporanee sono state inviate via email.", $ritorno, "Torna a Gestione Clienti");
             } else {
-                $this->view->mostraStatoOperazione(true, "Cliente registrato con successo. Nota: Impossibile inviare l'email (SMTP locale non configurato). La password temporanea generata è: " . $tempPassword);
+                $this->view->mostraStatoOperazione(true, "Cliente registrato con successo. Nota: Impossibile inviare l'email (SMTP locale non configurato). La password temporanea generata è: " . $tempPassword, $ritorno, "Torna a Gestione Clienti");
             }
         } catch (\InvalidArgumentException $e) {
-            $this->view->mostraStatoOperazione(false, "Errore di validazione: " . $e->getMessage());
+            $this->view->mostraStatoOperazione(false, "Errore di validazione: " . $e->getMessage(), $ritorno, "Torna a Gestione Clienti");
         } catch (\Throwable $e) {
-            $this->view->mostraStatoOperazione(false, "Errore generico durante la creazione del cliente: " . $e->getMessage());
+            $this->view->mostraStatoOperazione(false, "Errore generico durante la creazione del cliente: " . $e->getMessage(), $ritorno, "Torna a Gestione Clienti");
         }
     }
 
@@ -168,7 +170,7 @@ class AmministratoreController
     {
         $palestra = $this->recuperaPalestraAdmin();
         if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato. Solo l'amministratore di una palestra può effettuare questa operazione.");
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Solo l'amministratore di una palestra può effettuare questa operazione.", "dashboard-admin", "Torna alla Dashboard");
             return;
         }
 
@@ -176,6 +178,8 @@ class AmministratoreController
             $this->view->mostraFormCreaAllenatore([]);
             return;
         }
+
+        $ritorno = "allenatori";
 
         $nome = !empty($_POST['nome']) ? trim($_POST['nome']) : '';
         $cognome = !empty($_POST['cognome']) ? trim($_POST['cognome']) : '';
@@ -186,13 +190,13 @@ class AmministratoreController
         $telefono = !empty($_POST['telefono']) ? trim($_POST['telefono']) : null;
 
         if ($nome === '' || $cognome === '' || $email === '' || $cf === '' || $indirizzo === '' || $sessoVal === '') {
-            $this->view->mostraStatoOperazione(false, "Tutti i campi contrassegnati con l'asterisco sono obbligatori.");
+            $this->view->mostraStatoOperazione(false, "Tutti i campi contrassegnati con l'asterisco sono obbligatori.", $ritorno, "Torna a Gestione Allenatori");
             return;
         }
 
         $existingUser = $this->entityManager->getRepository(Utente::class)->findOneBy(['email' => $email]);
         if ($existingUser) {
-            $this->view->mostraStatoOperazione(false, "Errore: l'indirizzo email inserito è già associato ad un altro utente.");
+            $this->view->mostraStatoOperazione(false, "Errore: l'indirizzo email inserito è già associato ad un altro utente.", $ritorno, "Torna a Gestione Allenatori");
             return;
         }
 
@@ -217,14 +221,14 @@ class AmministratoreController
             $invioOk = $this->inviaMailPasswordTemporanea($email, $nome, $tempPassword);
 
             if ($invioOk) {
-                $this->view->mostraStatoOperazione(true, "Allenatore creato con successo. Le credenziali temporanee sono state inviate via email.");
+                $this->view->mostraStatoOperazione(true, "Allenatore creato con successo. Le credenziali temporanee sono state inviate via email.", $ritorno, "Torna a Gestione Allenatori");
             } else {
-                $this->view->mostraStatoOperazione(true, "Allenatore creato con successo. Nota: Impossibile inviare l'email (SMTP locale non configurato). La password temporanea generata è: " . $tempPassword);
+                $this->view->mostraStatoOperazione(true, "Allenatore creato con successo. Nota: Impossibile inviare l'email (SMTP locale non configurato). La password temporanea generata è: " . $tempPassword, $ritorno, "Torna a Gestione Allenatori");
             }
         } catch (\InvalidArgumentException $e) {
-            $this->view->mostraStatoOperazione(false, "Errore di validazione: " . $e->getMessage());
+            $this->view->mostraStatoOperazione(false, "Errore di validazione: " . $e->getMessage(), $ritorno, "Torna a Gestione Allenatori");
         } catch (\Throwable $e) {
-            $this->view->mostraStatoOperazione(false, "Errore generico durante la creazione del preparatore: " . $e->getMessage());
+            $this->view->mostraStatoOperazione(false, "Errore generico durante la creazione del preparatore: " . $e->getMessage(), $ritorno, "Torna a Gestione Allenatori");
         }
     }
 
@@ -363,21 +367,23 @@ class AmministratoreController
     {
         $palestra = $this->recuperaPalestraAdmin();
         if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.");
+            $this->view->mostraStatoOperazione(false, "Accesso negato.", "dashboard-admin", "Torna alla Dashboard");
             return;
         }
+
+        $ritorno = "clienti";
 
         $idCliente = isset($_GET['id']) ? (int)$_GET['id'] : 0;
         $cliente = $this->clienteRepo->findById($idCliente);
 
         if (!$cliente) {
-            $this->view->mostraStatoOperazione(false, "Cliente non trovato.");
+            $this->view->mostraStatoOperazione(false, "Cliente non trovato.", $ritorno, "Torna a Gestione Clienti");
             return;
         }
 
         // Controllo di sicurezza Anti-IDOR
         if ($cliente->getPalestra() === null || $cliente->getPalestra()->getId() !== $palestra->getId()) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato. Il cliente indicato non appartiene alla tua palestra.");
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Il cliente indicato non appartiene alla tua palestra.", $ritorno, "Torna a Gestione Clienti");
             return;
         }
 
@@ -484,9 +490,9 @@ class AmministratoreController
             }
             $this->entityManager->flush();
 
-            $this->view->mostraStatoOperazione(true, "Cliente " . $nomeCompleto . " rimosso con successo dal database.");
+            $this->view->mostraStatoOperazione(true, "Rimozione del cliente " . $nomeCompleto . " avvenuta con successo.", $ritorno, "Torna a Gestione Clienti");
         } catch (\Throwable $e) {
-            $this->view->mostraStatoOperazione(false, "Impossibile eliminare il cliente: " . $e->getMessage());
+            $this->view->mostraStatoOperazione(false, "Impossibile eliminare il cliente: " . $e->getMessage(), $ritorno, "Torna a Gestione Clienti");
         }
     }
 
@@ -497,30 +503,32 @@ class AmministratoreController
     {
         $palestra = $this->recuperaPalestraAdmin();
         if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.");
+            $this->view->mostraStatoOperazione(false, "Accesso negato.", "dashboard-admin", "Torna alla Dashboard");
             return;
         }
+
+        $ritorno = "allenatori";
 
         $idAllenatore = isset($_GET['id']) ? (int)$_GET['id'] : 0;
         $allenatore = $this->allenatoreRepo->findById($idAllenatore);
 
         if (!$allenatore) {
-            $this->view->mostraStatoOperazione(false, "Allenatore non trovato.");
+            $this->view->mostraStatoOperazione(false, "Allenatore non trovato.", $ritorno, "Torna a Gestione Allenatori");
             return;
         }
 
         // Controllo di sicurezza Anti-IDOR
         if ($allenatore->getPalestra()->getId() !== $palestra->getId()) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato. L'allenatore indicato non appartiene alla tua palestra.");
+            $this->view->mostraStatoOperazione(false, "Accesso negato. L'allenatore indicato non appartiene alla tua palestra.", $ritorno, "Torna a Gestione Allenatori");
             return;
         }
 
         try {
             $nomeCompleto = $allenatore->getNome() . " " . $allenatore->getCognome();
             $this->allenatoreRepo->delete($allenatore);
-            $this->view->mostraStatoOperazione(true, "Allenatore " . $nomeCompleto . " rimosso con successo dal database.");
+            $this->view->mostraStatoOperazione(true, "Rimozione dell'allenatore " . $nomeCompleto . " avvenuta con successo.", $ritorno, "Torna a Gestione Allenatori");
         } catch (\Throwable $e) {
-            $this->view->mostraStatoOperazione(false, "Impossibile eliminare l'allenatore: " . $e->getMessage());
+            $this->view->mostraStatoOperazione(false, "Impossibile eliminare l'allenatore: " . $e->getMessage(), $ritorno, "Torna a Gestione Allenatori");
         }
     }
 }

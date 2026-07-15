@@ -171,7 +171,7 @@
                             <p class="is-size-7 has-text-grey has-text-centered">{$a.cf}</p>
                             {if isset($a.attivita) && $a.attivita !== ''}
                                 <div class="has-text-centered mt-2">
-                                    {assign var="atts" value=explode(',', $a.attivita)}
+                                    {assign var="atts" value=$a.attivita|split:','}
                                     {foreach $atts as $att}
                                         <span class="tag is-light is-rounded is-size-7 mb-1" style="margin: 2px;">{$att}</span>
                                     {/foreach}
@@ -214,7 +214,7 @@
                             </p>
                             {if isset($a.attivita) && $a.attivita !== ''}
                                 <div class="tags mb-0 mt-1">
-                                    {assign var="atts" value=explode(',', $a.attivita)}
+                                    {assign var="atts" value=$a.attivita|split:','}
                                     {foreach $atts as $att}
                                         <span class="tag is-light is-rounded is-size-7" style="margin-right: 4px; margin-bottom: 2px;">{$att}</span>
                                     {/foreach}
