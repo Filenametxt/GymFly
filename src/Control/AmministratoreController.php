@@ -235,7 +235,7 @@ class AmministratoreController
     {
         $palestra = $this->recuperaPalestraAdmin();
         if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato. Solo l'amministratore può registrare nuove attività.");
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Solo l'amministratore può registrare nuove attività.", "dashboard-admin", "Torna alla Dashboard");
             return;
         }
 
@@ -248,14 +248,16 @@ class AmministratoreController
         $descrizione = !empty($_POST['descrizione']) ? trim($_POST['descrizione']) : '';
         $maxPartecipanti = isset($_POST['max_partecipanti']) ? (int)$_POST['max_partecipanti'] : 0;
 
+        $ritorno = "crea-attivita";
+
         if ($nome === '' || $descrizione === '' || $maxPartecipanti <= 0) {
-            $this->view->mostraStatoOperazione(false, "Tutti i campi sono obbligatori e il limite di partecipanti deve essere maggiore di zero.");
+            $this->view->mostraStatoOperazione(false, "Tutti i campi sono obbligatori e il limite di partecipanti deve essere maggiore di zero.", $ritorno, "Torna all'Attività");
             return;
         }
 
         // Evita duplicati per nome
         if ($this->attivitaRepo->existsByNome($nome)) {
-            $this->view->mostraStatoOperazione(false, "Errore: esiste già un'attività registrata con questo nome.");
+            $this->view->mostraStatoOperazione(false, "Errore: esiste già un'attività registrata con questo nome.", $ritorno, "Torna all'Attività");
             return;
         }
 
@@ -263,9 +265,9 @@ class AmministratoreController
             $attivita = new Attivita($nome, $descrizione, $maxPartecipanti);
             $this->attivitaRepo->save($attivita);
 
-            $this->view->mostraStatoOperazione(true, "Nuova attività '" . $nome . "' creata con successo nel catalogo.");
+            $this->view->mostraStatoOperazione(true, "Nuova attività '" . $nome . "' creata con successo nel catalogo.", $ritorno, "Torna all'Attività");
         } catch (\InvalidArgumentException $e) {
-            $this->view->mostraStatoOperazione(false, "Errore di validazione: " . $e->getMessage());
+            $this->view->mostraStatoOperazione(false, "Errore di validazione: " . $e->getMessage(), $ritorno, "Torna all'Attività");
         }
     }
 

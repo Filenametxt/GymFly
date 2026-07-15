@@ -54,7 +54,7 @@ class AbbonamentiController
 
         $palestra = $this->entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $admin]);
         if (!$palestra || !$cliente->getPalestra() || $cliente->getPalestra()->getId() !== $palestra->getId()) {
-            $this->view->mostraErrore("Accesso negato. Il cliente non appartiene alla palestra gestita.");
+            $this->view->mostraErrore("Accesso negato. Il cliente non appartiene alla palestra gestita.", "dashboard-admin", "Torna alla Dashboard");
             return;
         }
 
@@ -68,20 +68,20 @@ class AbbonamentiController
                 $dataInizioStr = $_POST['data_inizio_abbonamento'] ?? '';
 
                 if (!$idAbbonamentoScelto) {
-                    $this->view->mostraErrore("Nessun abbonamento selezionato.");
+                    $this->view->mostraErrore("Nessun abbonamento selezionato.", "visualizza-profilo?id=" . $cliente->getId(), "Torna al Profilo");
                     return;
                 }
 
                 $abbonamentoPlan = $this->entityManager->find(Abbonamento::class, (int)$idAbbonamentoScelto);
                 if (!$abbonamentoPlan) {
-                    $this->view->mostraErrore("Piano di abbonamento non valido.");
+                    $this->view->mostraErrore("Piano di abbonamento non valido.", "visualizza-profilo?id=" . $cliente->getId(), "Torna al Profilo");
                     return;
                 }
 
                 try {
                     $dataInizio = $dataInizioStr !== '' ? new \DateTimeImmutable($dataInizioStr) : new \DateTimeImmutable();
                 } catch (\Exception $e) {
-                    $this->view->mostraErrore("Formato data di inizio non valido.");
+                    $this->view->mostraErrore("Formato data di inizio non valido.", "visualizza-profilo?id=" . $cliente->getId(), "Torna al Profilo");
                     return;
                 }
 
@@ -100,7 +100,7 @@ class AbbonamentiController
                 $this->entityManager->persist($nuovoAbbonamentoAttivo);
                 $this->entityManager->flush();
 
-                $this->view->mostraConferma("Abbonamento del cliente registrato con successo!", "visualizza-profilo?id=" . $cliente->getId());
+                $this->view->mostraConferma("Abbonamento del cliente registrato con successo!", "visualizza-profilo?id=" . $cliente->getId(), "Torna al Profilo");
                 return;
 
             } elseif ($azione === 'crea_tipologia') {
@@ -109,7 +109,7 @@ class AbbonamentiController
                 $durata = $_POST['nuova_durata'] ?? '';
 
                 if (empty($tipologia) || empty($categoria) || empty($durata)) {
-                    $this->view->mostraErrore("Tutti i campi per la nuova tipologia sono obbligatori.");
+                    $this->view->mostraErrore("Tutti i campi per la nuova tipologia sono obbligatori.", "visualizza-profilo?id=" . $cliente->getId(), "Torna al Profilo");
                     return;
                 }
 
@@ -121,7 +121,7 @@ class AbbonamentiController
                     header('Location: gestione-abbonamento?id=' . $cliente->getId());
                     exit();
                 } catch (\Exception $e) {
-                    $this->view->mostraErrore("Errore nella creazione della tipologia: " . $e->getMessage());
+                    $this->view->mostraErrore("Errore nella creazione della tipologia: " . $e->getMessage(), "visualizza-profilo?id=" . $cliente->getId(), "Torna al Profilo");
                     return;
                 }
 
@@ -131,7 +131,7 @@ class AbbonamentiController
                 try {
                     $dataInizio = $dataInizioStr !== '' ? new \DateTimeImmutable($dataInizioStr) : new \DateTimeImmutable();
                 } catch (\Exception $e) {
-                    $this->view->mostraErrore("Formato data di inizio non valido.");
+                    $this->view->mostraErrore("Formato data di inizio non valido.", "visualizza-profilo?id=" . $cliente->getId(), "Torna al Profilo");
                     return;
                 }
 
@@ -145,15 +145,15 @@ class AbbonamentiController
                     }
                     $this->entityManager->flush();
                 } catch (\InvalidArgumentException $e) {
-                    $this->view->mostraErrore("Errore di validazione: " . $e->getMessage());
+                    $this->view->mostraErrore("Errore di validazione: " . $e->getMessage(), "visualizza-profilo?id=" . $cliente->getId(), "Torna al Profilo");
                     return;
                 }
 
-                $this->view->mostraConferma("Iscrizione annuale aggiornata con successo!", "visualizza-profilo?id=" . $cliente->getId());
+                $this->view->mostraConferma("Iscrizione annuale aggiornata con successo!", "visualizza-profilo?id=" . $cliente->getId(), "Torna al Profilo");
                 return;
             }
 
-            $this->view->mostraErrore("Azione non riconosciuta.");
+            $this->view->mostraErrore("Azione non riconosciuta.", "visualizza-profilo?id=" . $cliente->getId(), "Torna al Profilo");
             return;
         }
 

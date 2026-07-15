@@ -18,20 +18,12 @@
                         <p class="is-size-5">{$messaggio}</p>
                     </div>
                     <a href="{if isset($ritorno)}{$ritorno}{else}login{/if}" class="button is-gymfly mt-4">
-                        {if isset($ritorno)}
-                            {if $ritorno === 'login'}
-                                Torna al Login
-                            {elseif $ritorno === 'calendario' || $ritorno|truncate:10:"" === 'calendario'}
-                                Torna al Calendario
-                            {elseif $ritorno === 'visualizza-scheda' || $ritorno|truncate:17:"" === 'visualizza-scheda'}
-                                Torna alla Scheda
-                            {elseif $ritorno === 'profilo'}
-                                Torna al Profilo
-                            {else}
-                                Torna alla Dashboard
-                            {/if}
-                        {else}
+                        {if isset($testo_bottone) && $testo_bottone !== ''}
+                            {$testo_bottone}
+                        {elseif isset($ritorno) && $ritorno === 'login'}
                             Torna al Login
+                        {else}
+                            Torna alla Dashboard
                         {/if}
                     </a>
                 </div>

@@ -38,21 +38,23 @@ class MessaggiViewSmarty implements MessaggiView
         $this->smarty->display('messaggi.tpl');
     }
 
-    public function mostraErrore(string $messaggio): void
+    public function mostraErrore(string $messaggio, ?string $ritorno = null, ?string $testoBottone = null): void
     {
         header('Content-Type: text/html; charset=utf-8');
         $this->smarty->assign('successo', false);
         $this->smarty->assign('messaggio', $messaggio);
-        $this->smarty->assign('ritorno', 'messaggi');
+        $this->smarty->assign('ritorno', $ritorno ?? 'messaggi');
+        $this->smarty->assign('testo_bottone', $testoBottone);
         $this->smarty->display('stato_operazione.tpl');
     }
 
-    public function mostraConfermaInviato(string $messaggio): void
+    public function mostraConfermaInviato(string $messaggio, ?string $ritorno = null, ?string $testoBottone = null): void
     {
         header('Content-Type: text/html; charset=utf-8');
         $this->smarty->assign('successo', true);
         $this->smarty->assign('messaggio', $messaggio);
-        $this->smarty->assign('ritorno', 'messaggi');
+        $this->smarty->assign('ritorno', $ritorno ?? 'messaggi');
+        $this->smarty->assign('testo_bottone', $testoBottone);
         $this->smarty->display('stato_operazione.tpl');
     }
 }

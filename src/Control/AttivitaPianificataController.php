@@ -323,20 +323,22 @@ class AttivitaPianificataController
 
         $ripetizioni = isset($_POST['ripetizione']) ? $_POST['ripetizione'] : [];
 
+        $ritorno = ($dataStr !== '') ? "calendario?data=" . $dataStr : "calendario";
+
         if ($dataStr === '' || $orario < 8 || $orario > 20 || $idAllenatore <= 0) {
-            $this->view->mostraStatoOperazione(false, "Tutti i campi principali sono obbligatori e l'orario deve essere valido (8-20).");
+            $this->view->mostraStatoOperazione(false, "Tutti i campi principali sono obbligatori e l'orario deve essere valido (8-20).", $ritorno, "Torna al Calendario");
             return;
         }
 
         $attivita = null;
         if ($idAttivita <= 0) {
             if ($nuovaAttivitaNome === '' || $nuovaAttivitaMax <= 0) {
-                $this->view->mostraStatoOperazione(false, "Per inserire un nuovo corso scrivi il nome e indica un limite massimo di partecipanti valido.");
+                $this->view->mostraStatoOperazione(false, "Per inserire un nuovo corso scrivi il nome e indica un limite massimo di partecipanti valido.", $ritorno, "Torna al Calendario");
                 return;
             }
 
             if ($this->attivitaRepo->existsByNome($nuovaAttivitaNome)) {
-                $this->view->mostraStatoOperazione(false, "L'attività '" . $nuovaAttivitaNome . "' esiste già nel catalogo. Selezionala dal menu a discesa.");
+                $this->view->mostraStatoOperazione(false, "L'attività '" . $nuovaAttivitaNome . "' esiste già nel catalogo. Selezionala dal menu a discesa.", $ritorno, "Torna al Calendario");
                 return;
             }
 
@@ -344,7 +346,7 @@ class AttivitaPianificataController
                 $attivita = new Attivita($nuovaAttivitaNome, $nuovaAttivitaDesc, $nuovaAttivitaMax);
                 $this->attivitaRepo->save($attivita);
             } catch (\Throwable $e) {
-                $this->view->mostraStatoOperazione(false, "Errore durante la creazione del corso nel catalogo: " . $e->getMessage());
+                $this->view->mostraStatoOperazione(false, "Errore durante la creazione del corso nel catalogo: " . $e->getMessage(), $ritorno, "Torna al Calendario");
                 return;
             }
         } else {
@@ -352,19 +354,19 @@ class AttivitaPianificataController
         }
 
         if (!$attivita) {
-            $this->view->mostraStatoOperazione(false, "Corso non valido o non specificato.");
+            $this->view->mostraStatoOperazione(false, "Corso non valido o non specificato.", $ritorno, "Torna al Calendario");
             return;
         }
 
         $sala = null;
         if ($idSala <= 0) {
             if ($nuovaSalaNome === '' || $nuovaSalaMax <= 0) {
-                $this->view->mostraStatoOperazione(false, "Per inserire una nuova sala scrivi il nome e indica una capienza massima valida.");
+                $this->view->mostraStatoOperazione(false, "Per inserire una nuova sala scrivi il nome e indica una capienza massima valida.", $ritorno, "Torna al Calendario");
                 return;
             }
 
             if ($this->salaRepo->existsByNomeAndPalestra($nuovaSalaNome, $palestra)) {
-                $this->view->mostraStatoOperazione(false, "La sala '" . $nuovaSalaNome . "' esiste già nella tua palestra. Selezionala dal menu a discesa.");
+                $this->view->mostraStatoOperazione(false, "La sala '" . $nuovaSalaNome . "' esiste già nella tua palestra. Selezionala dal menu a discesa.", $ritorno, "Torna al Calendario");
                 return;
             }
 
@@ -372,7 +374,7 @@ class AttivitaPianificataController
                 $sala = new Sala($nuovaSalaNome, $nuovaSalaMax, $palestra);
                 $this->salaRepo->save($sala);
             } catch (\Throwable $e) {
-                $this->view->mostraStatoOperazione(false, "Errore durante la creazione della sala: " . $e->getMessage());
+                $this->view->mostraStatoOperazione(false, "Errore durante la creazione della sala: " . $e->getMessage(), $ritorno, "Torna al Calendario");
                 return;
             }
         } else {
@@ -380,7 +382,7 @@ class AttivitaPianificataController
         }
 
         if (!$sala) {
-            $this->view->mostraStatoOperazione(false, "Sala non valida o non specificata.");
+            $this->view->mostraStatoOperazione(false, "Sala non valida o non specificata.", $ritorno, "Torna al Calendario");
             return;
         }
 
@@ -429,7 +431,7 @@ class AttivitaPianificataController
                 ]);
 
                 if ($esistente) {
-                    $this->view->mostraStatoOperazione(false, "In questa sala è già pianificato un corso per il giorno e l'ora specificati.");
+                    $this->view->mostraStatoOperazione(false, "In questa sala è già pianificato un corso per il giorno e l'ora specificati.", $ritorno, "Torna al Calendario");
                     return;
                 }
 
@@ -438,9 +440,9 @@ class AttivitaPianificataController
             }
 
             $this->entityManager->flush();
-            $this->view->mostraStatoOperazione(true, "Corso pianificato con successo nel calendario.");
+            $this->view->mostraStatoOperazione(true, "Corso pianificato con successo nel calendario.", $ritorno, "Torna al Calendario");
         } catch (\Throwable $e) {
-            $this->view->mostraStatoOperazione(false, "Impossibile completare la pianificazione: " . $e->getMessage());
+            $this->view->mostraStatoOperazione(false, "Impossibile completare la pianificazione: " . $e->getMessage(), $ritorno, "Torna al Calendario");
         }
     }
 
