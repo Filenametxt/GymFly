@@ -345,4 +345,90 @@ class EserciziController
 
         $this->view->mostraStatoOperazione(true, "Creazione esercizio annullata e cache pulita.", "dashboard-allenatore");
     }
+
+    /**
+     * Visualizza la lista di tutti gli esercizi creati.
+     */
+    public function listaEsercizi(): void
+    {
+        $idAllenatore = $this->session->getLoggedUserId();
+        $ruolo = $this->session->getLoggedUserRole();
+
+        if (!$idAllenatore || $ruolo !== 'allenatore') {
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Questa funzionalità è riservata agli allenatori.", "login");
+            return;
+        }
+
+        $esercizi = $this->esercizioRepo->findAll();
+
+        $query = $_POST['search_query'] ?? $_GET['search_query'] ?? null;
+        if ($query !== null && trim($query) !== '') {
+            $search = strtolower(trim($query));
+            $esercizi = array_filter($esercizi, function($e) use ($search) {
+                return str_contains(strtolower($e->getNomeEsercizio()), $search) || 
+                       str_contains(strtolower($e->getDescrizione()), $search);
+            });
+        }
+
+        $eserciziData = [];
+        foreach ($esercizi as $e) {
+            $gruppiNomi = [];
+            foreach ($e->getGruppiMuscolari() as $gm) {
+                $gruppiNomi[] = $gm->getNomeGruppoMuscolare();
+            }
+
+            $eserciziData[] = [
+                'id' => $e->getId(),
+                'nome' => $e->getNomeEsercizio(),
+                'descrizione' => $e->getDescrizione(),
+                'attrezzatura' => $e->getAttrezzaturaNecessaria() ? $e->getAttrezzaturaNecessaria()->getNomeAttrezzatura() : 'Nessuna',
+                'tipologia' => $e->getTipologia()->getNomeTipologia(),
+                'gruppiMuscolari' => implode(', ', $gruppiNomi),
+                'creatore' => $e->getCreatore() ? ($e->getCreatore()->getNome() . ' ' . $e->getCreatore()->getCognome()) : 'Sistema',
+                'immagine' => $e->getImmagine() ? base64_encode($e->getImmagine()) : null
+            ];
+        }
+
+        $this->view->mostraListaEsercizi($eserciziData);
+    }
+
+    /**
+     * Visualizza i dettagli di un singolo esercizio.
+     */
+    public function visualizzaEsercizio(): void
+    {
+        $idAllenatore = $this->session->getLoggedUserId();
+        $ruolo = $this->session->getLoggedUserRole();
+
+        if (!$idAllenatore || $ruolo !== 'allenatore') {
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Questa funzionalità è riservata agli allenatori.", "login");
+            return;
+        }
+
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $esercizio = $this->esercizioRepo->findById($id);
+
+        if (!$esercizio) {
+            $this->view->mostraStatoOperazione(false, "Esercizio non trovato.");
+            return;
+        }
+
+        $gruppiNomi = [];
+        foreach ($esercizio->getGruppiMuscolari() as $gm) {
+            $gruppiNomi[] = $gm->getNomeGruppoMuscolare();
+        }
+
+        $dati = [
+            'id' => $esercizio->getId(),
+            'nome' => $esercizio->getNomeEsercizio(),
+            'descrizione' => $esercizio->getDescrizione(),
+            'attrezzatura' => $esercizio->getAttrezzaturaNecessaria() ? $esercizio->getAttrezzaturaNecessaria()->getNomeAttrezzatura() : 'Nessuna',
+            'tipologia' => $esercizio->getTipologia()->getNomeTipologia(),
+            'gruppiMuscolari' => implode(', ', $gruppiNomi),
+            'creatore' => $esercizio->getCreatore() ? ($esercizio->getCreatore()->getNome() . ' ' . $esercizio->getCreatore()->getCognome()) : 'Sistema',
+            'immagine' => $esercizio->getImmagine() ? base64_encode($esercizio->getImmagine()) : null
+        ];
+
+        $this->view->mostraDettaglioEsercizio($dati);
+    }
 }

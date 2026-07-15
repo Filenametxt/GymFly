@@ -86,9 +86,9 @@
 
         <!-- Voci destinate solo all'Allenatore -->
         {if isset($smarty.session.ruolo_utente) && $smarty.session.ruolo_utente === 'allenatore'}
-            <a href="crea-esercizio" class="sidebar-menu-link">
+            <a href="esercizi" class="sidebar-menu-link">
                 <i class="fas fa-dumbbell"></i>
-                <span>Aggiungi Esercizio</span>
+                <span>Gestione Esercizi</span>
             </a>
         {/if}
 
@@ -248,6 +248,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentPath.includes('abilita-attivita-allenatore') ||
                 currentPath.includes('rimuovi-allenatore') ||
                 (!isSelfProfile && isTrainerProfile)
+            )) {
+                activeLink = link;
+            }
+            if (href === 'esercizi' && (
+                currentPath.includes('crea-esercizio') ||
+                currentPath.includes('valida-esercizio') ||
+                currentPath.includes('salva-esercizio') ||
+                currentPath.includes('copia-esercizio') ||
+                currentPath.includes('elimina-bozza') ||
+                currentPath.includes('visualizza-esercizio')
             )) {
                 activeLink = link;
             }
