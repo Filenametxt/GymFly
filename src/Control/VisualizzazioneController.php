@@ -155,31 +155,15 @@ class VisualizzazioneController
         $attivitaRepo = new DoctrineAttivitaPianificataRepository($this->entityManager);
         $attivitaOggi = $attivitaRepo->findByGiorno(new \DateTimeImmutable());
         $eventiOggi = [];
-        if (empty($attivitaOggi)) {
-            // Eventi di fallback per far visualizzare il widget come da bozza
+        foreach ($attivitaOggi as $ap) {
+            $oraInizio = str_pad($ap->getOrario(), 2, '0', STR_PAD_LEFT) . ':00';
+            $oraFine = str_pad($ap->getOrario() + 1, 2, '0', STR_PAD_LEFT) . ':00';
             $eventiOggi[] = [
-                'nome' => 'Pilates',
-                'orario' => '13:00 - 14:00',
-                'colore' => '#209cee',
-                'allenatore' => 'Luigi Verdi'
+                'nome' => $ap->getAttivita()->getNome(),
+                'orario' => "$oraInizio - $oraFine",
+                'colore' => '#3273dc',
+                'allenatore' => $ap->getAllenatore()->getNome() . ' ' . $ap->getAllenatore()->getCognome()
             ];
-            $eventiOggi[] = [
-                'nome' => 'Zumba Fitness',
-                'orario' => '18:30 - 19:30',
-                'colore' => '#ffdd57',
-                'allenatore' => 'Carla Neri'
-            ];
-        } else {
-            foreach ($attivitaOggi as $ap) {
-                $oraInizio = str_pad($ap->getOrario(), 2, '0', STR_PAD_LEFT) . ':00';
-                $oraFine = str_pad($ap->getOrario() + 1, 2, '0', STR_PAD_LEFT) . ':00';
-                $eventiOggi[] = [
-                    'nome' => $ap->getAttivita()->getNome(),
-                    'orario' => "$oraInizio - $oraFine",
-                    'colore' => '#3273dc',
-                    'allenatore' => $ap->getAllenatore()->getNome() . ' ' . $ap->getAllenatore()->getCognome()
-                ];
-            }
         }
 
         $attivita = $this->entityManager->getRepository(Attivita::class)->findAll();
@@ -255,31 +239,15 @@ class VisualizzazioneController
         $attivitaRepo = new DoctrineAttivitaPianificataRepository($this->entityManager);
         $attivitaOggi = $attivitaRepo->findByGiorno(new \DateTimeImmutable());
         $eventiOggi = [];
-        if (empty($attivitaOggi)) {
-            // Fallback per rendere il widget vivo
+        foreach ($attivitaOggi as $ap) {
+            $oraInizio = str_pad($ap->getOrario(), 2, '0', STR_PAD_LEFT) . ':00';
+            $oraFine = str_pad($ap->getOrario() + 1, 2, '0', STR_PAD_LEFT) . ':00';
             $eventiOggi[] = [
-                'nome' => 'Pilates',
-                'orario' => '13:00 - 14:00',
-                'colore' => '#209cee',
-                'allenatore' => 'Luigi Verdi'
+                'nome' => $ap->getAttivita()->getNome(),
+                'orario' => "$oraInizio - $oraFine",
+                'colore' => '#3273dc',
+                'allenatore' => $ap->getAllenatore()->getNome() . ' ' . $ap->getAllenatore()->getCognome()
             ];
-            $eventiOggi[] = [
-                'nome' => 'Zumba Fitness',
-                'orario' => '18:30 - 19:30',
-                'colore' => '#ffdd57',
-                'allenatore' => 'Carla Neri'
-            ];
-        } else {
-            foreach ($attivitaOggi as $ap) {
-                $oraInizio = str_pad($ap->getOrario(), 2, '0', STR_PAD_LEFT) . ':00';
-                $oraFine = str_pad($ap->getOrario() + 1, 2, '0', STR_PAD_LEFT) . ':00';
-                $eventiOggi[] = [
-                    'nome' => $ap->getAttivita()->getNome(),
-                    'orario' => "$oraInizio - $oraFine",
-                    'colore' => '#3273dc',
-                    'allenatore' => $ap->getAllenatore()->getNome() . ' ' . $ap->getAllenatore()->getCognome()
-                ];
-            }
         }
 
         $this->view->mostraDashboardAllenatore([
