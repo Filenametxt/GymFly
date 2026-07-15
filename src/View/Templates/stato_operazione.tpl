@@ -18,10 +18,22 @@
                         <p class="is-size-5">{$messaggio}</p>
                     </div>
                     <a href="{if isset($ritorno)}{$ritorno}{else}login{/if}" class="button is-gymfly mt-4">
-                        {if isset($testo_bottone) && $testo_bottone !== ''}
+                        {if isset($testo_bottone) && $testo_bottone !== '' && $testo_bottone !== null}
                             {$testo_bottone}
+                        {elseif isset($ritorno) && ($ritorno === 'profilo' || $ritorno|replace:'visualizza-profilo':'' !== $ritorno)}
+                            Torna al Profilo
                         {elseif isset($ritorno) && $ritorno === 'login'}
                             Torna al Login
+                        {elseif isset($ritorno) && $ritorno === 'messaggi'}
+                            Torna alla Bacheca
+                        {elseif isset($ritorno) && $ritorno === 'clienti'}
+                            Torna a Gestione Clienti
+                        {elseif isset($ritorno) && $ritorno === 'allenatori'}
+                            Torna a Gestione Allenatori
+                        {elseif isset($ritorno) && $ritorno === 'crea-attivita'}
+                            Torna all'Attività
+                        {elseif isset($ritorno) && $ritorno|replace:'calendario':'' !== $ritorno}
+                            Torna al Calendario
                         {else}
                             Torna alla Dashboard
                         {/if}

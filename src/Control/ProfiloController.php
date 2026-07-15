@@ -309,16 +309,18 @@ class ProfiloController
             return;
         }
 
+        $ritorno = "profilo";
+
         if (isset($_FILES['foto_profilo'])) {
             $error = $_FILES['foto_profilo']['error'];
             if ($error === UPLOAD_ERR_INI_SIZE || $error === UPLOAD_ERR_FORM_SIZE) {
-                $this->view->mostraErrore("L'immagine caricata supera il limite massimo di dimensione consentito.");
+                $this->view->mostraErrore("L'immagine caricata supera il limite massimo di dimensione consentito.", $ritorno, "Torna al Profilo");
                 return;
             }
         }
 
         if (!isset($_FILES['foto_profilo']) || $_FILES['foto_profilo']['error'] !== UPLOAD_ERR_OK) {
-            $this->view->mostraErrore("File immagine non valido.");
+            $this->view->mostraErrore("File immagine non valido.", $ritorno, "Torna al Profilo");
             return;
         }
 
@@ -328,20 +330,20 @@ class ProfiloController
         // Limite massimo di 60 KB per stare all'interno del tipo BLOB del DB senza troncare l'immagine
         $maxSize = 60 * 1024;
         if ($fileSize > $maxSize) {
-            $this->view->mostraErrore("L'immagine caricata supera il limite massimo di dimensione consentito (60 KB).");
+            $this->view->mostraErrore("L'immagine caricata supera il limite massimo di dimensione consentito (60 KB).", $ritorno, "Torna al Profilo");
             return;
         }
 
         // Validazione formato immagine (escludendo GIF ed altri formati non supportati)
         $imageInfo = @getimagesize($fileTmpPath);
         if ($imageInfo === false) {
-            $this->view->mostraErrore("Il file caricato non è un'immagine valida.");
+            $this->view->mostraErrore("Il file caricato non è un'immagine valida.", $ritorno, "Torna al Profilo");
             return;
         }
 
         $allowedTypes = [IMAGETYPE_JPEG, IMAGETYPE_PNG];
         if (!in_array($imageInfo[2], $allowedTypes)) {
-            $this->view->mostraErrore("Formato immagine non consentito. Sono ammessi solo JPG, JPEG e PNG.");
+            $this->view->mostraErrore("Formato immagine non consentito. Sono ammessi solo JPG, JPEG e PNG.", $ritorno, "Torna al Profilo");
             return;
         }
 
@@ -351,9 +353,9 @@ class ProfiloController
         if ($fileContent !== false) {
             $utente->setProfilePicture($fileContent);
             $entityManager->flush();
-            $this->view->mostraConfermaModifica("Foto profilo aggiornata con successo.");
+            $this->view->mostraConfermaModifica("Foto profilo aggiornata con successo.", $ritorno, "Torna al Profilo");
         } else {
-            $this->view->mostraErrore("Impossibile leggere il contenuto del file immagine.");
+            $this->view->mostraErrore("Impossibile leggere il contenuto del file immagine.", $ritorno, "Torna al Profilo");
         }
     }
 
@@ -562,13 +564,15 @@ class ProfiloController
         $newPassword = $_POST['nuova_password'] ?? '';
         $confirmPassword = $_POST['conferma_password'] ?? '';
 
+        $ritorno = "profilo";
+
         if ($oldPassword === '' || $newPassword === '' || $confirmPassword === '') {
-            $this->view->mostraErrore("Tutti i campi password sono obbligatori.");
+            $this->view->mostraErrore("Tutti i campi password sono obbligatori.", $ritorno, "Torna al Profilo");
             return;
         }
 
         if ($newPassword !== $confirmPassword) {
-            $this->view->mostraErrore("La nuova password e la password di conferma non coincidono.");
+            $this->view->mostraErrore("La nuova password e la password di conferma non coincidono.", $ritorno, "Torna al Profilo");
             return;
         }
 
@@ -576,21 +580,21 @@ class ProfiloController
         $ruolo = $this->session->getLoggedUserRole();
         $utente = $this->recuperaUtenteLoggato($entityManager, $idUtente, $ruolo);
         if (!$utente) {
-            $this->view->mostraErrore("Utente non trovato.");
+            $this->view->mostraErrore("Utente non trovato.", $ritorno, "Torna al Profilo");
             return;
         }
 
         if (!$utente->verificaPassword($oldPassword)) {
-            $this->view->mostraErrore("La vecchia password inserita non è corretta.");
+            $this->view->mostraErrore("La vecchia password inserita non è corretta.", $ritorno, "Torna al Profilo");
             return;
         }
 
         try {
             $utente->setPassword($newPassword);
             $entityManager->flush();
-            $this->view->mostraConfermaModifica("Password aggiornata con successo.");
+            $this->view->mostraConfermaModifica("Password aggiornata con successo.", $ritorno, "Torna al Profilo");
         } catch (\InvalidArgumentException $e) {
-            $this->view->mostraErrore("Errore di validazione: " . $e->getMessage());
+            $this->view->mostraErrore("Errore di validazione: " . $e->getMessage(), $ritorno, "Torna al Profilo");
         }
     }
 

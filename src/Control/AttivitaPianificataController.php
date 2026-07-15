@@ -447,13 +447,15 @@ class AttivitaPianificataController
     {
         $palestra = $this->recuperaPalestraUtente();
         if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.");
+            $this->view->mostraStatoOperazione(false, "Accesso negato.", "dashboard-admin", "Torna alla Dashboard");
             return;
         }
 
+        $ritorno = "calendario";
+
         $ruolo = $this->session->getLoggedUserRole();
         if ($ruolo !== 'amministratore') {
-            $this->view->mostraStatoOperazione(false, "Accesso negato. Solo l'amministratore può eliminare corsi pianificati.");
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Solo l'amministratore può eliminare corsi pianificati.", $ritorno, "Torna al Calendario");
             return;
         }
 
@@ -461,23 +463,26 @@ class AttivitaPianificataController
         $ap = $this->attivitaPianificataRepo->findById($id);
 
         if (!$ap) {
-            $this->view->mostraStatoOperazione(false, "Attività pianificata non trovata.");
+            $this->view->mostraStatoOperazione(false, "Attività pianificata non trovata.", $ritorno, "Torna al Calendario");
             return;
         }
 
         if ($ap->getSala()->getPalestra()->getId() !== $palestra->getId()) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.");
+            $this->view->mostraStatoOperazione(false, "Accesso negato.", $ritorno, "Torna al Calendario");
             return;
         }
 
         try {
+            $dataStr = $ap->getGiorno()->format('Y-m-d');
+            $ritorno .= "?data=" . $dataStr;
+
             foreach ($ap->getUtenti() as $cliente) {
                 $cliente->cancellaIscrizioneAttivita($ap);
             }
             $this->attivitaPianificataRepo->delete($ap);
-            $this->view->mostraStatoOperazione(true, "Attività pianificata rimossa con successo dal calendario.");
+            $this->view->mostraStatoOperazione(true, "Attività pianificata rimossa con successo dal calendario.", $ritorno, "Torna al Calendario");
         } catch (\Throwable $e) {
-            $this->view->mostraStatoOperazione(false, "Impossibile rimuovere l'attività pianificata: " . $e->getMessage());
+            $this->view->mostraStatoOperazione(false, "Impossibile rimuovere l'attività pianificata: " . $e->getMessage(), $ritorno, "Torna al Calendario");
         }
     }
 
@@ -488,21 +493,25 @@ class AttivitaPianificataController
     {
         $palestra = $this->recuperaPalestraUtente();
         if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.");
+            $this->view->mostraStatoOperazione(false, "Accesso negato.", "dashboard-admin", "Torna alla Dashboard");
             return;
         }
+
+        $ritorno = "calendario";
 
         $ruolo = $this->session->getLoggedUserRole();
         $idAttivita = isset($_REQUEST['id_attivita_pianificata']) ? (int)$_REQUEST['id_attivita_pianificata'] : 0;
 
         $attivita = $this->attivitaPianificataRepo->findById($idAttivita);
         if (!$attivita) {
-            $this->view->mostraStatoOperazione(false, "Attività pianificata non trovata.");
+            $this->view->mostraStatoOperazione(false, "Attività pianificata non trovata.", $ritorno, "Torna al Calendario");
             return;
         }
 
+        $ritorno .= "?data=" . $attivita->getGiorno()->format('Y-m-d');
+
         if ($attivita->getSala()->getPalestra()->getId() !== $palestra->getId()) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.");
+            $this->view->mostraStatoOperazione(false, "Accesso negato.", $ritorno, "Torna al Calendario");
             return;
         }
 
@@ -515,27 +524,27 @@ class AttivitaPianificataController
             $idCliente = isset($_POST['id_cliente']) ? (int)$_POST['id_cliente'] : 0;
             $cliente = $this->clienteRepo->findById($idCliente);
         } else {
-            $this->view->mostraStatoOperazione(false, "Azione non consentita.");
+            $this->view->mostraStatoOperazione(false, "Azione non consentita.", $ritorno, "Torna al Calendario");
             return;
         }
 
         if (!$cliente) {
-            $this->view->mostraStatoOperazione(false, "Cliente non valido.");
+            $this->view->mostraStatoOperazione(false, "Cliente non valido.", $ritorno, "Torna al Calendario");
             return;
         }
 
         if ($cliente->getPalestra() === null || $cliente->getPalestra()->getId() !== $palestra->getId()) {
-            $this->view->mostraStatoOperazione(false, "Il cliente specificato non appartiene alla tua palestra.");
+            $this->view->mostraStatoOperazione(false, "Il cliente specificato non appartiene alla tua palestra.", $ritorno, "Torna al Calendario");
             return;
         }
 
         if ($this->clienteRepo->isIscrittoAAttivita($cliente, $attivita)) {
-            $this->view->mostraStatoOperazione(false, "Il cliente risulta già iscritto a questa attività pianificata.");
+            $this->view->mostraStatoOperazione(false, "Il cliente risulta già iscritto a questa attività pianificata.", $ritorno, "Torna al Calendario");
             return;
         }
 
         if (!$cliente->puoPrenotareAttivita()) {
-            $this->view->mostraStatoOperazione(false, "Impossibile completare la prenotazione: il cliente deve avere un abbonamento attivo e un certificato medico valido.");
+            $this->view->mostraStatoOperazione(false, "Impossibile completare la prenotazione: il cliente deve avere un abbonamento attivo e un certificato medico valido.", $ritorno, "Torna al Calendario");
             return;
         }
 
@@ -543,16 +552,16 @@ class AttivitaPianificataController
             // Se la capienza è al massimo, inseriamo nella coda di attesa
             $existingQueue = $this->codaAttesaRepo->findOneByClienteAndAttivita($cliente, $attivita);
             if ($existingQueue) {
-                $this->view->mostraStatoOperazione(false, "Sei già inserito nella coda di attesa per questa attività.");
+                $this->view->mostraStatoOperazione(false, "Sei già inserito nella coda di attesa per questa attività.", $ritorno, "Torna al Calendario");
                 return;
             }
 
             try {
                 $coda = new CodaAttesa($cliente, $attivita);
                 $this->codaAttesaRepo->save($coda);
-                $this->view->mostraStatoOperazione(true, "L'attività ha raggiunto la capienza massima. Sei stato inserito nella coda di attesa.", "calendario?data=" . $attivita->getGiorno()->format('Y-m-d'));
+                $this->view->mostraStatoOperazione(true, "L'attività ha raggiunto la capienza massima. Sei stato inserito nella coda di attesa.", $ritorno, "Torna al Calendario");
             } catch (\Throwable $e) {
-                $this->view->mostraStatoOperazione(false, "Impossibile inserire nella coda di attesa: " . $e->getMessage());
+                $this->view->mostraStatoOperazione(false, "Impossibile inserire nella coda di attesa: " . $e->getMessage(), $ritorno, "Torna al Calendario");
             }
             return;
         }
@@ -562,9 +571,9 @@ class AttivitaPianificataController
             $attivita->setPrenotati($attivita->getPrenotati() + 1);
 
             $this->entityManager->flush();
-            $this->view->mostraStatoOperazione(true, "Iscrizione registrata con successo.", "calendario?data=" . $attivita->getGiorno()->format('Y-m-d'));
+            $this->view->mostraStatoOperazione(true, "Iscrizione registrata con successo.", $ritorno, "Torna al Calendario");
         } catch (\Throwable $e) {
-            $this->view->mostraStatoOperazione(false, "Impossibile salvare la prenotazione: " . $e->getMessage());
+            $this->view->mostraStatoOperazione(false, "Impossibile salvare la prenotazione: " . $e->getMessage(), $ritorno, "Torna al Calendario");
         }
     }
 
@@ -575,21 +584,25 @@ class AttivitaPianificataController
     {
         $palestra = $this->recuperaPalestraUtente();
         if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.");
+            $this->view->mostraStatoOperazione(false, "Accesso negato.", "dashboard-admin", "Torna alla Dashboard");
             return;
         }
+
+        $ritorno = "calendario";
 
         $ruolo = $this->session->getLoggedUserRole();
         $idAttivita = isset($_REQUEST['id_attivita_pianificata']) ? (int)$_REQUEST['id_attivita_pianificata'] : 0;
 
         $attivita = $this->attivitaPianificataRepo->findById($idAttivita);
         if (!$attivita) {
-            $this->view->mostraStatoOperazione(false, "Attività pianificata non trovata.");
+            $this->view->mostraStatoOperazione(false, "Attività pianificata non trovata.", $ritorno, "Torna al Calendario");
             return;
         }
 
+        $ritorno .= "?data=" . $attivita->getGiorno()->format('Y-m-d');
+
         if ($attivita->getSala()->getPalestra()->getId() !== $palestra->getId()) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.");
+            $this->view->mostraStatoOperazione(false, "Accesso negato.", $ritorno, "Torna al Calendario");
             return;
         }
 
@@ -602,17 +615,17 @@ class AttivitaPianificataController
             $idCliente = isset($_REQUEST['id_cliente']) ? (int)$_REQUEST['id_cliente'] : 0;
             $cliente = $this->clienteRepo->findById($idCliente);
         } else {
-            $this->view->mostraStatoOperazione(false, "Azione non consentita.");
+            $this->view->mostraStatoOperazione(false, "Azione non consentita.", $ritorno, "Torna al Calendario");
             return;
         }
 
         if (!$cliente) {
-            $this->view->mostraStatoOperazione(false, "Cliente non valido.");
+            $this->view->mostraStatoOperazione(false, "Cliente non valido.", $ritorno, "Torna al Calendario");
             return;
         }
 
         if ($cliente->getPalestra() === null || $cliente->getPalestra()->getId() !== $palestra->getId()) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.");
+            $this->view->mostraStatoOperazione(false, "Accesso negato.", $ritorno, "Torna al Calendario");
             return;
         }
 
@@ -622,14 +635,14 @@ class AttivitaPianificataController
             if ($inQueue) {
                 try {
                     $this->codaAttesaRepo->delete($inQueue);
-                    $this->view->mostraStatoOperazione(true, "Sei stato rimosso dalla coda di attesa.", "calendario?data=" . $attivita->getGiorno()->format('Y-m-d'));
+                    $this->view->mostraStatoOperazione(true, "Sei stato rimosso dalla coda di attesa.", $ritorno, "Torna al Calendario");
                 } catch (\Throwable $e) {
-                    $this->view->mostraStatoOperazione(false, "Impossibile rimuovere dalla coda di attesa: " . $e->getMessage());
+                    $this->view->mostraStatoOperazione(false, "Impossibile rimuovere dalla coda di attesa: " . $e->getMessage(), $ritorno, "Torna al Calendario");
                 }
                 return;
             }
 
-            $this->view->mostraStatoOperazione(false, "Il cliente non risulta iscritto o in coda per questa attività.");
+            $this->view->mostraStatoOperazione(false, "Il cliente non risulta iscritto o in coda per questa attività.", $ritorno, "Torna al Calendario");
             return;
         }
 
@@ -663,9 +676,9 @@ class AttivitaPianificataController
             }
 
             $this->entityManager->flush();
-            $this->view->mostraStatoOperazione(true, "Iscrizione cancellata con successo.", "calendario?data=" . $attivita->getGiorno()->format('Y-m-d'));
+            $this->view->mostraStatoOperazione(true, "Iscrizione cancellata con successo.", $ritorno, "Torna al Calendario");
         } catch (\Throwable $e) {
-            $this->view->mostraStatoOperazione(false, "Impossibile cancellare l'iscrizione: " . $e->getMessage());
+            $this->view->mostraStatoOperazione(false, "Impossibile cancellare l'iscrizione: " . $e->getMessage(), $ritorno, "Torna al Calendario");
         }
     }
 
@@ -676,20 +689,22 @@ class AttivitaPianificataController
     {
         $palestra = $this->recuperaPalestraUtente();
         if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.");
+            $this->view->mostraStatoOperazione(false, "Accesso negato.", "dashboard-admin", "Torna alla Dashboard");
             return;
         }
 
+        $ritorno = "calendario";
+
         $ruolo = $this->session->getLoggedUserRole();
         if ($ruolo !== 'allenatore') {
-            $this->view->mostraStatoOperazione(false, "Solo l'allenatore può pianificare sessioni private.");
+            $this->view->mostraStatoOperazione(false, "Solo l'allenatore può pianificare sessioni private.", $ritorno, "Torna al Calendario");
             return;
         }
 
         $idAllenatore = $this->session->getLoggedUserId();
         $allenatore = $this->entityManager->find(Allenatore::class, $idAllenatore);
         if (!$allenatore) {
-            $this->view->mostraStatoOperazione(false, "Allenatore non trovato.");
+            $this->view->mostraStatoOperazione(false, "Allenatore non trovato.", $ritorno, "Torna al Calendario");
             return;
         }
 
@@ -706,19 +721,23 @@ class AttivitaPianificataController
         $oraInizioStr = !empty($_POST['ora_inizio']) ? trim($_POST['ora_inizio']) : '';
         $oraFineStr = !empty($_POST['ora_fine']) ? trim($_POST['ora_fine']) : '';
 
+        if ($dataStr !== '') {
+            $ritorno .= "?data=" . $dataStr;
+        }
+
         if ($idCliente <= 0 || $dataStr === '' || $oraInizioStr === '' || $oraFineStr === '') {
-            $this->view->mostraStatoOperazione(false, "Tutti i campi sono obbligatori per inserire una sessione privata.");
+            $this->view->mostraStatoOperazione(false, "Tutti i campi sono obbligatori per inserire una sessione privata.", $ritorno, "Torna al Calendario");
             return;
         }
 
         $cliente = $this->clienteRepo->findById($idCliente);
         if (!$cliente) {
-            $this->view->mostraStatoOperazione(false, "Cliente non trovato.");
+            $this->view->mostraStatoOperazione(false, "Cliente non trovato.", $ritorno, "Torna al Calendario");
             return;
         }
 
         if ($cliente->getPalestra() === null || $cliente->getPalestra()->getId() !== $palestra->getId()) {
-            $this->view->mostraStatoOperazione(false, "Il cliente indicato non appartiene alla tua palestra.");
+            $this->view->mostraStatoOperazione(false, "Il cliente indicato non appartiene alla tua palestra.", $ritorno, "Torna al Calendario");
             return;
         }
 
@@ -728,17 +747,17 @@ class AttivitaPianificataController
             $oraFineObj = new DateTimeImmutableStringable($dataStr . ' ' . $oraFineStr);
 
             if ($oraInizioObj >= $oraFineObj) {
-                $this->view->mostraStatoOperazione(false, "L'ora di inizio deve essere precedente all'ora di fine.");
+                $this->view->mostraStatoOperazione(false, "L'ora di inizio deve essere precedente all'ora di fine.", $ritorno, "Torna al Calendario");
                 return;
             }
 
             if ($this->sessionePrivataRepo->existsSovrapposizioneAllenatore($allenatore, $dataObj, $oraInizioObj, $oraFineObj)) {
-                $this->view->mostraStatoOperazione(false, "L'allenatore ha già un impegno in questa fascia oraria.");
+                $this->view->mostraStatoOperazione(false, "L'allenatore ha già un impegno in questa fascia oraria.", $ritorno, "Torna al Calendario");
                 return;
             }
 
             if ($this->sessionePrivataRepo->existsSovrapposizioneCliente($cliente, $dataObj, $oraInizioObj, $oraFineObj)) {
-                $this->view->mostraStatoOperazione(false, "Il cliente ha già un impegno in questa fascia oraria.");
+                $this->view->mostraStatoOperazione(false, "Il cliente ha già un impegno in questa fascia oraria.", $ritorno, "Torna al Calendario");
                 return;
             }
 
@@ -757,9 +776,9 @@ class AttivitaPianificataController
             $this->entityManager->persist($messaggio);
             $this->entityManager->flush();
 
-            $this->view->mostraStatoOperazione(true, "Sessione privata pianificata con successo.", "calendario?data=" . $dataStr);
+            $this->view->mostraStatoOperazione(true, "Sessione privata pianificata con successo.", $ritorno, "Torna al Calendario");
         } catch (\Throwable $e) {
-            $this->view->mostraStatoOperazione(false, "Impossibile salvare la sessione: " . $e->getMessage());
+            $this->view->mostraStatoOperazione(false, "Impossibile salvare la sessione: " . $e->getMessage(), $ritorno, "Torna al Calendario");
         }
     }
 
@@ -770,13 +789,15 @@ class AttivitaPianificataController
     {
         $palestra = $this->recuperaPalestraUtente();
         if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.");
+            $this->view->mostraStatoOperazione(false, "Accesso negato.", "dashboard-admin", "Torna alla Dashboard");
             return;
         }
 
+        $ritorno = "calendario";
+
         $ruolo = $this->session->getLoggedUserRole();
         if ($ruolo !== 'cliente' && $ruolo !== 'allenatore') {
-            $this->view->mostraStatoOperazione(false, "Accesso negato. Solo i soggetti partecipanti possono annullare la sessione.");
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Solo i soggetti partecipanti possono annullare la sessione.", $ritorno, "Torna al Calendario");
             return;
         }
 
@@ -785,13 +806,13 @@ class AttivitaPianificataController
         $oraFineStr = !empty($_REQUEST['ora_fine']) ? trim($_REQUEST['ora_fine']) : '';
 
         if ($idAllenatore <= 0 || $oraInizioStr === '' || $oraFineStr === '') {
-            $this->view->mostraStatoOperazione(false, "Dati identificativi della sessione non validi.");
+            $this->view->mostraStatoOperazione(false, "Dati identificativi della sessione non validi.", $ritorno, "Torna al Calendario");
             return;
         }
 
         $allenatore = $this->entityManager->find(Allenatore::class, $idAllenatore);
         if (!$allenatore) {
-            $this->view->mostraStatoOperazione(false, "Allenatore non trovato.");
+            $this->view->mostraStatoOperazione(false, "Allenatore non trovato.", $ritorno, "Torna al Calendario");
             return;
         }
 
@@ -801,9 +822,11 @@ class AttivitaPianificataController
 
             $sessione = $this->sessionePrivataRepo->findByChiave($allenatore, $oraInizioObj, $oraFineObj);
             if (!$sessione) {
-                $this->view->mostraStatoOperazione(false, "Sessione privata non trovata.");
+                $this->view->mostraStatoOperazione(false, "Sessione privata non trovata.", $ritorno, "Torna al Calendario");
                 return;
             }
+
+            $ritorno .= "?data=" . $sessione->getData()->format('Y-m-d');
 
             // Verifica accessi (Anti-IDOR)
             $idUtente = $this->session->getLoggedUserId();
@@ -815,7 +838,7 @@ class AttivitaPianificataController
             }
 
             if (!$isAuthorized) {
-                $this->view->mostraStatoOperazione(false, "Accesso negato. Non sei autorizzato a disdire questa sessione.");
+                $this->view->mostraStatoOperazione(false, "Accesso negato. Non sei autorizzato a disdire questa sessione.", $ritorno, "Torna al Calendario");
                 return;
             }
 
@@ -835,9 +858,9 @@ class AttivitaPianificataController
             }
 
             $this->sessionePrivataRepo->delete($sessione);
-            $this->view->mostraStatoOperazione(true, "Sessione privata annullata con successo.", "calendario?data=" . $sessione->getData()->format('Y-m-d'));
+            $this->view->mostraStatoOperazione(true, "Sessione privata annullata con successo.", $ritorno, "Torna al Calendario");
         } catch (\Throwable $e) {
-            $this->view->mostraStatoOperazione(false, "Impossibile annullare la sessione privata: " . $e->getMessage());
+            $this->view->mostraStatoOperazione(false, "Impossibile annullare la sessione privata: " . $e->getMessage(), $ritorno, "Torna al Calendario");
         }
     }
 }

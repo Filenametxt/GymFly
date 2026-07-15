@@ -124,13 +124,15 @@ class MessaggiController
             return;
         }
 
+        $ritorno = "messaggi";
+
         if (!$utente->mssAllowed()) {
-            $this->view->mostraErrore("Non sei autorizzato ad inviare messaggi.");
+            $this->view->mostraErrore("Non sei autorizzato ad inviare messaggi.", $ritorno, "Torna alla Bacheca");
             return;
         }
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->view->mostraErrore("Richiesta non valida.");
+            $this->view->mostraErrore("Richiesta non valida.", $ritorno, "Torna alla Bacheca");
             return;
         }
 
@@ -143,7 +145,7 @@ class MessaggiController
         }
 
         if (!$palestra) {
-            $this->view->mostraErrore("Palestra associata non trovata.");
+            $this->view->mostraErrore("Palestra associata non trovata.", $ritorno, "Torna alla Bacheca");
             return;
         }
 
@@ -152,7 +154,7 @@ class MessaggiController
         $destinatariTipo = $_POST['destinatari_tipo'] ?? 'selezionati';
 
         if (trim($oggetto) === '' || trim($contenuto) === '') {
-            $this->view->mostraErrore("L'oggetto ed il contenuto del messaggio sono obbligatori.");
+            $this->view->mostraErrore("L'oggetto ed il contenuto del messaggio sono obbligatori.", $ritorno, "Torna alla Bacheca");
             return;
         }
 
@@ -161,7 +163,7 @@ class MessaggiController
         if ($destinatariTipo === 'selezionati') {
             $destinatariIds = $_POST['destinatari_ids'] ?? [];
             if (!is_array($destinatariIds) || empty($destinatariIds)) {
-                $this->view->mostraErrore("Nessun destinatario selezionato.");
+                $this->view->mostraErrore("Nessun destinatario selezionato.", $ritorno, "Torna alla Bacheca");
                 return;
             }
 
@@ -208,7 +210,7 @@ class MessaggiController
         $recipients = array_filter($recipients, fn($r) => $r->getId() !== $utente->getId());
 
         if (empty($recipients)) {
-            $this->view->mostraErrore("Nessun destinatario valido trovato all'interno della tua palestra.");
+            $this->view->mostraErrore("Nessun destinatario valido trovato all'interno della tua palestra.", $ritorno, "Torna alla Bacheca");
             return;
         }
 
@@ -220,9 +222,9 @@ class MessaggiController
             $this->entityManager->persist($messaggio);
             $this->entityManager->flush();
 
-            $this->view->mostraConfermaInviato("Messaggio inviato con successo!");
+            $this->view->mostraConfermaInviato("Messaggio inviato con successo!", $ritorno, "Torna alla Bacheca");
         } catch (\InvalidArgumentException $e) {
-            $this->view->mostraErrore("Errore di validazione: " . $e->getMessage());
+            $this->view->mostraErrore("Errore di validazione: " . $e->getMessage(), $ritorno, "Torna alla Bacheca");
         }
     }
 }

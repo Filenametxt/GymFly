@@ -304,24 +304,26 @@ class AmministratoreController
     {
         $palestra = $this->recuperaPalestraAdmin();
         if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.");
+            $this->view->mostraStatoOperazione(false, "Accesso negato.", "dashboard-admin", "Torna alla Dashboard");
             return;
         }
+
+        $ritorno = "crea-attivita";
 
         $idAttivita = isset($_GET['id']) ? (int)$_GET['id'] : 0;
         $attivita = $this->attivitaRepo->findById($idAttivita);
 
         if (!$attivita) {
-            $this->view->mostraStatoOperazione(false, "Attività non trovata.");
+            $this->view->mostraStatoOperazione(false, "Attività non trovata.", $ritorno, "Torna all'Attività");
             return;
         }
 
         try {
             $nomeAttivita = $attivita->getNome();
             $this->attivitaRepo->delete($attivita);
-            $this->view->mostraStatoOperazione(true, "Attività '" . $nomeAttivita . "' rimossa con successo dal catalogo.");
+            $this->view->mostraStatoOperazione(true, "Attività '" . $nomeAttivita . "' rimossa con successo dal catalogo.", $ritorno, "Torna all'Attività");
         } catch (\Throwable $e) {
-            $this->view->mostraStatoOperazione(false, "Impossibile rimuovere l'attività: " . $e->getMessage());
+            $this->view->mostraStatoOperazione(false, "Impossibile rimuovere l'attività: " . $e->getMessage(), $ritorno, "Torna all'Attività");
         }
     }
 
@@ -332,9 +334,11 @@ class AmministratoreController
     {
         $palestra = $this->recuperaPalestraAdmin();
         if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.");
+            $this->view->mostraStatoOperazione(false, "Accesso negato.", "dashboard-admin", "Torna alla Dashboard");
             return;
         }
+
+        $ritorno = "allenatori";
 
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             // Mostra il form di associazione: carica allenatori della palestra e catalogo attività
@@ -356,13 +360,13 @@ class AmministratoreController
         $attivita = $this->attivitaRepo->findById($idAttivita);
 
         if (!$allenatore || !$attivita) {
-            $this->view->mostraStatoOperazione(false, "Allenatore o Attività non validi.");
+            $this->view->mostraStatoOperazione(false, "Allenatore o Attività non validi.", $ritorno, "Torna a Gestione Allenatori");
             return;
         }
 
         // Controllo IDOR: l'allenatore deve appartenere alla palestra dell'admin loggato
         if ($allenatore->getPalestra()->getId() !== $palestra->getId()) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato. L'allenatore non appartiene al tuo centro sportivo.");
+            $this->view->mostraStatoOperazione(false, "Accesso negato. L'allenatore non appartiene al tuo centro sportivo.", $ritorno, "Torna a Gestione Allenatori");
             return;
         }
 
@@ -376,9 +380,9 @@ class AmministratoreController
             }
 
             $this->entityManager->flush();
-            $this->view->mostraStatoOperazione(true, $messaggio);
+            $this->view->mostraStatoOperazione(true, $messaggio, $ritorno, "Torna a Gestione Allenatori");
         } catch (\Throwable $e) {
-            $this->view->mostraStatoOperazione(false, "Errore durante l'aggiornamento delle abilitazioni: " . $e->getMessage());
+            $this->view->mostraStatoOperazione(false, "Errore durante l'aggiornamento delle abilitazioni: " . $e->getMessage(), $ritorno, "Torna a Gestione Allenatori");
         }
     }
 
