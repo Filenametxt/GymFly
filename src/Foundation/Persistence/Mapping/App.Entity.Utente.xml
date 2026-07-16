@@ -4,12 +4,12 @@
                   xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
                   https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
 
-    /* Il tag è "entity"
+    <!-- Il tag è "entity"
     * i parametri sono name, table e inheritance-type
     * name: il nome completo della classe (namespace + nome)
     * table: il nome della tabella nel database
     * inheritance-type: il tipo di ereditarietà JOINED (si crea una tabella per ogni classe quindi sono cose separate) ci sono le relazioni
-    */
+    -->
     <entity name="App\Entity\Utente" table="Utente" inheritance-type="JOINED">
 
         <!-- discriminator: Doctrine capisce quale sottoclasse caricare -->
@@ -21,12 +21,12 @@
             <discriminator-mapping value="amministratore"  class="App\Entity\Amministratore"/>
         </discriminator-map>
 
-        //Id della tabella che viene generato automaticamnte con Doctrine
+        <!-- Id della tabella che viene generato automaticamnte con Doctrine -->
         <id name="id" type="integer" column="id">
             <generator strategy="AUTO"/>
         </id>
 
-        //"name" è il nome dell'entità, "colum" è il nome della colonna, "type" è il tipo di dato
+        <!-- "name" è il nome dell'entità, "colum" è il nome della colonna, "type" è il tipo di dato -->
         <field name="nome"            type="string"  column="nome"/>
         <field name="cognome"         type="string"  column="cognome"/>
         <field name="email"           type="string"  column="email"   unique="true"/>

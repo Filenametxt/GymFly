@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?> //standard di xml
+<?xml version="1.0" encoding="UTF-8"?>
 
 <!-- Import dei tag necessari per il mapping di Doctrine -->
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"

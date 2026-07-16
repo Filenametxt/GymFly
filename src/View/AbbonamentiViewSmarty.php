@@ -22,7 +22,7 @@ class AbbonamentiViewSmarty implements AbbonamentiView
         $this->smarty->display('gestione_abbonamento.tpl');
     }
 
-    public function mostraErrore(string $messaggio, ?string $ritorno = 'clienti', ?string $testoBottone = null): void
+    public function mostraErrore(string $messaggio, ?string $ritorno = 'login', ?string $testoBottone = 'Torna al login'): void
     {
         header('Content-Type: text/html; charset=utf-8');
         $this->smarty->assign('successo', false);
