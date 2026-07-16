@@ -72,7 +72,7 @@ class AttivitaPianificataController
     // 1. VISUALIZZA CALENDARIO (/calendario)
     // =========================================================================
 
-    public function visualizzaCalendario(): void
+    public function visualizzaCalendario(): void  //recupera la palestra dell'utente loggato, calcola la settimana da visualizzare, carica le attività pianificate e le sessioni private, costruisce la griglia del calendario e mostra la vista
     {
         $palestra = $this->recuperaPalestraUtente();
         if (!$palestra) {
@@ -84,18 +84,25 @@ class AttivitaPianificataController
         [$lun, $giorni, $dateStr] = $this->calcolaSettimana($_GET['data'] ?? 'today');
         $apList = $this->caricaAttivitaPianificate($palestra, $ruolo, $idUt);
         $spList = $this->caricaSessioniPrivate($ruolo, $idUt, $dateStr);
-        $selAp = $this->recuperaApSelezionata($palestra, $ruolo, $idUt);
+        $selAp = $this->recuperaApSelezionata($palestra, $ruolo, $idUt);            //QUELLA SELEZIONATA
         $datiView = [
             'grid' => $this->costruisciGriglia($apList, $spList, $dateStr),
-            'fasceOrarie' => range(8, 20), 'giorniSettimana' => $giorni,
-            'dataPrecedente' => $lun->modify('-7 days')->format('Y-m-d'),
+            'fasceOrarie' => range(8, 20), 
+            'giorniSettimana' => $giorni,           //giorni definiti in calcolaSettimana
+            'dataPrecedente' => $lun->modify('-7 days')->format('Y-m-d'),           
             'dataSuccessiva' => $lun->modify('+7 days')->format('Y-m-d'),
             'dataCorrente' => $lun->format('Y-m-d'),
-            'meseAnno' => $this->costruisciMeseAnno($lun), 'ruolo_utente' => $ruolo,
-            'sale' => $this->salaRepo->findByPalestra($palestra), 'allenatori' => $this->allenatoreRepo->findByPalestra($palestra),
-            'attivita' => $this->attivitaRepo->findAll(), 'clienti' => $this->clienteRepo->findByPalestra($palestra),
-            'selectedAp' => $selAp, 'codaAttesa' => $selAp ? $this->codaAttesaRepo->findByAttivitaPianificata($selAp) : [],
-            'selectedSp' => $this->recuperaSpSelezionata($ruolo, $idUt), 'nuovo' => isset($_GET['nuovo']) ? 1 : 0, 'nuova_sessione' => isset($_GET['nuova_sessione']) ? 1 : 0
+            'meseAnno' => $this->costruisciMeseAnno($lun), 
+            'ruolo_utente' => $ruolo,
+            'sale' => $this->salaRepo->findByPalestra($palestra), 
+            'allenatori' => $this->allenatoreRepo->findByPalestra($palestra),
+            'attivita' => $this->attivitaRepo->findAll(), 
+            'clienti' => $this->clienteRepo->findByPalestra($palestra),
+            'selectedAp' => $selAp, 
+            'codaAttesa' => $selAp ? $this->codaAttesaRepo->findByAttivitaPianificata($selAp) : [],   //se c'è un'attività pianificata selezionata, recupera la coda di attesa per quell'attività
+            'selectedSp' => $this->recuperaSpSelezionata($ruolo, $idUt), 
+            'nuovo' => isset($_GET['nuovo']) ? 1 : 0,       //se è stato passato il parametro nuovo nella query string, allora mostra il form per creare una nuova attività pianificata
+            'nuova_sessione' => isset($_GET['nuova_sessione']) ? 1 : 0
         ];
         if ($ruolo === 'cliente') {
             $this->arricchisciDatiCliente($idUt, $apList, $datiView);
@@ -103,21 +110,21 @@ class AttivitaPianificataController
         $this->view->mostraCalendario($datiView);
     }
 
-    private function calcolaSettimana(string $dataStr): array
+    private function calcolaSettimana(string $dataStr): array   //calcola la settimana da visualizzare a partire dalla data passata come parametro, restituendo il lunedì della settimana, un array di oggetti DateTimeImmutable per ogni giorno della settimana e un array di stringhe delle date in formato 'Y-m-d'
     {
         try {
             $oggi = new \DateTimeImmutable($dataStr);
         } catch (\Throwable $e) {
             $oggi = new \DateTimeImmutable('today');
         }
-        $giornoSettimanaCorrente = (int)$oggi->format('N');
+        $giornoSettimanaCorrente = (int)$oggi->format('N');  // 1 (lunedì) - 7 (domenica)
         $lunedi = $oggi->modify('-' . ($giornoSettimanaCorrente - 1) . ' days');
         $giorniSettimana = [];
-        $dateSettimanaStr = [];
+        $dateSettimanaStr = [];  // Array di stringhe delle date in formato 'Y-m-d'
         for ($i = 0; $i < 7; $i++) {
             $d = $lunedi->modify('+' . $i . ' days');
             $giorniSettimana[] = $d;
-            $dateSettimanaStr[] = $d->format('Y-m-d');
+            $dateSettimanaStr[] = $d->format('Y-m-d');   //abbiamo questo perchè stiamo parlando del calendario e non del planner
         }
         return [$lunedi, $giorniSettimana, $dateSettimanaStr];
     }
@@ -129,7 +136,7 @@ class AttivitaPianificataController
             5 => 'Maggio', 6 => 'Giugno', 7 => 'Luglio', 8 => 'Agosto',
             9 => 'Settembre', 10 => 'Ottobre', 11 => 'Novembre', 12 => 'Dicembre'
         ];
-        return $mesi[(int)$lunedi->format('n')] . ' ' . $lunedi->format('Y');
+        return $mesi[(int)$lunedi->format('n')] . ' ' . $lunedi->format('Y');         // 05 2001
     }
 
     private function caricaAttivitaPianificate(Palestra $palestra, string $ruolo, int $idUtente): array
@@ -138,8 +145,8 @@ class AttivitaPianificataController
             $allenatore = $this->allenatoreRepo->findById($idUtente);
             return $allenatore ? $this->attivitaPianificataRepo->findByAllenatore($allenatore) : [];
         }
-        return array_filter($this->attivitaPianificataRepo->findAll(), function(AttivitaPianificata $ap) use ($palestra) {
-            return $ap->getSala()->getPalestra()->getId() === $palestra->getId();
+        return array_filter($this->attivitaPianificataRepo->findAll(), function(AttivitaPianificata $ap) use ($palestra) {   //filtra le attività pianificate per la palestra dell'utente loggato
+            return $ap->getSala()->getPalestra()->getId() === $palestra->getId();     //restituisce l'array delle attività pianificate che appartengono alla palestra dell'utente loggato
         });
     }
 
@@ -155,23 +162,24 @@ class AttivitaPianificataController
             $privateRaw = $allenatore ? $this->sessionePrivataRepo->findByAllenatore($allenatore) : [];
         }
         foreach ($privateRaw as $sp) {
-            if (in_array($sp->getData()->format('Y-m-d'), $dateSettimanaStr)) {
-                $sessioniPrivateSettimana[] = $sp;
+            if (in_array($sp->getData()->format('Y-m-d'), $dateSettimanaStr)) {    //cin_array ontrolla se il valore esiste nell'array
+                $sessioniPrivateSettimana[] = $sp;      //se la data della sessione privata è presente nell'array delle date della settimana, allora aggiungila all'array delle sessioni private della settimana
             }
         }
         return $sessioniPrivateSettimana;
     }
 
-    private function costruisciGriglia(array $apList, array $spList, array $dateSettimanaStr): array
+    private function costruisciGriglia(array $apList, array $spList, array $dateSettimanaStr): array      //serve a costruire la griglia del calendario, con le attività pianificate e le sessioni private, organizzate per ora e giorno della settimana
     {
         $grid = [];
         foreach (range(8, 20) as $ora) {
-            $grid[$ora] = array_fill(1, 7, []);
+            $grid[$ora] = array_fill(1, 7, []);      // Inizializza le celle della griglia per ogni ora e giorno della settimana
         }
         foreach ($apList as $ap) {
-            $dayIndex = array_search($ap->getGiorno()->format('Y-m-d'), $dateSettimanaStr);
-            if ($dayIndex !== false && isset($grid[$ap->getOrario()])) {
-                $grid[$ap->getOrario()][$dayIndex + 1][] = $ap;
+            $dayIndex = array_search($ap->getGiorno()->format('Y-m-d'), $dateSettimanaStr);     // trova l'indice del giorno della settimana corrispondente alla data dell'attività pianificata
+            if ($dayIndex !== false && isset($grid[$ap->getOrario()])) {   // se l'indice del giorno della settimana è valido e l'ora dell'attività pianificata è presente nella griglia, allora aggiungi l'attività pianificata alla griglia
+                $grid[$ap->getOrario()][$dayIndex + 1][] = $ap;         // Aggiungi l'attività pianificata alla griglia (dayIndex + 1 perché l'array dei giorni parte da 1, la posizione 0 è riservata all'ora)
+                                                                        // le parentesi [] servono a creare un array di attività pianificate per quella cella della griglia, in modo da poter gestire più attività pianificate nello stesso giorno e ora
             }
         }
         foreach ($spList as $sp) {
@@ -186,14 +194,15 @@ class AttivitaPianificataController
 
     private function recuperaApSelezionata(Palestra $palestra, string $ruolo, int $idUtente): ?AttivitaPianificata
     {
-        $idAp = isset($_GET['id_ap']) ? (int)$_GET['id_ap'] : 0;
-        if ($idAp <= 0) return null;
+        $idAp = isset($_GET['id_ap']) ? (int)$_GET['id_ap'] : 0;    //recupera l'id dell'attività pianificata selezionata dalla query string
+        if ($idAp <= 0)     //best practice
+            return null;        
         $selectedAp = $this->attivitaPianificataRepo->findById($idAp);
         if ($selectedAp) {
-            $belongsToPalestra = $selectedAp->getSala()->getPalestra()->getId() === $palestra->getId();
-            $isTrainerCourse = ($ruolo === 'allenatore') ? ($selectedAp->getAllenatore()->getId() === $idUtente) : true;
+            $belongsToPalestra = $selectedAp->getSala()->getPalestra()->getId() === $palestra->getId();     //se quell'ap appart
+            $isTrainerCourse = ($ruolo === 'allenatore') ? ($selectedAp->getAllenatore()->getId() === $idUtente) : true;    //se l'utente loggato è un allenatore, controlla se l'attività pianificata selezionata appartiene a quell'allenatore
             if ($belongsToPalestra && $isTrainerCourse) {
-                return $selectedAp;
+                return $selectedAp;     //se sei amministratore o allenatore vedi tutte le attività pianificate della palestra, altrimenti se sei allenatore vedi solo le tue attività pianificate
             }
         }
         return null;
@@ -222,17 +231,18 @@ class AttivitaPianificataController
     private function arricchisciDatiCliente(int $idUtente, array $apList, array &$datiView): void
     {
         $cliente = $this->clienteRepo->findById($idUtente);
-        if (!$cliente) return;
-        $datiView['cliente'] = $cliente;
-        $iscrittoMap = [];
-        $inQueueMap = [];
+        if (!$cliente) 
+            return;
+        $datiView['cliente'] = $cliente;   //aggiunge l'oggetto cliente ai dati della vista, in modo da poter accedere alle informazioni del cliente nella vista del calendario
+        $iscrittoMap = [];                 //mappa che associa l'id dell'attività pianificata al valore booleano che indica se il cliente è iscritto o meno a quell'attività
+        $inQueueMap = [];                  //mappa che associa l'id dell'attività pianificata al valore booleano che indica se il cliente è in coda di attesa o meno per quell'attività
         foreach ($apList as $ap) {
             $iscrittoMap[$ap->getId()] = $this->clienteRepo->isIscrittoAAttivita($cliente, $ap);
             $inQueueMap[$ap->getId()] = $this->codaAttesaRepo->existsInCoda($cliente, $ap);
         }
-        $datiView['iscrittoMap'] = $iscrittoMap;
+        $datiView['iscrittoMap'] = $iscrittoMap;        //aggiunge la mappa iscrittoMap ai dati della vista, in modo da poter accedere alle informazioni di iscrizione del cliente nella vista del calendario
         $datiView['inQueueMap'] = $inQueueMap;
-        $datiView['puoPrenotare'] = $cliente->puoPrenotareAttivita();
+        $datiView['puoPrenotare'] = $cliente->puoPrenotareAttivita();       //aggiunge il valore booleano che indica se il cliente può prenotare attività ai dati della vista, in modo da poter accedere a questa informazione nella vista del calendario
     }
 
     // =========================================================================
@@ -246,23 +256,23 @@ class AttivitaPianificataController
             $this->view->mostraStatoOperazione(false, "Accesso negato.");
             return;
         }
-        $idAp = (int)($_REQUEST['id_attivita_pianificata'] ?? 0);
+        $idAp = (int)($_REQUEST['id_attivita_pianificata'] ?? 0);      //recupera l'id dell'attività pianificata dalla query string; REQUEST è un array che contiene i dati della richiesta HTTP, sia GET che POST
         $ap = $this->attivitaPianificataRepo->findById($idAp);
         if (!$ap || $ap->getSala()->getPalestra()->getId() !== $palestra->getId()) {
             $this->view->mostraStatoOperazione(false, "Attività non trovata.", "calendario", "Torna al Calendario");
             return;
         }
-        $rit = "calendario?data=" . $ap->getGiorno()->format('Y-m-d');
+        $rit = "calendario?data=" . $ap->getGiorno()->format('Y-m-d');        //calendario?data=2024-06-01, in modo da tornare alla settimana corretta dopo la prenotazione
         $cliente = $this->recuperaClientePrenotazione($palestra, $rit);
         if ($cliente) {
             $this->eseguiPrenotazione($cliente, $ap, $rit);
         }
     }
 
-    private function recuperaClientePrenotazione(Palestra $palestra, string $ritorno): ?Cliente
+    private function recuperaClientePrenotazione(Palestra $palestra, string $ritorno): ?Cliente     //recupera il cliente da prenotare, controllando se l'utente loggato è un cliente o un allenatore/amministratore che sta prenotando per un cliente specifico
     {
         $ruolo = $this->session->getLoggedUserRole();
-        $id = ($ruolo === 'cliente') ? $this->session->getLoggedUserId() : (int)($_POST['id_cliente'] ?? 0);
+        $id = ($ruolo === 'cliente') ? $this->session->getLoggedUserId() : (int)($_POST['id_cliente'] ?? 0);       //se l'utente loggato è un cliente, recupera il suo id dalla sessione, altrimenti recupera l'id del cliente selezionato dal form di prenotazione
         $cliente = $this->clienteRepo->findById($id);
         if (!$cliente || $cliente->getPalestra()->getId() !== $palestra->getId()) {
             $this->view->mostraStatoOperazione(false, "Cliente non valido.", $ritorno, "Torna al Calendario");
@@ -288,7 +298,7 @@ class AttivitaPianificataController
         try {
             $cliente->iscriviAAttivita($ap);
             $ap->setPrenotati($ap->getPrenotati() + 1);
-            $this->clienteRepo->save($cliente);
+            $this->clienteRepo->save($cliente);                         //salva il cliente con l'iscrizione aggiornata e l'attività pianificata con il numero di prenotati aggiornato
             $this->view->mostraStatoOperazione(true, "Iscrizione registrata con successo.", $ritorno, "Torna al Calendario");
         } catch (\Throwable $e) {
             $this->view->mostraStatoOperazione(false, "Errore: " . $e->getMessage(), $ritorno, "Torna al Calendario");
@@ -320,7 +330,7 @@ class AttivitaPianificataController
             $this->view->mostraStatoOperazione(false, "Accesso negato.");
             return;
         }
-        $idAp = (int)($_REQUEST['id_attivita_pianificata'] ?? 0);
+        $idAp = (int)($_REQUEST['id_attivita_pianificata'] ?? 0);      //recupera l'id dell'attività pianificata dalla query string; REQUEST è un array che contiene i dati della richiesta HTTP, sia GET che POST
         $ap = $this->attivitaPianificataRepo->findById($idAp);
         if (!$ap || $ap->getSala()->getPalestra()->getId() !== $palestra->getId()) {
             $this->view->mostraStatoOperazione(false, "Attività non trovata.", "calendario", "Torna al Calendario");
@@ -335,7 +345,7 @@ class AttivitaPianificataController
 
     private function eseguiDisdetta(Cliente $cliente, AttivitaPianificata $ap, string $ritorno): void
     {
-        $inQueue = $this->codaAttesaRepo->findOneByClienteAndAttivita($cliente, $ap);
+        $inQueue = $this->codaAttesaRepo->findOneByClienteAndAttivita($cliente, $ap);   //controlla se il cliente è in coda di attesa per quell'attività pianificata
         if (!$this->clienteRepo->isIscrittoAAttivita($cliente, $ap)) {
             if ($inQueue) {
                 $this->rimuoviDaCoda($inQueue, $ritorno);
@@ -403,7 +413,7 @@ class AttivitaPianificataController
             $this->view->mostraStatoOperazione(false, "Allenatore non trovato.", "calendario", "Torna al Calendario");
             return;
         }
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {   //se la richiesta è GET, mostra il form per prenotare una sessione privata
             $this->view->mostraFormPrenotaSessionePrivata(['clienti' => $this->clienteRepo->findByPalestra($palestra)]);
             return;
         }
@@ -434,7 +444,7 @@ class AttivitaPianificataController
     {
         try {
             $dataObj = new \DateTimeImmutable($dataStr);
-            $oraInObj = new DateTimeImmutableStringable($dataStr . ' ' . $oraIn);
+            $oraInObj = new DateTimeImmutableStringable($dataStr . ' ' . $oraIn);      //crea un oggetto DateTimeImmutableStringable per l'ora di inizio della sessione privata, combinando la data e l'ora di inizio
             $oraFiObj = new DateTimeImmutableStringable($dataStr . ' ' . $oraFi);
             if ($oraInObj >= $oraFiObj) {
                 $this->view->mostraStatoOperazione(false, "L'ora di inizio deve precedere la fine.", $rit, "Torna al Calendario");
@@ -530,15 +540,15 @@ class AttivitaPianificataController
             if (!empty($rip)) {
                 for ($i = 0; $i < 28; $i++) {
                     $current = (clone $startDate)->modify("+$i days");
-                    if (in_array((string)$current->format('N'), $rip)) {
-                        $giornoImm = \DateTimeImmutable::createFromMutable($current);
-                        if (!$this->attivitaPianificataRepo->findOneByGiornoOrarioAndSala($giornoImm, $orario, $sala)) {
+                    if (in_array((string)$current->format('N'), $rip)) {      //controlla se il giorno corrente della settimana (1-7) è presente nell'array dei giorni selezionati per la ripetizione
+                        $giornoImm = \DateTimeImmutable::createFromMutable($current);      //crea un oggetto DateTimeImmutable a partire dall'oggetto DateTime corrente, in modo da avere una data immutabile per la pianificazione dell'attività
+                        if (!$this->attivitaPianificataRepo->findOneByGiornoOrarioAndSala($giornoImm, $orario, $sala)) {    //controlla se esiste già un'attività pianificata per quel giorno, orario e sala; se non esiste, crea una nuova attività pianificata
                             $this->attivitaPianificataRepo->save(new AttivitaPianificata($giornoImm, $orario, $sala, $all, $att));
                         }
                     }
                 }
             } else {
-                $giornoImm = \DateTimeImmutable::createFromMutable($startDate);
+                $giornoImm = \DateTimeImmutable::createFromMutable($startDate);        //crea un oggetto DateTimeImmutable a partire dall'oggetto DateTime passato come parametro, in modo da avere una data immutabile per la pianificazione dell'attività
                 if ($this->attivitaPianificataRepo->findOneByGiornoOrarioAndSala($giornoImm, $orario, $sala)) {
                     $this->view->mostraStatoOperazione(false, "Sala occupata.", $rit, "Torna al Calendario");
                     return;

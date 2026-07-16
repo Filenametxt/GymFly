@@ -27,7 +27,14 @@ use App\Entity\Allenatore;
 use App\Entity\Cliente;
 use App\Entity\Attivita;
 use App\Entity\Palestra;
+use App\Entity\CertificatoMedico;
+use App\Entity\AbbonamentoAttivo;
+use App\Entity\Iscrizione;
+use App\Entity\AttivitaPianificata;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Entity\Messaggio;
+use App\Entity\Repository\MessaggioRepositoryInterface;
+use \App\Foundation\Persistence\Repository\DoctrineMessaggioRepository;
 
 class AmministratoreController
 {
@@ -40,6 +47,7 @@ class AmministratoreController
     private ParametriRepositoryInterface $parametriRepo;
     private SchedaRepositoryInterface $schedaRepo;
     private PalestraRepositoryInterface $palestraRepo;
+    private MessaggioRepositoryInterface $messaggioRepo;
     private AmministratoreView $view;
 
     public function __construct(
@@ -56,6 +64,7 @@ class AmministratoreController
         $this->schedaRepo = new DoctrineSchedaRepository($this->entityManager);
         $this->palestraRepo = new DoctrinePalestraRepository($this->entityManager);
         $this->view = new AmministratoreViewSmarty();
+        $this->messaggioRepo = new DoctrineMessaggioRepository($this->entityManager);
     }
 
     // =========================================================================
@@ -107,7 +116,7 @@ class AmministratoreController
         ];
     }
 
-    private function salvaEInviaMailCliente(Palestra $palestra, array $dati): void      
+    private function salvaEInviaMailCliente(Palestra $palestra, array $dati): void      //salva il cliente e invia la mail con la password temporanea
     {
         try {           //vincolo sulla data di nascita
             $dataDiNascita = new \DateTimeImmutable($dati['dataNascitaStr']);
@@ -131,7 +140,7 @@ class AmministratoreController
     // 2. CREAZIONE ALLENATORE
     // =========================================================================
 
-    public function creaAllenatore(): void
+    public function creaAllenatore(): void      //va a recuperare la palestra dall'amministratore e mostra il form per la creazione dell'allenatore
     {
         $palestra = $this->recuperaPalestraAdmin();
         if (!$palestra) {
@@ -147,7 +156,7 @@ class AmministratoreController
 
     private function eseguiCreazioneAllenatore(Palestra $palestra): void
     {
-        $nome = !empty($_POST['nome']) ? trim($_POST['nome']) : '';
+        $nome = !empty($_POST['nome']) ? trim($_POST['nome']) : '';             //se il nome è vuoto allora ritorna stringa vuota, altrimenti ritorna il nome senza spazi
         $cognome = !empty($_POST['cognome']) ? trim($_POST['cognome']) : '';
         $email = !empty($_POST['email']) ? trim($_POST['email']) : '';
         $cf = !empty($_POST['cf']) ? trim($_POST['cf']) : '';
@@ -184,7 +193,7 @@ class AmministratoreController
     // 3. CREAZIONE ATTIVITA
     // =========================================================================
 
-    public function creaAttivita(): void
+    public function creaAttivita(): void        //va a recuperare la palestra dall'amministratore e mostra il form per la creazione dell'attivita
     {
         $palestra = $this->recuperaPalestraAdmin();
         if (!$palestra) {
@@ -198,7 +207,7 @@ class AmministratoreController
         $this->eseguiCreazioneAttivita();
     }
 
-    private function eseguiCreazioneAttivita(): void
+    private function eseguiCreazioneAttivita(): void  //esegue la creazione dell'attività, validando i dati e salvando 
     {
         $nome = !empty($_POST['nome']) ? trim($_POST['nome']) : '';
         $descrizione = !empty($_POST['descrizione']) ? trim($_POST['descrizione']) : '';
@@ -225,7 +234,7 @@ class AmministratoreController
     // 4. ABILITAZIONE ATTIVITA ALLENATORE
     // =========================================================================
 
-    public function abilitaAttivitaAllenatore(): void
+    public function abilitaAttivitaAllenatore(): void       //va a recuperare la palestra dall'amministratore e mostra il form per abilitare o disabilitare un allenatore ad una attività
     {
         $palestra = $this->recuperaPalestraAdmin();
         if (!$palestra) {
@@ -233,7 +242,7 @@ class AmministratoreController
             return;
         }
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            $this->view->mostraFormAbilitaAttivita([
+            $this->view->mostraFormAbilitaAttivita([        //checkbox
                 'allenatori' => $this->allenatoreRepo->findByPalestra($palestra),
                 'attivita' => $this->attivitaRepo->findAll()
             ]);
@@ -242,11 +251,11 @@ class AmministratoreController
         $this->eseguiAbilitazioneAllenatore($palestra);
     }
 
-    private function eseguiAbilitazioneAllenatore(Palestra $palestra): void
+    private function eseguiAbilitazioneAllenatore(Palestra $palestra): void     //esegue l'abilitazione o disabilitazione di un allenatore ad una attività, validando i dati e salvando le modifiche
     {
-        $idAllenatore = isset($_POST['id_allenatore']) ? (int)$_POST['id_allenatore'] : 0;
+        $idAllenatore = isset($_POST['id_allenatore']) ? (int)$_POST['id_allenatore'] : 0;  //recupera l'id dell'allenatore selezionato dal form
         $idAttivita = isset($_POST['id_attivita']) ? (int)$_POST['id_attivita'] : 0;
-        $azione = isset($_POST['azione']) ? $_POST['azione'] : 'abilita';
+        $azione = isset($_POST['azione']) ? $_POST['azione'] : 'abilita';       //checki della checkbox
         $allenatore = $this->allenatoreRepo->findById($idAllenatore);
         $attivita = $this->attivitaRepo->findById($idAttivita);
 
@@ -254,7 +263,7 @@ class AmministratoreController
             $this->view->mostraStatoOperazione(false, "Allenatore o Attività non validi.", "allenatori", "Torna a Gestione Allenatori");
             return;
         }
-        if ($allenatore->getPalestra()->getId() !== $palestra->getId()) {
+        if ($allenatore->getPalestra()->getId() !== $palestra->getId()) {   //se l'allenatore non fa parte di quella palestra
             $this->view->mostraStatoOperazione(false, "L'allenatore non appartiene al tuo centro sportivo.", "allenatori", "Torna a Gestione Allenatori");
             return;
         }
@@ -271,7 +280,7 @@ class AmministratoreController
                 $allenatore->removeAbilitazione($attivita);
                 $msg = "Abilitazione all'attività " . $attivita->getNome() . " rimossa con successo.";
             }
-            $this->entityManager->flush();
+            $this->entityManager->flush();      //salva le modifiche al database
             $this->view->mostraStatoOperazione(true, $msg, "allenatori", "Torna a Gestione Allenatori");
         } catch (\Throwable $e) {
             $this->view->mostraStatoOperazione(false, "Errore: " . $e->getMessage(), "allenatori", "Torna a Gestione Allenatori");
@@ -282,7 +291,7 @@ class AmministratoreController
     // 5. RIMOZIONE CLIENTE
     // =========================================================================
 
-    public function rimuoviCliente(): void
+    public function rimuoviCliente(): void      //recupera la palestra dall'amministratore e rimuove il cliente selezionato, gestendo eventuali errori
     {
         $palestra = $this->recuperaPalestraAdmin();
         if (!$palestra) {
@@ -312,9 +321,9 @@ class AmministratoreController
             $abb = $cliente->getAbbonamento();
             $isc = $cliente->getIscrizione();
             
-            $this->scollegaEntitaUnoAUno($cliente, $cert, $abb, $isc);
+            $this->scollegaEntitaUnoAUno($cliente, $cert, $abb, $isc);  //elimina la relazione
             $this->clienteRepo->delete($cliente);
-            $this->rimuoviEntitaOrfane($cert, $abb, $isc);
+            $this->rimuoviEntitaOrfane($cert, $abb, $isc);      //elimina le entità orfane
             
             $this->view->mostraStatoOperazione(true, "Rimozione del cliente " . $nomeCompleto . " avvenuta con successo.", "clienti", "Torna a Gestione Clienti");
         } catch (\Throwable $e) {
@@ -324,7 +333,7 @@ class AmministratoreController
 
     private function rimuoviDipendenzeCliente(Cliente $cliente): void
     {
-        foreach ($cliente->getAttivitaPianificate() as $attivita) {
+        foreach ($cliente->getAttivitaPianificate() as $attivita) {     //per tutte le attività pianificate a cui il cliente è iscritto, rimuove l'iscrizione e decrementa il numero di prenotati
             $cliente->cancellaIscrizioneAttivita($attivita);
             $attivita->setPrenotati(max(0, $attivita->getPrenotati() - 1));
             $this->scorriCodaAttivita($attivita);
@@ -334,7 +343,7 @@ class AmministratoreController
 
     private function pulisciListeSecondarieCliente(Cliente $cliente): void
     {
-        foreach ($this->codaAttesaRepo->findByCliente($cliente) as $c) {
+        foreach ($this->codaAttesaRepo->findByCliente($cliente) as $c) {  //cancella il cliente da tutte le code d'attesa in cui è presente
             $this->codaAttesaRepo->delete($c);
         }
         foreach ($this->sessionePrivataRepo->findByCliente($cliente) as $s) {
@@ -349,10 +358,10 @@ class AmministratoreController
         }
     }
 
-    private function scorriCodaAttivita($attivita): void
+    private function scorriCodaAttivita(AttivitaPianificata $attivita): void
     {
         $codaPrimo = $this->codaAttesaRepo->findPrimoInCoda($attivita);
-        if ($codaPrimo) {
+        if ($codaPrimo) {   //se c'è qualcuno in coda, lo iscrive automaticamente all'attività e invia una mail di notifica
             $clienteScelto = $codaPrimo->getCliente();
             $clienteScelto->iscriviAAttivita($attivita);
             $attivita->setPrenotati($attivita->getPrenotati() + 1);
@@ -362,16 +371,16 @@ class AmministratoreController
             $oggettoMsg = "Iscrizione automatica all'attività";
             $contenutoMsg = "Ciao " . $clienteScelto->getNome() . ",\n\nti informiamo che si è liberato un posto e sei stato iscritto automaticamente all'attività: " . $attivita->getAttivita()->getNome() . " in data " . $attivita->getGiorno()->format('d/m/Y') . " alle ore " . $attivita->getOrario() . ":00.\n\nSaluti,\nLo staff di GymFly";
             
-            $messaggio = new \App\Entity\Messaggio($mittente, $oggettoMsg, $contenutoMsg);
+            $messaggio = new Messaggio($mittente, $oggettoMsg, $contenutoMsg);
             $messaggio->aggiungiDestinatario($clienteScelto);
-            $this->entityManager->persist($messaggio);
+            $this->messaggioRepo->save($messaggio);
 
             $headers = "From: no-reply@gymfly.com\r\nReply-To: support@gymfly.com\r\nContent-Type: text/plain; charset=utf-8";
             @mail($clienteScelto->getEmail(), $oggettoMsg, $contenutoMsg, $headers);
         }
     }
 
-    private function scollegaEntitaUnoAUno(Cliente $cliente, $cert, $abb, $isc): void
+    private function scollegaEntitaUnoAUno(Cliente $cliente, ?CertificatoMedico $cert, ?AbbonamentoAttivo $abb, ?Iscrizione $isc): void
     {
         if ($cert) {
             $cliente->setCertificatoMedico(null);
@@ -385,7 +394,7 @@ class AmministratoreController
         $this->entityManager->flush();
     }
 
-    private function rimuoviEntitaOrfane($cert, $abb, $isc): void
+    private function rimuoviEntitaOrfane(?CertificatoMedico $cert, ?AbbonamentoAttivo $abb, ?Iscrizione $isc): void
     {
         if ($cert) {
             $this->entityManager->remove($cert);
@@ -403,7 +412,7 @@ class AmministratoreController
     // 6. RIMOZIONE ALLENATORE
     // =========================================================================
 
-    public function rimuoviAllenatore(): void
+    public function rimuoviAllenatore(): void       //recupera la palestra dall'amministratore e rimuove l'allenatore selezionato, gestendo eventuali errori
     {
         $palestra = $this->recuperaPalestraAdmin();
         if (!$palestra) {
@@ -438,7 +447,7 @@ class AmministratoreController
     // 7. RIMOZIONE ATTIVITA
     // =========================================================================
 
-    public function rimuoviAttivita(): void
+    public function rimuoviAttivita(): void         //recupera la palestra dall'amministratore e rimuove l'attività selezionata, gestendo eventuali errori
     {
         $palestra = $this->recuperaPalestraAdmin();
         if (!$palestra) {
