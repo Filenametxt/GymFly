@@ -62,7 +62,7 @@ class AmministratoreController
     // 1. CREAZIONE CLIENTE
     // =========================================================================
 
-    public function creaCliente(): void
+    public function creaCliente(): void     //va a recuperare la palestra dall'amministratore e mostra il form per la creazione del cliente
     {
         $palestra = $this->recuperaPalestraAdmin();
         if (!$palestra) {
@@ -73,7 +73,7 @@ class AmministratoreController
             $this->view->mostraFormCreaCliente([]);
             return;
         }
-        $this->eseguiCreazioneCliente($palestra);
+        $this->eseguiCreazioneCliente($palestra);       //se non è GET è POST, quinid la form è stata già inviata
     }
 
     private function eseguiCreazioneCliente(Palestra $palestra): void
@@ -90,7 +90,7 @@ class AmministratoreController
         $this->salvaEInviaMailCliente($palestra, $dati);
     }
 
-    private function estraiDatiClientePost(): array
+    private function estraiDatiClientePost(): array     //ritorna tutte le infrormazioni inviate con il POST
     {
         return [
             'nome' => !empty($_POST['nome']) ? trim($_POST['nome']) : '',
@@ -107,9 +107,9 @@ class AmministratoreController
         ];
     }
 
-    private function salvaEInviaMailCliente(Palestra $palestra, array $dati): void
+    private function salvaEInviaMailCliente(Palestra $palestra, array $dati): void      
     {
-        try {
+        try {           //vincolo sulla data di nascita
             $dataDiNascita = new \DateTimeImmutable($dati['dataNascitaStr']);
             if ($dataDiNascita > new \DateTimeImmutable()) {
                 $this->view->mostraStatoOperazione(false, "La data di nascita non può essere futura.", "clienti", "Torna a Gestione Clienti");
@@ -469,11 +469,11 @@ class AmministratoreController
     // HELPER PRIVATI GENERALI
     // =========================================================================
 
-    private function recuperaPalestraAdmin(): ?Palestra
+    private function recuperaPalestraAdmin(): ?Palestra     //recupera la palestra dall'amministratore
     {
-        $idAdmin = $this->session->getLoggedUserId();
+        $idAdmin = $this->session->getLoggedUserId();       //va a recuperare l'id dalla sessione
         $ruolo = $this->session->getLoggedUserRole();
-        if (!$idAdmin || $ruolo !== 'amministratore') {
+        if (!$idAdmin || $ruolo !== 'amministratore') {     //se non c'è id e il ruolo non è admin allora esci
             return null;
         }
         $admin = $this->utenteRepo->findById($idAdmin);

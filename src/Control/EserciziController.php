@@ -341,30 +341,6 @@ class EserciziController
     }
 
     /**
-     * 3c. Gestione e Opzioni di Salvataggio: ELIMINA
-     * Annulla la creazione e pulisce la cache.
-     */
-    public function eliminaBozzaEsercizio(): void
-    {
-        $idAllenatore = $this->session->getLoggedUserId();
-        $ruolo = $this->session->getLoggedUserRole();
-
-        if (!$idAllenatore || $ruolo !== 'allenatore') {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.", "login");
-            return;
-        }
-
-        $idProvvisorio = $_GET['id'] ?? $_POST['id_provvisorio'] ?? '';
-
-        // Pulisce la cache di sessione
-        if ($idProvvisorio !== '' && isset($_SESSION['bozze_esercizi'][$idProvvisorio])) {
-            unset($_SESSION['bozze_esercizi'][$idProvvisorio]);
-        }
-
-        $this->view->mostraStatoOperazione(true, "Creazione esercizio annullata e cache pulita.", "esercizi", "Torna a Gestione Esercizi");
-    }
-
-    /**
      * Visualizza la lista di tutti gli esercizi creati.
      */
     public function listaEsercizi(): void
