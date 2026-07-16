@@ -8,10 +8,14 @@ use App\Entity\Repository\PalestraRepositoryInterface;
 use App\Entity\Repository\AbbonamentoRepositoryInterface;
 use App\Entity\Repository\ClienteRepositoryInterface;
 use App\Entity\Repository\AmministratoreRepositoryInterface;
+use App\Entity\Repository\AbbonamentoAttivoRepositoryInterface;
+use App\Entity\Repository\IscrizioneRepositoryInterface;
 use App\Foundation\Persistence\Repository\DoctrinePalestraRepository;
 use App\Foundation\Persistence\Repository\DoctrineAbbonamentoRepository;
 use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
 use App\Foundation\Persistence\Repository\DoctrineAmministratoreRepository;
+use App\Foundation\Persistence\Repository\DoctrineAbbonamentoAttivoRepository;
+use App\Foundation\Persistence\Repository\DoctrineIscrizioneRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\AbbonamentoAttivo;
 use App\Entity\Iscrizione;
@@ -23,6 +27,8 @@ class AbbonamentiController
     private AbbonamentoRepositoryInterface $abbonamentoRepo;
     private ClienteRepositoryInterface $clienteRepo;
     private AmministratoreRepositoryInterface $amministratoreRepo;
+    private AbbonamentoAttivoRepositoryInterface $abbonamentoAttivoRepo;
+    private IscrizioneRepositoryInterface $iscrizioneRepo;
 
     public function __construct(
         private EntityManagerInterface $entityManager,
@@ -33,6 +39,8 @@ class AbbonamentiController
         $this->abbonamentoRepo = new DoctrineAbbonamentoRepository($this->entityManager);
         $this->clienteRepo = new DoctrineClienteRepository($this->entityManager);
         $this->amministratoreRepo = new DoctrineAmministratoreRepository($this->entityManager);
+        $this->abbonamentoAttivoRepo = new DoctrineAbbonamentoAttivoRepository($this->entityManager);
+        $this->iscrizioneRepo = new DoctrineIscrizioneRepository($this->entityManager);
     }
 
     public function gestisciAbbonamento(): void
@@ -107,8 +115,8 @@ class AbbonamentiController
         $this->rimuoviAbbonamentoEsistente($cliente);
         $newAbb = new AbbonamentoAttivo($start, $plan);
         $cliente->setAbbonamento($newAbb);
-        $this->entityManager->persist($newAbb);
-        $this->entityManager->flush();
+        $this->abbonamentoAttivoRepo->save($newAbb);
+        $this->clienteRepo->save($cliente);
         $this->view->mostraConferma("Abbonamento registrato con successo!", "visualizza-profilo?id=" . $cliente->getId(), "Torna al Profilo");
     }
 
@@ -127,8 +135,8 @@ class AbbonamentiController
         $oldAbb = $cliente->getAbbonamento();
         if ($oldAbb !== null) {
             $cliente->setAbbonamento(null);
-            $this->entityManager->remove($oldAbb);
-            $this->entityManager->flush();
+            $this->abbonamentoAttivoRepo->delete($oldAbb);
+            $this->clienteRepo->save($cliente);
         }
     }
 
@@ -143,8 +151,7 @@ class AbbonamentiController
         }
         try {
             $nuovoPlan = new \App\Entity\AbbonamentoDurata($tipologia, $categoria, (int)$durata);
-            $this->entityManager->persist($nuovoPlan);
-            $this->entityManager->flush();
+            $this->abbonamentoRepo->save($nuovoPlan);
             header('Location: gestione-abbonamento?id=' . $cliente->getId());
             exit();
         } catch (\Exception $e) {
@@ -162,11 +169,12 @@ class AbbonamentiController
             $oldIscrizione = $cliente->getIscrizione();
             if ($oldIscrizione !== null) {
                 $oldIscrizione->setDataInizio($start);
+                $this->iscrizioneRepo->save($oldIscrizione);
             } else {
                 $nuovaIscrizione = new Iscrizione($start, $cliente);
-                $this->entityManager->persist($nuovaIscrizione);
+                $this->iscrizioneRepo->save($nuovaIscrizione);
             }
-            $this->entityManager->flush();
+            $this->clienteRepo->save($cliente);
             $this->view->mostraConferma("Iscrizione annuale aggiornata con successo!", "visualizza-profilo?id=" . $cliente->getId(), "Torna al Profilo");
         } catch (\InvalidArgumentException $e) {
             $this->view->mostraErrore("Errore di validazione: " . $e->getMessage(), "visualizza-profilo?id=" . $cliente->getId(), "Torna al Profilo");

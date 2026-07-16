@@ -733,7 +733,7 @@ class ProfiloController
     /**
      * Recupera l'utente loggato instanziando la sua classe concreta specifica per evitare proxy casting issue
      */
-    private function recuperaUtenteLoggato(\Doctrine\ORM\EntityManagerInterface $entityManager, int $idUtente, ?string $ruolo): ?Utente
+    private function recuperaUtenteLoggato(EntityManagerInterface $entityManager, int $idUtente, ?string $ruolo): ?Utente
     {
         if ($ruolo === 'cliente') {
             return $entityManager->find(Cliente::class, $idUtente);
