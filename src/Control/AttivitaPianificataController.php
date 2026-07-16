@@ -68,6 +68,10 @@ class AttivitaPianificataController
         $this->view = new AttivitaPianificataViewSmarty();
     }
 
+    // =========================================================================
+    // 1. VISUALIZZA CALENDARIO (/calendario)
+    // =========================================================================
+
     public function visualizzaCalendario(): void
     {
         $palestra = $this->recuperaPalestraUtente();
@@ -98,133 +102,6 @@ class AttivitaPianificataController
         }
         $this->view->mostraCalendario($datiView);
     }
-
-    public function creaAttivitaPianificata(): void
-    {
-        $palestra = $this->recuperaPalestraUtente();
-        if (!$palestra || $this->session->getLoggedUserRole() !== 'amministratore') {
-            $this->view->mostraStatoOperazione(false, "Accesso negato. Solo l'amministratore può pianificare corsi.");
-            return;
-        }
-        $dataStr = trim($_POST['data'] ?? '');
-        $orario = (int)($_POST['orario'] ?? 0);
-        $idAllenatore = (int)($_POST['id_allenatore'] ?? 0);
-        $ritorno = ($dataStr !== '') ? "calendario?data=" . $dataStr : "calendario";
-        if ($dataStr === '' || $orario < 8 || $orario > 20 || $idAllenatore <= 0) {
-            $this->view->mostraStatoOperazione(false, "Dati incompleti o orario non valido (8-20).", $ritorno, "Torna al Calendario");
-            return;
-        }
-        $attivita = $this->ottieniOCreaAttivita((int)($_POST['id_attivita'] ?? 0), $ritorno);
-        $sala = $attivita ? $this->ottieniOCreaSala((int)($_POST['id_sala'] ?? 0), $palestra, $ritorno) : null;
-        $allenatore = $sala ? $this->allenatoreRepo->findById($idAllenatore) : null;
-        if (!$allenatore || $sala->getPalestra()->getId() !== $palestra->getId() || $allenatore->getPalestra()->getId() !== $palestra->getId()) {
-            $this->view->mostraStatoOperazione(false, "Allenatore non trovato o risorse esterne alla palestra.", $ritorno, "Torna al Calendario");
-            return;
-        }
-        $this->salvaPianificazioni(new \DateTime($dataStr), $_POST['ripetizione'] ?? [], $orario, $sala, $allenatore, $attivita, $ritorno);
-    }
-
-    public function rimuoviAttivitaPianificata(): void
-    {
-        $palestra = $this->recuperaPalestraUtente();
-        if (!$palestra || $this->session->getLoggedUserRole() !== 'amministratore') {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.");
-            return;
-        }
-        $id = (int)($_REQUEST['id_attivita_pianificata'] ?? 0);
-        $ap = $this->attivitaPianificataRepo->findById($id);
-        if (!$ap || $ap->getSala()->getPalestra()->getId() !== $palestra->getId()) {
-            $this->view->mostraStatoOperazione(false, "Attività non trovata o accesso negato.", "calendario", "Torna al Calendario");
-            return;
-        }
-        $this->eseguiRimozioneAp($ap);
-    }
-
-    public function prenotaAttivita(): void
-    {
-        $palestra = $this->recuperaPalestraUtente();
-        if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.");
-            return;
-        }
-        $idAp = (int)($_REQUEST['id_attivita_pianificata'] ?? 0);
-        $ap = $this->attivitaPianificataRepo->findById($idAp);
-        if (!$ap || $ap->getSala()->getPalestra()->getId() !== $palestra->getId()) {
-            $this->view->mostraStatoOperazione(false, "Attività non trovata.", "calendario", "Torna al Calendario");
-            return;
-        }
-        $rit = "calendario?data=" . $ap->getGiorno()->format('Y-m-d');
-        $cliente = $this->recuperaClientePrenotazione($palestra, $rit);
-        if ($cliente) {
-            $this->eseguiPrenotazione($cliente, $ap, $rit);
-        }
-    }
-
-    public function disdiciPrenotazione(): void
-    {
-        $palestra = $this->recuperaPalestraUtente();
-        if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.");
-            return;
-        }
-        $idAp = (int)($_REQUEST['id_attivita_pianificata'] ?? 0);
-        $ap = $this->attivitaPianificataRepo->findById($idAp);
-        if (!$ap || $ap->getSala()->getPalestra()->getId() !== $palestra->getId()) {
-            $this->view->mostraStatoOperazione(false, "Attività non trovata.", "calendario", "Torna al Calendario");
-            return;
-        }
-        $rit = "calendario?data=" . $ap->getGiorno()->format('Y-m-d');
-        $cliente = $this->recuperaClientePrenotazione($palestra, $rit);
-        if ($cliente) {
-            $this->eseguiDisdetta($cliente, $ap, $rit);
-        }
-    }
-
-    public function prenotaSessionePrivata(): void
-    {
-        $palestra = $this->recuperaPalestraUtente();
-        if (!$palestra || $this->session->getLoggedUserRole() !== 'allenatore') {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.");
-            return;
-        }
-        $idAllenatore = $this->session->getLoggedUserId();
-        $allenatore = $this->allenatoreRepo->findById($idAllenatore);
-        if (!$allenatore) {
-            $this->view->mostraStatoOperazione(false, "Allenatore non trovato.", "calendario", "Torna al Calendario");
-            return;
-        }
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            $this->view->mostraFormPrenotaSessionePrivata(['clienti' => $this->clienteRepo->findByPalestra($palestra)]);
-            return;
-        }
-        $this->eseguiPrenotazioneSp($allenatore, $palestra);
-    }
-
-    public function disdiciSessionePrivata(): void
-    {
-        $palestra = $this->recuperaPalestraUtente();
-        if (!$palestra || !in_array($this->session->getLoggedUserRole(), ['cliente', 'allenatore'])) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.");
-            return;
-        }
-        $idAllenatore = (int)($_REQUEST['id_allenatore'] ?? 0);
-        $oraInStr = trim($_REQUEST['ora_inizio'] ?? '');
-        $oraFiStr = trim($_REQUEST['ora_fine'] ?? '');
-        if ($idAllenatore <= 0 || $oraInStr === '' || $oraFiStr === '') {
-            $this->view->mostraStatoOperazione(false, "Dati identificativi della sessione non validi.", "calendario", "Torna al Calendario");
-            return;
-        }
-        $allenatore = $this->allenatoreRepo->findById($idAllenatore);
-        if (!$allenatore) {
-            $this->view->mostraStatoOperazione(false, "Allenatore non trovato.", "calendario", "Torna al Calendario");
-            return;
-        }
-        $this->eseguiDisdettaSp($allenatore, $oraInStr, $oraFiStr);
-    }
-
-    // =========================================================================
-    // HELPER PRIVATI - GESTIONE CALENDARIO
-    // =========================================================================
 
     private function calcolaSettimana(string $dataStr): array
     {
@@ -359,8 +236,252 @@ class AttivitaPianificataController
     }
 
     // =========================================================================
-    // HELPER PRIVATI - CREAZIONE ATTIVITA PIANIFICATA
+    // 2. PRENOTA ATTIVITÀ (/prenota-attivita)
     // =========================================================================
+
+    public function prenotaAttivita(): void
+    {
+        $palestra = $this->recuperaPalestraUtente();
+        if (!$palestra) {
+            $this->view->mostraStatoOperazione(false, "Accesso negato.");
+            return;
+        }
+        $idAp = (int)($_REQUEST['id_attivita_pianificata'] ?? 0);
+        $ap = $this->attivitaPianificataRepo->findById($idAp);
+        if (!$ap || $ap->getSala()->getPalestra()->getId() !== $palestra->getId()) {
+            $this->view->mostraStatoOperazione(false, "Attività non trovata.", "calendario", "Torna al Calendario");
+            return;
+        }
+        $rit = "calendario?data=" . $ap->getGiorno()->format('Y-m-d');
+        $cliente = $this->recuperaClientePrenotazione($palestra, $rit);
+        if ($cliente) {
+            $this->eseguiPrenotazione($cliente, $ap, $rit);
+        }
+    }
+
+    private function recuperaClientePrenotazione(Palestra $palestra, string $ritorno): ?Cliente
+    {
+        $ruolo = $this->session->getLoggedUserRole();
+        $id = ($ruolo === 'cliente') ? $this->session->getLoggedUserId() : (int)($_POST['id_cliente'] ?? 0);
+        $cliente = $this->clienteRepo->findById($id);
+        if (!$cliente || $cliente->getPalestra()->getId() !== $palestra->getId()) {
+            $this->view->mostraStatoOperazione(false, "Cliente non valido.", $ritorno, "Torna al Calendario");
+            return null;
+        }
+        return $cliente;
+    }
+
+    private function eseguiPrenotazione(Cliente $cliente, AttivitaPianificata $ap, string $ritorno): void
+    {
+        if ($this->clienteRepo->isIscrittoAAttivita($cliente, $ap)) {
+            $this->view->mostraStatoOperazione(false, "Il cliente risulta già iscritto.", $ritorno, "Torna al Calendario");
+            return;
+        }
+        if (!$cliente->puoPrenotareAttivita()) {
+            $this->view->mostraStatoOperazione(false, "Il cliente deve avere abbonamento attivo e certificato valido.", $ritorno, "Torna al Calendario");
+            return;
+        }
+        if ($ap->getPrenotati() >= $ap->getMaxPartecipanti()) {
+            $this->gestisciCodaAttesa($cliente, $ap, $ritorno);
+            return;
+        }
+        try {
+            $cliente->iscriviAAttivita($ap);
+            $ap->setPrenotati($ap->getPrenotati() + 1);
+            $this->clienteRepo->save($cliente);
+            $this->view->mostraStatoOperazione(true, "Iscrizione registrata con successo.", $ritorno, "Torna al Calendario");
+        } catch (\Throwable $e) {
+            $this->view->mostraStatoOperazione(false, "Errore: " . $e->getMessage(), $ritorno, "Torna al Calendario");
+        }
+    }
+
+    private function gestisciCodaAttesa(Cliente $cliente, AttivitaPianificata $ap, string $ritorno): void
+    {
+        if ($this->codaAttesaRepo->findOneByClienteAndAttivita($cliente, $ap)) {
+            $this->view->mostraStatoOperazione(false, "Sei già inserito nella coda di attesa.", $ritorno, "Torna al Calendario");
+            return;
+        }
+        try {
+            $this->codaAttesaRepo->save(new CodaAttesa($cliente, $ap));
+            $this->view->mostraStatoOperazione(true, "Capienza massima raggiunta. Inserito nella coda di attesa.", $ritorno, "Torna al Calendario");
+        } catch (\Throwable $e) {
+            $this->view->mostraStatoOperazione(false, "Impossibile inserire nella coda: " . $e->getMessage(), $ritorno, "Torna al Calendario");
+        }
+    }
+
+    // =========================================================================
+    // 3. DISDICI PRENOTAZIONE (/disdici-prenotazione)
+    // =========================================================================
+
+    public function disdiciPrenotazione(): void
+    {
+        $palestra = $this->recuperaPalestraUtente();
+        if (!$palestra) {
+            $this->view->mostraStatoOperazione(false, "Accesso negato.");
+            return;
+        }
+        $idAp = (int)($_REQUEST['id_attivita_pianificata'] ?? 0);
+        $ap = $this->attivitaPianificataRepo->findById($idAp);
+        if (!$ap || $ap->getSala()->getPalestra()->getId() !== $palestra->getId()) {
+            $this->view->mostraStatoOperazione(false, "Attività non trovata.", "calendario", "Torna al Calendario");
+            return;
+        }
+        $rit = "calendario?data=" . $ap->getGiorno()->format('Y-m-d');
+        $cliente = $this->recuperaClientePrenotazione($palestra, $rit);
+        if ($cliente) {
+            $this->eseguiDisdetta($cliente, $ap, $rit);
+        }
+    }
+
+    private function eseguiDisdetta(Cliente $cliente, AttivitaPianificata $ap, string $ritorno): void
+    {
+        $inQueue = $this->codaAttesaRepo->findOneByClienteAndAttivita($cliente, $ap);
+        if (!$this->clienteRepo->isIscrittoAAttivita($cliente, $ap)) {
+            if ($inQueue) {
+                $this->rimuoviDaCoda($inQueue, $ritorno);
+            } else {
+                $this->view->mostraStatoOperazione(false, "Il cliente non risulta iscritto o in coda.", $ritorno, "Torna al Calendario");
+            }
+            return;
+        }
+        try {
+            $cliente->cancellaIscrizioneAttivita($ap);
+            $ap->setPrenotati(max(0, $ap->getPrenotati() - 1));
+            $this->clienteRepo->save($cliente);
+            $this->scorriCodaEnotifica($ap);
+            $this->view->mostraStatoOperazione(true, "Iscrizione cancellata con successo.", $ritorno, "Torna al Calendario");
+        } catch (\Throwable $e) {
+            $this->view->mostraStatoOperazione(false, "Errore disdetta: " . $e->getMessage(), $ritorno, "Torna al Calendario");
+        }
+    }
+
+    private function rimuoviDaCoda(CodaAttesa $inQueue, string $ritorno): void
+    {
+        try {
+            $this->codaAttesaRepo->delete($inQueue);
+            $this->view->mostraStatoOperazione(true, "Sei stato rimosso dalla coda di attesa.", $ritorno, "Torna al Calendario");
+        } catch (\Throwable $e) {
+            $this->view->mostraStatoOperazione(false, "Impossibile rimuovere dalla coda: " . $e->getMessage(), $ritorno, "Torna al Calendario");
+        }
+    }
+
+    private function scorriCodaEnotifica(AttivitaPianificata $ap): void
+    {
+        $codaPrimo = $this->codaAttesaRepo->findPrimoInCoda($ap);
+        if ($codaPrimo) {
+            $clienteScelto = $codaPrimo->getCliente();
+            $clienteScelto->iscriviAAttivita($ap);
+            $ap->setPrenotati($ap->getPrenotati() + 1);
+            $this->codaAttesaRepo->delete($codaPrimo);
+            $this->clienteRepo->save($clienteScelto);
+
+            $oggettoMsg = "Iscrizione automatica all'attività";
+            $contenutoMsg = "Ciao " . $clienteScelto->getNome() . ",\n\nti informiamo che si è liberato un posto e sei stato iscritto automaticamente all'attività: " . $ap->getAttivita()->getNome() . " in data " . $ap->getGiorno()->format('d/m/Y') . " alle ore " . $ap->getOrario() . ":00.\n\nSaluti,\nLo staff di GymFly";
+            $messaggio = new Messaggio($ap->getAllenatore(), $oggettoMsg, $contenutoMsg);
+            $messaggio->aggiungiDestinatario($clienteScelto);
+            $this->messaggioRepo->save($messaggio);
+
+            $headers = "From: no-reply@gymfly.com\r\nReply-To: support@gymfly.com\r\nContent-Type: text/plain; charset=utf-8";
+            @mail($clienteScelto->getEmail(), $oggettoMsg, $contenutoMsg, $headers);
+        }
+    }
+
+    // =========================================================================
+    // 4. PRENOTA SESSIONE PRIVATA (/prenota-sessione-privata)
+    // =========================================================================
+
+    public function prenotaSessionePrivata(): void
+    {
+        $palestra = $this->recuperaPalestraUtente();
+        if (!$palestra || $this->session->getLoggedUserRole() !== 'allenatore') {
+            $this->view->mostraStatoOperazione(false, "Accesso negato.");
+            return;
+        }
+        $idAllenatore = $this->session->getLoggedUserId();
+        $allenatore = $this->allenatoreRepo->findById($idAllenatore);
+        if (!$allenatore) {
+            $this->view->mostraStatoOperazione(false, "Allenatore non trovato.", "calendario", "Torna al Calendario");
+            return;
+        }
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $this->view->mostraFormPrenotaSessionePrivata(['clienti' => $this->clienteRepo->findByPalestra($palestra)]);
+            return;
+        }
+        $this->eseguiPrenotazioneSp($allenatore, $palestra);
+    }
+
+    private function eseguiPrenotazioneSp(Allenatore $all, Palestra $pal): void
+    {
+        $idCliente = (int)($_POST['id_cliente'] ?? 0);
+        $dataStr = trim($_POST['data'] ?? '');
+        $rit = ($dataStr !== '') ? "calendario?data=" . $dataStr : "calendario";
+        $oraIn = trim($_POST['ora_inizio'] ?? '');
+        $oraFi = trim($_POST['ora_fine'] ?? '');
+
+        if ($idCliente <= 0 || $dataStr === '' || $oraIn === '' || $oraFi === '') {
+            $this->view->mostraStatoOperazione(false, "Campi obbligatori mancanti.", $rit, "Torna al Calendario");
+            return;
+        }
+        $cliente = $this->clienteRepo->findById($idCliente);
+        if (!$cliente || $cliente->getPalestra()->getId() !== $pal->getId()) {
+            $this->view->mostraStatoOperazione(false, "Cliente non valido.", $rit, "Torna al Calendario");
+            return;
+        }
+        $this->salvaSpEInviaMessaggio($cliente, $all, $dataStr, $oraIn, $oraFi, $rit);
+    }
+
+    private function salvaSpEInviaMessaggio(Cliente $cli, Allenatore $all, string $dataStr, string $oraIn, string $oraFi, string $rit): void
+    {
+        try {
+            $dataObj = new \DateTimeImmutable($dataStr);
+            $oraInObj = new DateTimeImmutableStringable($dataStr . ' ' . $oraIn);
+            $oraFiObj = new DateTimeImmutableStringable($dataStr . ' ' . $oraFi);
+            if ($oraInObj >= $oraFiObj) {
+                $this->view->mostraStatoOperazione(false, "L'ora di inizio deve precedere la fine.", $rit, "Torna al Calendario");
+                return;
+            }
+            if ($this->sessionePrivataRepo->existsSovrapposizioneAllenatore($all, $dataObj, $oraInObj, $oraFiObj) || $this->sessionePrivataRepo->existsSovrapposizioneCliente($cli, $dataObj, $oraInObj, $oraFiObj)) {
+                $this->view->mostraStatoOperazione(false, "Sovrapposizione di impegni rilevata.", $rit, "Torna al Calendario");
+                return;
+            }
+            $this->sessionePrivataRepo->save(new SessionePrivata($dataObj, $oraInObj, $oraFiObj, $cli, $all));
+            $msg = new Messaggio($all, "Nuova Sessione Privata", "Sessione privata pianificata per il giorno " . $dataObj->format('d/m/Y') . " dalle " . $oraInObj->format('H:i') . " alle " . $oraFiObj->format('H:i') . ".");
+            $msg->aggiungiDestinatario($cli);
+            $this->messaggioRepo->save($msg);
+            $this->view->mostraStatoOperazione(true, "Sessione privata pianificata con successo.", $rit, "Torna al Calendario");
+        } catch (\Throwable $e) {
+            $this->view->mostraStatoOperazione(false, "Errore: " . $e->getMessage(), $rit, "Torna al Calendario");
+        }
+    }
+
+    // =========================================================================
+    // 5. CREA ATTIVITÀ PIANIFICATA (/crea-attivita-pianificata)
+    // =========================================================================
+
+    public function creaAttivitaPianificata(): void
+    {
+        $palestra = $this->recuperaPalestraUtente();
+        if (!$palestra || $this->session->getLoggedUserRole() !== 'amministratore') {
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Solo l'amministratore può pianificare corsi.");
+            return;
+        }
+        $dataStr = trim($_POST['data'] ?? '');
+        $orario = (int)($_POST['orario'] ?? 0);
+        $idAllenatore = (int)($_POST['id_allenatore'] ?? 0);
+        $ritorno = ($dataStr !== '') ? "calendario?data=" . $dataStr : "calendario";
+        if ($dataStr === '' || $orario < 8 || $orario > 20 || $idAllenatore <= 0) {
+            $this->view->mostraStatoOperazione(false, "Dati incompleti o orario non valido (8-20).", $ritorno, "Torna al Calendario");
+            return;
+        }
+        $attivita = $this->ottieniOCreaAttivita((int)($_POST['id_attivita'] ?? 0), $ritorno);
+        $sala = $attivita ? $this->ottieniOCreaSala((int)($_POST['id_sala'] ?? 0), $palestra, $ritorno) : null;
+        $allenatore = $sala ? $this->allenatoreRepo->findById($idAllenatore) : null;
+        if (!$allenatore || $sala->getPalestra()->getId() !== $palestra->getId() || $allenatore->getPalestra()->getId() !== $palestra->getId()) {
+            $this->view->mostraStatoOperazione(false, "Allenatore non trovato o risorse esterne alla palestra.", $ritorno, "Torna al Calendario");
+            return;
+        }
+        $this->salvaPianificazioni(new \DateTime($dataStr), $_POST['ripetizione'] ?? [], $orario, $sala, $allenatore, $attivita, $ritorno);
+    }
 
     private function ottieniOCreaAttivita(int $idAttivita, string $ritorno): ?Attivita
     {
@@ -431,8 +552,24 @@ class AttivitaPianificataController
     }
 
     // =========================================================================
-    // HELPER PRIVATI - RIMOZIONE E PRENOTAZIONE ATTIVITA
+    // 6. RIMUOVI ATTIVITÀ PIANIFICATA (/rimuovi-attivita-pianificata)
     // =========================================================================
+
+    public function rimuoviAttivitaPianificata(): void
+    {
+        $palestra = $this->recuperaPalestraUtente();
+        if (!$palestra || $this->session->getLoggedUserRole() !== 'amministratore') {
+            $this->view->mostraStatoOperazione(false, "Accesso negato.");
+            return;
+        }
+        $id = (int)($_REQUEST['id_attivita_pianificata'] ?? 0);
+        $ap = $this->attivitaPianificataRepo->findById($id);
+        if (!$ap || $ap->getSala()->getPalestra()->getId() !== $palestra->getId()) {
+            $this->view->mostraStatoOperazione(false, "Attività non trovata o accesso negato.", "calendario", "Torna al Calendario");
+            return;
+        }
+        $this->eseguiRimozioneAp($ap);
+    }
 
     private function eseguiRimozioneAp(AttivitaPianificata $ap): void
     {
@@ -449,155 +586,30 @@ class AttivitaPianificataController
         }
     }
 
-    private function recuperaClientePrenotazione(Palestra $palestra, string $ritorno): ?Cliente
-    {
-        $ruolo = $this->session->getLoggedUserRole();
-        $id = ($ruolo === 'cliente') ? $this->session->getLoggedUserId() : (int)($_POST['id_cliente'] ?? 0);
-        $cliente = $this->clienteRepo->findById($id);
-        if (!$cliente || $cliente->getPalestra()->getId() !== $palestra->getId()) {
-            $this->view->mostraStatoOperazione(false, "Cliente non valido.", $ritorno, "Torna al Calendario");
-            return null;
-        }
-        return $cliente;
-    }
-
-    private function eseguiPrenotazione(Cliente $cliente, AttivitaPianificata $ap, string $ritorno): void
-    {
-        if ($this->clienteRepo->isIscrittoAAttivita($cliente, $ap)) {
-            $this->view->mostraStatoOperazione(false, "Il cliente risulta già iscritto.", $ritorno, "Torna al Calendario");
-            return;
-        }
-        if (!$cliente->puoPrenotareAttivita()) {
-            $this->view->mostraStatoOperazione(false, "Il cliente deve avere abbonamento attivo e certificato valido.", $ritorno, "Torna al Calendario");
-            return;
-        }
-        if ($ap->getPrenotati() >= $ap->getMaxPartecipanti()) {
-            $this->gestisciCodaAttesa($cliente, $ap, $ritorno);
-            return;
-        }
-        try {
-            $cliente->iscriviAAttivita($ap);
-            $ap->setPrenotati($ap->getPrenotati() + 1);
-            $this->clienteRepo->save($cliente);
-            $this->view->mostraStatoOperazione(true, "Iscrizione registrata con successo.", $ritorno, "Torna al Calendario");
-        } catch (\Throwable $e) {
-            $this->view->mostraStatoOperazione(false, "Errore: " . $e->getMessage(), $ritorno, "Torna al Calendario");
-        }
-    }
-
-    private function gestisciCodaAttesa(Cliente $cliente, AttivitaPianificata $ap, string $ritorno): void
-    {
-        if ($this->codaAttesaRepo->findOneByClienteAndAttivita($cliente, $ap)) {
-            $this->view->mostraStatoOperazione(false, "Sei già inserito nella coda di attesa.", $ritorno, "Torna al Calendario");
-            return;
-        }
-        try {
-            $this->codaAttesaRepo->save(new CodaAttesa($cliente, $ap));
-            $this->view->mostraStatoOperazione(true, "Capienza massima raggiunta. Inserito nella coda di attesa.", $ritorno, "Torna al Calendario");
-        } catch (\Throwable $e) {
-            $this->view->mostraStatoOperazione(false, "Impossibile inserire nella coda: " . $e->getMessage(), $ritorno, "Torna al Calendario");
-        }
-    }
-
-    private function eseguiDisdetta(Cliente $cliente, AttivitaPianificata $ap, string $ritorno): void
-    {
-        $inQueue = $this->codaAttesaRepo->findOneByClienteAndAttivita($cliente, $ap);
-        if (!$this->clienteRepo->isIscrittoAAttivita($cliente, $ap)) {
-            if ($inQueue) {
-                $this->rimuoviDaCoda($inQueue, $ritorno);
-            } else {
-                $this->view->mostraStatoOperazione(false, "Il cliente non risulta iscritto o in coda.", $ritorno, "Torna al Calendario");
-            }
-            return;
-        }
-        try {
-            $cliente->cancellaIscrizioneAttivita($ap);
-            $ap->setPrenotati(max(0, $ap->getPrenotati() - 1));
-            $this->clienteRepo->save($cliente);
-            $this->scorriCodaEnotifica($ap);
-            $this->view->mostraStatoOperazione(true, "Iscrizione cancellata con successo.", $ritorno, "Torna al Calendario");
-        } catch (\Throwable $e) {
-            $this->view->mostraStatoOperazione(false, "Errore disdetta: " . $e->getMessage(), $ritorno, "Torna al Calendario");
-        }
-    }
-
-    private function rimuoviDaCoda(CodaAttesa $inQueue, string $ritorno): void
-    {
-        try {
-            $this->codaAttesaRepo->delete($inQueue);
-            $this->view->mostraStatoOperazione(true, "Sei stato rimosso dalla coda di attesa.", $ritorno, "Torna al Calendario");
-        } catch (\Throwable $e) {
-            $this->view->mostraStatoOperazione(false, "Impossibile rimuovere dalla coda: " . $e->getMessage(), $ritorno, "Torna al Calendario");
-        }
-    }
-
-    private function scorriCodaEnotifica(AttivitaPianificata $ap): void
-    {
-        $codaPrimo = $this->codaAttesaRepo->findPrimoInCoda($ap);
-        if ($codaPrimo) {
-            $clienteScelto = $codaPrimo->getCliente();
-            $clienteScelto->iscriviAAttivita($ap);
-            $ap->setPrenotati($ap->getPrenotati() + 1);
-            $this->codaAttesaRepo->delete($codaPrimo);
-            $this->clienteRepo->save($clienteScelto);
-
-            $oggettoMsg = "Iscrizione automatica all'attività";
-            $contenutoMsg = "Ciao " . $clienteScelto->getNome() . ",\n\nti informiamo che si è liberato un posto e sei stato iscritto automaticamente all'attività: " . $ap->getAttivita()->getNome() . " in data " . $ap->getGiorno()->format('d/m/Y') . " alle ore " . $ap->getOrario() . ":00.\n\nSaluti,\nLo staff di GymFly";
-            $messaggio = new Messaggio($ap->getAllenatore(), $oggettoMsg, $contenutoMsg);
-            $messaggio->aggiungiDestinatario($clienteScelto);
-            $this->messaggioRepo->save($messaggio);
-
-            $headers = "From: no-reply@gymfly.com\r\nReply-To: support@gymfly.com\r\nContent-Type: text/plain; charset=utf-8";
-            @mail($clienteScelto->getEmail(), $oggettoMsg, $contenutoMsg, $headers);
-        }
-    }
-
     // =========================================================================
-    // HELPER PRIVATI - SESSIONI PRIVATE
+    // 7. DISDICI SESSIONE PRIVATA (/disdici-sessione-privata)
     // =========================================================================
 
-    private function eseguiPrenotazioneSp(Allenatore $all, Palestra $pal): void
+    public function disdiciSessionePrivata(): void
     {
-        $idCliente = (int)($_POST['id_cliente'] ?? 0);
-        $dataStr = trim($_POST['data'] ?? '');
-        $rit = ($dataStr !== '') ? "calendario?data=" . $dataStr : "calendario";
-        $oraIn = trim($_POST['ora_inizio'] ?? '');
-        $oraFi = trim($_POST['ora_fine'] ?? '');
-
-        if ($idCliente <= 0 || $dataStr === '' || $oraIn === '' || $oraFi === '') {
-            $this->view->mostraStatoOperazione(false, "Campi obbligatori mancanti.", $rit, "Torna al Calendario");
+        $palestra = $this->recuperaPalestraUtente();
+        if (!$palestra || !in_array($this->session->getLoggedUserRole(), ['cliente', 'allenatore'])) {
+            $this->view->mostraStatoOperazione(false, "Accesso negato.");
             return;
         }
-        $cliente = $this->clienteRepo->findById($idCliente);
-        if (!$cliente || $cliente->getPalestra()->getId() !== $pal->getId()) {
-            $this->view->mostraStatoOperazione(false, "Cliente non valido.", $rit, "Torna al Calendario");
+        $idAllenatore = (int)($_REQUEST['id_allenatore'] ?? 0);
+        $oraInStr = trim($_REQUEST['ora_inizio'] ?? '');
+        $oraFiStr = trim($_REQUEST['ora_fine'] ?? '');
+        if ($idAllenatore <= 0 || $oraInStr === '' || $oraFiStr === '') {
+            $this->view->mostraStatoOperazione(false, "Dati identificativi della sessione non validi.", "calendario", "Torna al Calendario");
             return;
         }
-        $this->salvaSpEInviaMessaggio($cliente, $all, $dataStr, $oraIn, $oraFi, $rit);
-    }
-
-    private function salvaSpEInviaMessaggio(Cliente $cli, Allenatore $all, string $dataStr, string $oraIn, string $oraFi, string $rit): void
-    {
-        try {
-            $dataObj = new \DateTimeImmutable($dataStr);
-            $oraInObj = new DateTimeImmutableStringable($dataStr . ' ' . $oraIn);
-            $oraFiObj = new DateTimeImmutableStringable($dataStr . ' ' . $oraFi);
-            if ($oraInObj >= $oraFiObj) {
-                $this->view->mostraStatoOperazione(false, "L'ora di inizio deve precedere la fine.", $rit, "Torna al Calendario");
-                return;
-            }
-            if ($this->sessionePrivataRepo->existsSovrapposizioneAllenatore($all, $dataObj, $oraInObj, $oraFiObj) || $this->sessionePrivataRepo->existsSovrapposizioneCliente($cli, $dataObj, $oraInObj, $oraFiObj)) {
-                $this->view->mostraStatoOperazione(false, "Sovrapposizione di impegni rilevata.", $rit, "Torna al Calendario");
-                return;
-            }
-            $this->sessionePrivataRepo->save(new SessionePrivata($dataObj, $oraInObj, $oraFiObj, $cli, $all));
-            $msg = new Messaggio($all, "Nuova Sessione Privata", "Sessione privata pianificata per il giorno " . $dataObj->format('d/m/Y') . " dalle " . $oraInObj->format('H:i') . " alle " . $oraFiObj->format('H:i') . ".");
-            $msg->aggiungiDestinatario($cli);
-            $this->messaggioRepo->save($msg);
-            $this->view->mostraStatoOperazione(true, "Sessione privata pianificata con successo.", $rit, "Torna al Calendario");
-        } catch (\Throwable $e) {
-            $this->view->mostraStatoOperazione(false, "Errore: " . $e->getMessage(), $rit, "Torna al Calendario");
+        $allenatore = $this->allenatoreRepo->findById($idAllenatore);
+        if (!$allenatore) {
+            $this->view->mostraStatoOperazione(false, "Allenatore non trovato.", "calendario", "Torna al Calendario");
+            return;
         }
+        $this->eseguiDisdettaSp($allenatore, $oraInStr, $oraFiStr);
     }
 
     private function eseguiDisdettaSp(Allenatore $all, string $oraIn, string $oraFi): void
@@ -636,6 +648,10 @@ class AttivitaPianificataController
             $this->messaggioRepo->save($msg);
         }
     }
+
+    // =========================================================================
+    // HELPER GENERALI
+    // =========================================================================
 
     private function recuperaPalestraUtente(): ?Palestra
     {
