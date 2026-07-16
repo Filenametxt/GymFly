@@ -15,6 +15,10 @@ class Session {
         $_SESSION['ruolo_utente'] = $utente->getRuolo(); //salva il ruolo dell'utente loggato
     }
 
+    /**
+     *recupera dalla sessione l'id dell'utente loggato
+     */
+    
     public function getLoggedUserId(): ?int { //recupera l'ID dell'utente loggato dalla sessione, se non c'è ritorna null
         return $_SESSION['id_utente'] ?? null;
     }
