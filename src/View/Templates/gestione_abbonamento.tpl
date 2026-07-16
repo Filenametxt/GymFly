@@ -99,15 +99,15 @@
                                 <form action="gestione-abbonamento?id={$cliente->getId()}" method="POST">
                                     <input type="hidden" name="azione" value="crea_tipologia">
                                     <div class="field">
-                                        <label class="label">Nome Tipologia (es. Open, Attività)</label>
+                                        <label class="label">Nome Tipologia (es. Mensile Open, Trimestrale)</label>
                                         <div class="control">
-                                            <input class="input" type="text" name="nuova_tipologia" required placeholder="es: Open">
+                                            <input class="input" type="text" name="nuova_tipologia" required placeholder="es: Mensile Open">
                                         </div>
                                     </div>
                                     <div class="field">
-                                        <label class="label">Categoria (es. Mensile, Trimestrale)</label>
+                                        <label class="label">Categoria (es. Fitness, Corsi e Sala, Open)</label>
                                         <div class="control">
-                                            <input class="input" type="text" name="nuova_categoria" required placeholder="es: Mensile">
+                                            <input class="input" type="text" name="nuova_categoria" required placeholder="es: Fitness">
                                         </div>
                                     </div>
                                     <div class="field">
