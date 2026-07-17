@@ -206,15 +206,6 @@
                                                     </label>
                                                 {/foreach}
                                             {/if}
-                                            {if !empty($adminCandidati)}
-                                                <p class="menu-label font-weight-bold mb-2 mt-3">AMMINISTRATORI</p>
-                                                {foreach $adminCandidati as $ad}
-                                                    <label class="checkbox is-block mb-2">
-                                                        <input type="checkbox" name="destinatari_ids[]" value="{$ad->getId()}" class="chk-utente-singolo">
-                                                        {$ad->getNome()} {$ad->getCognome()}
-                                                    </label>
-                                                {/foreach}
-                                            {/if}
                                         </div>
                                     </div>
                                 </div>

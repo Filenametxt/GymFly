@@ -264,7 +264,7 @@
                                                     {/if}
                                                     
                                                     {assign var="nomeTipo" value=$dettaglio->getEsercizio()->getTipologia()->getNomeTipologia()|lower}
-                                                    {assign var="isDurata" value=($nomeTipo === 'durata' || $nomeTipo === 'tempo/ripetizioni')}
+                                                    {assign var="isDurata" value=($nomeTipo === 'durata')}
                                                     <tr class="series-row">
                                                          <td class="has-text-centered is-vcentered">
                                                              <span class="series-number-label">{$dettaglio->getSerie()}</span>
@@ -644,7 +644,7 @@
                 const selectEx = group.querySelector('.select-esercizio');
                 const exId = selectEx.value;
                 const exData = eserciziDisponibili.find(ex => ex.id == exId);
-                const isDurata = exData && (exData.tipologia === 'durata' || exData.tipologia === 'tempo/ripetizioni');
+                const isDurata = exData && (exData.tipologia === 'durata');
 
                 const rows = group.querySelectorAll('.series-row');
                 rows.forEach(row => {

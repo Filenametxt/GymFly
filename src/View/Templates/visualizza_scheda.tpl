@@ -300,7 +300,7 @@
 
                                                     <!-- EXERCISE PARAMS -->
                                                     {assign var="nomeTipo" value=$dettaglio->getEsercizio()->getTipologia()->getNomeTipologia()|lower}
-                                                    {assign var="isDurata" value=($nomeTipo === 'durata' || $nomeTipo === 'tempo/ripetizioni')}
+                                                    {assign var="isDurata" value=($nomeTipo === 'durata')}
                                                     <div class="exercise-params">
                                                         <div class="param-box" {if $isDurata}style="opacity: 0.5;"{/if}>
                                                             <div class="param-label">

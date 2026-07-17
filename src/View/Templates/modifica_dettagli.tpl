@@ -154,7 +154,7 @@
 
                                     <!-- PARAMETRI IN GRID -->
                                     {assign var="nomeTipo" value=$dettaglio->getEsercizio()->getTipologia()->getNomeTipologia()|lower}
-                                    {assign var="isDurata" value=($nomeTipo === 'durata' || $nomeTipo === 'tempo/ripetizioni')}
+                                    {assign var="isDurata" value=($nomeTipo === 'durata')}
                                     <div class="parametri-grid">
                                         <!-- RIPETIZIONI -->
                                         <div class="parametro-field" {if $isDurata}style="opacity: 0.6;"{/if}>

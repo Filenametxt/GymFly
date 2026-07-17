@@ -9,6 +9,8 @@ use App\Entity\Repository\PalestraRepositoryInterface;
 use App\Entity\Repository\ProgressoRepositoryInterface;
 use App\Entity\Repository\AttivitaRepositoryInterface;
 use App\Entity\Repository\UtenteRepositoryInterface;
+use App\Entity\Repository\AllenatoreRepositoryInterface;
+use App\Entity\Repository\AmministratoreRepositoryInterface;
 use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
 use App\Foundation\Persistence\Repository\DoctrineParametriRepository;
 use App\Foundation\Persistence\Repository\DoctrineCertificatoMedicoRepository;
@@ -16,8 +18,11 @@ use App\Foundation\Persistence\Repository\DoctrinePalestraRepository;
 use App\Foundation\Persistence\Repository\DoctrineProgressoRepository;
 use App\Foundation\Persistence\Repository\DoctrineAttivitaRepository;
 use App\Foundation\Persistence\Repository\DoctrineUtenteRepository;
+use App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository;
+use App\Foundation\Persistence\Repository\DoctrineAmministratoreRepository;
 use App\View\Interface\ProfiloView;
 use App\View\ProfiloViewSmarty;
+use App\Control\AttivitaPianificataController;
 use App\Foundation\Session;
 use App\Entity\Parametri;
 use App\Entity\CertificatoMedico;
@@ -27,7 +32,7 @@ use App\Entity\Utente;
 use App\Entity\Cliente;
 use App\Entity\Attivita;
 use Doctrine\ORM\EntityManagerInterface;
-
+use App\Entity\Palestra;
 class ProfiloController 
 {
     private ClienteRepositoryInterface $clienteRepo;
@@ -37,6 +42,8 @@ class ProfiloController
     private ProgressoRepositoryInterface $progressoRepo;
     private AttivitaRepositoryInterface $attivitaRepo;
     private UtenteRepositoryInterface $utenteRepo;
+    private AllenatoreRepositoryInterface $allenatoreRepo;
+    private AmministratoreRepositoryInterface $amministratoreRepo;
     private ProfiloView $view;
     private EntityManagerInterface $entityManager;
 
@@ -52,6 +59,8 @@ class ProfiloController
         $this->progressoRepo = new DoctrineProgressoRepository($this->entityManager);
         $this->attivitaRepo = new DoctrineAttivitaRepository($this->entityManager);
         $this->utenteRepo = new DoctrineUtenteRepository($this->entityManager);
+        $this->allenatoreRepo = new DoctrineAllenatoreRepository($this->entityManager);
+        $this->amministratoreRepo = new DoctrineAmministratoreRepository($this->entityManager);
         $this->view = new ProfiloViewSmarty();
     }
 
@@ -59,7 +68,7 @@ class ProfiloController
     // 1. VISUALIZZA PROFILO (/profilo, /visualizza-profilo)
     // =========================================================================
 
-    public function visualizzaProfilo(): void 
+    public function visualizzaProfilo(): void     //gestisce la richiesta di visualizzazione del profilo dell'utente loggato o di un altro utente, recuperando i dati dell'utente e mostrando la view corrispondente
     {
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
@@ -67,43 +76,47 @@ class ProfiloController
             $this->view->mostraErrore("Sessione non valida. Effettua il login.");
             return;
         }
-        $isSelf = true;
+        $isSelf = true;                                                // indica se l'utente sta visualizzando il proprio profilo o quello di un altro utente
         $ut = $this->determinaUtenteProfilo($idUt, $ruolo, $isSelf);
         if (!$ut) {
             $this->view->mostraErrore("Profilo non trovato o accesso negato.");
             return;
         }
-        $dati = [
+        $dati = [                                                          //inizializza un array associativo che conterrà i dati da passare alla view per la visualizzazione del profilo
             'utente' => $ut, 'isClient' => ($ut instanceof Cliente), 'isTrainer' => ($ut instanceof Allenatore),
             'isSelf' => $isSelf, 'nome' => $ut->getNome(), 'cognome' => $ut->getCognome(), 'email' => $ut->getEmail(),
             'cf' => $ut->getCF(), 'fotoProfilo' => $ut->getProfilePicture() ? base64_encode($ut->getProfilePicture()) : null,
             'abbonamento' => null, 'abbonamento_attivo' => false, 'has_progress' => false, 'parametri' => null,
             'certificato' => null, 'attivitaAbilitate' => null, 'attivitaNonAbilitate' => [], 'tutteAttivita' => []
         ];
-        $dati = ($ut instanceof Cliente) ? array_merge($dati, $this->caricaDatiClient($ut, $ruolo)) : (($ut instanceof Allenatore) ? array_merge($dati, $this->caricaDatiTrainer($ut)) : $dati);
+        $dati = ($ut instanceof Cliente) ? array_merge($dati, $this->caricaDatiClient($ut, $ruolo)) : (($ut instanceof Allenatore) ? array_merge($dati, $this->caricaDatiTrainer($ut)) : $dati);      //popola l'array dei dati con le informazioni specifiche del tipo di utente (cliente o allenatore)
         $this->view->mostraProfilo($dati);
     }
 
     private function determinaUtenteProfilo(int $idUt, string $ruolo, bool &$isSelf): ?Utente
     {
-        $isSelf = !isset($_GET['id']);
+        $isSelf = !isset($_GET['id']);     //se c'è un parametro id nella richiesta, significa che l'utente sta visualizzando il profilo di un altro utente, altrimenti sta visualizzando il proprio profilo
         if ($isSelf) {
             return $this->recuperaUtenteLoggato($this->entityManager, $idUt, $ruolo);
         }
         $targetId = (int)$_GET['id'];
-        $utente = $this->entityManager->find(Utente::class, $targetId);
+        $utente = $this->utenteRepo->findById($targetId);
         if ($ruolo === 'amministratore' || $ruolo === 'allenatore') {
-            $pal = ($ruolo === 'amministratore') ?
-                $this->palestraRepo->findByAmministratore($this->entityManager->find(Amministratore::class, $idUt)) :
-                ($this->entityManager->find(Allenatore::class, $idUt) ? $this->entityManager->find(Allenatore::class, $idUt)->getPalestra() : null);
-            if (!$utente || !method_exists($utente, 'getPalestra') || !$utente->getPalestra() || !$pal || $utente->getPalestra()->getId() !== $pal->getId()) {
+            $pal = AttivitaPianificataController::recuperaPalestraUtenteStatic(
+                $this->session,
+                $this->utenteRepo,
+                $this->palestraRepo,
+                $this->clienteRepo
+            );
+            $palTarget = $utente ? $this->recuperaPalestraUtente($utente) : null;
+            if (!$utente || !$palTarget || !$pal || $palTarget->getId() !== $pal->getId()) {
                 return null;
             }
         }
         return $utente;
     }
 
-    private function caricaDatiClient(Cliente $ut, string $ruolo): array
+    private function caricaDatiClient(Cliente $ut, string $ruolo): array               //recupera i dati specifici del cliente, come parametri corporei, certificato medico, abbonamento e progresso, e li restituisce in un array associativo
     {
         $params = $this->parametriRepo->findUltimaByCliente($ut);
         $cert = ($ruolo === 'allenatore') ? null : $this->certificatoRepo->findByCliente($ut);
@@ -121,11 +134,11 @@ class ProfiloController
                 'scadenza' => $cert->getDataScadenza()->format('d/m/Y'), 'medico' => $cert->getMedico(), 'valido' => $cert->isValido()
             ] : null,
             'abbonamento' => $ut->getAbbonamento(), 'abbonamento_attivo' => $ut->isAbbonamentoAttivo(),
-            'has_progress' => count($this->progressoRepo->findByCliente($ut)) > 0
+            'has_progress' => count($this->progressoRepo->findByCliente($ut)) > 0                           // indica se il cliente ha registrato progressi nel tempo
         ];
     }
 
-    private function caricaDatiTrainer(Allenatore $ut): array
+    private function caricaDatiTrainer(Allenatore $ut): array        //recupera i dati specifici dell'allenatore, come le attività abilitate e non abilitate, e li restituisce in un array associativo
     {
         $abilitate = $ut->getAttivitaAbilitate();
         $tutte = $this->attivitaRepo->findAll();
@@ -146,7 +159,7 @@ class ProfiloController
     // 2. MODIFICA DATI (/modifica-anagrafica)
     // =========================================================================
 
-    public function modificaAnagrafica(): void 
+    public function modificaAnagrafica(): void      //gestisce la richiesta di modifica dei dati anagrafici dell'utente loggato o di un altro utente, recuperando i dati dell'utente e mostrando la view corrispondente
     {
         $idUtente = $this->session->getLoggedUserId();
         if (!$idUtente) {
@@ -165,47 +178,57 @@ class ProfiloController
             return;
         }
         $ritorno = $isSelf ? 'profilo' : 'visualizza-profilo?id=' . $utente->getId();
-        $this->eseguiSalvataggioAnagrafica($utente, ($utente instanceof Cliente), $ruolo, $ritorno);
+        $this->eseguiSalvataggioAnagrafica($utente, $ruolo, $ritorno);
     }
 
-    private function determinaUtenteModifica(int $idUt, string $ruolo, bool &$isSelf): ?Utente
+    private function determinaUtenteModifica(int $idUt, string $ruolo, bool &$isSelf): ?Utente       //determina quale utente deve essere modificato in base all'ID dell'utente loggaton enal ruolo
     {
-        $isSelf = !isset($_GET['id']) && !isset($_POST['id']);
+        $isSelf = !isset($_GET['id']) && !isset($_POST['id']);      //devono essere entrambi settati su false (col NOT diventa true)
         if ($isSelf) {
-            return $this->recuperaUtenteLoggato($this->entityManager, $idUt, $ruolo);
+            return $this->recuperaUtenteLoggato($this->entityManager, $idUt, $ruolo);     //se devo vedere il mio profilo ho bisogno del mio id
         }
         if ($ruolo === 'allenatore') {
             return null;
         }
         $targetId = isset($_GET['id']) ? (int)$_GET['id'] : (int)$_POST['id'];
-        $utente = $this->entityManager->find(Utente::class, $targetId);
+        $utente = $this->utenteRepo->findById($targetId);
         if ($ruolo === 'amministratore') {
-            $admin = $this->entityManager->find(Amministratore::class, $idUt);
+            $admin = $this->amministratoreRepo->findById($idUt);
             $pal = $this->palestraRepo->findByAmministratore($admin);
-            if (!$utente || !method_exists($utente, 'getPalestra') || !$utente->getPalestra() || !$pal || $utente->getPalestra()->getId() !== $pal->getId()) {
+            $palTarget = $utente ? $this->recuperaPalestraUtente($utente) : null;
+            if (!$utente || !$palTarget || !$pal || $palTarget->getId() !== $pal->getId()) {
                 return null;
             }
         }
         return $utente;
     }
 
-    private function eseguiSalvataggioAnagrafica(Utente $ut, bool $isClient, string $ruolo, string $rit): void
+    private function eseguiSalvataggioAnagrafica(Utente $ut, string $ruolo, string $rit): void
     {
         $nome = $_POST['nome'] ?? '';
         $cognome = $_POST['cognome'] ?? '';
         $res = $_POST['indirizzo'] ?? '';
         $pag = $_POST['metodo_pagamento'] ?? '';
-        if (empty($nome) || empty($cognome) || empty($res) || ($isClient && $ruolo === 'amministratore' && empty($pag))) {
+
+        $cliente = $this->clienteRepo->findById($ut->getId());
+        $isClient = ($cliente !== null);
+
+        if (empty($nome) || empty($cognome) || empty($res) || ($isClient && $ruolo === 'amministratore' && empty($pag))) {      // controlla se i campi obbligatori sono stati compilati, se manca qualcosa mostra un errore e ritorna alla pagina di modifica
             $this->view->mostraErrore("Campi obbligatori mancanti.", $rit, "Torna al Profilo");
             return;
         }
         try {
-            $ut->setNome($nome); $ut->setCognome($cognome); $ut->setIndirizzo($res);
-            if ($isClient && $ut instanceof Cliente) {
-                if (method_exists($ut, 'setIndirizzoDiDomicilio')) $ut->setIndirizzoDiDomicilio($_POST['indirizzo_domicilio'] ?? '');
-                if ($ruolo === 'amministratore') $ut->setMetodoDiPagamento($pag);
+            if ($cliente) {
+                $cliente->setNome($nome)->setCognome($cognome)->setIndirizzo($res);
+                $cliente->setIndirizzoDiDomicilio($_POST['indirizzo_domicilio'] ?? '');
+                if ($ruolo === 'amministratore') {
+                    $cliente->setMetodoDiPagamento($pag);
+                }
+                $this->clienteRepo->save($cliente);
+            } else {
+                $ut->setNome($nome)->setCognome($cognome)->setIndirizzo($res);     // se l'utente non è un cliente, aggiorna solo i dati anagrafici di base
+                $this->utenteRepo->save($ut);
             }
-            $this->utenteRepo->save($ut);
             header('Location: ' . $rit);
             exit();
         } catch (\InvalidArgumentException $e) {
@@ -217,11 +240,11 @@ class ProfiloController
     // 3. AGGIORNA MISURE CORPOREE (/aggiorna-misure)
     // =========================================================================
 
-    public function aggiornaMisureCorporee(): void 
+    public function aggiornaMisureCorporee(): void              //gestisce la richiesta di visualizzazione del form per aggiornare le misure corporee del cliente loggato o di un altro cliente, recuperando i dati del cliente e mostrando la view corrispondente
     {
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-        $cliente = $idUt ? $this->recuperaClienteTarget($ruolo, $idUt) : null;
+        $cliente = $idUt ? $this->recuperaClienteTarget($ruolo, $idUt) : null;    // recupera il cliente target in base al ruolo dell'utente loggato e al suo ID
         if (!$cliente) {
             $this->view->mostraErrore("Cliente non trovato o accesso non consentito.");
             return;
@@ -240,7 +263,7 @@ class ProfiloController
     // 4. INSERISCI MISURE CORPOREE (/inserisci-misure)
     // =========================================================================
 
-    public function inserisciMisureCorporee(): void
+    public function inserisciMisureCorporee(): void     //gestisce la richiesta di inserimento di nuove misure corporee per il cliente loggato o per un altro cliente, recuperando i dati del cliente e mostrando la view corrispondente
     {
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
@@ -268,7 +291,7 @@ class ProfiloController
             $this->view->mostraErrore("Peso e altezza sono obbligatori.");
             return;
         }
-        $f = fn($key) => !empty($_POST[$key]) ? (float)$_POST[$key] : null;
+        $f = fn($key) => !empty($_POST[$key]) ? (float)$_POST[$key] : null;      // funzione anonima per recuperare i valori delle misure corporee dal POST, restituendo null se il campo è vuoto
         try {
             $p = new Parametri(
                 $peso, $altezza, new \DateTimeImmutable(), $cliente,
@@ -288,7 +311,7 @@ class ProfiloController
     // 5. CARICA CERTIFICATO MEDICO (/carica-certificato)
     // =========================================================================
 
-    public function caricaCertificato(): void 
+    public function caricaCertificato(): void     //gestisce la richiesta di caricamento del certificato medico per il cliente loggato o per un altro cliente, recuperando i dati del cliente e mostrando la view corrispondente
     {
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
@@ -311,7 +334,7 @@ class ProfiloController
 
     private function eseguiUploadCertificato(Cliente $cliente, string $rit): void
     {
-        if (empty($_POST) && empty($_FILES) && isset($_SERVER['CONTENT_LENGTH']) && $_SERVER['CONTENT_LENGTH'] > 0) {
+        if (empty($_POST) && empty($_FILES) && isset($_SERVER['CONTENT_LENGTH']) && $_SERVER['CONTENT_LENGTH'] > 0) {     // controlla se la richiesta POST è vuota e se la dimensione del contenuto supera il limite consentito, mostrando un errore se necessario
             $this->view->mostraErrore("File troppo grande.", $rit, "Torna al Profilo");
             return;
         }
@@ -322,7 +345,7 @@ class ProfiloController
             return;
         }
         try {
-            $content = file_get_contents($_FILES['file_certificato']['tmp_name']);
+            $content = file_get_contents($_FILES['file_certificato']['tmp_name']);     //guarda se il file è stato caricato correttamente e legge il contenuto del file temporaneo
             $vecchio = $cliente->getCertificatoMedico();
             $cert = new CertificatoMedico(new \DateTimeImmutable($emissione), $medico, $cliente, $content);
             $this->certificatoRepo->save($cert);
@@ -339,7 +362,7 @@ class ProfiloController
     // 6. CAMBIA PASSWORD (/cambia-password)
     // =========================================================================
 
-    public function cambiaPassword(): void
+    public function cambiaPassword(): void   //gestisce la richiesta di cambio password per l'utente loggato, mostrando il form di cambio password o eseguendo il salvataggio della nuova password
     {
         $idUt = $this->session->getLoggedUserId();
         if (!$idUt) {
@@ -380,7 +403,7 @@ class ProfiloController
     // 7. VISUALIZZA GRAFICO (/visualizza-grafico)
     // =========================================================================
 
-    public function visualizzaGrafico(): void
+    public function visualizzaGrafico(): void   //gestisce la richiesta di visualizzazione del grafico delle misure corporee del cliente loggato o di un altro cliente, recuperando i dati del cliente e mostrando la view corrispondente
     {
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
@@ -389,7 +412,7 @@ class ProfiloController
             $this->view->mostraErrore("Cliente non trovato o accesso non consentito.");
             return;
         }
-        $tipo = $_GET['tipo'] ?? 'peso';
+        $tipo = $_GET['tipo'] ?? 'peso';                                             // indica il tipo di grafico da visualizzare (peso, superiore o inferiore), con un valore predefinito di "peso" se non specificato
         if (!in_array($tipo, ['peso', 'superiore', 'inferiore'])) $tipo = 'peso';
         $storico = array_reverse($this->parametriRepo->findByCliente($cliente));
         $valori = $this->mappaValoriGrafico($storico, $tipo);
@@ -411,9 +434,9 @@ class ProfiloController
                 $sub = ($tipo === 'superiore') ?
                     [$m->getBicipiteDestro(), $m->getBicipiteSinistro(), $m->getTricipiteDestro(), $m->getTricipiteSinistro(), $m->getMisuraPetto(), $m->getMisuraSpalle()] :
                     [$m->getCosciaDestra(), $m->getCosciaSinistra(), $m->getPolpaccioDestro(), $m->getPolpaccioSinistro(), $m->getMisuraVita(), $m->getMisuraFianchi()];
-                $nonNull = array_filter($sub, fn($v) => $v !== null);
+                $nonNull = array_filter($sub, fn($v) => $v !== null);                     // filtra i valori nulli dall'array delle misure corporee per calcolare la media solo sui valori presenti
                 $media = count($nonNull) > 0 ? array_sum($nonNull) / count($nonNull) : 0.0;
-                $valori[] = round($media, 2);
+                $valori[] = round($media, 2);     // calcola la media delle misure corporee e la arrotonda a due decimali
             }
         }
         return $valori;
@@ -422,13 +445,13 @@ class ProfiloController
     private function costruisciPuntiGrafico(array $storico, array $valori): array
     {
         $punti = [];
-        $minVal = count($valori) ? min($valori) - 2 : 0;
+        $minVal = count($valori) ? min($valori) - 2 : 0;              // calcola il valore minimo da visualizzare nel grafico, sottraendo 2 al minimo dei valori registrati, oppure impostando a 0 se non ci sono valori
         $maxVal = count($valori) ? max($valori) + 2 : 10;
-        $range = $maxVal - $minVal ?: 1;
+        $range = $maxVal - $minVal ?: 1;             // calcola il range dei valori da visualizzare nel grafico, impostando a 1 se il range è 0 per evitare divisioni per zero
         $count = count($storico);
         foreach ($storico as $i => $m) {
-            $val = $valori[$i];
-            $x = 40 + ($i * (390 / ($count - 1 ?: 1)));
+            $val = $valori[$i];                                          // recupera il valore corrispondente al parametro corporeo per il punto corrente del grafico
+            $x = 40 + ($i * (390 / ($count - 1 ?: 1)));                  // calcola la posizione x del punto corrente del grafico, distribuendo i punti uniformemente lungo l'asse x tra 40 e 430 pixel
             $y = 20 + 120 - (($val - $minVal) / $range * 120);
             $punti[] = [
                 'x' => $x, 'y' => $y, 'valore' => $val, 'data' => $m->getData()->format('d/m')
@@ -499,8 +522,8 @@ class ProfiloController
             $this->view->mostraErrore("Dati non validi o non autorizzato.");
             return;
         }
-        $allenatore = $this->entityManager->find(Allenatore::class, $idAll);
-        $attivita = $this->entityManager->find(Attivita::class, $idAtt);
+        $allenatore = $this->allenatoreRepo->findById($idAll);
+        $attivita = $this->attivitaRepo->findById($idAtt);
         if (!$allenatore || !$attivita || !$this->validaPalestraAllenatore($idLog, $ruolo, $allenatore)) {
             $this->view->mostraErrore("Risorsa non valida o non appartenente alla palestra.");
             return;
@@ -526,8 +549,8 @@ class ProfiloController
             $this->view->mostraErrore("Dati non validi o non autorizzato.");
             return;
         }
-        $allenatore = $this->entityManager->find(Allenatore::class, $idAll);
-        $attivita = $this->entityManager->find(Attivita::class, $idAtt);
+        $allenatore = $this->allenatoreRepo->findById($idAll);
+        $attivita = $this->attivitaRepo->findById($idAtt);
         if (!$allenatore || !$attivita || !$this->validaPalestraAllenatore($idLog, $ruolo, $allenatore)) {
             $this->view->mostraErrore("Risorsa non valida o non appartenente alla palestra.");
             return;
@@ -552,7 +575,7 @@ class ProfiloController
             $this->view->mostraErrore("Dati non validi o non autorizzato.");
             return;
         }
-        $allenatore = $this->entityManager->find(Allenatore::class, $idAll);
+        $allenatore = $this->allenatoreRepo->findById($idAll);
         if (!$allenatore || !$this->validaPalestraAllenatore($idLog, $ruolo, $allenatore)) {
             $this->view->mostraErrore("Allenatore non trovato o non appartenente alla palestra.");
             return;
@@ -568,7 +591,7 @@ class ProfiloController
             }
             $this->utenteRepo->save($allenatore);
             foreach ($sel as $idAtt) {
-                $att = $this->entityManager->find(Attivita::class, (int)$idAtt);
+                $att = $this->attivitaRepo->findById((int)$idAtt);
                 if ($att) $allenatore->addAbilitazione($att);
             }
             $this->utenteRepo->save($allenatore);
@@ -587,7 +610,7 @@ class ProfiloController
     private function validaPalestraAllenatore(int $idLog, string $ruolo, Allenatore $allenatore): bool
     {
         if ($ruolo === 'amministratore') {
-            $admin = $this->entityManager->find(Amministratore::class, $idLog);
+            $admin = $this->amministratoreRepo->findById($idLog);
             $pal = $this->palestraRepo->findByAmministratore($admin);
             if (!$pal || $allenatore->getPalestra()->getId() !== $pal->getId()) {
                 return false;
@@ -622,25 +645,43 @@ class ProfiloController
         }
         $cliente = $this->clienteRepo->findById($targetId);
         if ($cliente && ($ruolo === 'amministratore' || $ruolo === 'allenatore')) {
-            $pal = ($ruolo === 'amministratore') ?
-                $this->palestraRepo->findByAmministratore($this->entityManager->find(Amministratore::class, $idUtente)) :
-                ($this->entityManager->find(Allenatore::class, $idUtente) ? $this->entityManager->find(Allenatore::class, $idUtente)->getPalestra() : null);
-            if (!$pal || !$cliente->getPalestra() || $cliente->getPalestra()->getId() !== $pal->getId()) {
+            $pal = AttivitaPianificataController::recuperaPalestraUtenteStatic(
+                $this->session,
+                $this->utenteRepo,
+                $this->palestraRepo,
+                $this->clienteRepo
+            );
+            $palCliente = $this->recuperaPalestraUtente($cliente);
+            if (!$pal || !$palCliente || $palCliente->getId() !== $pal->getId()) {
                 return null;
             }
         }
         return $cliente;
     }
 
+    private function recuperaPalestraUtente(Utente $utente): ?Palestra       //recupera la palestra associata a un utente, se esiste, altrimenti restituisce null
+    {
+        if ($utente instanceof Cliente) {
+            return $utente->getPalestra();
+        }
+        if ($utente instanceof Allenatore) {
+            return $utente->getPalestra();
+        }
+        if ($utente instanceof Amministratore) {
+            return $this->palestraRepo->findByAmministratore($utente);
+        }
+        return null;
+    }
+
     private function recuperaUtenteLoggato(EntityManagerInterface $entityManager, int $idUtente, ?string $ruolo): ?Utente
     {
         if ($ruolo === 'cliente') {
-            return $entityManager->find(Cliente::class, $idUtente);
+            return $this->clienteRepo->findById($idUtente);
         } elseif ($ruolo === 'allenatore') {
-            return $entityManager->find(Allenatore::class, $idUtente);
+            return $this->allenatoreRepo->findById($idUtente);
         } elseif ($ruolo === 'amministratore') {
-            return $entityManager->find(Amministratore::class, $idUtente);
+            return $this->amministratoreRepo->findById($idUtente);
         }
-        return $entityManager->find(Utente::class, $idUtente);
+        return $this->utenteRepo->findById($idUtente);
     }
 }
