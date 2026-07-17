@@ -199,14 +199,17 @@
             {if count($abbonamentiDati) > 0}
             // 1. Grafico Tipologie Abbonamento (Pie Chart)
             const ctxTipologie = document.getElementById('chartTipologie').getContext('2d');
+            
+            {assign var="abbLabels" value=[]}
+            {assign var="abbValues" value=[]}
+            {foreach from=$abbonamentiDati key=tipo item=count}
+                {$abbLabels[] = $tipo}
+                {$abbValues[] = $count}
+            {/foreach}
             const abbonamentiDati = {ldelim}
-                labels: [
-                    {foreach from=$abbonamentiDati key=tipo item=count} '{$tipo}', {/foreach}
-                ],
+                labels: {$abbLabels|json_encode},
                 datasets: [{ldelim}
-                    data: [
-                        {foreach from=$abbonamentiDati item=count} {$count}, {/foreach}
-                    ],
+                    data: {$abbValues|json_encode},
                     backgroundColor: [
                         '#afafe2', // periwinkle (primario)
                         '#99cdea', // baby-blue (secondario)
@@ -248,12 +251,14 @@
             {if count($prenotazioniCorsi) > 0}
             // 2. Prenotazioni Corsi (Horizontal Bar Chart)
             const ctxCorsi = document.getElementById('chartCorsi').getContext('2d');
-            const labelsCorsi = [];
-            const datiCorsi = [];
+            {assign var="corsiLabels" value=[]}
+            {assign var="corsiValues" value=[]}
             {foreach from=$prenotazioniCorsi key=corso item=prenotati}
-                labelsCorsi.push('{$corso}');
-                datiCorsi.push({$prenotati});
+                {$corsiLabels[] = $corso}
+                {$corsiValues[] = $prenotati}
             {/foreach}
+            const labelsCorsi = {$corsiLabels|json_encode};
+            const datiCorsi = {$corsiValues|json_encode};
 
             {literal}
             new Chart(ctxCorsi, {
@@ -291,9 +296,11 @@
 
             // 3. Registrazioni Giornaliere (Vertical Bar Chart)
             const ctxIscritti = document.getElementById('chartIscritti').getContext('2d');
-            const datiIscritti = [
-                {foreach from=$iscrittiGiornalieri item=val} {$val}, {/foreach}
-            ];
+            {assign var="iscrittiValues" value=[]}
+            {foreach from=$iscrittiGiornalieri item=val}
+                {$iscrittiValues[] = $val}
+            {/foreach}
+            const datiIscritti = {$iscrittiValues|json_encode};
             
             {literal}
             new Chart(ctxIscritti, {
