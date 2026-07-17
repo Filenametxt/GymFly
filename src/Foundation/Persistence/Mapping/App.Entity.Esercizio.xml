@@ -6,9 +6,9 @@
         <field name="descrizione" type="text" column="descrizione" nullable="true"/>
         <field name="immagine" type="blob" column="immagine" nullable="true"/>
 
-        <one-to-one field="attrezzaturaNecessaria" target-entity="App\Entity\Attrezzatura">
+        <many-to-one field="attrezzaturaNecessaria" target-entity="App\Entity\Attrezzatura">
             <join-column name="id_attrezzatura" referenced-column-name="id" on-delete="SET NULL" nullable="true"/>
-        </one-to-one>
+        </many-to-one>
 
         <many-to-one field="tipologia" target-entity="App\Entity\Tipologia">
             <join-column name="id_tipologia" referenced-column-name="id" nullable="false"/>
