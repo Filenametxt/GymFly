@@ -1316,7 +1316,9 @@ class Application implements ResetInterface
 
         $lines[] = \count($lines) ? str_pad($line, $width) : $line;
 
-        return mb_convert_encoding($lines, $encoding, 'utf8');
+        mb_convert_variables($encoding, 'utf8', $lines);
+
+        return $lines;
     }
 
     /**
