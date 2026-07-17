@@ -51,12 +51,12 @@ class AutenticazioneController
         $email = $loginData['email'] ?? '';
         $password = $loginData['password'] ?? '';
         if (empty($email) || empty($password)) {
-            $this->view->mostraStatoOperazione(false, "Tutti i campi sono obbligatori per il login.");
+            $this->view->mostraStatoOperazione(false, "Tutti i campi sono obbligatori per il login.", "login", "Torna al Login");
             return;
         }
         $utente = $this->utenteRepo->findByEmail($email);
         if ($utente === null || !$utente->verificaPassword($password)) {
-            $this->view->mostraStatoOperazione(false, "Credenziali errate.");
+            $this->view->mostraStatoOperazione(false, "Credenziali errate.", "login", "Torna al Login");
             return;
         }
         $this->session->setUtenteLoggato($utente);
