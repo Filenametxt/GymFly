@@ -2,6 +2,7 @@
 namespace App\Control;
 
 use App\Entity\Repository\ClienteRepositoryInterface;
+use App\Control\AttivitaPianificataController;
 use App\Entity\Repository\AllenatoreRepositoryInterface;
 use App\Entity\Repository\AttivitaRepositoryInterface;
 use App\Entity\Repository\CodaAttesaRepositoryInterface;
@@ -30,9 +31,7 @@ use App\Entity\Palestra;
 use App\Entity\CertificatoMedico;
 use App\Entity\AbbonamentoAttivo;
 use App\Entity\Iscrizione;
-use App\Entity\AttivitaPianificata;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Entity\Messaggio;
 use App\Entity\Repository\MessaggioRepositoryInterface;
 use \App\Foundation\Persistence\Repository\DoctrineMessaggioRepository;
 
@@ -336,7 +335,7 @@ class AmministratoreController
         foreach ($cliente->getAttivitaPianificate() as $attivita) {     //per tutte le attività pianificate a cui il cliente è iscritto, rimuove l'iscrizione e decrementa il numero di prenotati
             $cliente->cancellaIscrizioneAttivita($attivita);
             $attivita->setPrenotati(max(0, $attivita->getPrenotati() - 1));
-            $this->scorriCodaAttivita($attivita);
+            AttivitaPianificataController::scorriCodaEnotifica($attivita, $this->codaAttesaRepo, $this->clienteRepo, $this->messaggioRepo);
         }
         $this->pulisciListeSecondarieCliente($cliente);
     }
@@ -358,27 +357,6 @@ class AmministratoreController
         }
     }
 
-    private function scorriCodaAttivita(AttivitaPianificata $attivita): void
-    {
-        $codaPrimo = $this->codaAttesaRepo->findPrimoInCoda($attivita);
-        if ($codaPrimo) {   //se c'è qualcuno in coda, lo iscrive automaticamente all'attività e invia una mail di notifica
-            $clienteScelto = $codaPrimo->getCliente();
-            $clienteScelto->iscriviAAttivita($attivita);
-            $attivita->setPrenotati($attivita->getPrenotati() + 1);
-            $this->codaAttesaRepo->delete($codaPrimo);
-
-            $mittente = $attivita->getAllenatore();
-            $oggettoMsg = "Iscrizione automatica all'attività";
-            $contenutoMsg = "Ciao " . $clienteScelto->getNome() . ",\n\nti informiamo che si è liberato un posto e sei stato iscritto automaticamente all'attività: " . $attivita->getAttivita()->getNome() . " in data " . $attivita->getGiorno()->format('d/m/Y') . " alle ore " . $attivita->getOrario() . ":00.\n\nSaluti,\nLo staff di GymFly";
-            
-            $messaggio = new Messaggio($mittente, $oggettoMsg, $contenutoMsg);
-            $messaggio->aggiungiDestinatario($clienteScelto);
-            $this->messaggioRepo->save($messaggio);
-
-            $headers = "From: no-reply@gymfly.com\r\nReply-To: support@gymfly.com\r\nContent-Type: text/plain; charset=utf-8";
-            @mail($clienteScelto->getEmail(), $oggettoMsg, $contenutoMsg, $headers);
-        }
-    }
 
     private function scollegaEntitaUnoAUno(Cliente $cliente, ?CertificatoMedico $cert, ?AbbonamentoAttivo $abb, ?Iscrizione $isc): void
     {
@@ -480,16 +458,12 @@ class AmministratoreController
 
     private function recuperaPalestraAdmin(): ?Palestra     //recupera la palestra dall'amministratore
     {
-        $idAdmin = $this->session->getLoggedUserId();       //va a recuperare l'id dalla sessione
-        $ruolo = $this->session->getLoggedUserRole();
-        if (!$idAdmin || $ruolo !== 'amministratore') {     //se non c'è id e il ruolo non è admin allora esci
-            return null;
-        }
-        $admin = $this->utenteRepo->findById($idAdmin);
-        if (!$admin) {
-            return null;
-        }
-        return $this->palestraRepo->findByAmministratore($admin);
+        return AttivitaPianificataController::recuperaPalestraUtenteStatic(
+            $this->session,
+            $this->utenteRepo,
+            $this->palestraRepo,
+            $this->clienteRepo
+        );
     }
 
     private function generaPasswordTemporanea(): string

@@ -12,14 +12,17 @@ use App\View\VisualizzazioneUtentiViewSmarty;
 use App\Foundation\Session;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Amministratore;
-use App\Entity\Allenatore;
 use App\Entity\Palestra;
+use App\Entity\Repository\UtenteRepositoryInterface;
+use App\Foundation\Persistence\Repository\DoctrineUtenteRepository;
+use App\Control\AttivitaPianificataController;
 
 class VisualizzazioneUtentiController 
 {
     private ClienteRepositoryInterface $clienteRepo;
     private AllenatoreRepositoryInterface $allenatoreRepo;
     private PalestraRepositoryInterface $palestraRepo;
+    private UtenteRepositoryInterface $utenteRepo;
     private VisualizzazioneUtentiView $view;
 
     public function __construct(
@@ -29,6 +32,7 @@ class VisualizzazioneUtentiController
         $this->clienteRepo = new DoctrineClienteRepository($this->entityManager);
         $this->allenatoreRepo = new DoctrineAllenatoreRepository($this->entityManager);
         $this->palestraRepo = new DoctrinePalestraRepository($this->entityManager);
+        $this->utenteRepo = new DoctrineUtenteRepository($this->entityManager);
         $this->view = new VisualizzazioneUtentiViewSmarty();
     }
 
@@ -44,7 +48,7 @@ class VisualizzazioneUtentiController
             $this->view->mostraErrore("Sessione non valida. Effettua il login.");
             return;
         }
-        $pal = $this->recuperaPalestraUtenti($idUt, $ruolo);
+        $pal = $this->recuperaPalestraUtenti();
         if (!$pal) {
             $this->view->mostraErrore("Accesso negato o palestra non trovata.");
             return;
@@ -147,16 +151,14 @@ class VisualizzazioneUtentiController
         return $clienti;
     }
 
-    private function recuperaPalestraUtenti(int $idUt, string $ruolo): ?Palestra
+    private function recuperaPalestraUtenti(): ?Palestra
     {
-        if ($ruolo === 'amministratore') {
-            $admin = $this->entityManager->find(Amministratore::class, $idUt);
-            return $admin ? $this->palestraRepo->findByAmministratore($admin) : null;
-        } elseif ($ruolo === 'allenatore') {
-            $trainer = $this->entityManager->find(Allenatore::class, $idUt);
-            return $trainer ? $trainer->getPalestra() : null;
-        }
-        return null;
+        return AttivitaPianificataController::recuperaPalestraUtenteStatic(
+            $this->session,
+            $this->utenteRepo,
+            $this->palestraRepo,
+            $this->clienteRepo
+        );
     }
 
     private function mappaClientiPerView(array $clienti): array

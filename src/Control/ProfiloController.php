@@ -21,7 +21,6 @@ use App\View\ProfiloViewSmarty;
 use App\Foundation\Session;
 use App\Entity\Parametri;
 use App\Entity\CertificatoMedico;
-use App\Infrastructure\Doctrine\EntityManagerFactory;
 use App\Entity\Amministratore;
 use App\Entity\Allenatore;
 use App\Entity\Utente;

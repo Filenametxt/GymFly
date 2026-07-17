@@ -11,6 +11,7 @@ use App\Entity\Repository\CodaAttesaRepositoryInterface;
 use App\Entity\Repository\PalestraRepositoryInterface;
 use App\Entity\Repository\MessaggioRepositoryInterface;
 use App\Entity\Repository\AmministratoreRepositoryInterface;
+use App\Entity\Repository\UtenteRepositoryInterface;
 use App\Foundation\Persistence\Repository\DoctrineAttivitaPianificataRepository;
 use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
 use App\Foundation\Persistence\Repository\DoctrineSessionePrivataRepository;
@@ -379,7 +380,7 @@ class AttivitaPianificataController
             $cliente->cancellaIscrizioneAttivita($ap);
             $ap->setPrenotati(max(0, $ap->getPrenotati() - 1));
             $this->clienteRepo->save($cliente);
-            $this->scorriCodaEnotifica($ap);
+            self::scorriCodaEnotifica($ap, $this->codaAttesaRepo, $this->clienteRepo, $this->messaggioRepo);
             $this->view->mostraStatoOperazione(true, "Iscrizione cancellata con successo.", $ritorno, "Torna al Calendario");
         } catch (\Throwable $e) {
             $this->view->mostraStatoOperazione(false, "Errore disdetta: " . $e->getMessage(), $ritorno, "Torna al Calendario");
@@ -396,24 +397,21 @@ class AttivitaPianificataController
         }
     }
 
-    private function scorriCodaEnotifica(AttivitaPianificata $ap): void
+    public static function scorriCodaEnotifica(AttivitaPianificata $ap, CodaAttesaRepositoryInterface $codaRepo, ClienteRepositoryInterface $cliRepo, MessaggioRepositoryInterface $msgRepo): void
     {
-        $codaPrimo = $this->codaAttesaRepo->findPrimoInCoda($ap);
+        $codaPrimo = $codaRepo->findPrimoInCoda($ap);
         if ($codaPrimo) {
-            $clienteScelto = $codaPrimo->getCliente();
-            $clienteScelto->iscriviAAttivita($ap);
+            $cli = $codaPrimo->getCliente();
+            $cli->iscriviAAttivita($ap);
             $ap->setPrenotati($ap->getPrenotati() + 1);
-            $this->codaAttesaRepo->delete($codaPrimo);
-            $this->clienteRepo->save($clienteScelto);
-
-            $oggettoMsg = "Iscrizione automatica all'attività";
-            $contenutoMsg = "Ciao " . $clienteScelto->getNome() . ",\n\nti informiamo che si è liberato un posto e sei stato iscritto automaticamente all'attività: " . $ap->getAttivita()->getNome() . " in data " . $ap->getGiorno()->format('d/m/Y') . " alle ore " . $ap->getOrario() . ":00.\n\nSaluti,\nLo staff di GymFly";
-            $messaggio = new Messaggio($ap->getAllenatore(), $oggettoMsg, $contenutoMsg);
-            $messaggio->aggiungiDestinatario($clienteScelto);
-            $this->messaggioRepo->save($messaggio);
-
-            $headers = "From: no-reply@gymfly.com\r\nReply-To: support@gymfly.com\r\nContent-Type: text/plain; charset=utf-8";
-            @mail($clienteScelto->getEmail(), $oggettoMsg, $contenutoMsg, $headers);
+            $codaRepo->delete($codaPrimo);
+            $cliRepo->save($cli);
+            $ogg = "Iscrizione automatica all'attività";
+            $cont = "Ciao " . $cli->getNome() . ",\n\nti informiamo che si è liberato un posto e sei stato iscritto automaticamente all'attività: " . $ap->getAttivita()->getNome() . " in data " . $ap->getGiorno()->format('d/m/Y') . " alle ore " . $ap->getOrario() . ":00.\n\nSaluti,\nLo staff di GymFly";
+            $msg = new Messaggio($ap->getAllenatore(), $ogg, $cont);
+            $msg->aggiungiDestinatario($cli);
+            $msgRepo->save($msg);
+            @mail($cli->getEmail(), $ogg, $cont, "From: no-reply@gymfly.com\r\nReply-To: support@gymfly.com\r\nContent-Type: text/plain; charset=utf-8");
         }
     }
 
@@ -686,19 +684,33 @@ class AttivitaPianificataController
 
     private function recuperaPalestraUtente(): ?Palestra
     {
-        $idUtente = $this->session->getLoggedUserId();
-        $ruolo = $this->session->getLoggedUserRole();
-        if (!$idUtente || !$ruolo) {
+        return self::recuperaPalestraUtenteStatic(
+            $this->session,
+            $this->amministratoreRepo,
+            $this->palestraRepo,
+            $this->clienteRepo
+        );
+    }
+
+    public static function recuperaPalestraUtenteStatic(
+        Session $session,
+        UtenteRepositoryInterface $utenteRepo,
+        PalestraRepositoryInterface $palestraRepo,
+        ClienteRepositoryInterface $clienteRepo
+    ): ?Palestra {
+        $id = $session->getLoggedUserId();
+        $ruolo = $session->getLoggedUserRole();
+        if (!$id || !$ruolo) {
             return null;
         }
         if ($ruolo === 'amministratore') {
-            $admin = $this->amministratoreRepo->findById($idUtente);
-            return $admin ? $this->palestraRepo->findByAmministratore($admin) : null;
+            $admin = $utenteRepo->findById($id);
+            return ($admin instanceof Amministratore) ? $palestraRepo->findByAmministratore($admin) : null;
         } elseif ($ruolo === 'allenatore') {
-            $allenatore = $this->allenatoreRepo->findById($idUtente);
-            return $allenatore ? $allenatore->getPalestra() : null;
+            $trainer = $utenteRepo->findById($id);
+            return ($trainer instanceof Allenatore) ? $trainer->getPalestra() : null;
         } elseif ($ruolo === 'cliente') {
-            $cliente = $this->clienteRepo->findById($idUtente);
+            $cliente = $clienteRepo->findById($id);
             return $cliente ? $cliente->getPalestra() : null;
         }
         return null;
