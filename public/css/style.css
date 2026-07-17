@@ -36,6 +36,7 @@
     --gymfly-text: #4B3F72;
     --gymfly-header-gradient: linear-gradient(135deg, var(--periwinkle) 0%, var(--baby-blue) 100%);
     --gymfly-header-gradient-admin: linear-gradient(135deg, var(--periwinkle) 0%, var(--pale-sky) 100%);
+    --gymfly-logo: url('../logo.jpeg');
 }
 
 /* Regole Globali di Base */
@@ -883,23 +884,31 @@ code {
     text-decoration: none;
 }
 
-.gf-navbar-brand .gf-logo-icon,
+.gf-logo-icon,
 .gf-footer-logo {
-    width: 30px;
-    height: 30px;
-    background: transparent;
-    border: 1px solid var(--gymfly-primary);
+    width: 44px;
+    height: 44px;
+    background: var(--gymfly-logo) no-repeat center center;
+    background-size: 112% !important;
+    overflow: hidden;
+    border: 1.5px solid var(--gymfly-primary);
     border-radius: 999px;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: var(--gymfly-primary);
+    color: transparent;
     font-size: 0.9rem;
+    transform: translateY(2px);
+}
+
+.gf-logo-icon i,
+.gf-footer-logo i {
+    display: none !important;
 }
 
 .gf-footer-logo {
-    width: 26px;
-    height: 26px;
+    width: 34px;
+    height: 34px;
     font-size: 0.8rem;
 }
 

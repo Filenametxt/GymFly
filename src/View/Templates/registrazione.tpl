@@ -15,26 +15,25 @@
     <nav class="navbar" role="navigation" aria-label="main navigation">
         <div class="container">
             <div class="navbar-brand">
-                <a class="navbar-item" href="./">
-                    <strong class="is-size-4" style="color: #AFAFE2;">GymFly</strong>
+                <a class="navbar-item" href="./" style="display: flex; align-items: center; gap: 6px;">
+                    <strong class="is-size-4" style="color: var(--gymfly-text) !important; font-weight: 800;">GymFly</strong>
+                    <div class="gf-logo-icon" style="width: 44px; height: 44px;"></div>
                 </a>
             </div>
 
             <div class="navbar-end">
-                <div class="navbar-items is-flex is-align-items-center" style="height: 100%;">
-                    <a class="navbar-item is-tab is-active-register px-4 py-2 mr-2" href="registrazione">
-                        <span>SIGN IN</span>
-                        <span class="icon is-small ml-2">
-                            <i class="fas fa-user-plus"></i>
-                        </span>
-                    </a>
-                    <a class="navbar-item is-tab px-4 py-2" href="login">
-                        <span>LOG IN</span>
-                        <span class="icon is-small ml-2">
-                            <i class="fas fa-user"></i>
-                        </span>
-                    </a>
-                </div>
+                <a class="navbar-item is-tab is-active-register px-4 mr-2" href="registrazione">
+                    <span>SIGN IN</span>
+                    <span class="icon is-small ml-2">
+                        <i class="fas fa-user-plus"></i>
+                    </span>
+                </a>
+                <a class="navbar-item is-tab px-4" href="login">
+                    <span>LOG IN</span>
+                    <span class="icon is-small ml-2">
+                        <i class="fas fa-user"></i>
+                    </span>
+                </a>
             </div>
         </div>
     </nav>
