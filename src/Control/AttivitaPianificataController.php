@@ -91,6 +91,12 @@ class AttivitaPianificataController
             $codaCounts[$ap->getId()] = $this->codaAttesaRepo->countByAttivitaPianificata($ap);
         }
 
+        $isPassata = false;
+        if ($selAp) {
+            $dataAttivita = $selAp->getGiorno()->setTime($selAp->getOrario(), 0, 0);
+            $isPassata = $dataAttivita < new \DateTimeImmutable();
+        }
+
         $datiView = [
             'grid' => $this->costruisciGriglia($apList, $spList, $dateStr),
             'fasceOrarie' => range(8, 20), 
@@ -108,6 +114,7 @@ class AttivitaPianificataController
             'codaAttesa' => $selAp ? $this->codaAttesaRepo->findByAttivitaPianificata($selAp) : [],   //se c'è un'attività pianificata selezionata, recupera la coda di attesa per quell'attività
             'selectedSp' => $this->recuperaSpSelezionata($ruolo, $idUt), 
             'codaCounts' => $codaCounts,
+            'isPassata' => $isPassata,
             'nuovo' => isset($_GET['nuovo']) ? 1 : 0,       //se è stato passato il parametro nuovo nella query string, allora mostra il form per creare una nuova attività pianificata
             'nuova_sessione' => isset($_GET['nuova_sessione']) ? 1 : 0
         ];
@@ -270,6 +277,13 @@ class AttivitaPianificataController
             return;
         }
         $rit = "calendario?data=" . $ap->getGiorno()->format('Y-m-d');        //calendario?data=2024-06-01, in modo da tornare alla settimana corretta dopo la prenotazione
+        
+        $dataAttivita = $ap->getGiorno()->setTime($ap->getOrario(), 0, 0);
+        if ($dataAttivita < new \DateTimeImmutable()) {
+            $this->view->mostraStatoOperazione(false, "Impossibile prenotare o mettersi in coda per un'attività passata.", $rit, "Torna al Calendario");
+            return;
+        }
+
         $cliente = $this->recuperaClientePrenotazione($palestra, $rit);
         if ($cliente) {
             $this->eseguiPrenotazione($cliente, $ap, $rit);

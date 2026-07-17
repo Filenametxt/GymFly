@@ -273,29 +273,36 @@
                                     {/if}
 
                                     <!-- ISCRIVI NUOVO CLIENTE DA PARTE DELL'ADMIN -->
-                                    <div class="box p-3 mb-4" style="background-color: rgba(255,255,255,0.02);">
-                                        <form action="prenota-attivita" method="POST">
-                                            <input type="hidden" name="id_attivita_pianificata" value="{$selectedAp->getId()}">
-                                            <div class="field">
-                                                <label class="label is-small style-theme-text">Aggiungi Cliente</label>
-                                                <div class="field has-addons">
-                                                    <div class="control is-expanded">
-                                                        <div class="select is-small is-fullwidth">
-                                                            <select name="id_cliente" required>
-                                                                <option value="">Seleziona cliente...</option>
-                                                                {foreach from=$clienti item=cl}
-                                                                    <option value="{$cl->getId()}">{$cl->getNome()} {$cl->getCognome()}</option>
-                                                                {/foreach}
-                                                            </select>
+                                    {if $isPassata}
+                                        <div class="notification is-warning is-light has-text-centered p-3 is-size-7 mb-4">
+                                            <span class="icon"><i class="fas fa-exclamation-triangle"></i></span>
+                                            <span>L'attività è passata. Non è possibile aggiungere clienti o inserirli in coda.</span>
+                                        </div>
+                                    {else}
+                                        <div class="box p-3 mb-4" style="background-color: rgba(255,255,255,0.02);">
+                                            <form action="prenota-attivita" method="POST">
+                                                <input type="hidden" name="id_attivita_pianificata" value="{$selectedAp->getId()}">
+                                                <div class="field">
+                                                    <label class="label is-small style-theme-text">Aggiungi Cliente</label>
+                                                    <div class="field has-addons">
+                                                        <div class="control is-expanded">
+                                                            <div class="select is-small is-fullwidth">
+                                                                <select name="id_cliente" required>
+                                                                    <option value="">Seleziona cliente...</option>
+                                                                    {foreach from=$clienti item=cl}
+                                                                        <option value="{$cl->getId()}">{$cl->getNome()} {$cl->getCognome()}</option>
+                                                                    {/foreach}
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="control">
+                                                            <button type="submit" class="button is-gymfly is-small">Aggiungi</button>
                                                         </div>
                                                     </div>
-                                                    <div class="control">
-                                                        <button type="submit" class="button is-gymfly is-small">Aggiungi</button>
-                                                    </div>
                                                 </div>
-                                            </div>
-                                        </form>
-                                    </div>
+                                            </form>
+                                        </div>
+                                    {/if}
 
                                     <!-- RIMOZIONE EVENTO -->
                                     <a href="rimuovi-attivita-pianificata?id_attivita_pianificata={$selectedAp->getId()}" class="button is-danger is-light is-fullwidth mt-4">
