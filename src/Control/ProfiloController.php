@@ -417,10 +417,15 @@ class ProfiloController
         $storico = array_reverse($this->parametriRepo->findByCliente($cliente));
         $valori = $this->mappaValoriGrafico($storico, $tipo);
         $titoli = ['peso' => 'Andamento Peso Corporeo', 'superiore' => 'Andamento Misure Parte Superiore (Media)', 'inferiore' => 'Andamento Misure Parte Inferiore (Media)'];
+        $labels = [];
+        foreach ($storico as $m) {
+            $labels[] = $m->getData()->format('d/m');
+        }
         $this->view->mostraGrafico([
             'utente' => $cliente, 'tipo' => $tipo,
             'titolo' => $titoli[$tipo] ?? 'Grafico',
-            'punti' => $this->costruisciPuntiGrafico($storico, $valori)
+            'labels' => $labels,
+            'valori' => $valori
         ]);
     }
 
@@ -442,23 +447,7 @@ class ProfiloController
         return $valori;
     }
 
-    private function costruisciPuntiGrafico(array $storico, array $valori): array
-    {
-        $punti = [];
-        $minVal = count($valori) ? min($valori) - 2 : 0;              // calcola il valore minimo da visualizzare nel grafico, sottraendo 2 al minimo dei valori registrati, oppure impostando a 0 se non ci sono valori
-        $maxVal = count($valori) ? max($valori) + 2 : 10;
-        $range = $maxVal - $minVal ?: 1;             // calcola il range dei valori da visualizzare nel grafico, impostando a 1 se il range è 0 per evitare divisioni per zero
-        $count = count($storico);
-        foreach ($storico as $i => $m) {
-            $val = $valori[$i];                                          // recupera il valore corrispondente al parametro corporeo per il punto corrente del grafico
-            $x = 40 + ($i * (390 / ($count - 1 ?: 1)));                  // calcola la posizione x del punto corrente del grafico, distribuendo i punti uniformemente lungo l'asse x tra 40 e 430 pixel
-            $y = 20 + 120 - (($val - $minVal) / $range * 120);
-            $punti[] = [
-                'x' => $x, 'y' => $y, 'valore' => $val, 'data' => $m->getData()->format('d/m')
-            ];
-        }
-        return $punti;
-    }
+
 
     // =========================================================================
     // 8. CARICA FOTO PROFILO (/carica-foto)

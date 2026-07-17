@@ -349,29 +349,14 @@
                                                     {if $eData.hasCarico}
                                                         <div class="tab-content-{$eData.esercizio->getId()} tab-content-carico">
                                                             <div class="chart-wrapper">
-                                                                <svg viewBox="0 0 450 120" style="display: block; width: 100%; height: auto; max-width: 100%; overflow: hidden;">
-                                                                    <!-- Grid lines -->
-                                                                    <line x1="35" y1="15" x2="415" y2="15" stroke="var(--gymfly-accent)" stroke-dasharray="4,4" />
-                                                                    <line x1="35" y1="55" x2="415" y2="55" stroke="var(--gymfly-accent)" stroke-dasharray="4,4" />
-                                                                    <line x1="35" y1="95" x2="415" y2="95" stroke="var(--gymfly-primary)" stroke-width="2" />
-                                                                    
-                                                                    <!-- Polyline -->
-                                                                    {if $eData.puntiCarico|@count > 1}
-                                                                        <polyline points="{foreach $eData.puntiCarico as $p}{$p.x},{$p.y} {/foreach}" fill="none" stroke="var(--gymfly-primary)" stroke-width="3" />
-                                                                    {/if}
-                                                                    
-                                                                    <!-- Points -->
-                                                                    {foreach $eData.puntiCarico as $p}
-                                                                        <circle cx="{$p.x}" cy="{$p.y}" r="4" fill="var(--gymfly-text)" />
-                                                                        <text x="{$p.x}" y="{$p.y - 7}" font-size="8" fill="var(--gymfly-text)" text-anchor="middle" font-weight="bold">{$p.valore}</text>
-                                                                        <text x="{$p.x}" y="110" font-size="8" fill="var(--gymfly-text)" text-anchor="middle">{$p.data}</text>
-                                                                    {/foreach}
-                                                                </svg>
-                                                                <div class="chart-legend">
-                                                                    <div class="legend-item">
-                                                                        <div class="legend-dot" style="background-color: var(--gymfly-primary);"></div>
-                                                                        <span>Andamento Carico di Lavoro (Kg)</span>
-                                                                    </div>
+                                                                <div style="position: relative; height: 160px; width: 100%;">
+                                                                    <canvas class="exercise-chart" 
+                                                                            data-type="carico" 
+                                                                            data-exercise="{$eData.esercizio->getId()}"
+                                                                            data-label="Carico di Lavoro (Kg)"
+                                                                            data-color="#4B3F72"
+                                                                            data-bg="rgba(75, 63, 114, 0.05)"
+                                                                            data-points='{$eData.carico|json_encode}'></canvas>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -381,26 +366,14 @@
                                                     {if $eData.hasReps}
                                                         <div class="tab-content-{$eData.esercizio->getId()} tab-content-reps {if $eData.hasCarico}is-hidden{/if}">
                                                             <div class="chart-wrapper">
-                                                                <svg viewBox="0 0 450 120" style="display: block; width: 100%; height: auto; max-width: 100%; overflow: hidden;">
-                                                                    <line x1="35" y1="15" x2="415" y2="15" stroke="var(--gymfly-accent)" stroke-dasharray="4,4" />
-                                                                    <line x1="35" y1="55" x2="415" y2="55" stroke="var(--gymfly-accent)" stroke-dasharray="4,4" />
-                                                                    <line x1="35" y1="95" x2="415" y2="95" stroke="var(--gymfly-secondary)" stroke-width="2" />
-                                                                    
-                                                                    {if $eData.puntiReps|@count > 1}
-                                                                        <polyline points="{foreach $eData.puntiReps as $p}{$p.x},{$p.y} {/foreach}" fill="none" stroke="var(--gymfly-secondary)" stroke-width="3" />
-                                                                    {/if}
-                                                                    
-                                                                    {foreach $eData.puntiReps as $p}
-                                                                        <circle cx="{$p.x}" cy="{$p.y}" r="4" fill="var(--gymfly-text)" />
-                                                                        <text x="{$p.x}" y="{$p.y - 7}" font-size="8" fill="var(--gymfly-text)" text-anchor="middle" font-weight="bold">{$p.valore}</text>
-                                                                        <text x="{$p.x}" y="110" font-size="8" fill="var(--gymfly-text)" text-anchor="middle">{$p.data}</text>
-                                                                    {/foreach}
-                                                                </svg>
-                                                                <div class="chart-legend">
-                                                                    <div class="legend-item">
-                                                                        <div class="legend-dot" style="background-color: var(--gymfly-secondary);"></div>
-                                                                        <span>Andamento Numero Ripetizioni</span>
-                                                                    </div>
+                                                                <div style="position: relative; height: 160px; width: 100%;">
+                                                                    <canvas class="exercise-chart" 
+                                                                            data-type="reps" 
+                                                                            data-exercise="{$eData.esercizio->getId()}"
+                                                                            data-label="Ripetizioni"
+                                                                            data-color="#afafe2"
+                                                                            data-bg="rgba(175, 175, 226, 0.05)"
+                                                                            data-points='{$eData.reps|json_encode}'></canvas>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -410,26 +383,14 @@
                                                     {if $eData.hasDurata}
                                                         <div class="tab-content-{$eData.esercizio->getId()} tab-content-durata {if $eData.hasCarico || $eData.hasReps}is-hidden{/if}">
                                                             <div class="chart-wrapper">
-                                                                <svg viewBox="0 0 450 120" style="display: block; width: 100%; height: auto; max-width: 100%; overflow: hidden;">
-                                                                    <line x1="35" y1="15" x2="415" y2="15" stroke="var(--gymfly-accent)" stroke-dasharray="4,4" />
-                                                                    <line x1="35" y1="55" x2="415" y2="55" stroke="var(--gymfly-accent)" stroke-dasharray="4,4" />
-                                                                    <line x1="35" y1="95" x2="415" y2="95" stroke="#3273dc" stroke-width="2" />
-                                                                    
-                                                                    {if $eData.puntiDurata|@count > 1}
-                                                                        <polyline points="{foreach $eData.puntiDurata as $p}{$p.x},{$p.y} {/foreach}" fill="none" stroke="#3273dc" stroke-width="3" />
-                                                                    {/if}
-                                                                    
-                                                                    {foreach $eData.puntiDurata as $p}
-                                                                        <circle cx="{$p.x}" cy="{$p.y}" r="4" fill="var(--gymfly-text)" />
-                                                                        <text x="{$p.x}" y="{$p.y - 7}" font-size="8" fill="var(--gymfly-text)" text-anchor="middle" font-weight="bold">{$p.valore}</text>
-                                                                        <text x="{$p.x}" y="110" font-size="8" fill="var(--gymfly-text)" text-anchor="middle">{$p.data}</text>
-                                                                    {/foreach}
-                                                                </svg>
-                                                                <div class="chart-legend">
-                                                                    <div class="legend-item">
-                                                                        <div class="legend-dot" style="background-color: #3273dc;"></div>
-                                                                        <span>Andamento Durata Sessione (sec)</span>
-                                                                    </div>
+                                                                <div style="position: relative; height: 160px; width: 100%;">
+                                                                    <canvas class="exercise-chart" 
+                                                                            data-type="durata" 
+                                                                            data-exercise="{$eData.esercizio->getId()}"
+                                                                            data-label="Durata Sessione (sec)"
+                                                                            data-color="#3273dc"
+                                                                            data-bg="rgba(50, 115, 220, 0.05)"
+                                                                            data-points='{$eData.durata|json_encode}'></canvas>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -485,7 +446,8 @@
         </main>
     </div>
 
-    <!-- SCRIPT PER ACCORDION E TABS -->
+    <!-- SCRIPT PER ACCORDION, TABS E GRAFICI CHART.JS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         function toggleAccordion(headerElement) {
             const accordionItem = headerElement.parentElement;
@@ -512,6 +474,67 @@
                 activeContent.classList.remove('is-hidden');
             }
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Impostazioni globali di stile per Chart.js in linea con GymFly
+            Chart.defaults.font.family = "'Outfit', 'Inter', 'BlinkMacSystemFont', -apple-system, 'Segoe UI', 'Roboto', sans-serif";
+            Chart.defaults.color = "#4B3F72";
+
+            const canvases = document.querySelectorAll('.exercise-chart');
+            canvases.forEach(canvas => {
+                const rawPoints = JSON.parse(canvas.getAttribute('data-points') || '[]');
+                if (rawPoints.length === 0) return;
+
+                const labels = rawPoints.map(pt => pt.data);
+                const values = rawPoints.map(pt => pt.valore);
+                const label = canvas.getAttribute('data-label');
+                const color = canvas.getAttribute('data-color') || '#4B3F72';
+                const bg = canvas.getAttribute('data-bg') || 'rgba(75, 63, 114, 0.05)';
+
+                {literal}
+                new Chart(canvas.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: label,
+                            data: values,
+                            borderColor: color,
+                            backgroundColor: bg,
+                            borderWidth: 3,
+                            tension: 0.3,
+                            fill: true,
+                            pointBackgroundColor: color,
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                grid: { color: 'rgba(175, 175, 226, 0.15)' },
+                                ticks: {
+                                    color: '#4B3F72',
+                                    precision: 0
+                                }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: '#4B3F72' }
+                            }
+                        }
+                    }
+                });
+                {/literal}
+            });
+        });
     </script>
 </body>
 </html>

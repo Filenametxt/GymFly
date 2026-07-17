@@ -508,9 +508,9 @@ class SchedaAllenamentoController
                 $d = $this->elaboraProgressiGrafici($this->progressoRepo->findByClienteAndEsercizio($cli, $es));
                 $eserciziData[] = [
                     'dettaglio' => $dettaglio, 'esercizio' => $es,
-                    'puntiCarico' => $this->calcolaCoordinateGrafico($d['carico']),
-                    'puntiReps' => $this->calcolaCoordinateGrafico($d['reps']),
-                    'puntiDurata' => $this->calcolaCoordinateGrafico($d['durata']),
+                    'carico' => $d['carico'],
+                    'reps' => $d['reps'],
+                    'durata' => $d['durata'],
                     'storico' => $d['storico'], 'hasCarico' => count($d['carico']) > 0,
                     'hasReps' => count($d['reps']) > 0, 'hasDurata' => count($d['durata']) > 0
                 ];
@@ -544,23 +544,5 @@ class SchedaAllenamentoController
     // HELPER GENERALI
     // =========================================================================
 
-    private function calcolaCoordinateGrafico(array $puntiRaw): array
-    {
-        if (count($puntiRaw) === 0) return [];
-        $valori = array_column($puntiRaw, 'valore');
-        $minVal = max(0, min($valori) - 2);
-        $maxVal = max($valori) + 2;
-        $range = $maxVal - $minVal ?: 1;
-        $puntiCoo = [];
-        $count = count($puntiRaw);
-        foreach ($puntiRaw as $i => $pt) {
-            $val = $pt['valore'];
-            $puntiCoo[] = [
-                'x' => 35 + ($i * (380 / ($count - 1 ?: 1))),
-                'y' => 15 + 80 - (($val - $minVal) / $range * 80),
-                'valore' => $val, 'data' => $pt['data']
-            ];
-        }
-        return $puntiCoo;
-    }
+
 }
