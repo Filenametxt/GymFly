@@ -186,24 +186,24 @@
             </div>
 
         </main>
-    </div>
-
-    <!-- INIZIALIZZAZIONE GRAFICI CHART.JS -->
+    </div>    <!-- INIZIALIZZAZIONE GRAFICI CHART.JS -->
     <script>
+        {literal}
         document.addEventListener("DOMContentLoaded", function() {
             
             // Impostazioni globali di stile per Chart.js in linea con GymFly
             Chart.defaults.font.family = "'Outfit', 'Inter', 'BlinkMacSystemFont', -apple-system, 'Segoe UI', 'Roboto', sans-serif";
             Chart.defaults.color = "#4B3F72";
+        {/literal}
 
             {if count($abbonamentiDati) > 0}
             // 1. Grafico Tipologie Abbonamento (Pie Chart)
             const ctxTipologie = document.getElementById('chartTipologie').getContext('2d');
-            const abbonamentiDati = {
+            const abbonamentiDati = {ldelim}
                 labels: [
                     {foreach from=$abbonamentiDati key=tipo item=count} '{$tipo}', {/foreach}
                 ],
-                datasets: [{
+                datasets: [{ldelim}
                     data: [
                         {foreach from=$abbonamentiDati item=count} {$count}, {/foreach}
                     ],
@@ -217,9 +217,10 @@
                     ],
                     borderWidth: 2,
                     borderColor: '#ffffff'
-                }]
-            };
+                {rdelim}]
+            {rdelim};
 
+            {literal}
             const chartTipologie = new Chart(ctxTipologie, {
                 type: 'pie',
                 data: abbonamentiDati,
@@ -241,6 +242,7 @@
                     }
                 }
             });
+            {/literal}
             {/if}
 
             {if count($prenotazioniCorsi) > 0}
@@ -253,6 +255,7 @@
                 datiCorsi.push({$prenotati});
             {/foreach}
 
+            {literal}
             new Chart(ctxCorsi, {
                 type: 'bar',
                 data: {
@@ -283,6 +286,7 @@
                     }
                 }
             });
+            {/literal}
             {/if}
 
             // 3. Registrazioni Giornaliere (Vertical Bar Chart)
@@ -290,11 +294,15 @@
             const datiIscritti = [
                 {foreach from=$iscrittiGiornalieri item=val} {$val}, {/foreach}
             ];
+            
+            {literal}
             new Chart(ctxIscritti, {
                 type: 'bar',
                 data: {
                     labels: [
+            {/literal}
                         {foreach from=$giorniMese item=g} '{$g}', {/foreach}
+            {literal}
                     ],
                     datasets: [{
                         label: 'Iscritti',
@@ -323,6 +331,7 @@
                 }
             });
         });
+        {/literal}
     </script>
 
 </body>
