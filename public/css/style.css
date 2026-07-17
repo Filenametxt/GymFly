@@ -36,7 +36,7 @@
     --gymfly-text: #4B3F72;
     --gymfly-header-gradient: linear-gradient(135deg, var(--periwinkle) 0%, var(--baby-blue) 100%);
     --gymfly-header-gradient-admin: linear-gradient(135deg, var(--periwinkle) 0%, var(--pale-sky) 100%);
-    --gymfly-logo: url('../logo.jpeg');
+    --gymfly-logo: url('../images/logo.jpeg');
 }
 
 /* Regole Globali di Base */
