@@ -5,6 +5,7 @@ namespace App\Foundation\Persistence\Repository;
 use App\Entity\Allenatore;
 use App\Entity\Cliente;
 use App\Entity\Scheda;
+use App\Entity\Palestra;
 use App\Entity\Repository\SchedaRepositoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -150,7 +151,7 @@ class DoctrineSchedaRepository implements SchedaRepositoryInterface
     }
 
     /** @return Scheda[] */
-    public function findByPalestra(\App\Entity\Palestra $palestra): array
+    public function findByPalestra(Palestra $palestra): array
     {
         return $this->em->createQueryBuilder()
             ->select('s')
@@ -163,7 +164,7 @@ class DoctrineSchedaRepository implements SchedaRepositoryInterface
     }
 
     /** @return Scheda[] */
-    public function findAltreByPalestra(\App\Entity\Palestra $palestra, int $escludiSchedaId): array
+    public function findAltreByPalestra(Palestra $palestra, int $escludiSchedaId): array
     {
         return $this->em->createQueryBuilder()
             ->select('s')
@@ -175,5 +176,18 @@ class DoctrineSchedaRepository implements SchedaRepositoryInterface
             ->setParameter('attualeId', $escludiSchedaId)
             ->getQuery()
             ->getResult();
+    }
+
+    public function findPendenteByCliente(Cliente $cliente): ?Scheda
+    {
+        return $this->em->createQueryBuilder()
+            ->select('s')
+            ->from(Scheda::class, 's')
+            ->where('s.cliente = :cliente')
+            ->andWhere('s.nome_scheda = :nomeScheda')
+            ->setParameter('cliente', $cliente)
+            ->setParameter('nomeScheda', 'Richiesta Nuova Scheda')
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 }

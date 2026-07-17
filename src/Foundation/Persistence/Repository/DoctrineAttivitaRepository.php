@@ -9,9 +9,11 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class DoctrineAttivitaRepository implements AttivitaRepositoryInterface
 {
-    public function __construct(
-        private EntityManagerInterface $em
-    ) {}
+    public function __construct(private EntityManagerInterface $em) {}
+
+    // -------------------------------------------------------------------------
+    // CRUD base
+    // -------------------------------------------------------------------------
 
     public function findById(int $id): ?Attivita
     {
@@ -35,6 +37,10 @@ class DoctrineAttivitaRepository implements AttivitaRepositoryInterface
         return $this->em->getRepository(Attivita::class)->findAll();
     }
 
+    // -------------------------------------------------------------------------
+    // Metodi specifici del dominio
+    // -------------------------------------------------------------------------
+    
     public function findByAllenatore(Allenatore $allenatore): array
     {
         return $this->em->createQueryBuilder()

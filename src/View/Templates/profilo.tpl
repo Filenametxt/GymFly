@@ -301,7 +301,66 @@
                             </a>
                         {/if}
 
+                        <!-- Elimina Utente (per Amministratore, se non è se stesso) -->
+                        {if $smarty.session.ruolo_utente === 'amministratore' && !$isSelf}
+                            {if $isClient}
+                                <a href="#" onclick="confermaEliminazioneCliente('{$utente->getId()}', '{$utente->getNome()|escape:'javascript'} {$utente->getCognome()|escape:'javascript'}'); return false;" class="navigation-box-card mt-4" style="border: 1px solid #ff3860;">
+                                    <span class="is-flex is-align-items-center">
+                                        <span class="icon mr-3 has-text-danger"><i class="fas fa-trash-alt fa-lg"></i></span>
+                                        <span class="has-text-weight-semibold is-size-5 has-text-danger">Elimina Cliente</span>
+                                    </span>
+                                    <span class="icon has-text-danger"><i class="fas fa-chevron-right fa-lg"></i></span>
+                                </a>
+                            {elseif $isTrainer}
+                                <a href="#" onclick="confermaEliminazioneAllenatore('{$utente->getId()}', '{$utente->getNome()|escape:'javascript'} {$utente->getCognome()|escape:'javascript'}'); return false;" class="navigation-box-card mt-4" style="border: 1px solid #ff3860;">
+                                    <span class="is-flex is-align-items-center">
+                                        <span class="icon mr-3 has-text-danger"><i class="fas fa-trash-alt fa-lg"></i></span>
+                                        <span class="has-text-weight-semibold is-size-5 has-text-danger">Elimina Allenatore</span>
+                                    </span>
+                                    <span class="icon has-text-danger"><i class="fas fa-chevron-right fa-lg"></i></span>
+                                </a>
+                            {/if}
+                        {/if}
+
                     </div>
+
+                    {if $smarty.session.ruolo_utente === 'amministratore' && !$isSelf}
+                    <!-- Modal di conferma eliminazione -->
+                    <div class="modal" id="confirm-delete-modal">
+                        <div class="modal-background" onclick="hideDeleteModal()"></div>
+                        <div class="modal-card" style="border-radius: 12px; overflow: hidden; max-width: 450px; margin: 0 auto; width: 95%;">
+                            <header class="modal-card-head" style="background-color: #f5f5f5; border-bottom: 1px solid #dbdbdb; padding: 15px 20px;">
+                                <p class="modal-card-title has-text-weight-bold" style="color: #363636; font-size: 1.25rem;">Conferma Eliminazione</p>
+                                <button class="delete" aria-label="close" onclick="hideDeleteModal()"></button>
+                            </header>
+                            <section class="modal-card-body" style="background-color: #ffffff; color: #4a4a4a; padding: 20px; font-size: 1rem; line-height: 1.5;">
+                                <p id="delete-modal-text"></p>
+                            </section>
+                            <footer class="modal-card-foot" style="background-color: #f5f5f5; border-top: 1px solid #dbdbdb; padding: 10px 20px; justify-content: flex-end; gap: 10px;">
+                                <button class="button" onclick="hideDeleteModal()" style="border-radius: 8px;">Annulla</button>
+                                <a id="delete-modal-confirm-btn" href="#" class="button is-danger" style="border-radius: 8px;">Elimina</a>
+                            </footer>
+                        </div>
+                    </div>
+
+                    <script>
+                        function confermaEliminazioneCliente(id, nomeCompleto) {
+                            var text = "Sei sicuro di voler eliminare definitivamente il cliente " + nomeCompleto + "? Tutti i dati relativi (misure, abbonamenti, schede) verranno persi. Questa operazione non può essere annullata.";
+                            document.getElementById("delete-modal-text").innerText = text;
+                            document.getElementById("delete-modal-confirm-btn").href = "rimuovi-cliente?id=" + id;
+                            document.getElementById("confirm-delete-modal").classList.add("is-active");
+                        }
+                        function confermaEliminazioneAllenatore(id, nomeCompleto) {
+                            var text = "Sei sicuro di voler eliminare definitivamente l'allenatore " + nomeCompleto + "? Questa operazione non può essere annullata.";
+                            document.getElementById("delete-modal-text").innerText = text;
+                            document.getElementById("delete-modal-confirm-btn").href = "rimuovi-allenatore?id=" + id;
+                            document.getElementById("confirm-delete-modal").classList.add("is-active");
+                        }
+                        function hideDeleteModal() {
+                            document.getElementById("confirm-delete-modal").classList.remove("is-active");
+                        }
+                    </script>
+                    {/if}
 
                 </div>
             </div>

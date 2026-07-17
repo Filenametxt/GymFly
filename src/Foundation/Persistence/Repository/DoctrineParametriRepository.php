@@ -9,11 +9,11 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class DoctrineParametriRepository implements ParametriRepositoryInterface
 {
-    public function __construct(
-        private readonly EntityManagerInterface $em,
-    ) {}
+    public function __construct(private readonly EntityManagerInterface $em) {}
 
-    // --- CRUD base ---
+    // -------------------------------------------------------------------------
+    // CRUD base
+    // -------------------------------------------------------------------------
 
     public function findById(int $id): ?Parametri
     {
@@ -40,7 +40,9 @@ class DoctrineParametriRepository implements ParametriRepositoryInterface
             ->findAll();
     }
 
-    // --- Filtro per cliente ---
+    // -------------------------------------------------------------------------
+    // Metodi specifici del dominio
+    // -------------------------------------------------------------------------
 
     /** @return Parametri[] */
     public function findByCliente(Cliente $cliente): array
@@ -84,31 +86,7 @@ class DoctrineParametriRepository implements ParametriRepositoryInterface
             ->getOneOrNullResult();
     }
 
-    /** @return Parametri[] */
-    public function findByClienteInPeriodo(
-        Cliente            $cliente,
-        \DateTimeImmutable $dal,
-        \DateTimeImmutable $al,
-    ): array {
-        return $this->em->createQueryBuilder()
-            ->select('p')
-            ->from(Parametri::class, 'p')
-            ->where('p.cliente = :cliente')
-            ->andWhere('p.data >= :dal')
-            ->andWhere('p.data <= :al')
-            ->setParameter('cliente', $cliente)
-            ->setParameter('dal',     $dal)
-            ->setParameter('al',      $al)
-            ->orderBy('p.data', 'ASC')
-            ->addOrderBy('p.id', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
-
-    public function existsByClienteAndData(
-        Cliente            $cliente,
-        \DateTimeImmutable $data,
-    ): bool {
+    public function existsByClienteAndData(Cliente $cliente, \DateTimeImmutable $data): bool {
         $count = (int) $this->em->createQueryBuilder()
             ->select('COUNT(p.id)')
             ->from(Parametri::class, 'p')

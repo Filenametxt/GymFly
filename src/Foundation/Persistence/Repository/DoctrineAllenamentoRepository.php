@@ -9,9 +9,7 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class DoctrineAllenamentoRepository implements AllenamentoRepositoryInterface
 {
-    public function __construct(
-        private EntityManagerInterface $em
-    ) {}
+    public function __construct(private EntityManagerInterface $em) {}
 
     // -------------------------------------------------------------------------
     // CRUD base
@@ -51,16 +49,6 @@ class DoctrineAllenamentoRepository implements AllenamentoRepositoryInterface
             ->where('a.scheda = :scheda')
             ->setParameter('scheda', $scheda)
             ->orderBy('a.nome', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
-
-    public function findSenzaScheda(): array
-    {
-        return $this->em->createQueryBuilder()
-            ->select('a')
-            ->from(Allenamento::class, 'a')
-            ->where('a.scheda IS NULL')
             ->getQuery()
             ->getResult();
     }

@@ -11,5 +11,5 @@ interface SchedaAllenamentoView
     /**
      * Mostra la pagina di stato operazione (successo o errore).
      */
-    public function mostraStatoOperazione(bool $successo, string $messaggio, ?string $ritorno = null): void;
+    public function mostraStatoOperazione(bool $successo, string $messaggio, ?string $ritorno = null, ?string $testoBottone = null): void;
 }

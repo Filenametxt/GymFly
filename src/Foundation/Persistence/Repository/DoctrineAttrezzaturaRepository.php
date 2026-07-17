@@ -8,11 +8,11 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class DoctrineAttrezzaturaRepository implements AttrezzaturaRepositoryInterface
 {
-    public function __construct(
-        private readonly EntityManagerInterface $em,
-    ) {}
+    public function __construct(private readonly EntityManagerInterface $em) {}
 
-    // --- CRUD base ---
+    // -------------------------------------------------------------------------
+    // CRUD base
+    // -------------------------------------------------------------------------
 
     public function findById(int $id): ?Attrezzatura
     {
@@ -39,14 +39,16 @@ class DoctrineAttrezzaturaRepository implements AttrezzaturaRepositoryInterface
             ->findAll();
     }
 
-    // --- Metodi di dominio ---
+    // -------------------------------------------------------------------------
+    // Metodi specifici del dominio
+    // -------------------------------------------------------------------------
 
     public function findByNome(string $nome): ?Attrezzatura
     {
         return $this->em->createQueryBuilder()
             ->select('a')
             ->from(Attrezzatura::class, 'a')
-            ->where('LOWER(a.nomeAttrezzatura) = LOWER(:nome)')
+            ->where('LOWER(a.nomeAttrezzatura) = LOWER(:nome)') // Confronto case-insensitive
             ->setParameter('nome', $nome)
             ->getQuery()
             ->getOneOrNullResult();

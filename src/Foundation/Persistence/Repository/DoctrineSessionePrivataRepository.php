@@ -16,11 +16,7 @@ class DoctrineSessionePrivataRepository implements SessionePrivataRepositoryInte
     // CRUD base
     // -------------------------------------------------------------------------
 
-    public function findByChiave(
-        Allenatore         $allenatore,
-        \DateTimeImmutable $oraInizio,
-        \DateTimeImmutable $oraFine
-    ): ?SessionePrivata {
+    public function findByChiave(Allenatore $allenatore, \DateTimeImmutable $oraInizio, \DateTimeImmutable $oraFine): ?SessionePrivata {
         return $this->em->createQueryBuilder()
             ->select('sp')
             ->from(SessionePrivata::class, 'sp')
@@ -73,54 +69,18 @@ class DoctrineSessionePrivataRepository implements SessionePrivataRepositoryInte
             ->getResult();
     }
 
-    /** @return SessionePrivata[] */
-    public function findFutureByAllenatore(Allenatore $allenatore): array
-    {
-        $oggi = new \DateTimeImmutable('today');
-
-        return $this->em->createQueryBuilder()
-            ->select('sp')
-            ->from(SessionePrivata::class, 'sp')
-            ->where('sp.allenatore = :allenatore')
-            ->andWhere('sp.data >= :oggi')
-            ->setParameter('allenatore', $allenatore)
-            ->setParameter('oggi', $oggi)
-            ->orderBy('sp.data', 'ASC')
-            ->addOrderBy('sp.oraInizio', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
-
     // -------------------------------------------------------------------------
-    // Query per atleta
+    // Query per cliente
     // -------------------------------------------------------------------------
 
     /** @return SessionePrivata[] */
-    public function findByAtleta(Cliente $atleta): array
+    public function findByCliente(Cliente $cliente): array
     {
         return $this->em->createQueryBuilder()
             ->select('sp')
             ->from(SessionePrivata::class, 'sp')
-            ->where('sp.atleta = :atleta')
-            ->setParameter('atleta', $atleta)
-            ->orderBy('sp.data', 'ASC')
-            ->addOrderBy('sp.oraInizio', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
-
-    /** @return SessionePrivata[] */
-    public function findFutureByAtleta(Cliente $atleta): array
-    {
-        $oggi = new \DateTimeImmutable('today');
-
-        return $this->em->createQueryBuilder()
-            ->select('sp')
-            ->from(SessionePrivata::class, 'sp')
-            ->where('sp.atleta = :atleta')
-            ->andWhere('sp.data >= :oggi')
-            ->setParameter('atleta', $atleta)
-            ->setParameter('oggi', $oggi)
+            ->where('sp.atleta = :cliente')
+            ->setParameter('cliente', $cliente)
             ->orderBy('sp.data', 'ASC')
             ->addOrderBy('sp.oraInizio', 'ASC')
             ->getQuery()
@@ -148,12 +108,7 @@ class DoctrineSessionePrivataRepository implements SessionePrivataRepositoryInte
     // Controllo sovrapposizioni
     // -------------------------------------------------------------------------
 
-    public function existsSovrapposizioneAllenatore(
-        Allenatore         $allenatore,
-        \DateTimeImmutable $data,
-        \DateTimeImmutable $oraInizio,
-        \DateTimeImmutable $oraFine
-    ): bool {
+    public function existsSovrapposizioneAllenatore(Allenatore $allenatore, \DateTimeImmutable $data, \DateTimeImmutable $oraInizio, \DateTimeImmutable $oraFine): bool {
         // Due intervalli [A,B] e [C,D] si sovrappongono se A < D && C < B
         $count = (int) $this->em->createQueryBuilder()
             ->select('COUNT(sp.oraInizio)')
@@ -172,20 +127,15 @@ class DoctrineSessionePrivataRepository implements SessionePrivataRepositoryInte
         return $count > 0;
     }
 
-    public function existsSovrapposizioneAtleta(
-        Cliente            $atleta,
-        \DateTimeImmutable $data,
-        \DateTimeImmutable $oraInizio,
-        \DateTimeImmutable $oraFine
-    ): bool {
+    public function existsSovrapposizioneCliente(Cliente $cliente, \DateTimeImmutable $data, \DateTimeImmutable $oraInizio, \DateTimeImmutable $oraFine): bool {
         $count = (int) $this->em->createQueryBuilder()
             ->select('COUNT(sp.oraInizio)')
             ->from(SessionePrivata::class, 'sp')
-            ->where('sp.atleta = :atleta')
+            ->where('sp.atleta = :cliente')
             ->andWhere('sp.data = :data')
             ->andWhere('sp.oraInizio < :oraFine')
             ->andWhere('sp.oraFine > :oraInizio')
-            ->setParameter('atleta', $atleta)
+            ->setParameter('cliente', $cliente)
             ->setParameter('data', $data)
             ->setParameter('oraInizio', $oraInizio)
             ->setParameter('oraFine', $oraFine)

@@ -9,11 +9,11 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class DoctrineIscrizioneRepository implements IscrizioneRepositoryInterface
 {
-    public function __construct(
-        private readonly EntityManagerInterface $em,
-    ) {}
+    public function __construct(private readonly EntityManagerInterface $em) {}
 
-    // --- CRUD base ---
+    // -------------------------------------------------------------------------
+    // CRUD base
+    // -------------------------------------------------------------------------
 
     public function findById(int $id): ?Iscrizione
     {
@@ -40,7 +40,9 @@ class DoctrineIscrizioneRepository implements IscrizioneRepositoryInterface
             ->findAll();
     }
 
-    // --- Metodi di dominio ---
+    // -------------------------------------------------------------------------
+    // Metodi specifici del dominio
+    // -------------------------------------------------------------------------
 
     public function findByCliente(Cliente $cliente): ?Iscrizione
     {

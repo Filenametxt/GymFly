@@ -4,9 +4,13 @@
                   xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
                   https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
 
-    <entity name="App\Entity\Utente"
-            table="Utente"
-            inheritance-type="JOINED">
+    <!-- Il tag è "entity"
+    * i parametri sono name, table e inheritance-type
+    * name: il nome completo della classe (namespace + nome)
+    * table: il nome della tabella nel database
+    * inheritance-type: il tipo di ereditarietà JOINED (si crea una tabella per ogni classe quindi sono cose separate) ci sono le relazioni
+    -->
+    <entity name="App\Entity\Utente" table="Utente" inheritance-type="JOINED">
 
         <!-- discriminator: Doctrine capisce quale sottoclasse caricare -->
         <discriminator-column name="tipo" type="string" length="20"/>
@@ -17,10 +21,12 @@
             <discriminator-mapping value="amministratore"  class="App\Entity\Amministratore"/>
         </discriminator-map>
 
+        <!-- Id della tabella che viene generato automaticamnte con Doctrine -->
         <id name="id" type="integer" column="id">
             <generator strategy="AUTO"/>
         </id>
 
+        <!-- "name" è il nome dell'entità, "colum" è il nome della colonna, "type" è il tipo di dato -->
         <field name="nome"            type="string"  column="nome"/>
         <field name="cognome"         type="string"  column="cognome"/>
         <field name="email"           type="string"  column="email"   unique="true"/>
@@ -32,22 +38,25 @@
         <field name="password"        type="string"  column="password"/>
 
         <!-- 1-Molti: Utente INVIA molti Messaggi (come mittente) -->
-        <one-to-many field="messaggiInviati"
-                     target-entity="App\Entity\Messaggio"
-                     mapped-by="mittente">
-            <cascade>
-                <cascade-persist/>
+        <!-- campo della classe Utente che rappresenta la relazione con i messaggi inviati
+             classe con cui fa la relazione
+             chiave esterna nella classe Messaggio che rappresenta la relazione con l'utente -->
+        <one-to-many field="messaggiInviati" 
+                     target-entity="App\Entity\Messaggio" 
+                     mapped-by="mittente"> 
+            <cascade> <!-- quando si salva l'oggetto principale, si salvano anche gli oggetti correlati -->
+                <cascade-persist/> <!-- quando si salva l'utente, si salvano anche i messaggi inviati -->
             </cascade>
         </one-to-many>
 
         <!-- Molti-Molti: Utente RICEVE molti Messaggi (tabella RICEVE) -->
-        <many-to-many field="messaggiRicevuti" target-entity="App\Entity\Messaggio" inversed-by="destinatari">
-            <join-table name="Riceve">
+        <many-to-many field="messaggiRicevuti" target-entity="App\Entity\Messaggio" inversed-by="destinatari"> <!--viene aggiunto un campo alla classe messaggio. Inversed-by indica che la relazione è bidirezionale e che la classe Messaggio ha un campo destinatari che rappresenta la relazione con gli utenti che ricevono il messaggio -->
+            <join-table name="Riceve"> <!-- join chiamato "riceve" che rappresenta la tabella di collegamento tra Utente e Messaggio -->
                 <join-columns>
-                    <join-column name="id_utente"    referenced-column-name="id"/>
+                    <join-column name="id_utente"    referenced-column-name="id"/> <!--dall'utente al messaggio-->
                 </join-columns>
                 <inverse-join-columns>
-                    <join-column name="id_messaggio" referenced-column-name="id"/>
+                    <join-column name="id_messaggio" referenced-column-name="id"/> <!--dal messaggio all'utente-->
                 </inverse-join-columns>
             </join-table>
         </many-to-many>

@@ -41,18 +41,6 @@ interface ParametriRepositoryInterface
     public function findPrimaByCliente(Cliente $cliente): ?Parametri;
 
     /**
-     * Misurazioni di un cliente in un intervallo di date.
-     * Utile per grafici di andamento su un periodo specifico.
-     *
-     * @return Parametri[]
-     */
-    public function findByClienteInPeriodo(
-        Cliente              $cliente,
-        \DateTimeImmutable   $dal,
-        \DateTimeImmutable   $al,
-    ): array;
-
-    /**
      * Verifica se un cliente ha già una misurazione registrata
      * per una data specifica. Evita duplicati sullo stesso giorno.
      */

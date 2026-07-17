@@ -27,7 +27,7 @@ class DoctrineAmministratoreRepository extends AbstractDoctrineUtenteRepository
     // Lookup anagrafico
     // -------------------------------------------------------------------------
 
-    public function findByEmail(string $email): ?Amministratore
+    public function findByEmail(string $email): ?Amministratore //restituisce specificatamente l'amministratore, non un generico utente.
     {
         return $this->em->createQueryBuilder()
             ->select('a')
@@ -48,7 +48,7 @@ class DoctrineAmministratoreRepository extends AbstractDoctrineUtenteRepository
         return $this->em->createQueryBuilder()
             ->select('a')
             ->from(Amministratore::class, 'a')
-            ->join('App\Entity\Palestra', 'p', 'WITH', 'p.amministratore = a')
+            ->join('App\Entity\Palestra', 'p', 'WITH', 'p.amministratore = a') //unisci le tabelle delle palestre a quelle degli amministratori solo se l'amministratore della palestra coincide con l'amministratore che stiamo selezionando
             ->where('p = :palestra')
             ->setParameter('palestra', $palestra)
             ->setMaxResults(1)

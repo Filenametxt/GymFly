@@ -14,13 +14,13 @@
 
     <!-- ===== NAVBAR ===== -->
     <nav class="gf-navbar">
-        <a href="home" class="gf-navbar-brand">
-            <div class="gf-logo-icon"><i class="fas fa-dumbbell"></i></div>
-            GymFly
+        <a href="home" class="gf-navbar-brand" style="display: flex; align-items: center; gap: 6px;">
+            <strong style="color: var(--gymfly-text) !important; font-weight: 800;">GymFly</strong>
+            <div class="gf-logo-icon"></div>
         </a>
         <div class="gf-navbar-actions">
-            <a href="login" class="gf-btn-outline">Accedi</a>
             <a href="registrazione" class="gf-btn-primary">Inizia</a>
+            <a href="login" class="gf-btn-outline">Accedi</a>
         </div>
     </nav>
 
@@ -183,11 +183,9 @@
 
     <!-- ===== FOOTER ===== -->
     <footer class="gf-footer">
-        <div class="gf-footer-brand">
-            <div class="gf-logo-icon gf-footer-logo">
-                <i class="fas fa-dumbbell"></i>
-            </div>
-            GymFly
+        <div class="gf-footer-brand" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <strong style="color: var(--gymfly-text) !important; font-weight: 800;">GymFly</strong>
+            <div class="gf-logo-icon gf-footer-logo"></div>
         </div>
         <p class="gf-footer-copy">GymFly © 2026 · Tutti i diritti riservati · Made with ❤️ in Italy</p>
     </footer>

@@ -8,10 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class DoctrineAbbonamentoRepository implements AbbonamentoRepositoryInterface
 {
-    public function __construct(
-        private EntityManagerInterface $em
-    ) {
-    }
+    public function __construct(private EntityManagerInterface $em) {}
 
     // -------------------------------------------------------------------------
     // CRUD base
@@ -45,7 +42,7 @@ class DoctrineAbbonamentoRepository implements AbbonamentoRepositoryInterface
     // Metodi specifici del dominio
     // -------------------------------------------------------------------------
 
-    public function findByTipologia(string $tipologia): array
+    public function findByTipologia(string $tipologia): array //per durata, per ticket...
     {
         return $this->em->createQueryBuilder()
             ->select('a')
@@ -56,7 +53,7 @@ class DoctrineAbbonamentoRepository implements AbbonamentoRepositoryInterface
             ->getResult();
     }
 
-    public function findByCategoria(string $categoria): array
+    public function findByCategoria(string $categoria): array //attività, pesi, attività+pesi
     {
         return $this->em->createQueryBuilder()
             ->select('a')

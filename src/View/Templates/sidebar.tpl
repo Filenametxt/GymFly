@@ -36,8 +36,9 @@
 
 <aside class="app-sidebar">
     <!-- LOGO / BRANDING -->
-    <div class="has-text-centered mb-5" style="display: flex; justify-content: center; align-items: center; width: 100%; margin-top: -1.2rem !important;">
-        <strong class="is-size-3" style="color: var(--gymfly-text) !important; margin-left: 1.5rem;">GymFly 🏋️‍♂️</strong>
+    <div class="mb-5" style="display: flex; justify-content: flex-start; align-items: center; width: 100%; margin-top: -2.0rem !important; margin-left: 2.2rem !important; gap: 6px; padding: 0.5rem 0;">
+        <strong class="is-size-2" style="color: var(--gymfly-text) !important; font-weight: 800;">GymFly</strong>
+        <div class="gf-logo-icon" style="width: 54px; height: 54px; border-width: 2px;"></div>
     </div>
 
     <!-- LINK DI NAVIGAZIONE -->
@@ -86,9 +87,9 @@
 
         <!-- Voci destinate solo all'Allenatore -->
         {if isset($smarty.session.ruolo_utente) && $smarty.session.ruolo_utente === 'allenatore'}
-            <a href="crea-esercizio" class="sidebar-menu-link">
+            <a href="esercizi" class="sidebar-menu-link">
                 <i class="fas fa-dumbbell"></i>
-                <span>Aggiungi Esercizio</span>
+                <span>Gestione Esercizi</span>
             </a>
         {/if}
 
@@ -236,6 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentPath.includes('crea-cliente') || 
                 currentPath.includes('gestione-abbonamento') ||
                 currentPath.includes('abbonamento') ||
+                currentPath.includes('rimuovi-cliente') ||
                 (!isSelfProfile && isClientProfile) ||
                 (currentPath.includes('visualizza-profilo') && (userRole === 'allenatore' || userRole === 'amministratore')) ||
                 (currentPath.includes('progressi-cliente') && (userRole === 'allenatore' || userRole === 'amministratore'))
@@ -247,6 +249,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentPath.includes('abilita-attivita-allenatore') ||
                 currentPath.includes('rimuovi-allenatore') ||
                 (!isSelfProfile && isTrainerProfile)
+            )) {
+                activeLink = link;
+            }
+            if (href === 'esercizi' && (
+                currentPath.includes('crea-esercizio') ||
+                currentPath.includes('valida-esercizio') ||
+                currentPath.includes('salva-esercizio') ||
+                currentPath.includes('copia-esercizio') ||
+                currentPath.includes('elimina-bozza') ||
+                currentPath.includes('visualizza-esercizio')
             )) {
                 activeLink = link;
             }

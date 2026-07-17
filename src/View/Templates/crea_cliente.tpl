@@ -186,9 +186,9 @@
                             </div>
 
                             <div class="field">
-                                <label class="label">Indirizzo di Domicilio (se diverso)</label>
+                                <label class="label">Indirizzo di Domicilio *</label>
                                 <div class="control has-icons-left">
-                                    <input class="input" type="text" name="indirizzo_domicilio" placeholder="Es: Via Milano 34, Roma">
+                                    <input class="input" type="text" name="indirizzo_domicilio" placeholder="Es: Via Milano 34, Roma" required>
                                     <span class="icon is-small is-left">
                                         <i class="fas fa-home"></i>
                                     </span>

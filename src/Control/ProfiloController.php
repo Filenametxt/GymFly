@@ -5,20 +5,27 @@ namespace App\Control;
 use App\Entity\Repository\ClienteRepositoryInterface;
 use App\Entity\Repository\ParametriRepositoryInterface;
 use App\Entity\Repository\CertificatoMedicoRepositoryInterface;
+use App\Entity\Repository\PalestraRepositoryInterface;
+use App\Entity\Repository\ProgressoRepositoryInterface;
+use App\Entity\Repository\AttivitaRepositoryInterface;
+use App\Entity\Repository\UtenteRepositoryInterface;
 use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
 use App\Foundation\Persistence\Repository\DoctrineParametriRepository;
 use App\Foundation\Persistence\Repository\DoctrineCertificatoMedicoRepository;
+use App\Foundation\Persistence\Repository\DoctrinePalestraRepository;
+use App\Foundation\Persistence\Repository\DoctrineProgressoRepository;
+use App\Foundation\Persistence\Repository\DoctrineAttivitaRepository;
+use App\Foundation\Persistence\Repository\DoctrineUtenteRepository;
 use App\View\Interface\ProfiloView;
 use App\View\ProfiloViewSmarty;
 use App\Foundation\Session;
 use App\Entity\Parametri;
 use App\Entity\CertificatoMedico;
-use App\Infrastructure\Doctrine\EntityManagerFactory;
 use App\Entity\Amministratore;
-use App\Entity\Palestra;
 use App\Entity\Allenatore;
 use App\Entity\Utente;
 use App\Entity\Cliente;
+use App\Entity\Attivita;
 use Doctrine\ORM\EntityManagerInterface;
 
 class ProfiloController 
@@ -26,6 +33,10 @@ class ProfiloController
     private ClienteRepositoryInterface $clienteRepo;
     private ParametriRepositoryInterface $parametriRepo;
     private CertificatoMedicoRepositoryInterface $certificatoRepo;
+    private PalestraRepositoryInterface $palestraRepo;
+    private ProgressoRepositoryInterface $progressoRepo;
+    private AttivitaRepositoryInterface $attivitaRepo;
+    private UtenteRepositoryInterface $utenteRepo;
     private ProfiloView $view;
     private EntityManagerInterface $entityManager;
 
@@ -37,143 +48,104 @@ class ProfiloController
         $this->clienteRepo = new DoctrineClienteRepository($this->entityManager);
         $this->parametriRepo = new DoctrineParametriRepository($this->entityManager);
         $this->certificatoRepo = new DoctrineCertificatoMedicoRepository($this->entityManager);
+        $this->palestraRepo = new DoctrinePalestraRepository($this->entityManager);
+        $this->progressoRepo = new DoctrineProgressoRepository($this->entityManager);
+        $this->attivitaRepo = new DoctrineAttivitaRepository($this->entityManager);
+        $this->utenteRepo = new DoctrineUtenteRepository($this->entityManager);
         $this->view = new ProfiloViewSmarty();
     }
 
-    /**
-     * 1. VISUALIZZA PROFILO (Pagina 17 del mock-up UX)
-     * Mostra anagrafica, dati abbonamento, storico parametri biometrici e certificato
-     */
+    // =========================================================================
+    // 1. VISUALIZZA PROFILO (/profilo, /visualizza-profilo)
+    // =========================================================================
+
     public function visualizzaProfilo(): void 
     {
-        $idUtente = $this->session->getLoggedUserId();
+        $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-        if (!$idUtente) {
+        if (!$idUt) {
             $this->view->mostraErrore("Sessione non valida. Effettua il login.");
             return;
         }
-
-        $entityManager = EntityManagerFactory::create();
-        $isSelf = !isset($_GET['id']);
-
-        if ($isSelf) {
-            $utente = $this->recuperaUtenteLoggato($entityManager, $idUtente, $ruolo);
-            $isClient = ($utente instanceof Cliente);
-        } else {
-            $targetId = (int)$_GET['id'];
-            $utente = $entityManager->find(Utente::class, $targetId);
-            $isClient = ($utente instanceof Cliente);
-
-            // Controllo di sicurezza (Anti-IDOR) per amministratore e allenatore
-            if ($ruolo === 'amministratore' || $ruolo === 'allenatore') {
-                $palestraUtente = null;
-                if ($ruolo === 'amministratore') {
-                    $adminObj = $entityManager->find(Amministratore::class, $idUtente);
-                    $palestraUtente = $entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $adminObj]);
-                } else {
-                    $allenatoreObj = $entityManager->find(Allenatore::class, $idUtente);
-                    $palestraUtente = $allenatoreObj ? $allenatoreObj->getPalestra() : null;
-                }
-
-                // Verifica che il target sia presente, abbia una palestra e appartenga alla stessa palestra dell'utente loggato
-                if (!$utente || !method_exists($utente, 'getPalestra') || !$utente->getPalestra() || !$palestraUtente || $utente->getPalestra()->getId() !== $palestraUtente->getId()) {
-                    $this->view->mostraErrore("Accesso negato. Non sei autorizzato a visualizzare questo profilo.");
-                    return;
-                }
-            }
-        }
-
-        if (!$utente) {
-            $this->view->mostraErrore("Profilo non trovato.");
+        $isSelf = true;
+        $ut = $this->determinaUtenteProfilo($idUt, $ruolo, $isSelf);
+        if (!$ut) {
+            $this->view->mostraErrore("Profilo non trovato o accesso negato.");
             return;
         }
-
-        $isTrainer = ($utente instanceof Allenatore);
-
-        if ($isClient) {
-            /** @var Cliente $utente */
-            $ultimiParametri = $this->parametriRepo->findUltimaByCliente($utente);
-            $ultimoCertificato = ($ruolo === 'allenatore') ? null : $this->certificatoRepo->findByCliente($utente);
-            $abbonamento = $utente->getAbbonamento();
-            $abbonamentoAttivo = $utente->isAbbonamentoAttivo();
-            
-            // Verifica la presenza di progressi registrati
-            $progressiCount = $entityManager->getRepository(\App\Entity\Progresso::class)->count(['cliente' => $utente]);
-            $hasProgress = ($progressiCount > 0);
-        } else {
-            $ultimiParametri = null;
-            $ultimoCertificato = null;
-            $abbonamento = null;
-            $abbonamentoAttivo = false;
-            $hasProgress = false;
-        }
-
-        $attivitaAbilitate = null;
-        $attivitaNonAbilitate = [];
-        $tutteAttivita = [];
-        if ($isTrainer) {
-            /** @var Allenatore $utente */
-            $attivitaAbilitate = $utente->getAttivitaAbilitate();
-            $tutteAttivita = $entityManager->getRepository(\App\Entity\Attivita::class)->findAll();
-            foreach ($tutteAttivita as $att) {
-                if (!$attivitaAbilitate->contains($att)) {
-                    $attivitaNonAbilitate[] = $att;
-                }
-            }
-        }
-
-        // Costruiamo l'array con i dati del profilo
-        $datiProfilo = [
-            'utente' => $utente,
-            'isClient' => $isClient,
-            'isTrainer' => $isTrainer,
-            'has_progress' => $hasProgress,
-            'attivitaAbilitate' => $attivitaAbilitate,
-            'attivitaNonAbilitate' => $attivitaNonAbilitate,
-            'tutteAttivita' => $tutteAttivita,
-            'isSelf' => $isSelf,
-            'nome' => $utente->getNome(),
-            'cognome' => $utente->getCognome(),
-            'email' => $utente->getEmail(),
-            'cf' => $utente->getCF(),
-            'fotoProfilo' => $utente->getProfilePicture() ? base64_encode($utente->getProfilePicture()) : null,
-            'abbonamento' => $abbonamento,
-            'abbonamento_attivo' => $abbonamentoAttivo,
-            
-            // Parametri Biometrici
-            'parametri' => $ultimiParametri ? [
-                'peso' => $ultimiParametri->getPeso(),
-                'altezza' => $ultimiParametri->getAltezza(),
-                'data' => $ultimiParametri->getData()->format('d/m/Y'),
-                'bicipiteDestro' => $ultimiParametri->getBicipiteDestro(),
-                'bicipiteSinistro' => $ultimiParametri->getBicipiteSinistro(),
-                'tricipiteDestro' => $ultimiParametri->getTricipiteDestro(),
-                'tricipiteSinistro' => $ultimiParametri->getTricipiteSinistro(),
-                'cosciaDestra' => $ultimiParametri->getCosciaDestra(),
-                'cosciaSinistra' => $ultimiParametri->getCosciaSinistra(),
-                'polpaccioDestro' => $ultimiParametri->getPolpaccioDestro(),
-                'polpaccioSinistro' => $ultimiParametri->getPolpaccioSinistro(),
-                'misuraPetto' => $ultimiParametri->getMisuraPetto(),
-                'misuraVita' => $ultimiParametri->getMisuraVita(),
-                'misuraSpalle' => $ultimiParametri->getMisuraSpalle(),
-                'misuraFianchi' => $ultimiParametri->getMisuraFianchi(),
-            ] : null,
-
-            // Certificato Medico
-            'certificato' => $ultimoCertificato ? [
-                'scadenza' => $ultimoCertificato->getDataScadenza()->format('d/m/Y'),
-                'medico' => $ultimoCertificato->getMedico(),
-                'valido' => $ultimoCertificato->isValido()
-            ] : null
+        $dati = [
+            'utente' => $ut, 'isClient' => ($ut instanceof Cliente), 'isTrainer' => ($ut instanceof Allenatore),
+            'isSelf' => $isSelf, 'nome' => $ut->getNome(), 'cognome' => $ut->getCognome(), 'email' => $ut->getEmail(),
+            'cf' => $ut->getCF(), 'fotoProfilo' => $ut->getProfilePicture() ? base64_encode($ut->getProfilePicture()) : null,
+            'abbonamento' => null, 'abbonamento_attivo' => false, 'has_progress' => false, 'parametri' => null,
+            'certificato' => null, 'attivitaAbilitate' => null, 'attivitaNonAbilitate' => [], 'tutteAttivita' => []
         ];
-
-        $this->view->mostraProfilo($datiProfilo);
+        $dati = ($ut instanceof Cliente) ? array_merge($dati, $this->caricaDatiClient($ut, $ruolo)) : (($ut instanceof Allenatore) ? array_merge($dati, $this->caricaDatiTrainer($ut)) : $dati);
+        $this->view->mostraProfilo($dati);
     }
 
-    /**
-     * 2. MODIFICA DATI (Pagina 18 del mock-up UX)
-     * Aggiorna i recapiti: Domicilio, Residenza e Metodo di Pagamento
-     */
+    private function determinaUtenteProfilo(int $idUt, string $ruolo, bool &$isSelf): ?Utente
+    {
+        $isSelf = !isset($_GET['id']);
+        if ($isSelf) {
+            return $this->recuperaUtenteLoggato($this->entityManager, $idUt, $ruolo);
+        }
+        $targetId = (int)$_GET['id'];
+        $utente = $this->entityManager->find(Utente::class, $targetId);
+        if ($ruolo === 'amministratore' || $ruolo === 'allenatore') {
+            $pal = ($ruolo === 'amministratore') ?
+                $this->palestraRepo->findByAmministratore($this->entityManager->find(Amministratore::class, $idUt)) :
+                ($this->entityManager->find(Allenatore::class, $idUt) ? $this->entityManager->find(Allenatore::class, $idUt)->getPalestra() : null);
+            if (!$utente || !method_exists($utente, 'getPalestra') || !$utente->getPalestra() || !$pal || $utente->getPalestra()->getId() !== $pal->getId()) {
+                return null;
+            }
+        }
+        return $utente;
+    }
+
+    private function caricaDatiClient(Cliente $ut, string $ruolo): array
+    {
+        $params = $this->parametriRepo->findUltimaByCliente($ut);
+        $cert = ($ruolo === 'allenatore') ? null : $this->certificatoRepo->findByCliente($ut);
+        return [
+            'parametri' => $params ? [
+                'peso' => $params->getPeso(), 'altezza' => $params->getAltezza(), 'data' => $params->getData()->format('d/m/Y'),
+                'bicipiteDestro' => $params->getBicipiteDestro(), 'bicipiteSinistro' => $params->getBicipiteSinistro(),
+                'tricipiteDestro' => $params->getTricipiteDestro(), 'tricipiteSinistro' => $params->getTricipiteSinistro(),
+                'cosciaDestra' => $params->getCosciaDestra(), 'cosciaSinistra' => $params->getCosciaSinistra(),
+                'polpaccioDestro' => $params->getPolpaccioDestro(), 'polpaccioSinistro' => $params->getPolpaccioSinistro(),
+                'misuraPetto' => $params->getMisuraPetto(), 'misuraVita' => $params->getMisuraVita(),
+                'misuraSpalle' => $params->getMisuraSpalle(), 'misuraFianchi' => $params->getMisuraFianchi(),
+            ] : null,
+            'certificato' => $cert ? [
+                'scadenza' => $cert->getDataScadenza()->format('d/m/Y'), 'medico' => $cert->getMedico(), 'valido' => $cert->isValido()
+            ] : null,
+            'abbonamento' => $ut->getAbbonamento(), 'abbonamento_attivo' => $ut->isAbbonamentoAttivo(),
+            'has_progress' => count($this->progressoRepo->findByCliente($ut)) > 0
+        ];
+    }
+
+    private function caricaDatiTrainer(Allenatore $ut): array
+    {
+        $abilitate = $ut->getAttivitaAbilitate();
+        $tutte = $this->attivitaRepo->findAll();
+        $nonAbilitate = [];
+        foreach ($tutte as $att) {
+            if (!$abilitate->contains($att)) {
+                $nonAbilitate[] = $att;
+            }
+        }
+        return [
+            'attivitaAbilitate' => $abilitate,
+            'attivitaNonAbilitate' => $nonAbilitate,
+            'tutteAttivita' => $tutte
+        ];
+    }
+
+    // =========================================================================
+    // 2. MODIFICA DATI (/modifica-anagrafica)
+    // =========================================================================
+
     public function modificaAnagrafica(): void 
     {
         $idUtente = $this->session->getLoggedUserId();
@@ -181,238 +153,130 @@ class ProfiloController
             $this->view->mostraErrore("Sessione scaduta.");
             return;
         }
-
-        $entityManager = EntityManagerFactory::create();
         $ruolo = $this->session->getLoggedUserRole();
+        $isSelf = true;
+        $utente = $this->determinaUtenteModifica($idUtente, $ruolo, $isSelf);
+        if (!$utente) {
+            $this->view->mostraErrore("Profilo non trovato o accesso negato.");
+            return;
+        }
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $this->view->mostraFormModifica(['utente' => $utente, 'isClient' => ($utente instanceof Cliente), 'isSelf' => $isSelf, 'ruolo' => $ruolo]);
+            return;
+        }
+        $ritorno = $isSelf ? 'profilo' : 'visualizza-profilo?id=' . $utente->getId();
+        $this->eseguiSalvataggioAnagrafica($utente, ($utente instanceof Cliente), $ruolo, $ritorno);
+    }
 
+    private function determinaUtenteModifica(int $idUt, string $ruolo, bool &$isSelf): ?Utente
+    {
         $isSelf = !isset($_GET['id']) && !isset($_POST['id']);
         if ($isSelf) {
-            $utente = $this->recuperaUtenteLoggato($entityManager, $idUtente, $ruolo);
-            $isClient = ($utente instanceof Cliente);
-        } else {
-            if ($ruolo === 'allenatore') {
-                $this->view->mostraErrore("Accesso negato. Gli allenatori non possono modificare i dati degli altri utenti.");
-                return;
-            }
-
-            $targetId = isset($_GET['id']) ? (int)$_GET['id'] : (int)$_POST['id'];
-            $utente = $entityManager->find(Utente::class, $targetId);
-            $isClient = ($utente instanceof Cliente);
-
-            // Security check (Anti-IDOR) for admin and trainer
-            if ($ruolo === 'amministratore' || $ruolo === 'allenatore') {
-                $palestraUtente = null;
-                if ($ruolo === 'amministratore') {
-                    $adminObj = $entityManager->find(Amministratore::class, $idUtente);
-                    $palestraUtente = $entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $adminObj]);
-                } else {
-                    $allenatoreObj = $entityManager->find(Allenatore::class, $idUtente);
-                    $palestraUtente = $allenatoreObj ? $allenatoreObj->getPalestra() : null;
-                }
-
-                if (!$utente || !method_exists($utente, 'getPalestra') || !$utente->getPalestra() || !$palestraUtente || $utente->getPalestra()->getId() !== $palestraUtente->getId()) {
-                    $this->view->mostraErrore("Accesso negato. Non sei autorizzato a modificare questo profilo.");
-                    return;
-                }
+            return $this->recuperaUtenteLoggato($this->entityManager, $idUt, $ruolo);
+        }
+        if ($ruolo === 'allenatore') {
+            return null;
+        }
+        $targetId = isset($_GET['id']) ? (int)$_GET['id'] : (int)$_POST['id'];
+        $utente = $this->entityManager->find(Utente::class, $targetId);
+        if ($ruolo === 'amministratore') {
+            $admin = $this->entityManager->find(Amministratore::class, $idUt);
+            $pal = $this->palestraRepo->findByAmministratore($admin);
+            if (!$utente || !method_exists($utente, 'getPalestra') || !$utente->getPalestra() || !$pal || $utente->getPalestra()->getId() !== $pal->getId()) {
+                return null;
             }
         }
+        return $utente;
+    }
 
-        if (!$utente) {
-            $this->view->mostraErrore("Profilo inesistente.");
+    private function eseguiSalvataggioAnagrafica(Utente $ut, bool $isClient, string $ruolo, string $rit): void
+    {
+        $nome = $_POST['nome'] ?? '';
+        $cognome = $_POST['cognome'] ?? '';
+        $res = $_POST['indirizzo'] ?? '';
+        $pag = $_POST['metodo_pagamento'] ?? '';
+        if (empty($nome) || empty($cognome) || empty($res) || ($isClient && $ruolo === 'amministratore' && empty($pag))) {
+            $this->view->mostraErrore("Campi obbligatori mancanti.", $rit, "Torna al Profilo");
             return;
         }
-
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            $this->view->mostraFormModifica([
-                'utente' => $utente,
-                'isClient' => $isClient,
-                'isSelf' => $isSelf
-            ]);
-            return;
-        }
-
-        // Recupero dei campi input text
-        $nuovoNome = $_POST['nome'] ?? null;
-        $nuovoCognome = $_POST['cognome'] ?? null;
-        $nuovoIndirizzoResidenza = $_POST['indirizzo'] ?? null; // Ereditato da Utente
-        $nuovoIndirizzoDomicilio = $_POST['indirizzo_domicilio'] ?? null; // Specifico di Cliente
-        $nuovoMetodoPagamento = $_POST['metodo_pagamento'] ?? null;
-
-        if (empty($nuovoNome) || empty($nuovoCognome) || empty($nuovoIndirizzoResidenza)) {
-            $this->view->mostraErrore("I campi Nome, Cognome e Residenza sono obbligatori.");
-            return;
-        }
-
-        if ($isClient && empty($nuovoMetodoPagamento)) {
-            $this->view->mostraErrore("Il campo Metodo di Pagamento è obbligatorio per i clienti.");
-            return;
-        }
-
         try {
-            // Aggiorniamo l'entità
-            $utente->setNome($nuovoNome);
-            $utente->setCognome($nuovoCognome);
-            $utente->setIndirizzo($nuovoIndirizzoResidenza);
-            if ($isClient) {
-                /** @var Cliente $utente */
-                if (method_exists($utente, 'setIndirizzoDiDomicilio')) {
-                    $utente->setIndirizzoDiDomicilio($nuovoIndirizzoDomicilio);
-                }
-                $utente->setMetodoDiPagamento($nuovoMetodoPagamento);
+            $ut->setNome($nome); $ut->setCognome($cognome); $ut->setIndirizzo($res);
+            if ($isClient && $ut instanceof Cliente) {
+                if (method_exists($ut, 'setIndirizzoDiDomicilio')) $ut->setIndirizzoDiDomicilio($_POST['indirizzo_domicilio'] ?? '');
+                if ($ruolo === 'amministratore') $ut->setMetodoDiPagamento($pag);
             }
-
-            $entityManager->flush();
-            if ($isSelf) {
-                header('Location: profilo');
-            } else {
-                header('Location: visualizza-profilo?id=' . $utente->getId());
-            }
+            $this->utenteRepo->save($ut);
+            header('Location: ' . $rit);
             exit();
         } catch (\InvalidArgumentException $e) {
-            $this->view->mostraErrore("Errore di validazione: " . $e->getMessage());
+            $this->view->mostraErrore("Errore: " . $e->getMessage(), $rit, "Torna al Profilo");
         }
     }
 
-    /**
-     * 3. CARICA FOTO PROFILO
-     */
-    public function caricaFotoProfilo(): void 
-    {
-        $idUtente = $this->session->getLoggedUserId();
-        if (!$idUtente) {
-            $this->view->mostraErrore("Azione non consentita.");
-            return;
-        }
+    // =========================================================================
+    // 3. AGGIORNA MISURE CORPOREE (/aggiorna-misure)
+    // =========================================================================
 
-        $entityManager = EntityManagerFactory::create();
-        $ruolo = $this->session->getLoggedUserRole();
-        $utente = $this->recuperaUtenteLoggato($entityManager, $idUtente, $ruolo);
-        if (!$utente) {
-            $this->view->mostraErrore("Profilo non trovato.");
-            return;
-        }
-
-        if (!isset($_FILES['foto_profilo']) || $_FILES['foto_profilo']['error'] !== UPLOAD_ERR_OK) {
-            $this->view->mostraErrore("File immagine non valido.");
-            return;
-        }
-
-        // Legge il contenuto binario del file temporaneo
-        $fileTmpPath = $_FILES['foto_profilo']['tmp_name'];
-        $fileContent = file_get_contents($fileTmpPath);
-
-        if ($fileContent !== false) {
-            $utente->setProfilePicture($fileContent);
-            $entityManager->flush();
-            $this->view->mostraConfermaModifica("Foto profilo aggiornata con successo.");
-        } else {
-            $this->view->mostraErrore("Impossibile leggere il contenuto del file immagine.");
-        }
-    }
-
-    /**
-     * 4. AGGIORNA MISURE CORPOREE (PARAMETRI BIOMETRICI)
-     */
     public function aggiornaMisureCorporee(): void 
     {
-        $idUtente = $this->session->getLoggedUserId();
+        $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-        if (!$idUtente) {
-            $this->view->mostraErrore("Effettua il login.");
-            return;
-        }
-
-        $cliente = $this->recuperaClienteTarget($ruolo, $idUtente);
+        $cliente = $idUt ? $this->recuperaClienteTarget($ruolo, $idUt) : null;
         if (!$cliente) {
             $this->view->mostraErrore("Cliente non trovato o accesso non consentito.");
             return;
         }
-
-        $ultimaMisure = $this->parametriRepo->findUltimaByCliente($cliente);
-        $storicoMisure = $this->parametriRepo->findByCliente($cliente);
+        $storico = $this->parametriRepo->findByCliente($cliente);
         $this->view->mostraFormMisure([
             'utente' => $cliente,
-            'ultimaMisure' => $ultimaMisure,
-            'storicoMisure' => $storicoMisure,
-            'storicoMisureCronologico' => array_reverse($storicoMisure),
+            'ultimaMisure' => $this->parametriRepo->findUltimaByCliente($cliente),
+            'storicoMisure' => $storico,
+            'storicoMisureCronologico' => array_reverse($storico),
             'isSelf' => ($ruolo === 'cliente')
         ]);
     }
 
-    /**
-     * 4b. INSERISCI NUOVE MISURE CORPOREE
-     */
+    // =========================================================================
+    // 4. INSERISCI MISURE CORPOREE (/inserisci-misure)
+    // =========================================================================
+
     public function inserisciMisureCorporee(): void
     {
-        $idUtente = $this->session->getLoggedUserId();
+        $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-        if (!$idUtente) {
-            $this->view->mostraErrore("Effettua il login.");
+        if (!$idUt || $ruolo === 'allenatore') {
+            $this->view->mostraErrore("Azione non consentita.");
             return;
         }
-
-        if ($ruolo === 'allenatore') {
-            $this->view->mostraErrore("Accesso negato. Gli allenatori non possono modificare le misure dei clienti.");
-            return;
-        }
-
-        $cliente = $this->recuperaClienteTarget($ruolo, $idUtente);
+        $cliente = $this->recuperaClienteTarget($ruolo, $idUt);
         if (!$cliente) {
             $this->view->mostraErrore("Cliente non trovato o accesso non consentito.");
             return;
         }
-
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            $ultimaMisure = $this->parametriRepo->findUltimaByCliente($cliente);
-            $this->view->mostraFormInserimentoMisure([
-                'utente' => $cliente,
-                'ultimaMisure' => $ultimaMisure
-            ]);
+            $this->view->mostraFormInserimentoMisure(['utente' => $cliente, 'ultimaMisure' => $this->parametriRepo->findUltimaByCliente($cliente)]);
             return;
         }
+        $this->salvaMisurePost($cliente, $ruolo);
+    }
 
+    private function salvaMisurePost(Cliente $cliente, string $ruolo): void
+    {
         $peso = isset($_POST['peso']) ? (float)$_POST['peso'] : 0.0;
         $altezza = isset($_POST['altezza']) ? (float)$_POST['altezza'] : 0.0;
-
         if ($peso <= 0 || $altezza <= 0) {
             $this->view->mostraErrore("Peso e altezza sono obbligatori.");
             return;
         }
-
-        $bicipiteD = !empty($_POST['bicipite_destro']) ? (float)$_POST['bicipite_destro'] : null;
-        $bicipiteS = !empty($_POST['bicipite_sinistro']) ? (float)$_POST['bicipite_sinistro'] : null;
-        $tricipiteD = !empty($_POST['tricipite_destro']) ? (float)$_POST['tricipite_destro'] : null;
-        $tricipiteS = !empty($_POST['tricipite_sinistro']) ? (float)$_POST['tricipite_sinistro'] : null;
-        $cosciaD = !empty($_POST['coscia_destra']) ? (float)$_POST['coscia_destra'] : null;
-        $cosciaS = !empty($_POST['coscia_sinistra']) ? (float)$_POST['coscia_sinistra'] : null;
-        $polpaccioD = !empty($_POST['polpaccio_destro']) ? (float)$_POST['polpaccio_destro'] : null;
-        $polpaccioS = !empty($_POST['polpaccio_sinistro']) ? (float)$_POST['polpaccio_sinistro'] : null;
-        $petto = !empty($_POST['misura_petto']) ? (float)$_POST['misura_petto'] : null;
-        $vita = !empty($_POST['misura_vita']) ? (float)$_POST['misura_vita'] : null;
-        $spalle = !empty($_POST['misura_spalle']) ? (float)$_POST['misura_spalle'] : null;
-        $fianchi = !empty($_POST['misura_fianchi']) ? (float)$_POST['misura_fianchi'] : null;
-
+        $f = fn($key) => !empty($_POST[$key]) ? (float)$_POST[$key] : null;
         try {
-            $nuoviParametri = new Parametri(
-                $peso,
-                $altezza,
-                new \DateTimeImmutable(), 
-                $cliente,
-                $bicipiteD,
-                $bicipiteS,
-                $tricipiteD,
-                $tricipiteS,
-                $cosciaD,
-                $cosciaS,
-                $polpaccioD,
-                $polpaccioS,
-                $petto,
-                $vita,
-                $spalle,
-                $fianchi
+            $p = new Parametri(
+                $peso, $altezza, new \DateTimeImmutable(), $cliente,
+                $f('bicipite_destro'), $f('bicipite_sinistro'), $f('tricipite_destro'), $f('tricipite_sinistro'),
+                $f('coscia_destra'), $f('coscia_sinistra'), $f('polpaccio_destro'), $f('polpaccio_sinistro'),
+                $f('misura_petto'), $f('misura_vita'), $f('misura_spalle'), $f('misura_fianchi')
             );
-
-            $this->parametriRepo->salvaMisure($nuoviParametri);
+            $this->parametriRepo->salvaMisure($p);
             header('Location: aggiorna-misure' . ($ruolo !== 'cliente' ? '?id=' . $cliente->getId() : ''));
             exit();
         } catch (\InvalidArgumentException $e) {
@@ -420,264 +284,355 @@ class ProfiloController
         }
     }
 
-    /**
-     * 5. CARICA CERTIFICATO MEDICO (Inoltra il file PDF a Foundation)
-     */
+    // =========================================================================
+    // 5. CARICA CERTIFICATO MEDICO (/carica-certificato)
+    // =========================================================================
+
     public function caricaCertificato(): void 
     {
-        $idUtente = $this->session->getLoggedUserId();
+        $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-        if (!$idUtente || $ruolo === 'allenatore') {
-            $this->view->mostraErrore("Accesso negato. Questa funzionalità è riservata ad Amministratori e Clienti.");
+        if (!$idUt || $ruolo === 'allenatore') {
+            $this->view->mostraErrore("Accesso negato.");
             return;
         }
-
-        $cliente = $this->recuperaClienteTarget($ruolo, $idUtente);
+        $cliente = $this->recuperaClienteTarget($ruolo, $idUt);
         if (!$cliente) {
             $this->view->mostraErrore("Cliente non trovato o accesso non consentito.");
             return;
         }
-
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            $this->view->mostraFormCertificato([
-                'utente' => $cliente
-            ]);
+            $this->view->mostraFormCertificato(['utente' => $cliente]);
             return;
         }
+        $rit = ($ruolo === 'cliente') ? 'profilo' : 'visualizza-profilo?id=' . $cliente->getId();
+        $this->eseguiUploadCertificato($cliente, $rit);
+    }
 
-        // Controlla se l'upload ha superato il limite di post_max_size del server
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST) && empty($_FILES) && isset($_SERVER['CONTENT_LENGTH']) && $_SERVER['CONTENT_LENGTH'] > 0) {
-            $this->view->mostraErrore("La dimensione del file supera il limite massimo consentito dal server (post_max_size). Riduci le dimensioni del file PDF.");
+    private function eseguiUploadCertificato(Cliente $cliente, string $rit): void
+    {
+        if (empty($_POST) && empty($_FILES) && isset($_SERVER['CONTENT_LENGTH']) && $_SERVER['CONTENT_LENGTH'] > 0) {
+            $this->view->mostraErrore("File troppo grande.", $rit, "Torna al Profilo");
             return;
         }
-
         $medico = $_POST['medico'] ?? null;
-        $dataEmissioneStr = $_POST['data_emissione'] ?? null;
-
-        if (empty($medico) || empty($dataEmissioneStr)) {
-            $this->view->mostraErrore("Dati del certificato incompleti. Assicurati di aver inserito il nome del medico e la data di emissione.");
+        $emissione = $_POST['data_emissione'] ?? null;
+        if (empty($medico) || empty($emissione) || !isset($_FILES['file_certificato']) || $_FILES['file_certificato']['error'] !== UPLOAD_ERR_OK) {
+            $this->view->mostraErrore("Dati certificato incompleti o file non valido.", $rit, "Torna al Profilo");
             return;
         }
-
-        if (!isset($_FILES['file_certificato']) || $_FILES['file_certificato']['error'] !== UPLOAD_ERR_OK) {
-            $this->view->mostraErrore("File PDF del certificato mancante o corrotto.");
-            return;
-        }
-
         try {
-            // Legge il contenuto binario del file temporaneo
-            $fileTmpPath = $_FILES['file_certificato']['tmp_name'];
-            $fileContent = file_get_contents($fileTmpPath);
-
-            if ($fileContent === false) {
-                throw new \Exception("Impossibile leggere il file del certificato.");
-            }
-
-            $vecchioCertificato = $cliente->getCertificatoMedico();
-
-            $dataEmissione = new \DateTimeImmutable($dataEmissioneStr);
-            $certificato = new CertificatoMedico($dataEmissione, $medico, $cliente, $fileContent);
-            
-            // Salva il nuovo certificato
-            $this->certificatoRepo->save($certificato);
-
-            // Associa il nuovo certificato al cliente (owner lato relazione)
-            $cliente->setCertificatoMedico($certificato);
+            $content = file_get_contents($_FILES['file_certificato']['tmp_name']);
+            $vecchio = $cliente->getCertificatoMedico();
+            $cert = new CertificatoMedico(new \DateTimeImmutable($emissione), $medico, $cliente, $content);
+            $this->certificatoRepo->save($cert);
+            $cliente->setCertificatoMedico($cert);
             $this->clienteRepo->save($cliente);
-
-            // Elimina il vecchio certificato se presente
-            if ($vecchioCertificato) {
-                $this->certificatoRepo->delete($vecchioCertificato);
-            }
-            
-            $this->view->mostraConfermaModifica("Certificato medico caricato correttamente. La nuova scadenza è il " . $certificato->getDataScadenza()->format('d/m/Y'));
+            if ($vecchio) $this->certificatoRepo->delete($vecchio);
+            $this->view->mostraConfermaModifica("Certificato medico caricato correttamente.", $rit, "Torna al Profilo");
         } catch (\Exception $e) {
-            $this->view->mostraErrore("Errore nell'elaborazione del certificato: " . $e->getMessage());
+            $this->view->mostraErrore("Errore: " . $e->getMessage(), $rit, "Torna al Profilo");
         }
     }
 
+    // =========================================================================
+    // 6. CAMBIA PASSWORD (/cambia-password)
+    // =========================================================================
+
     public function cambiaPassword(): void
     {
-        $idUtente = $this->session->getLoggedUserId();
-        if (!$idUtente) {
+        $idUt = $this->session->getLoggedUserId();
+        if (!$idUt) {
             $this->view->mostraErrore("Sessione scaduta o non valida.");
             return;
         }
-
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $this->view->mostraFormCambioPassword();
             return;
         }
-
-        $oldPassword = $_POST['vecchia_password'] ?? '';
-        $newPassword = $_POST['nuova_password'] ?? '';
-        $confirmPassword = $_POST['conferma_password'] ?? '';
-
-        if ($oldPassword === '' || $newPassword === '' || $confirmPassword === '') {
-            $this->view->mostraErrore("Tutti i campi password sono obbligatori.");
+        $old = $_POST['vecchia_password'] ?? '';
+        $new = $_POST['nuova_password'] ?? '';
+        $conf = $_POST['conferma_password'] ?? '';
+        if ($old === '' || $new === '' || $conf === '' || $new !== $conf) {
+            $this->view->mostraErrore("Campi vuoti o password non coincidenti.", "profilo", "Torna al Profilo");
             return;
         }
+        $this->eseguiCambioPassword($idUt, $this->session->getLoggedUserRole(), $old, $new);
+    }
 
-        if ($newPassword !== $confirmPassword) {
-            $this->view->mostraErrore("La nuova password e la password di conferma non coincidono.");
+    private function eseguiCambioPassword(int $idUt, string $ruolo, string $old, string $new): void
+    {
+        $ut = $this->recuperaUtenteLoggato($this->entityManager, $idUt, $ruolo);
+        if (!$ut || !$ut->verificaPassword($old)) {
+            $this->view->mostraErrore("Utente non trovato o password errata.", "profilo", "Torna al Profilo");
             return;
         }
-
-        $entityManager = EntityManagerFactory::create();
-        $ruolo = $this->session->getLoggedUserRole();
-        $utente = $this->recuperaUtenteLoggato($entityManager, $idUtente, $ruolo);
-        if (!$utente) {
-            $this->view->mostraErrore("Utente non trovato.");
-            return;
-        }
-
-        if (!$utente->verificaPassword($oldPassword)) {
-            $this->view->mostraErrore("La vecchia password inserita non è corretta.");
-            return;
-        }
-
         try {
-            $utente->setPassword($newPassword);
-            $entityManager->flush();
-            $this->view->mostraConfermaModifica("Password aggiornata con successo.");
+            $ut->setPassword($new);
+            $this->utenteRepo->save($ut);
+            $this->view->mostraConfermaModifica("Password aggiornata con successo.", "profilo", "Torna al Profilo");
         } catch (\InvalidArgumentException $e) {
-            $this->view->mostraErrore("Errore di validazione: " . $e->getMessage());
+            $this->view->mostraErrore("Errore: " . $e->getMessage(), "profilo", "Torna al Profilo");
         }
     }
 
+    // =========================================================================
+    // 7. VISUALIZZA GRAFICO (/visualizza-grafico)
+    // =========================================================================
+
     public function visualizzaGrafico(): void
     {
-        $idUtente = $this->session->getLoggedUserId();
+        $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-        if (!$idUtente) {
-            $this->view->mostraErrore("Effettua il login.");
-            return;
-        }
-
-        $cliente = $this->recuperaClienteTarget($ruolo, $idUtente);
+        $cliente = $idUt ? $this->recuperaClienteTarget($ruolo, $idUt) : null;
         if (!$cliente) {
             $this->view->mostraErrore("Cliente non trovato o accesso non consentito.");
             return;
         }
-
         $tipo = $_GET['tipo'] ?? 'peso';
-        if (!in_array($tipo, ['peso', 'superiore', 'inferiore'])) {
-            $tipo = 'peso';
-        }
+        if (!in_array($tipo, ['peso', 'superiore', 'inferiore'])) $tipo = 'peso';
+        $storico = array_reverse($this->parametriRepo->findByCliente($cliente));
+        $valori = $this->mappaValoriGrafico($storico, $tipo);
+        $titoli = ['peso' => 'Andamento Peso Corporeo', 'superiore' => 'Andamento Misure Parte Superiore (Media)', 'inferiore' => 'Andamento Misure Parte Inferiore (Media)'];
+        $this->view->mostraGrafico([
+            'utente' => $cliente, 'tipo' => $tipo,
+            'titolo' => $titoli[$tipo] ?? 'Grafico',
+            'punti' => $this->costruisciPuntiGrafico($storico, $valori)
+        ]);
+    }
 
-        $storicoMisure = $this->parametriRepo->findByCliente($cliente);
-        $storico = array_reverse($storicoMisure); // Chronological order
-
-        $punti = [];
-        $width = 390;
-        $height = 120;
-        $padX = 40;
-        $padY = 20;
-
+    private function mappaValoriGrafico(array $storico, string $tipo): array
+    {
         $valori = [];
         foreach ($storico as $m) {
             if ($tipo === 'peso') {
                 $valori[] = $m->getPeso();
-            } elseif ($tipo === 'superiore') {
-                $subVals = [];
-                if ($m->getBicipiteDestro() !== null) $subVals[] = $m->getBicipiteDestro();
-                if ($m->getBicipiteSinistro() !== null) $subVals[] = $m->getBicipiteSinistro();
-                if ($m->getTricipiteDestro() !== null) $subVals[] = $m->getTricipiteDestro();
-                if ($m->getTricipiteSinistro() !== null) $subVals[] = $m->getTricipiteSinistro();
-                if ($m->getMisuraPetto() !== null) $subVals[] = $m->getMisuraPetto();
-                if ($m->getMisuraSpalle() !== null) $subVals[] = $m->getMisuraSpalle();
-                
-                $media = count($subVals) > 0 ? array_sum($subVals) / count($subVals) : 0.0;
-                $valori[] = round($media, 2);
             } else {
-                $subVals = [];
-                if ($m->getCosciaDestra() !== null) $subVals[] = $m->getCosciaDestra();
-                if ($m->getCosciaSinistra() !== null) $subVals[] = $m->getCosciaSinistra();
-                if ($m->getPolpaccioDestro() !== null) $subVals[] = $m->getPolpaccioDestro();
-                if ($m->getPolpaccioSinistro() !== null) $subVals[] = $m->getPolpaccioSinistro();
-                if ($m->getMisuraVita() !== null) $subVals[] = $m->getMisuraVita();
-                if ($m->getMisuraFianchi() !== null) $subVals[] = $m->getMisuraFianchi();
-                
-                $media = count($subVals) > 0 ? array_sum($subVals) / count($subVals) : 0.0;
+                $sub = ($tipo === 'superiore') ?
+                    [$m->getBicipiteDestro(), $m->getBicipiteSinistro(), $m->getTricipiteDestro(), $m->getTricipiteSinistro(), $m->getMisuraPetto(), $m->getMisuraSpalle()] :
+                    [$m->getCosciaDestra(), $m->getCosciaSinistra(), $m->getPolpaccioDestro(), $m->getPolpaccioSinistro(), $m->getMisuraVita(), $m->getMisuraFianchi()];
+                $nonNull = array_filter($sub, fn($v) => $v !== null);
+                $media = count($nonNull) > 0 ? array_sum($nonNull) / count($nonNull) : 0.0;
                 $valori[] = round($media, 2);
             }
         }
+        return $valori;
+    }
 
+    private function costruisciPuntiGrafico(array $storico, array $valori): array
+    {
+        $punti = [];
         $minVal = count($valori) ? min($valori) - 2 : 0;
         $maxVal = count($valori) ? max($valori) + 2 : 10;
         $range = $maxVal - $minVal ?: 1;
-
         $count = count($storico);
         foreach ($storico as $i => $m) {
             $val = $valori[$i];
-
-            $x = $padX + ($i * ($width / ($count - 1 ?: 1)));
-            $y = $padY + $height - (($val - $minVal) / $range * $height);
+            $x = 40 + ($i * (390 / ($count - 1 ?: 1)));
+            $y = 20 + 120 - (($val - $minVal) / $range * 120);
             $punti[] = [
-                'x' => $x,
-                'y' => $y,
-                'valore' => $val,
-                'data' => $m->getData()->format('d/m')
+                'x' => $x, 'y' => $y, 'valore' => $val, 'data' => $m->getData()->format('d/m')
             ];
         }
-
-        $titolo = "Andamento Peso Corporeo";
-        if ($tipo === 'superiore') {
-            $titolo = "Andamento Misure Parte Superiore (Media)";
-        } elseif ($tipo === 'inferiore') {
-            $titolo = "Andamento Misure Parte Inferiore (Media)";
-        }
-
-        $this->view->mostraGrafico([
-            'utente' => $cliente,
-            'tipo' => $tipo,
-            'titolo' => $titolo,
-            'punti' => $punti
-        ]);
+        return $punti;
     }
 
-    /**
-     * Recupera l'utente Cliente target della richiesta, verificando i permessi di sicurezza (Anti-IDOR)
-     */
+    // =========================================================================
+    // 8. CARICA FOTO PROFILO (/carica-foto)
+    // =========================================================================
+
+    public function caricaFotoProfilo(): void 
+    {
+        $idUt = $this->session->getLoggedUserId();
+        $ruolo = $this->session->getLoggedUserRole();
+        $ut = $idUt ? $this->recuperaUtenteLoggato($this->entityManager, $idUt, $ruolo) : null;
+        if (!$ut) {
+            $this->view->mostraErrore("Profilo non trovato.");
+            return;
+        }
+        if (isset($_FILES['foto_profilo']) && in_array($_FILES['foto_profilo']['error'], [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE])) {
+            $this->view->mostraErrore("Dimensione file eccessiva.", "profilo", "Torna al Profilo");
+            return;
+        }
+        if (!isset($_FILES['foto_profilo']) || $_FILES['foto_profilo']['error'] !== UPLOAD_ERR_OK) {
+            $this->view->mostraErrore("File non valido.", "profilo", "Torna al Profilo");
+            return;
+        }
+        $this->eseguiCaricamentoFoto($ut);
+    }
+
+    private function eseguiCaricamentoFoto(Utente $ut): void
+    {
+        $tmp = $_FILES['foto_profilo']['tmp_name'];
+        if ($_FILES['foto_profilo']['size'] > 60 * 1024) {
+            $this->view->mostraErrore("La dimensione supera i 60 KB.", "profilo", "Torna al Profilo");
+            return;
+        }
+        $info = @getimagesize($tmp);
+        if ($info === false || !in_array($info[2], [IMAGETYPE_JPEG, IMAGETYPE_PNG])) {
+            $this->view->mostraErrore("Formato non consentito (ammessi solo JPG/PNG).", "profilo", "Torna al Profilo");
+            return;
+        }
+        $content = file_get_contents($tmp);
+        if ($content !== false) {
+            $ut->setProfilePicture($content);
+            $this->utenteRepo->save($ut);
+            $this->view->mostraConfermaModifica("Foto profilo aggiornata con successo.", "profilo", "Torna al Profilo");
+        }
+    }
+
+    // =========================================================================
+    // 9. AGGIUNGI ABILITAZIONE ALLENATORE (/aggiungi-attivita-profilo)
+    // =========================================================================
+
+    public function aggiungiAttivitaAllenatore(): void
+    {
+        $idLog = $this->session->getLoggedUserId();
+        $ruolo = $this->session->getLoggedUserRole();
+        if (!$idLog || ($ruolo !== 'amministratore' && $ruolo !== 'allenatore')) {
+            $this->view->mostraErrore("Azione non consentita.");
+            return;
+        }
+        $idAll = isset($_POST['id_allenatore']) ? (int)$_POST['id_allenatore'] : 0;
+        $idAtt = isset($_POST['id_attivita']) ? (int)$_POST['id_attivita'] : 0;
+        if ($idAll <= 0 || $idAtt <= 0 || ($ruolo !== 'amministratore' && $idAll !== $idLog)) {
+            $this->view->mostraErrore("Dati non validi o non autorizzato.");
+            return;
+        }
+        $allenatore = $this->entityManager->find(Allenatore::class, $idAll);
+        $attivita = $this->entityManager->find(Attivita::class, $idAtt);
+        if (!$allenatore || !$attivita || !$this->validaPalestraAllenatore($idLog, $ruolo, $allenatore)) {
+            $this->view->mostraErrore("Risorsa non valida o non appartenente alla palestra.");
+            return;
+        }
+        $this->eseguiAbilitazione($allenatore, $attivita, 'add', $idLog);
+    }
+
+    // =========================================================================
+    // 10. RIMUOVI ABILITAZIONE ALLENATORE (/rimuovi-attivita-profilo)
+    // =========================================================================
+
+    public function rimuoviAttivitaAllenatore(): void
+    {
+        $idLog = $this->session->getLoggedUserId();
+        $ruolo = $this->session->getLoggedUserRole();
+        if (!$idLog || ($ruolo !== 'amministratore' && $ruolo !== 'allenatore')) {
+            $this->view->mostraErrore("Azione non consentita.");
+            return;
+        }
+        $idAll = isset($_POST['id_allenatore']) ? (int)$_POST['id_allenatore'] : 0;
+        $idAtt = isset($_POST['id_attivita']) ? (int)$_POST['id_attivita'] : 0;
+        if ($idAll <= 0 || $idAtt <= 0 || ($ruolo !== 'amministratore' && $idAll !== $idLog)) {
+            $this->view->mostraErrore("Dati non validi o non autorizzato.");
+            return;
+        }
+        $allenatore = $this->entityManager->find(Allenatore::class, $idAll);
+        $attivita = $this->entityManager->find(Attivita::class, $idAtt);
+        if (!$allenatore || !$attivita || !$this->validaPalestraAllenatore($idLog, $ruolo, $allenatore)) {
+            $this->view->mostraErrore("Risorsa non valida o non appartenente alla palestra.");
+            return;
+        }
+        $this->eseguiAbilitazione($allenatore, $attivita, 'remove', $idLog);
+    }
+
+    // =========================================================================
+    // 11. AGGIORNA ABILITAZIONI ALLENATORE IN BLOCCO (/aggiorna-abilitazioni-profilo)
+    // =========================================================================
+
+    public function aggiornaAbilitazioniAllenatore(): void
+    {
+        $idLog = $this->session->getLoggedUserId();
+        $ruolo = $this->session->getLoggedUserRole();
+        if (!$idLog || ($ruolo !== 'amministratore' && $ruolo !== 'allenatore')) {
+            $this->view->mostraErrore("Azione non consentita.");
+            return;
+        }
+        $idAll = isset($_POST['id_allenatore']) ? (int)$_POST['id_allenatore'] : 0;
+        if ($idAll <= 0 || ($ruolo !== 'amministratore' && $idAll !== $idLog)) {
+            $this->view->mostraErrore("Dati non validi o non autorizzato.");
+            return;
+        }
+        $allenatore = $this->entityManager->find(Allenatore::class, $idAll);
+        if (!$allenatore || !$this->validaPalestraAllenatore($idLog, $ruolo, $allenatore)) {
+            $this->view->mostraErrore("Allenatore non trovato o non appartenente alla palestra.");
+            return;
+        }
+        $this->eseguiAggiornamentoAbilitazioniInBlocco($allenatore, $_POST['attivita'] ?? [], $idLog);
+    }
+
+    private function eseguiAggiornamentoAbilitazioniInBlocco(Allenatore $allenatore, array $sel, int $idLog): void
+    {
+        try {
+            foreach ($allenatore->getAttivitaAbilitate() as $c) {
+                $allenatore->removeAbilitazione($c);
+            }
+            $this->utenteRepo->save($allenatore);
+            foreach ($sel as $idAtt) {
+                $att = $this->entityManager->find(Attivita::class, (int)$idAtt);
+                if ($att) $allenatore->addAbilitazione($att);
+            }
+            $this->utenteRepo->save($allenatore);
+            $loc = ($allenatore->getId() === $idLog) ? 'profilo' : 'visualizza-profilo?id=' . $allenatore->getId();
+            header('Location: ' . $loc);
+            exit();
+        } catch (\Throwable $e) {
+            $this->view->mostraErrore("Impossibile aggiornare abilitazioni: " . $e->getMessage());
+        }
+    }
+
+    // =========================================================================
+    // HELPER GENERALI
+    // =========================================================================
+
+    private function validaPalestraAllenatore(int $idLog, string $ruolo, Allenatore $allenatore): bool
+    {
+        if ($ruolo === 'amministratore') {
+            $admin = $this->entityManager->find(Amministratore::class, $idLog);
+            $pal = $this->palestraRepo->findByAmministratore($admin);
+            if (!$pal || $allenatore->getPalestra()->getId() !== $pal->getId()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private function eseguiAbilitazione(Allenatore $allenatore, Attivita $attivita, string $azione, int $idLog): void
+    {
+        try {
+            if ($azione === 'add') {
+                $allenatore->addAbilitazione($attivita);
+            } else {
+                $allenatore->removeAbilitazione($attivita);
+            }
+            $this->utenteRepo->save($allenatore);
+            $loc = ($allenatore->getId() === $idLog) ? 'profilo' : 'visualizza-profilo?id=' . $allenatore->getId();
+            header('Location: ' . $loc);
+            exit();
+        } catch (\Throwable $e) {
+            $this->view->mostraErrore("Impossibile modificare l'abilitazione: " . $e->getMessage());
+        }
+    }
+
     private function recuperaClienteTarget(string $ruolo, ?int $idUtente): ?Cliente
     {
         $targetId = $idUtente;
         if ($ruolo === 'amministratore' || $ruolo === 'allenatore') {
             $targetId = isset($_GET['id']) ? (int)$_GET['id'] : (isset($_POST['id']) ? (int)$_POST['id'] : null);
-            if (!$targetId) {
-                return null;
-            }
+            if (!$targetId) return null;
         }
-
         $cliente = $this->clienteRepo->findById($targetId);
-        if (!$cliente) {
-            return null;
-        }
-
-        // Controllo multitenant
-        if ($ruolo === 'amministratore' || $ruolo === 'allenatore') {
-            $entityManager = EntityManagerFactory::create();
-            $palestraUtente = null;
-            if ($ruolo === 'amministratore') {
-                $adminObj = $entityManager->find(Amministratore::class, $idUtente);
-                $palestraUtente = $entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $adminObj]);
-            } else {
-                $allenatoreObj = $entityManager->find(Allenatore::class, $idUtente);
-                $palestraUtente = $allenatoreObj ? $allenatoreObj->getPalestra() : null;
-            }
-
-            if (!$palestraUtente || !$cliente->getPalestra() || $cliente->getPalestra()->getId() !== $palestraUtente->getId()) {
+        if ($cliente && ($ruolo === 'amministratore' || $ruolo === 'allenatore')) {
+            $pal = ($ruolo === 'amministratore') ?
+                $this->palestraRepo->findByAmministratore($this->entityManager->find(Amministratore::class, $idUtente)) :
+                ($this->entityManager->find(Allenatore::class, $idUtente) ? $this->entityManager->find(Allenatore::class, $idUtente)->getPalestra() : null);
+            if (!$pal || !$cliente->getPalestra() || $cliente->getPalestra()->getId() !== $pal->getId()) {
                 return null;
             }
         }
-
         return $cliente;
     }
 
-    /**
-     * Recupera l'utente loggato instanziando la sua classe concreta specifica per evitare proxy casting issue
-     */
-    private function recuperaUtenteLoggato(\Doctrine\ORM\EntityManagerInterface $entityManager, int $idUtente, ?string $ruolo): ?Utente
+    private function recuperaUtenteLoggato(EntityManagerInterface $entityManager, int $idUtente, ?string $ruolo): ?Utente
     {
         if ($ruolo === 'cliente') {
             return $entityManager->find(Cliente::class, $idUtente);
@@ -687,205 +642,5 @@ class ProfiloController
             return $entityManager->find(Amministratore::class, $idUtente);
         }
         return $entityManager->find(Utente::class, $idUtente);
-    }
-
-    /**
-     * Aggiunge un'attività abilitata a un allenatore dal suo profilo
-     */
-    public function aggiungiAttivitaAllenatore(): void
-    {
-        $idLoggato = $this->session->getLoggedUserId();
-        $ruoloLoggato = $this->session->getLoggedUserRole();
-
-        if (!$idLoggato || ($ruoloLoggato !== 'amministratore' && $ruoloLoggato !== 'allenatore')) {
-            $this->view->mostraErrore("Azione non consentita.");
-            return;
-        }
-
-        $idAllenatore = isset($_POST['id_allenatore']) ? (int)$_POST['id_allenatore'] : 0;
-        $idAttivita = isset($_POST['id_attivita']) ? (int)$_POST['id_attivita'] : 0;
-
-        if ($idAllenatore <= 0 || $idAttivita <= 0) {
-            $this->view->mostraErrore("Dati non validi.");
-            return;
-        }
-
-        $entityManager = EntityManagerFactory::create();
-
-        // Controllo permessi (Se non è admin, l'allenatore può modificare solo se stesso)
-        if ($ruoloLoggato !== 'amministratore' && $idAllenatore !== $idLoggato) {
-            $this->view->mostraErrore("Non sei autorizzato ad aggiungere attività a questo profilo.");
-            return;
-        }
-
-        $allenatore = $entityManager->find(Allenatore::class, $idAllenatore);
-        $attivita = $entityManager->find(\App\Entity\Attivita::class, $idAttivita);
-
-        if (!$allenatore || !$attivita) {
-            $this->view->mostraErrore("Allenatore o Attività non validi.");
-            return;
-        }
-
-        // Se l'utente loggato è l'admin, controlliamo che l'allenatore sia nella palestra dell'admin
-        if ($ruoloLoggato === 'amministratore') {
-            $adminObj = $entityManager->find(Amministratore::class, $idLoggato);
-            $palestraAdmin = $entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $adminObj]);
-            if (!$palestraAdmin || $allenatore->getPalestra()->getId() !== $palestraAdmin->getId()) {
-                $this->view->mostraErrore("L'allenatore non appartiene alla tua palestra.");
-                return;
-            }
-        }
-
-        try {
-            $allenatore->addAbilitazione($attivita);
-            $entityManager->flush();
-
-            // Redirect back to profile page
-            if ($idAllenatore === $idLoggato) {
-                header('Location: profilo');
-            } else {
-                header('Location: visualizza-profilo?id=' . $idAllenatore);
-            }
-            exit();
-        } catch (\Throwable $e) {
-            $this->view->mostraErrore("Impossibile aggiungere l'attività: " . $e->getMessage());
-        }
-    }
-
-    /**
-     * Rimuove un'attività abilitata da un allenatore dal suo profilo
-     */
-    public function rimuoviAttivitaAllenatore(): void
-    {
-        $idLoggato = $this->session->getLoggedUserId();
-        $ruoloLoggato = $this->session->getLoggedUserRole();
-
-        if (!$idLoggato || ($ruoloLoggato !== 'amministratore' && $ruoloLoggato !== 'allenatore')) {
-            $this->view->mostraErrore("Azione non consentita.");
-            return;
-        }
-
-        $idAllenatore = isset($_POST['id_allenatore']) ? (int)$_POST['id_allenatore'] : 0;
-        $idAttivita = isset($_POST['id_attivita']) ? (int)$_POST['id_attivita'] : 0;
-
-        if ($idAllenatore <= 0 || $idAttivita <= 0) {
-            $this->view->mostraErrore("Dati non validi.");
-            return;
-        }
-
-        $entityManager = EntityManagerFactory::create();
-
-        // Controllo permessi (Se non è admin, l'allenatore può modificare solo se stesso)
-        if ($ruoloLoggato !== 'amministratore' && $idAllenatore !== $idLoggato) {
-            $this->view->mostraErrore("Non sei autorizzato a rimuovere attività da questo profilo.");
-            return;
-        }
-
-        $allenatore = $entityManager->find(Allenatore::class, $idAllenatore);
-        $attivita = $entityManager->find(\App\Entity\Attivita::class, $idAttivita);
-
-        if (!$allenatore || !$attivita) {
-            $this->view->mostraErrore("Allenatore o Attività non validi.");
-            return;
-        }
-
-        // Se l'utente loggato è l'admin, controlliamo che l'allenatore sia nella palestra dell'admin
-        if ($ruoloLoggato === 'amministratore') {
-            $adminObj = $entityManager->find(Amministratore::class, $idLoggato);
-            $palestraAdmin = $entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $adminObj]);
-            if (!$palestraAdmin || $allenatore->getPalestra()->getId() !== $palestraAdmin->getId()) {
-                $this->view->mostraErrore("L'allenatore non appartiene alla tua palestra.");
-                return;
-            }
-        }
-
-        try {
-            $allenatore->removeAbilitazione($attivita);
-            $entityManager->flush();
-
-            // Redirect back to profile page
-            if ($idAllenatore === $idLoggato) {
-                header('Location: profilo');
-            } else {
-                header('Location: visualizza-profilo?id=' . $idAllenatore);
-            }
-            exit();
-        } catch (\Throwable $e) {
-            $this->view->mostraErrore("Impossibile rimuovere l'attività: " . $e->getMessage());
-        }
-    }
-
-    /**
-     * Aggiorna in blocco le attività abilitate di un allenatore dal suo profilo
-     */
-    public function aggiornaAbilitazioniAllenatore(): void
-    {
-        $idLoggato = $this->session->getLoggedUserId();
-        $ruoloLoggato = $this->session->getLoggedUserRole();
-
-        if (!$idLoggato || ($ruoloLoggato !== 'amministratore' && $ruoloLoggato !== 'allenatore')) {
-            $this->view->mostraErrore("Azione non consentita.");
-            return;
-        }
-
-        $idAllenatore = isset($_POST['id_allenatore']) ? (int)$_POST['id_allenatore'] : 0;
-        $attivitaSelezionate = isset($_POST['attivita']) ? $_POST['attivita'] : []; // Array of IDs
-
-        if ($idAllenatore <= 0) {
-            $this->view->mostraErrore("Dati non validi.");
-            return;
-        }
-
-        $entityManager = EntityManagerFactory::create();
-
-        // Controllo permessi (Se non è admin, l'allenatore può modificare solo se stesso)
-        if ($ruoloLoggato !== 'amministratore' && $idAllenatore !== $idLoggato) {
-            $this->view->mostraErrore("Non sei autorizzato a modificare questo profilo.");
-            return;
-        }
-
-        $allenatore = $entityManager->find(Allenatore::class, $idAllenatore);
-        if (!$allenatore) {
-            $this->view->mostraErrore("Allenatore non trovato.");
-            return;
-        }
-
-        // Se l'utente loggato è l'admin, controlliamo che l'allenatore sia nella palestra dell'admin
-        if ($ruoloLoggato === 'amministratore') {
-            $adminObj = $entityManager->find(Amministratore::class, $idLoggato);
-            $palestraAdmin = $entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $adminObj]);
-            if (!$palestraAdmin || $allenatore->getPalestra()->getId() !== $palestraAdmin->getId()) {
-                $this->view->mostraErrore("L'allenatore non appartiene alla tua palestra.");
-                return;
-            }
-        }
-
-        try {
-            // Rimuoviamo tutte le abilitazioni correnti
-            $correnti = $allenatore->getAttivitaAbilitate();
-            foreach ($correnti as $c) {
-                $allenatore->removeAbilitazione($c);
-            }
-            $entityManager->flush();
-
-            // Aggiungiamo le nuove abilitazioni selezionate
-            foreach ($attivitaSelezionate as $idAtt) {
-                $att = $entityManager->find(\App\Entity\Attivita::class, (int)$idAtt);
-                if ($att) {
-                    $allenatore->addAbilitazione($att);
-                }
-            }
-            $entityManager->flush();
-
-            // Redirect back to profile page
-            if ($idAllenatore === $idLoggato) {
-                header('Location: profilo');
-            } else {
-                header('Location: visualizza-profilo?id=' . $idAllenatore);
-            }
-            exit();
-        } catch (\Throwable $e) {
-            $this->view->mostraErrore("Impossibile aggiornare le abilitazioni: " . $e->getMessage());
-        }
     }
 }

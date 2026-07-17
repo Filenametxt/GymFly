@@ -191,10 +191,14 @@
                 {foreach $clienti as $c}
                     <div class="column is-3-desktop is-4-tablet is-12-mobile">
                         <a href="visualizza-profilo?id={$c.id}" class="box customer-card">
-                            <div class="customer-avatar mb-3">
-                                <span class="icon is-large">
-                                    <i class="fas fa-user-circle fa-4x"></i>
-                                </span>
+                            <div class="customer-avatar mb-3" style="width: 96px; height: 96px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                {if isset($c.fotoProfilo) && $c.fotoProfilo !== null}
+                                    <img src="data:image/jpeg;base64,{$c.fotoProfilo}" alt="Foto Profilo" style="width: 100%; height: 100%; object-fit: cover;">
+                                {else}
+                                    <span class="icon is-large">
+                                        <i class="fas fa-user-circle fa-4x"></i>
+                                    </span>
+                                {/if}
                             </div>
                             <h3 class="title is-5 mb-2 has-text-centered">{$c.nome} {$c.cognome}</h3>
                             <p class="subtitle is-6 has-text-grey-dark mb-1 has-text-centered" style="word-break: break-all;">{$c.email}</p>
@@ -215,10 +219,14 @@
             <div id="clienti-list" class="is-hidden">
                 {foreach $clienti as $c}
                     <a href="visualizza-profilo?id={$c.id}" class="box customer-list-item mb-3">
-                        <div class="customer-avatar mr-4">
-                            <span class="icon is-medium">
-                                <i class="fas fa-user-circle fa-2x"></i>
-                            </span>
+                        <div class="customer-avatar mr-4" style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            {if isset($c.fotoProfilo) && $c.fotoProfilo !== null}
+                                <img src="data:image/jpeg;base64,{$c.fotoProfilo}" alt="Foto Profilo" style="width: 100%; height: 100%; object-fit: cover;">
+                            {else}
+                                <span class="icon is-medium">
+                                    <i class="fas fa-user-circle fa-2x"></i>
+                                </span>
+                            {/if}
                         </div>
                         <div class="is-flex-grow-1">
                             <h3 class="title is-5 mb-1 style-theme-text">{$c.nome} {$c.cognome}</h3>

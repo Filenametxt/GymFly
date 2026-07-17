@@ -15,8 +15,9 @@
     <nav class="navbar" role="navigation" aria-label="main navigation">
         <div class="container">
             <div class="navbar-brand">
-                <a class="navbar-item" href="dashboard-admin">
-                    <strong class="is-size-4" style="color: #AFAFE2;">GymFly 🏋️‍♂️</strong>
+                <a class="navbar-item" href="dashboard-admin" style="display: flex; align-items: center; gap: 6px;">
+                    <strong class="is-size-4" style="color: var(--gymfly-text) !important; font-weight: 800;">GymFly</strong>
+                    <div class="gf-logo-icon" style="width: 44px; height: 44px;"></div>
                 </a>
             </div>
         </div>

@@ -32,15 +32,6 @@ interface SalaRepositoryInterface
      */
     public function findByPalestra(Palestra $palestra): array;
 
-    /**
-     * Sale di una palestra con capienza sufficiente per un dato numero
-     * di partecipanti.
-     * Caso d'uso: selezione sala durante la pianificazione di un'attività.
-     *
-     * @return Sala[]
-     */
-    public function findByPalestraConCapienzaMinima(Palestra $palestra, int $minPartecipanti): array;
-
     // -------------------------------------------------------------------------
     // Unicità
     // -------------------------------------------------------------------------

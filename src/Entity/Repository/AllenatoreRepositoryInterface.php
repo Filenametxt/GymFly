@@ -24,6 +24,8 @@ interface AllenatoreRepositoryInterface extends UtenteRepositoryInterface
 
     public function findByEmail(string $email): ?Allenatore;
 
+    public function findByCF(string $CF): ?Allenatore;
+
     // -------------------------------------------------------------------------
     // Filtro per palestra
     // -------------------------------------------------------------------------
@@ -42,7 +44,7 @@ interface AllenatoreRepositoryInterface extends UtenteRepositoryInterface
 
     /**
      * Allenatori abilitati per una certa attività.
-     * Caso d'uso: assegnare un allenatore a un'attività pianificata.
+     * Caso d'uso: assegnare un allenatore a un'attività.
      *
      * @return Allenatore[]
      */

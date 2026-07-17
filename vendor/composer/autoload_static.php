@@ -206,6 +206,7 @@ class ComposerStaticInitd6fc2815da0fa7b5d90c2fe6dfa95f67
         'App\\Entity\\Attrezzatura' => __DIR__ . '/../..' . '/src/Entity/Attrezzatura.php',
         'App\\Entity\\CertificatoMedico' => __DIR__ . '/../..' . '/src/Entity/CertificatoMedico.php',
         'App\\Entity\\Cliente' => __DIR__ . '/../..' . '/src/Entity/Cliente.php',
+        'App\\Entity\\CodaAttesa' => __DIR__ . '/../..' . '/src/Entity/CodaAttesa.php',
         'App\\Entity\\DettaglioAllenamento' => __DIR__ . '/../..' . '/src/Entity/DettaglioAllenamento.php',
         'App\\Entity\\Esercizio' => __DIR__ . '/../..' . '/src/Entity/Esercizio.php',
         'App\\Entity\\GruppoMuscolare' => __DIR__ . '/../..' . '/src/Entity/GruppoMuscolare.php',
@@ -227,6 +228,7 @@ class ComposerStaticInitd6fc2815da0fa7b5d90c2fe6dfa95f67
         'App\\Entity\\Repository\\AttrezzaturaRepositoryInterface' => __DIR__ . '/../..' . '/src/Entity/Repository/AttrezzaturaRepositoryInterface.php',
         'App\\Entity\\Repository\\CertificatoMedicoRepositoryInterface' => __DIR__ . '/../..' . '/src/Entity/Repository/CertificatoMedicoRepositoryInterface.php',
         'App\\Entity\\Repository\\ClienteRepositoryInterface' => __DIR__ . '/../..' . '/src/Entity/Repository/ClienteRepositoryInterface.php',
+        'App\\Entity\\Repository\\CodaAttesaRepositoryInterface' => __DIR__ . '/../..' . '/src/Entity/Repository/CodaAttesaRepositoryInterface.php',
         'App\\Entity\\Repository\\DettaglioAllenamentoRepositoryInterface' => __DIR__ . '/../..' . '/src/Entity/Repository/DettaglioAllenamentoRepositoryInterface.php',
         'App\\Entity\\Repository\\EsercizioRepositoryInterface' => __DIR__ . '/../..' . '/src/Entity/Repository/EsercizioRepositoryInterface.php',
         'App\\Entity\\Repository\\GruppoMuscolareRepositoryInterface' => __DIR__ . '/../..' . '/src/Entity/Repository/GruppoMuscolareRepositoryInterface.php',
@@ -261,6 +263,7 @@ class ComposerStaticInitd6fc2815da0fa7b5d90c2fe6dfa95f67
         'App\\Foundation\\Persistence\\Repository\\DoctrineAttrezzaturaRepository' => __DIR__ . '/../..' . '/src/Foundation/Persistence/Repository/DoctrineAttrezzaturaRepository.php',
         'App\\Foundation\\Persistence\\Repository\\DoctrineCertificatoMedicoRepository' => __DIR__ . '/../..' . '/src/Foundation/Persistence/Repository/DoctrineCertificatoMedicoRepository.php',
         'App\\Foundation\\Persistence\\Repository\\DoctrineClienteRepository' => __DIR__ . '/../..' . '/src/Foundation/Persistence/Repository/DoctrineClienteRepository.php',
+        'App\\Foundation\\Persistence\\Repository\\DoctrineCodaAttesaRepository' => __DIR__ . '/../..' . '/src/Foundation/Persistence/Repository/DoctrineCodaAttesaRepository.php',
         'App\\Foundation\\Persistence\\Repository\\DoctrineDettaglioAllenamentoRepository' => __DIR__ . '/../..' . '/src/Foundation/Persistence/Repository/DoctrineDettaglioAllenamentoRepository.php',
         'App\\Foundation\\Persistence\\Repository\\DoctrineEsercizioRepository' => __DIR__ . '/../..' . '/src/Foundation/Persistence/Repository/DoctrineEsercizioRepository.php',
         'App\\Foundation\\Persistence\\Repository\\DoctrineGruppoMuscolareRepository' => __DIR__ . '/../..' . '/src/Foundation/Persistence/Repository/DoctrineGruppoMuscolareRepository.php',
@@ -270,6 +273,7 @@ class ComposerStaticInitd6fc2815da0fa7b5d90c2fe6dfa95f67
         'App\\Foundation\\Persistence\\Repository\\DoctrineParametriRepository' => __DIR__ . '/../..' . '/src/Foundation/Persistence/Repository/DoctrineParametriRepository.php',
         'App\\Foundation\\Persistence\\Repository\\DoctrineProgressoCaricoRepository' => __DIR__ . '/../..' . '/src/Foundation/Persistence/Repository/DoctrineProgressoCaricoRepository.php',
         'App\\Foundation\\Persistence\\Repository\\DoctrineProgressoDurataRepository' => __DIR__ . '/../..' . '/src/Foundation/Persistence/Repository/DoctrineProgressoDurataRepository.php',
+        'App\\Foundation\\Persistence\\Repository\\DoctrineProgressoRepository' => __DIR__ . '/../..' . '/src/Foundation/Persistence/Repository/DoctrineProgressoRepository.php',
         'App\\Foundation\\Persistence\\Repository\\DoctrineProgressoRipetizioniRepository' => __DIR__ . '/../..' . '/src/Foundation/Persistence/Repository/DoctrineProgressoRipetizioniRepository.php',
         'App\\Foundation\\Persistence\\Repository\\DoctrineSalaRepository' => __DIR__ . '/../..' . '/src/Foundation/Persistence/Repository/DoctrineSalaRepository.php',
         'App\\Foundation\\Persistence\\Repository\\DoctrineSchedaRepository' => __DIR__ . '/../..' . '/src/Foundation/Persistence/Repository/DoctrineSchedaRepository.php',
@@ -3395,7 +3399,7 @@ class ComposerStaticInitd6fc2815da0fa7b5d90c2fe6dfa95f67
         'TheSeer\\Tokenizer\\TokenCollectionException' => __DIR__ . '/..' . '/theseer/tokenizer/src/TokenCollectionException.php',
         'TheSeer\\Tokenizer\\Tokenizer' => __DIR__ . '/..' . '/theseer/tokenizer/src/Tokenizer.php',
         'TheSeer\\Tokenizer\\XMLSerializer' => __DIR__ . '/..' . '/theseer/tokenizer/src/XMLSerializer.php',
-        '©' => __DIR__ . '/..' . '/symfony/cache/Traits/ValueWrapper.php',
+        'Â©' => __DIR__ . '/..' . '/symfony/cache/Traits/ValueWrapper.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

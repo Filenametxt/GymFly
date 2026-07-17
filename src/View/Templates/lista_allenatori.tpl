@@ -157,17 +157,21 @@
                          data-attivita="{$a.attivita|escape:'html'}" 
                          data-search="{$a.nome} {$a.cognome}">
                         <a href="visualizza-profilo?id={$a.id}" class="box customer-card">
-                            <div class="customer-avatar mb-3">
-                                <span class="icon is-large">
-                                    <i class="fas fa-user-ninja fa-4x"></i>
-                                </span>
+                            <div class="customer-avatar mb-3" style="width: 96px; height: 96px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                {if isset($a.fotoProfilo) && $a.fotoProfilo !== null}
+                                    <img src="data:image/jpeg;base64,{$a.fotoProfilo}" alt="Foto Profilo" style="width: 100%; height: 100%; object-fit: cover;">
+                                {else}
+                                    <span class="icon is-large">
+                                        <i class="fas fa-user-ninja fa-4x"></i>
+                                    </span>
+                                {/if}
                             </div>
                             <h3 class="title is-5 mb-2 has-text-centered">{$a.nome} {$a.cognome}</h3>
                             <p class="subtitle is-6 has-text-grey-dark mb-1 has-text-centered" style="word-break: break-all;">{$a.email}</p>
                             <p class="is-size-7 has-text-grey has-text-centered">{$a.cf}</p>
                             {if isset($a.attivita) && $a.attivita !== ''}
                                 <div class="has-text-centered mt-2">
-                                    {assign var="atts" value=explode(',', $a.attivita)}
+                                    {assign var="atts" value=$a.attivita|split:','}
                                     {foreach $atts as $att}
                                         <span class="tag is-light is-rounded is-size-7 mb-1" style="margin: 2px;">{$att}</span>
                                     {/foreach}
@@ -194,10 +198,14 @@
                        data-sesso="{$a.sesso}" 
                        data-attivita="{$a.attivita|escape:'html'}" 
                        data-search="{$a.nome} {$a.cognome}">
-                        <div class="customer-avatar mr-4">
-                            <span class="icon is-medium">
-                                <i class="fas fa-user-ninja fa-2x"></i>
-                            </span>
+                        <div class="customer-avatar mr-4" style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            {if isset($a.fotoProfilo) && $a.fotoProfilo !== null}
+                                <img src="data:image/jpeg;base64,{$a.fotoProfilo}" alt="Foto Profilo" style="width: 100%; height: 100%; object-fit: cover;">
+                            {else}
+                                <span class="icon is-medium">
+                                    <i class="fas fa-user-ninja fa-2x"></i>
+                                </span>
+                            {/if}
                         </div>
                         <div class="is-flex-grow-1">
                             <h3 class="title is-5 mb-1 style-theme-text">{$a.nome} {$a.cognome}</h3>
@@ -206,7 +214,7 @@
                             </p>
                             {if isset($a.attivita) && $a.attivita !== ''}
                                 <div class="tags mb-0 mt-1">
-                                    {assign var="atts" value=explode(',', $a.attivita)}
+                                    {assign var="atts" value=$a.attivita|split:','}
                                     {foreach $atts as $att}
                                         <span class="tag is-light is-rounded is-size-7" style="margin-right: 4px; margin-bottom: 2px;">{$att}</span>
                                     {/foreach}

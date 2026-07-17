@@ -5,5 +5,5 @@ interface VisualizzazioneUtentiView
 {
     public function mostraListaClienti(array $clientiData): void;
     public function mostraListaAllenatori(array $allenatoriData): void;
-    public function mostraErrore(string $messaggio): void;
+    public function mostraErrore(string $messaggio, ?string $ritorno = null, ?string $testoBottone = null): void;
 }

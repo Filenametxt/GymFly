@@ -54,7 +54,7 @@ class AutenticazioneViewSmarty implements AutenticazioneView
         ];
     }
 
-    public function mostraStatoOperazione(bool $successo, string $messaggio, ?string $ritorno = null): void
+    public function mostraStatoOperazione(bool $successo, string $messaggio, ?string $ritorno = null, ?string $testoBottone = null): void
     {
         header('Content-Type: text/html; charset=utf-8');
         $this->smarty->assign('successo', $successo);
@@ -62,6 +62,7 @@ class AutenticazioneViewSmarty implements AutenticazioneView
         if ($ritorno !== null) {
             $this->smarty->assign('ritorno', $ritorno);
         }
+        $this->smarty->assign('testo_bottone', $testoBottone);
         $this->smarty->display('stato_operazione.tpl');
     }
 

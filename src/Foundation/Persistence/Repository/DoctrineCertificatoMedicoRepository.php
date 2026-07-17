@@ -9,11 +9,11 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class DoctrineCertificatoMedicoRepository implements CertificatoMedicoRepositoryInterface
 {
-    public function __construct(
-        private readonly EntityManagerInterface $em,
-    ) {}
+    public function __construct(private readonly EntityManagerInterface $em) {}
 
-    // --- CRUD base ---
+    // -------------------------------------------------------------------------
+    // CRUD base
+    // -------------------------------------------------------------------------
 
     public function findById(int $id): ?CertificatoMedico
     {
@@ -40,7 +40,9 @@ class DoctrineCertificatoMedicoRepository implements CertificatoMedicoRepository
             ->findAll();
     }
 
-    // --- Metodi di dominio ---
+    // -------------------------------------------------------------------------
+    // Metodi specifici del dominio
+    // -------------------------------------------------------------------------
 
     public function findByCliente(Cliente $cliente): ?CertificatoMedico
     {
@@ -101,7 +103,7 @@ class DoctrineCertificatoMedicoRepository implements CertificatoMedicoRepository
     public function clienteHaCertificatoValido(Cliente $cliente): bool
     {
         $count = (int) $this->em->createQueryBuilder()
-            ->select('COUNT(c.id)')
+            ->select('COUNT(c.id)') // Conta i certificati validi per il cliente, giusto per vedere se ce l'ha
             ->from(CertificatoMedico::class, 'c')
             ->join('c.cliente', 'cl')
             ->where('cl = :cliente')
@@ -109,7 +111,7 @@ class DoctrineCertificatoMedicoRepository implements CertificatoMedicoRepository
             ->setParameter('cliente', $cliente)
             ->setParameter('oggi',    new \DateTimeImmutable())
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getSingleScalarResult(); 
 
         return $count > 0;
     }

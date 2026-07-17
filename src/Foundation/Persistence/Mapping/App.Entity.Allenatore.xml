@@ -13,17 +13,13 @@
     <entity name="App\Entity\Allenatore" 
             table="Allenatore">
 
-        <!-- ================================================================
-             RELAZIONI
-             ================================================================ -->
-
         <!--
             Molti-1  →  Palestra  (Allenatore "lavora" in una Palestra)
             FK: allenatore.id_palestra → palestra.id
         -->
         <many-to-one field="palestra"
                      target-entity="App\Entity\Palestra"
-                     fetch="LAZY">
+                     fetch="LAZY"> <!-- la modifica fatta va nel database solo quando viene richiesta -->
             <join-column name="id_palestra"
                          referenced-column-name="id"
                          nullable="false"/>

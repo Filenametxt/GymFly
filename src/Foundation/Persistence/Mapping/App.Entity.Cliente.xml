@@ -19,14 +19,22 @@
 
         <!--
             1-1 con CertificatoMedico — BIUNIVOCA
-            Cliente è owner (ha la FK), CertificatoMedico ha mapped-by
+            Cliente è owner (ha la FK), CertificatoMedico ha mapped-by: cliente ha la chiave esterna e CertificatoMedico no. CertificatoMedico è il capo
         -->
-        <one-to-one field="certificatoMedico"
-                    target-entity="App\Entity\CertificatoMedico"
-                    inversed-by="cliente">
-            <join-column name="id_certificato_medico"
-                         referenced-column-name="id"
-                         nullable="true"/>
+        <!-- In cliente c'è la colonna "certificatoMedico" che rappresenta la relazione con CertificatoMedico 
+            classe con cui fa la relazione
+            dice all'EntityManager che l'altro lato della relazione è rappresentato dal campo "cliente" 
+        -->
+        <one-to-one field="certificatoMedico" 
+                    target-entity="App\Entity\CertificatoMedico" 
+                    inversed-by="cliente"> 
+
+            <!-- nome della colonna nella tabella Cliente che rappresenta la chiave esterna verso CertificatoMedico
+                 fa la join con l'id nel CertificatoMedico 
+                 la colonna può essere nulla, quindi il cliente può non avere un certificato medico -->
+            <join-column name="id_certificato_medico" 
+                         referenced-column-name="id" 
+                         nullable="true"/> 
         </one-to-one>
 
         <!--
@@ -47,7 +55,7 @@
         -->
         <one-to-one field="iscrizione"
                     target-entity="App\Entity\Iscrizione"
-                    inversed-by="cliente">
+                    inversed-by="cliente"> <!-- cliente ha una colonna con idIscrizione e si deve rifare con l'attributo "cliente" in iscrizione -->
             <join-column name="id_iscrizione"
                          referenced-column-name="id"
                          nullable="true"/>
@@ -60,7 +68,9 @@
         <one-to-one field="scheda"
                     target-entity="App\Entity\Scheda"
                     inversed-by="cliente">
-            <join-column name="id_scheda"
+                    
+            <!-- nome della colonna nella tabella Cliente che rappresenta la chiave esterna verso Scheda -->
+            <join-column name="id_scheda" 
                          referenced-column-name="id"
                          nullable="true"/>
         </one-to-one>
@@ -79,7 +89,7 @@
 
         <!--
             1-N con Progresso — BIUNIVOCA
-            Cliente è il lato "uno", Progresso ha la FK verso Cliente
+            Cliente è il lato "uno" ha mapped-by, Progresso ha la FK verso Cliente
             mapped-by indica che Progresso è owner della relazione
         -->
         <one-to-many field="progressi"
@@ -97,7 +107,8 @@
         -->
         <many-to-many field="attivitaPianificate"
                       target-entity="App\Entity\AttivitaPianificata"
-                      inversed-by="utenti"> <join-table name="Iscritto">
+                      inversed-by="utenti"> 
+            <join-table name="Iscritto">
                 <join-columns>
                     <join-column name="id_cliente" referenced-column-name="id"/>
                 </join-columns>
