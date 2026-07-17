@@ -239,8 +239,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentPath.includes('abbonamento') ||
                 currentPath.includes('rimuovi-cliente') ||
                 (!isSelfProfile && isClientProfile) ||
-                (currentPath.includes('visualizza-profilo') && (userRole === 'allenatore' || userRole === 'amministratore')) ||
-                (currentPath.includes('progressi-cliente') && (userRole === 'allenatore' || userRole === 'amministratore'))
+                (currentPath.includes('visualizza-profilo') && !isTrainerProfile && (userRole === 'allenatore' || userRole === 'amministratore')) ||
+                (currentPath.includes('progressi-cliente') && !isTrainerProfile && (userRole === 'allenatore' || userRole === 'amministratore'))
             )) {
                 activeLink = link;
             }
