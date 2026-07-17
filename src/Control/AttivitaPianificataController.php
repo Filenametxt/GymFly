@@ -12,6 +12,7 @@ use App\Entity\Repository\PalestraRepositoryInterface;
 use App\Entity\Repository\MessaggioRepositoryInterface;
 use App\Entity\Repository\AmministratoreRepositoryInterface;
 use App\Entity\Repository\UtenteRepositoryInterface;
+use App\Foundation\Persistence\Repository\DoctrineUtenteRepository;
 use App\Foundation\Persistence\Repository\DoctrineAttivitaPianificataRepository;
 use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
 use App\Foundation\Persistence\Repository\DoctrineSessionePrivataRepository;
@@ -50,6 +51,7 @@ class AttivitaPianificataController
     private PalestraRepositoryInterface $palestraRepo;
     private MessaggioRepositoryInterface $messaggioRepo;
     private AmministratoreRepositoryInterface $amministratoreRepo;
+    private UtenteRepositoryInterface $utenteRepo;
     private AttivitaPianificataView $view;
 
     public function __construct(
@@ -66,6 +68,7 @@ class AttivitaPianificataController
         $this->palestraRepo = new DoctrinePalestraRepository($this->entityManager);
         $this->messaggioRepo = new DoctrineMessaggioRepository($this->entityManager);
         $this->amministratoreRepo = new DoctrineAmministratoreRepository($this->entityManager);
+        $this->utenteRepo = new DoctrineUtenteRepository($this->entityManager);
         $this->view = new AttivitaPianificataViewSmarty();
     }
 
@@ -294,7 +297,7 @@ class AttivitaPianificataController
     private function recuperaClientePrenotazione(Palestra $palestra, string $ritorno): ?Cliente     //recupera il cliente da prenotare, controllando se l'utente loggato è un cliente o un allenatore/amministratore che sta prenotando per un cliente specifico
     {
         $ruolo = $this->session->getLoggedUserRole();
-        $id = ($ruolo === 'cliente') ? $this->session->getLoggedUserId() : (int)($_POST['id_cliente'] ?? 0);       //se l'utente loggato è un cliente, recupera il suo id dalla sessione, altrimenti recupera l'id del cliente selezionato dal form di prenotazione
+        $id = ($ruolo === 'cliente') ? $this->session->getLoggedUserId() : (int)($_POST['id_cliente'] ?? $_GET['id_cliente'] ?? 0);       //se l'utente loggato è un cliente, recupera il suo id dalla sessione, altrimenti recupera l'id del cliente selezionato dal form di prenotazione
         $cliente = $this->clienteRepo->findById($id);
         if (!$cliente || $cliente->getPalestra()->getId() !== $palestra->getId()) {
             $this->view->mostraStatoOperazione(false, "Cliente non valido.", $ritorno, "Torna al Calendario");
@@ -686,7 +689,7 @@ class AttivitaPianificataController
     {
         return self::recuperaPalestraUtenteStatic(
             $this->session,
-            $this->amministratoreRepo,
+            $this->utenteRepo,
             $this->palestraRepo,
             $this->clienteRepo
         );
