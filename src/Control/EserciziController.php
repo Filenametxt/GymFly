@@ -38,391 +38,292 @@ class EserciziController
         $this->view = new EserciziViewSmarty();
     }
 
-    /**
-     * 1. Inizializzazione Nuovo Esercizio
-     * Apre il modulo di inserimento vuoto e genera un ID provvisorio.
-     */
+    // =========================================================================
+    // 1. INIZIALIZZAZIONE NUOVO ESERCIZIO (/crea-esercizio)
+    // =========================================================================
+
     public function apriFormCreazioneEsercizio(): void
     {
         $idAllenatore = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-
         if (!$idAllenatore || $ruolo !== 'allenatore') {
             $this->view->mostraStatoOperazione(false, "Accesso negato. Questa funzionalità è riservata agli allenatori.", "login");
             return;
         }
+        $this->eseguiAperturaForm();
+    }
 
-        // Genera un ID provvisorio univoco per l'oggetto bozza
+    private function eseguiAperturaForm(): void
+    {
         $idProvvisorio = 'es_bozza_' . bin2hex(random_bytes(8));
-
-        // Predispone lo stato della cache provvisoria in sessione
         $_SESSION['bozze_esercizi'][$idProvvisorio] = [
-            'stato' => 'inizializzato',
-            'nome' => '',
-            'descrizione' => '',
-            'tracciamento_carico' => 1,
-            'gruppi_muscolari' => [],
-            'attrezzatura' => null,
-            'immagine_bin' => null
+            'stato' => 'inizializzato', 'nome' => '', 'descrizione' => '',
+            'tracciamento_carico' => 1, 'gruppi_muscolari' => [],
+            'attrezzatura' => null, 'immagine_bin' => null
         ];
-
-        // Carica dati per la classificazione
-        $gruppiMuscolari = $this->gruppoMuscolareRepo->findAll();
-        $attrezzature = $this->attrezzaturaRepo->findAll();
-        $eserciziEsistenti = $this->esercizioRepo->findAll();
-
         $this->view->mostraFormEsercizio([
             'id_provvisorio' => $idProvvisorio,
-            'gruppi_muscolari' => $gruppiMuscolari,
-            'attrezzature' => $attrezzature,
-            'esercizi_esistenti' => $eserciziEsistenti,
-            'is_copia' => false,
-            // Valori predefiniti vuoti
-            'nome_esercizio' => '',
-            'descrizione' => '',
-            'tracciamento_carico' => 1,
-            'selected_gruppi' => [],
-            'selected_attrezzatura' => null,
-            'immagine_preview' => null
+            'gruppi_muscolari' => $this->gruppoMuscolareRepo->findAll(),
+            'attrezzature' => $this->attrezzaturaRepo->findAll(),
+            'esercizi_esistenti' => $this->esercizioRepo->findAll(),
+            'is_copia' => false, 'nome_esercizio' => '', 'descrizione' => '',
+            'tracciamento_carico' => 1, 'selected_gruppi' => [],
+            'selected_attrezzatura' => null, 'immagine_preview' => null
         ]);
     }
 
-    /**
-     * 2. Inserimento Dati e Media (Validazione in tempo reale via AJAX)
-     */
+    // =========================================================================
+    // 2. INSERIMENTO DATI E MEDIA (/valida-esercizio)
+    // =========================================================================
+
     public function compilaDatiEsercizio(): void
     {
         $idAllenatore = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-
         if (!$idAllenatore || $ruolo !== 'allenatore') {
             header('Content-Type: application/json; charset=utf-8');
             echo json_encode(['success' => false, 'errore' => 'Azione non autorizzata.']);
             return;
         }
-
         $nome = trim($_POST['nome'] ?? '');
-        $idProvvisorio = trim($_POST['id_provvisorio'] ?? '');
-
-        // 1. Verifica duplicato per il nome dell'esercizio
-        $esisteDuplicato = false;
-        if ($nome !== '') {
-            $esisteDuplicato = $this->esercizioRepo->existsByNome($nome);
-        }
-
-        // 2. Conferma caricamento file multimediale (formato e dimensione)
-        $erroreFile = null;
-        if (isset($_FILES['immagine']) && $_FILES['immagine']['error'] === UPLOAD_ERR_OK) {
-            $fileSize = $_FILES['immagine']['size'];
-            $fileType = $_FILES['immagine']['type'];
-            
-            // Estrae estensione
-            $fileName = $_FILES['immagine']['name'];
-            $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-            $allowedExtensions = ['gif', 'png', 'jpg', 'jpeg'];
-            $allowedMimeTypes = ['image/gif', 'image/png', 'image/jpeg', 'image/pjpeg'];
-
-            if (!in_array($fileExtension, $allowedExtensions) || !in_array($fileType, $allowedMimeTypes)) {
-                $erroreFile = "Formato multimediale non valido. Sono consentite solo immagini e GIF (gif, png, jpg, jpeg).";
-            } elseif ($fileSize > 5 * 1024 * 1024) {
-                $erroreFile = "Dimensione file eccessiva. Il limite massimo è di 5 MB.";
-            } else {
-                // Se valido, salviamo provvisoriamente l'immagine in cache di sessione
-                $content = file_get_contents($_FILES['immagine']['tmp_name']);
-                if ($content !== false && $idProvvisorio !== '') {
-                    $_SESSION['bozze_esercizi'][$idProvvisorio]['immagine_bin'] = $content;
-                }
-            }
-        }
+        $idProv = trim($_POST['id_provvisorio'] ?? '');
+        $esisteDuplicato = ($nome !== '') ? $this->esercizioRepo->existsByNome($nome) : false;
+        $erroreFile = $this->verificaErroreImmagine($idProv);
 
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode([
-            'success' => !$esisteDuplicato && !$erroreFile,
-            'duplicato' => $esisteDuplicato,
-            'errore_nome' => $esisteDuplicato ? 'Esiste già un esercizio con questo nome nel catalogo.' : null,
+            'success' => !$esisteDuplicato && !$erroreFile, 'duplicato' => $esisteDuplicato,
+            'errore_nome' => $esisteDuplicato ? 'Esiste già un esercizio con questo nome.' : null,
             'errore_file' => $erroreFile
         ]);
     }
 
-    /**
-     * 3a. Gestione e Opzioni di Salvataggio: SALVA
-     * Scrive i dati finali nel DB.
-     */
+    private function verificaErroreImmagine(string $idProvvisorio): ?string
+    {
+        if (!isset($_FILES['immagine']) || $_FILES['immagine']['error'] !== UPLOAD_ERR_OK) {
+            return null;
+        }
+        $ext = strtolower(pathinfo($_FILES['immagine']['name'], PATHINFO_EXTENSION));
+        $type = $_FILES['immagine']['type'];
+        if (!in_array($ext, ['gif', 'png', 'jpg', 'jpeg']) || !in_array($type, ['image/gif', 'image/png', 'image/jpeg', 'image/pjpeg'])) {
+            return "Formato multimediale non valido. Consentite solo immagini e GIF.";
+        }
+        if ($_FILES['immagine']['size'] > 5 * 1024 * 1024) {
+            return "Dimensione file eccessiva (limite 5 MB).";
+        }
+        $content = file_get_contents($_FILES['immagine']['tmp_name']);
+        if ($content !== false && $idProvvisorio !== '') {
+            $_SESSION['bozze_esercizi'][$idProvvisorio]['immagine_bin'] = $content;
+        }
+        return null;
+    }
+
+    // =========================================================================
+    // 3. SALVA ESERCIZIO (/salva-esercizio)
+    // =========================================================================
+
     public function salvaEsercizio(): void
     {
         $idAllenatore = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-
         if (!$idAllenatore || $ruolo !== 'allenatore') {
-            $this->view->mostraStatoOperazione(false, "Accesso negato. Questa funzionalità è riservata agli allenatori.", "login");
+            $this->view->mostraStatoOperazione(false, "Accesso negato.", "login");
             return;
         }
-
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Location: dashboard-allenatore');
             return;
         }
+        $this->eseguiSalvataggioEsercizio($idAllenatore);
+    }
 
-        $idProvvisorio = trim($_POST['id_provvisorio'] ?? '');
+    private function eseguiSalvataggioEsercizio(int $idAllenatore): void
+    {
         $nome = trim($_POST['nome'] ?? '');
-        $descrizione = trim($_POST['descrizione'] ?? '');
-        $tracciamentoCarico = isset($_POST['tracciamento_carico']) ? (int)$_POST['tracciamento_carico'] : 1;
-        $gruppiSelezionati = $_POST['gruppi_muscolari'] ?? [];
-        $idAttrezzaturaPost = $_POST['attrezzatura_id'] ?? '';
-        $nuovoGruppoNome = trim($_POST['nuovo_gruppo_nome'] ?? '');
-        $nuovaAttrezzaturaNome = trim($_POST['nuova_attrezzatura_nome'] ?? '');
-
-        // Validazione finale obbligatoria lato server
-        if ($nome === '') {
-            $this->view->mostraStatoOperazione(false, "Il nome dell'esercizio è obbligatorio.", "crea-esercizio");
+        $idProv = trim($_POST['id_provvisorio'] ?? '');
+        if ($nome === '' || $this->esercizioRepo->existsByNome($nome)) {
+            $this->view->mostraStatoOperazione(false, "Nome non valido o duplicato.", "crea-esercizio");
             return;
         }
-
-        if ($this->esercizioRepo->existsByNome($nome)) {
-            $this->view->mostraStatoOperazione(false, "Esiste già un esercizio con questo nome nel catalogo.", "crea-esercizio");
-            return;
+        $att = $this->recuperaAttrezzatura($_POST['attrezzatura_id'] ?? '', trim($_POST['nuova_attrezzatura_nome'] ?? ''));
+        $tip = $this->recuperaTipologia(isset($_POST['tracciamento_carico']) ? (int)$_POST['tracciamento_carico'] : 1);
+        $all = $this->entityManager->find(Allenatore::class, $idAllenatore);
+        $es = new Esercizio($nome, trim($_POST['descrizione'] ?? ''), $tip, $att, $all, $this->recuperaImmagine($idProv));
+        $this->associaGruppiMuscolari($es, $_POST['gruppi_muscolari'] ?? [], trim($_POST['nuovo_gruppo_nome'] ?? ''));
+        try {
+            $this->esercizioRepo->save($es);
+            if ($idProv !== '') unset($_SESSION['bozze_esercizi'][$idProv]);
+            $this->view->mostraStatoOperazione(true, "Esercizio aggiunto con successo.", "esercizi", "Torna a Gestione Esercizi");
+        } catch (\Throwable $e) {
+            $this->view->mostraStatoOperazione(false, "Errore salvataggio: " . $e->getMessage(), "crea-esercizio");
         }
+    }
 
-        // Recupera l'allenatore loggato
-        $allenatore = $this->entityManager->find(Allenatore::class, $idAllenatore);
-        if (!$allenatore) {
-            $this->view->mostraStatoOperazione(false, "Allenatore non trovato nel database.", "login");
-            return;
-        }
-
-        // Trova o crea la Tipologia adatta
+    private function recuperaTipologia(int $tracciamentoCarico): Tipologia
+    {
         $nomeTipologia = ($tracciamentoCarico === 1) ? 'Ripetizioni' : 'Durata';
         $tipologia = $this->tipologiaRepo->findByNome($nomeTipologia);
         if (!$tipologia) {
             $tipologia = new Tipologia($nomeTipologia);
             $this->tipologiaRepo->save($tipologia);
         }
+        return $tipologia;
+    }
 
-        // Trova l'attrezzatura necessaria se specificata o creata
-        $attrezzatura = null;
-        if ($idAttrezzaturaPost === 'nuova_attrezzatura') {
-            if ($nuovaAttrezzaturaNome === '') {
-                $this->view->mostraStatoOperazione(false, "Il nome della nuova attrezzatura è obbligatorio se hai selezionato di aggiungerne una nuova.", "crea-esercizio");
-                return;
+    private function recuperaAttrezzatura(string $idAttrPost, string $nuovaAttrNome): ?Attrezzatura
+    {
+        if ($idAttrPost === 'nuova_attrezzatura') {
+            if ($nuovaAttrNome === '') {
+                return null;
             }
-            $attrezzatura = $this->attrezzaturaRepo->findByNome($nuovaAttrezzaturaNome);
+            $attrezzatura = $this->attrezzaturaRepo->findByNome($nuovaAttrNome);
             if (!$attrezzatura) {
-                $attrezzatura = new Attrezzatura($nuovaAttrezzaturaNome);
+                $attrezzatura = new Attrezzatura($nuovaAttrNome);
                 $this->attrezzaturaRepo->save($attrezzatura);
             }
-        } elseif (is_numeric($idAttrezzaturaPost) && $idAttrezzaturaPost !== '') {
-            $attrezzatura = $this->attrezzaturaRepo->findById((int)$idAttrezzaturaPost);
+            return $attrezzatura;
         }
+        return (is_numeric($idAttrPost) && $idAttrPost !== '') ? $this->attrezzaturaRepo->findById((int)$idAttrPost) : null;
+    }
 
-        // Gestione immagine (GIF/Immagine)
-        $immagineBin = null;
-        
-        // 1. Controlla se è stato caricato un nuovo file
+    private function recuperaImmagine(string $idProvvisorio): ?string
+    {
         if (isset($_FILES['immagine']) && $_FILES['immagine']['error'] === UPLOAD_ERR_OK) {
-            $immagineBin = file_get_contents($_FILES['immagine']['tmp_name']);
+            return file_get_contents($_FILES['immagine']['tmp_name']);
         }
-        
-        // 2. Se non caricato ora, controlla se c'è l'immagine nella bozza/sessione
-        if ($immagineBin === null && $idProvvisorio !== '' && isset($_SESSION['bozze_esercizi'][$idProvvisorio]['immagine_bin'])) {
-            $immagineBin = $_SESSION['bozze_esercizi'][$idProvvisorio]['immagine_bin'];
+        if ($idProvvisorio !== '' && isset($_SESSION['bozze_esercizi'][$idProvvisorio]['immagine_bin'])) {
+            return $_SESSION['bozze_esercizi'][$idProvvisorio]['immagine_bin'];
         }
+        return null;
+    }
 
-        // Crea l'entità Esercizio
-        $esercizio = new Esercizio(
-            $nome,
-            $descrizione,
-            $tipologia,
-            $attrezzatura,
-            $idAllenatore ? $this->entityManager->find(Allenatore::class, $idAllenatore) : null,
-            $immagineBin
-        );
-
-        // Associa i gruppi muscolari scelti o ne crea uno nuovo
+    private function associaGruppiMuscolari(Esercizio $esercizio, array $gruppiSelezionati, string $nuovoGruppoNome): void
+    {
         foreach ($gruppiSelezionati as $idGm) {
             if ($idGm === 'nuovo_gruppo') {
-                if ($nuovoGruppoNome === '') {
-                    $this->view->mostraStatoOperazione(false, "Il nome del nuovo gruppo muscolare è obbligatorio se hai selezionato di aggiungerne uno nuovo.", "crea-esercizio");
-                    return;
+                if ($nuovoGruppoNome === '') continue;
+                $gm = $this->gruppoMuscolareRepo->findByNome($nuovoGruppoNome);
+                if (!$gm) {
+                    $gm = new GruppoMuscolare($nuovoGruppoNome);
+                    $this->gruppoMuscolareRepo->save($gm);
                 }
-                $gruppoMuscolare = $this->gruppoMuscolareRepo->findByNome($nuovoGruppoNome);
-                if (!$gruppoMuscolare) {
-                    $gruppoMuscolare = new GruppoMuscolare($nuovoGruppoNome);
-                    $this->gruppoMuscolareRepo->save($gruppoMuscolare);
-                }
-                $esercizio->aggiungiGruppoMuscolare($gruppoMuscolare);
+                $esercizio->aggiungiGruppoMuscolare($gm);
             } else {
-                $gruppoMuscolare = $this->gruppoMuscolareRepo->findById((int)$idGm);
-                if ($gruppoMuscolare) {
-                    $esercizio->aggiungiGruppoMuscolare($gruppoMuscolare);
+                $gm = $this->gruppoMuscolareRepo->findById((int)$idGm);
+                if ($gm) {
+                    $esercizio->aggiungiGruppoMuscolare($gm);
                 }
             }
-        }
-
-        try {
-            $this->esercizioRepo->save($esercizio);
-
-            // Rimuove la bozza dalla sessione (pulisce cache)
-            if ($idProvvisorio !== '') {
-                unset($_SESSION['bozze_esercizi'][$idProvvisorio]);
-            }
-            $this->view->mostraStatoOperazione(true, "Esercizio aggiunto alla libreria con successo.", "esercizi", "Torna a Gestione Esercizi");
-        } catch (\Throwable $e) {
-            $this->view->mostraStatoOperazione(false, "Errore durante il salvataggio dell'esercizio: " . $e->getMessage(), "crea-esercizio");
         }
     }
 
-    /**
-     * 3b. Gestione e Opzioni di Salvataggio: COPIA DA ESISTENTE
-     * Richiama i dati di un esercizio per pre-popolare il modulo.
-     */
+    // =========================================================================
+    // 4. COPIA DA ESISTENTE (/copia-esercizio)
+    // =========================================================================
+
     public function copiaEsercizio(): void
     {
         $idAllenatore = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-
         if (!$idAllenatore || $ruolo !== 'allenatore') {
-            $this->view->mostraStatoOperazione(false, "Accesso negato. Questa funzionalità è riservata agli allenatori.", "login");
+            $this->view->mostraStatoOperazione(false, "Accesso negato.", "login");
             return;
         }
-
-        $idSorgente = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-        $sorgente = $this->esercizioRepo->findById($idSorgente);
-
+        $idSor = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $sorgente = $this->esercizioRepo->findById($idSor);
         if (!$sorgente) {
             $this->view->mostraStatoOperazione(false, "Esercizio sorgente non trovato.", "dashboard-allenatore");
             return;
         }
+        $this->eseguiCopiaEsercizio($sorgente);
+    }
 
-        // Genera un ID provvisorio univoco per la nuova bozza clonata
-        $idProvvisorio = 'es_bozza_' . bin2hex(random_bytes(8));
+    private function eseguiCopiaEsercizio(Esercizio $sorgente): void
+    {
+        $idProv = 'es_bozza_' . bin2hex(random_bytes(8));
+        $nomeTipo = strtolower($sorgente->getTipologia()->getNomeTipologia());
+        $carico = ($nomeTipo === 'durata' || $nomeTipo === 'tempo/ripetizioni') ? 0 : 1;
+        $selectedGruppi = array_map(fn($gm) => $gm->getId(), $sorgente->getGruppiMuscolari()->toArray());
+        $attrId = $sorgente->getAttrezzaturaNecessaria() ? $sorgente->getAttrezzaturaNecessaria()->getId() : null;
 
-        // Determina se il tracciamento del carico è attivo (0 per durata/tempo, 1 per ripetizioni)
-        $nomeTipoLower = strtolower($sorgente->getTipologia()->getNomeTipologia());
-        $tracciamentoCarico = ($nomeTipoLower === 'durata' || $nomeTipoLower === 'tempo/ripetizioni') ? 0 : 1;
-
-        // Estrae gli ID dei gruppi muscolari associati
-        $selectedGruppi = [];
-        foreach ($sorgente->getGruppiMuscolari() as $gm) {
-            $selectedGruppi[] = $gm->getId();
-        }
-
-        // Salva l'immagine della sorgente nella cache provvisoria
-        $_SESSION['bozze_esercizi'][$idProvvisorio] = [
-            'stato' => 'copiato',
-            'nome' => $sorgente->getNomeEsercizio() . ' (Copia)',
-            'descrizione' => $sorgente->getDescrizione(),
-            'tracciamento_carico' => $tracciamentoCarico,
-            'gruppi_muscolari' => $selectedGruppi,
-            'attrezzatura' => $sorgente->getAttrezzaturaNecessaria() ? $sorgente->getAttrezzaturaNecessaria()->getId() : null,
-            'immagine_bin' => $sorgente->getImmagine()
+        $_SESSION['bozze_esercizi'][$idProv] = [
+            'stato' => 'copiato', 'nome' => $sorgente->getNomeEsercizio() . ' (Copia)',
+            'descrizione' => $sorgente->getDescrizione(), 'tracciamento_carico' => $carico,
+            'gruppi_muscolari' => $selectedGruppi, 'attrezzatura' => $attrId, 'immagine_bin' => $sorgente->getImmagine()
         ];
-
-        // Carica dati per la classificazione
-        $gruppiMuscolari = $this->gruppoMuscolareRepo->findAll();
-        $attrezzature = $this->attrezzaturaRepo->findAll();
-        $eserciziEsistenti = $this->esercizioRepo->findAll();
-
-        $immaginePreview = $sorgente->getImmagine() ? base64_encode($sorgente->getImmagine()) : null;
-
         $this->view->mostraFormEsercizio([
-            'id_provvisorio' => $idProvvisorio,
-            'gruppi_muscolari' => $gruppiMuscolari,
-            'attrezzature' => $attrezzature,
-            'esercizi_esistenti' => $eserciziEsistenti,
-            'is_copia' => true,
-            // Valori sorgente pre-popolati per la modifica
-            'nome_esercizio' => $sorgente->getNomeEsercizio() . ' (Copia)',
-            'descrizione' => $sorgente->getDescrizione(),
-            'tracciamento_carico' => $tracciamentoCarico,
-            'selected_gruppi' => $selectedGruppi,
-            'selected_attrezzatura' => $sorgente->getAttrezzaturaNecessaria() ? $sorgente->getAttrezzaturaNecessaria()->getId() : null,
-            'immagine_preview' => $immaginePreview
+            'id_provvisorio' => $idProv, 'gruppi_muscolari' => $this->gruppoMuscolareRepo->findAll(),
+            'attrezzature' => $this->attrezzaturaRepo->findAll(), 'esercizi_esistenti' => $this->esercizioRepo->findAll(),
+            'is_copia' => true, 'nome_esercizio' => $sorgente->getNomeEsercizio() . ' (Copia)',
+            'descrizione' => $sorgente->getDescrizione(), 'tracciamento_carico' => $carico,
+            'selected_gruppi' => $selectedGruppi, 'selected_attrezzatura' => $attrId,
+            'immagine_preview' => $sorgente->getImmagine() ? base64_encode($sorgente->getImmagine()) : null
         ]);
     }
 
-    /**
-     * Visualizza la lista di tutti gli esercizi creati.
-     */
+    // =========================================================================
+    // 5. LISTA ESERCIZI (/esercizi)
+    // =========================================================================
+
     public function listaEsercizi(): void
     {
         $idAllenatore = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-
         if (!$idAllenatore || $ruolo !== 'allenatore') {
             $this->view->mostraStatoOperazione(false, "Accesso negato. Questa funzionalità è riservata agli allenatori.", "login");
             return;
         }
-
         $esercizi = $this->esercizioRepo->findAll();
-
-        $query = $_POST['search_query'] ?? $_GET['search_query'] ?? null;
-        if ($query !== null && trim($query) !== '') {
-            $search = strtolower(trim($query));
+        $query = trim($_POST['search_query'] ?? $_GET['search_query'] ?? '');
+        if ($query !== '') {
+            $search = strtolower($query);
             $esercizi = array_filter($esercizi, function($e) use ($search) {
-                return str_contains(strtolower($e->getNomeEsercizio()), $search) || 
-                       str_contains(strtolower($e->getDescrizione()), $search);
+                return str_contains(strtolower($e->getNomeEsercizio()), $search) || str_contains(strtolower($e->getDescrizione()), $search);
             });
         }
+        $this->view->mostraListaEsercizi($this->mappaEserciziPerView($esercizi));
+    }
 
+    private function mappaEserciziPerView(array $esercizi): array
+    {
         $eserciziData = [];
         foreach ($esercizi as $e) {
-            $gruppiNomi = [];
-            foreach ($e->getGruppiMuscolari() as $gm) {
-                $gruppiNomi[] = $gm->getNomeGruppoMuscolare();
-            }
-
+            $gruppiNomi = array_map(fn($gm) => $gm->getNomeGruppoMuscolare(), $e->getGruppiMuscolari()->toArray());
             $eserciziData[] = [
-                'id' => $e->getId(),
-                'nome' => $e->getNomeEsercizio(),
-                'descrizione' => $e->getDescrizione(),
+                'id' => $e->getId(), 'nome' => $e->getNomeEsercizio(), 'descrizione' => $e->getDescrizione(),
                 'attrezzatura' => $e->getAttrezzaturaNecessaria() ? $e->getAttrezzaturaNecessaria()->getNomeAttrezzatura() : 'Nessuna',
-                'tipologia' => $e->getTipologia()->getNomeTipologia(),
-                'gruppiMuscolari' => implode(', ', $gruppiNomi),
+                'tipologia' => $e->getTipologia()->getNomeTipologia(), 'gruppiMuscolari' => implode(', ', $gruppiNomi),
                 'creatore' => $e->getCreatore() ? ($e->getCreatore()->getNome() . ' ' . $e->getCreatore()->getCognome()) : 'Sistema',
                 'immagine' => $e->getImmagine() ? base64_encode($e->getImmagine()) : null
             ];
         }
-
-        $this->view->mostraListaEsercizi($eserciziData);
+        return $eserciziData;
     }
 
-    /**
-     * Visualizza i dettagli di un singolo esercizio.
-     */
+    // =========================================================================
+    // 6. DETTAGLIO ESERCIZIO (/visualizza-esercizio)
+    // =========================================================================
+
     public function visualizzaEsercizio(): void
     {
         $idAllenatore = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-
         if (!$idAllenatore || $ruolo !== 'allenatore') {
-            $this->view->mostraStatoOperazione(false, "Accesso negato. Questa funzionalità è riservata agli allenatori.", "login");
+            $this->view->mostraStatoOperazione(false, "Accesso negato.", "login");
             return;
         }
-
-        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-        $esercizio = $this->esercizioRepo->findById($id);
-
+        $esercizio = $this->esercizioRepo->findById(isset($_GET['id']) ? (int)$_GET['id'] : 0);
         if (!$esercizio) {
             $this->view->mostraStatoOperazione(false, "Esercizio non trovato.");
             return;
         }
-
-        $gruppiNomi = [];
-        foreach ($esercizio->getGruppiMuscolari() as $gm) {
-            $gruppiNomi[] = $gm->getNomeGruppoMuscolare();
-        }
-
-        $dati = [
-            'id' => $esercizio->getId(),
-            'nome' => $esercizio->getNomeEsercizio(),
-            'descrizione' => $esercizio->getDescrizione(),
+        $gruppiNomi = array_map(fn($gm) => $gm->getNomeGruppoMuscolare(), $esercizio->getGruppiMuscolari()->toArray());
+        $this->view->mostraDettaglioEsercizio([
+            'id' => $esercizio->getId(), 'nome' => $esercizio->getNomeEsercizio(), 'descrizione' => $esercizio->getDescrizione(),
             'attrezzatura' => $esercizio->getAttrezzaturaNecessaria() ? $esercizio->getAttrezzaturaNecessaria()->getNomeAttrezzatura() : 'Nessuna',
-            'tipologia' => $esercizio->getTipologia()->getNomeTipologia(),
-            'gruppiMuscolari' => implode(', ', $gruppiNomi),
+            'tipologia' => $esercizio->getTipologia()->getNomeTipologia(), 'gruppiMuscolari' => implode(', ', $gruppiNomi),
             'creatore' => $esercizio->getCreatore() ? ($esercizio->getCreatore()->getNome() . ' ' . $esercizio->getCreatore()->getCognome()) : 'Sistema',
             'immagine' => $esercizio->getImmagine() ? base64_encode($esercizio->getImmagine()) : null
-        ];
-
-        $this->view->mostraDettaglioEsercizio($dati);
+        ]);
     }
 }

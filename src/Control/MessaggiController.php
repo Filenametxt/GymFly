@@ -9,6 +9,8 @@ use App\Entity\Cliente;
 use App\Entity\Allenatore;
 use App\Entity\Amministratore;
 use App\Entity\Messaggio;
+use App\Entity\Palestra;
+use App\Entity\Utente;
 use App\Entity\Repository\MessaggioRepositoryInterface;
 use App\Entity\Repository\PalestraRepositoryInterface;
 use App\Entity\Repository\ClienteRepositoryInterface;
@@ -41,190 +43,139 @@ class MessaggiController
         $this->view = new MessaggiViewSmarty();
     }
 
+    // =========================================================================
+    // 1. MOSTRA MESSAGGI (/messaggi)
+    // =========================================================================
+
     public function mostraMessaggi(): void
     {
-        $idUtente = $this->session->getLoggedUserId();
+        $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-        if (!$idUtente || !$ruolo) {
-            $this->view->mostraErrore("Sessione non valida. Effettua il login.");
+        $ut = ($idUt && $ruolo) ? $this->utenteRepo->findById($idUt) : null;
+        $pal = $ut ? $this->recuperaPalestraMessaggi($ut, $ruolo) : null;
+        if (!$ut || !$pal) {
+            $this->view->mostraErrore("Sessione non valida, utente o palestra non trovata.");
             return;
         }
-
-        $utente = $this->utenteRepo->findById($idUtente);
-        if (!$utente) {
-            $this->view->mostraErrore("Utente non trovato.");
-            return;
+        $dati = [
+            'utenteLoggato' => $ut, 'ruolo' => $ruolo,
+            'messaggiRicevuti' => $this->messaggioRepo->findByDestinatario($ut),
+            'messaggiInviati' => [], 'clientiCandidati' => [],
+            'allenatoriCandidati' => [], 'adminCandidati' => [], 'invioConsentito' => $ut->mssAllowed()
+        ];
+        if ($ut->mssAllowed()) {
+            $this->caricaCandidatiDestinatari($ut, $ruolo, $pal, $dati);
         }
+        $this->view->mostraBachecaMessaggi($dati);
+    }
 
-        // Recupera la palestra associata in base al ruolo dell'utente loggato
-        $palestra = null;
+    private function recuperaPalestraMessaggi(Utente $utente, string $ruolo): ?Palestra
+    {
         if ($ruolo === 'cliente' && $utente instanceof Cliente) {
-            $palestra = $utente->getPalestra();
-        } elseif ($ruolo === 'allenatore' && $utente instanceof Allenatore) {
-            $palestra = $utente->getPalestra();
-        } elseif ($ruolo === 'amministratore' && $utente instanceof Amministratore) {
-            $palestra = $this->palestraRepo->findByAmministratore($utente);
+            return $utente->getPalestra();
         }
-
-        if (!$palestra) {
-            $this->view->mostraErrore("Palestra associata non trovata.");
-            return;
+        if ($ruolo === 'allenatore' && $utente instanceof Allenatore) {
+            return $utente->getPalestra();
         }
+        if ($ruolo === 'amministratore' && $utente instanceof Amministratore) {
+            return $this->palestraRepo->findByAmministratore($utente);
+        }
+        return null;
+    }
 
-        // Posta in arrivo per tutti gli utenti via custom repository
-        $messaggiRicevuti = $this->messaggioRepo->findByDestinatario($utente);
-
-        // Se l'utente è autorizzato ad inviare messaggi, recupera la posta in uscita e i candidati destinatari
-        $messaggiInviati = [];
-        $clientiCandidati = [];
-        $allenatoriCandidati = [];
-        $adminCandidati = [];
-
-        if ($utente->mssAllowed()) {
-            $messaggiInviati = $this->messaggioRepo->findByMittente($utente);
-
-            // Carica gli utenti candidati della stessa palestra per l'invio individuale
-            $clientiCandidati = $this->clienteRepo->findByPalestra($palestra);
-            
-            if ($ruolo === 'amministratore') {
-                $allenatoriCandidati = $this->allenatoreRepo->findByPalestra($palestra);
-                
-                // Eventuali altri amministratori (nel nostro caso c'è l'amministratore principale della palestra)
-                $adminGym = $palestra->getAmministratore();
-                if ($adminGym && $adminGym->getId() !== $utente->getId()) {
-                    $adminCandidati = [$adminGym];
-                }
+    private function caricaCandidatiDestinatari(Utente $ut, string $ruolo, Palestra $pal, array &$dati): void
+    {
+        $dati['messaggiInviati'] = $this->messaggioRepo->findByMittente($ut);
+        $dati['clientiCandidati'] = $this->clienteRepo->findByPalestra($pal);
+        if ($ruolo === 'amministratore') {
+            $dati['allenatoriCandidati'] = $this->allenatoreRepo->findByPalestra($pal);
+            $adminGym = $pal->getAmministratore();
+            if ($adminGym && $adminGym->getId() !== $ut->getId()) {
+                $dati['adminCandidati'] = [$adminGym];
             }
         }
-
-        $this->view->mostraBachecaMessaggi([
-            'utenteLoggato' => $utente,
-            'ruolo' => $ruolo,
-            'messaggiRicevuti' => $messaggiRicevuti,
-            'messaggiInviati' => $messaggiInviati,
-            'clientiCandidati' => $clientiCandidati,
-            'allenatoriCandidati' => $allenatoriCandidati,
-            'adminCandidati' => $adminCandidati,
-            'invioConsentito' => $utente->mssAllowed()
-        ]);
     }
+
+    // =========================================================================
+    // 2. INVIA MESSAGGIO (/invia-messaggio)
+    // =========================================================================
 
     public function inviaMessaggio(): void
     {
-        $idUtente = $this->session->getLoggedUserId();
+        $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-        if (!$idUtente || !$ruolo) {
-            $this->view->mostraErrore("Sessione non valida. Effettua il login.");
+        $utente = ($idUt && $ruolo) ? $this->utenteRepo->findById($idUt) : null;
+        if (!$utente || !$utente->mssAllowed() || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->view->mostraErrore("Azione non autorizzata o richiesta non valida.", "messaggi", "Torna alla Bacheca");
             return;
         }
-
-        $utente = $this->utenteRepo->findById($idUtente);
-        if (!$utente) {
-            $this->view->mostraErrore("Utente non trovato.");
+        $palestra = $this->recuperaPalestraMessaggi($utente, $ruolo);
+        $oggetto = trim($_POST['oggetto'] ?? '');
+        $contenuto = trim($_POST['contenuto'] ?? '');
+        if (!$palestra || $oggetto === '' || $contenuto === '') {
+            $this->view->mostraErrore("Dati del messaggio o palestra non trovati.", "messaggi", "Torna alla Bacheca");
             return;
         }
+        $this->eseguiInvio($utente, $ruolo, $palestra, $oggetto, $contenuto);
+    }
 
-        $ritorno = "messaggi";
-
-        if (!$utente->mssAllowed()) {
-            $this->view->mostraErrore("Non sei autorizzato ad inviare messaggi.", $ritorno, "Torna alla Bacheca");
-            return;
-        }
-
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->view->mostraErrore("Richiesta non valida.", $ritorno, "Torna alla Bacheca");
-            return;
-        }
-
-        // Estrae la palestra
-        $palestra = null;
-        if ($ruolo === 'allenatore' && $utente instanceof Allenatore) {
-            $palestra = $utente->getPalestra();
-        } elseif ($ruolo === 'amministratore' && $utente instanceof Amministratore) {
-            $palestra = $this->palestraRepo->findByAmministratore($utente);
-        }
-
-        if (!$palestra) {
-            $this->view->mostraErrore("Palestra associata non trovata.", $ritorno, "Torna alla Bacheca");
-            return;
-        }
-
-        $oggetto = $_POST['oggetto'] ?? '';
-        $contenuto = $_POST['contenuto'] ?? '';
-        $destinatariTipo = $_POST['destinatari_tipo'] ?? 'selezionati';
-
-        if (trim($oggetto) === '' || trim($contenuto) === '') {
-            $this->view->mostraErrore("L'oggetto ed il contenuto del messaggio sono obbligatori.", $ritorno, "Torna alla Bacheca");
-            return;
-        }
-
-        $recipients = [];
-
-        if ($destinatariTipo === 'selezionati') {
-            $destinatariIds = $_POST['destinatari_ids'] ?? [];
-            if (!is_array($destinatariIds) || empty($destinatariIds)) {
-                $this->view->mostraErrore("Nessun destinatario selezionato.", $ritorno, "Torna alla Bacheca");
-                return;
-            }
-
-            foreach ($destinatariIds as $idStr) {
-                $recipient = $this->utenteRepo->findById((int)$idStr);
-                if ($recipient) {
-                    // Controllo di sicurezza Anti-IDOR
-                    $recipientPalestra = null;
-                    if ($recipient instanceof Cliente || $recipient instanceof Allenatore) {
-                        $recipientPalestra = $recipient->getPalestra();
-                    } elseif ($recipient instanceof Amministratore) {
-                        $recipientPalestra = $this->palestraRepo->findByAmministratore($recipient);
-                    }
-
-                    if ($recipientPalestra && $recipientPalestra->getId() === $palestra->getId()) {
-                        $recipients[] = $recipient;
-                    }
-                }
-            }
-        } elseif ($destinatariTipo === 'gruppo') {
-            $gruppoTipo = $_POST['gruppo_tipo'] ?? '';
-            
-            if ($gruppoTipo === 'tutti_clienti') {
-                $recipients = $this->clienteRepo->findByPalestra($palestra);
-            } elseif ($gruppoTipo === 'tutti_allenatori' && $ruolo === 'amministratore') {
-                $recipients = $this->allenatoreRepo->findByPalestra($palestra);
-            } elseif ($gruppoTipo === 'tutti_palestra') {
-                $clienti = $this->clienteRepo->findByPalestra($palestra);
-                $recipients = $clienti;
-
-                if ($ruolo === 'amministratore') {
-                    $allenatori = $this->allenatoreRepo->findByPalestra($palestra);
-                    $recipients = array_merge($recipients, $allenatori);
-                } elseif ($ruolo === 'allenatore') {
-                    $admin = $palestra->getAmministratore();
-                    if ($admin) {
-                        $recipients[] = $admin;
-                    }
-                }
-            }
-        }
-
-        // Rimuove il mittente stesso dai destinatari se presente
-        $recipients = array_filter($recipients, fn($r) => $r->getId() !== $utente->getId());
-
+    private function eseguiInvio(Utente $ut, string $ruolo, Palestra $pal, string $ogg, string $cont): void
+    {
+        $recipients = $this->recuperaDestinatari($ut, $ruolo, $pal);
         if (empty($recipients)) {
-            $this->view->mostraErrore("Nessun destinatario valido trovato all'interno della tua palestra.", $ritorno, "Torna alla Bacheca");
+            $this->view->mostraErrore("Nessun destinatario valido trovato.", "messaggi", "Torna alla Bacheca");
             return;
         }
-
         try {
-            $messaggio = new Messaggio($utente, $oggetto, $contenuto);
+            $messaggio = new Messaggio($ut, $ogg, $cont);
             foreach ($recipients as $recipient) {
                 $messaggio->aggiungiDestinatario($recipient);
             }
-            $this->entityManager->persist($messaggio);
-            $this->entityManager->flush();
-
-            $this->view->mostraConfermaInviato("Messaggio inviato con successo!", $ritorno, "Torna alla Bacheca");
+            $this->messaggioRepo->save($messaggio);
+            $this->view->mostraConfermaInviato("Messaggio inviato con successo!", "messaggi", "Torna alla Bacheca");
         } catch (\InvalidArgumentException $e) {
-            $this->view->mostraErrore("Errore di validazione: " . $e->getMessage(), $ritorno, "Torna alla Bacheca");
+            $this->view->mostraErrore("Errore di validazione: " . $e->getMessage(), "messaggi", "Torna alla Bacheca");
+        }
+    }
+
+    private function recuperaDestinatari(Utente $ut, string $ruolo, Palestra $pal): array
+    {
+        $recipients = [];
+        $destinatariTipo = $_POST['destinatari_tipo'] ?? 'selezionati';
+        if ($destinatariTipo === 'selezionati') {
+            $this->filtraDestinatariSelezionati($_POST['destinatari_ids'] ?? [], $pal, $recipients);
+        } else {
+            $this->raccogliDestinatariGruppo($_POST['gruppo_tipo'] ?? '', $ruolo, $pal, $recipients);
+        }
+        return array_filter($recipients, fn($r) => $r->getId() !== $ut->getId());
+    }
+
+    private function filtraDestinatariSelezionati(array $ids, Palestra $pal, array &$recipients): void
+    {
+        foreach ($ids as $idStr) {
+            $recipient = $this->utenteRepo->findById((int)$idStr);
+            if ($recipient) {
+                $palRecipient = $this->recuperaPalestraMessaggi($recipient, $recipient->getRuolo());
+                if ($palRecipient && $palRecipient->getId() === $pal->getId()) {
+                    $recipients[] = $recipient;
+                }
+            }
+        }
+    }
+
+    private function raccogliDestinatariGruppo(string $tipo, string $ruolo, Palestra $pal, array &$recipients): void
+    {
+        if ($tipo === 'tutti_clienti') {
+            $recipients = $this->clienteRepo->findByPalestra($pal);
+        } elseif ($tipo === 'tutti_allenatori' && $ruolo === 'amministratore') {
+            $recipients = $this->allenatoreRepo->findByPalestra($pal);
+        } elseif ($tipo === 'tutti_palestra') {
+            $recipients = $this->clienteRepo->findByPalestra($pal);
+            if ($ruolo === 'amministratore') {
+                $recipients = array_merge($recipients, $this->allenatoreRepo->findByPalestra($pal));
+            } elseif ($ruolo === 'allenatore' && $pal->getAmministratore()) {
+                $recipients[] = $pal->getAmministratore();
+            }
         }
     }
 }

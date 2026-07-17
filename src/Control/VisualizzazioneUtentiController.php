@@ -13,6 +13,7 @@ use App\Foundation\Session;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Amministratore;
 use App\Entity\Allenatore;
+use App\Entity\Palestra;
 
 class VisualizzazioneUtentiController 
 {
@@ -31,68 +32,98 @@ class VisualizzazioneUtentiController
         $this->view = new VisualizzazioneUtentiViewSmarty();
     }
 
-    private function applicaFiltriClienti(array $clienti, ?string $query, ?string $filtroCertificato, ?string $filtroAbbonamento, ?string $filtroScheda): array
+    // =========================================================================
+    // 1. VISUALIZZA CLIENTI (/clienti)
+    // =========================================================================
+
+    public function visualizzaClienti(): void 
     {
-        if ($query !== null && trim($query) !== '') {
-            $search = strtolower(trim($query));
-            $clienti = array_filter($clienti, function($c) use ($search) {
-                return str_contains(strtolower($c->getNome()), $search) || 
-                       str_contains(strtolower($c->getCognome()), $search);
-            });
+        $idUt = $this->session->getLoggedUserId();
+        $ruolo = $this->session->getLoggedUserRole();
+        if (!$idUt || !$ruolo) {
+            $this->view->mostraErrore("Sessione non valida. Effettua il login.");
+            return;
         }
-
-        switch ($filtroCertificato) {
-            case 'scaduti':
-                $clienti = array_filter($clienti, function($c) {
-                    $cm = $c->getCertificatoMedico();
-                    return $cm === null || $cm->giorniAllaScadenza() < 0;
-                });
-                break;
-            case 'in_scadenza':
-                $clienti = array_filter($clienti, function($c) {
-                    $cm = $c->getCertificatoMedico();
-                    return $cm !== null && $cm->giorniAllaScadenza() >= 0 && $cm->giorniAllaScadenza() <= 30;
-                });
-                break;
-            case 'in_regola':
-                $clienti = array_filter($clienti, function($c) {
-                    $cm = $c->getCertificatoMedico();
-                    return $cm !== null && $cm->giorniAllaScadenza() > 30;
-                });
-                break;
+        $pal = $this->recuperaPalestraUtenti($idUt, $ruolo);
+        if (!$pal) {
+            $this->view->mostraErrore("Accesso negato o palestra non trovata.");
+            return;
         }
+        $clienti = $this->clienteRepo->findByPalestra($pal);
+        $clienti = $this->applicaFiltriClienti($clienti, $_POST['search_query'] ?? $_GET['search_query'] ?? null, $_POST['filtro_certificato'] ?? $_GET['filtro_certificato'] ?? null, $_POST['filtro_abbonamento'] ?? $_GET['filtro_abbonamento'] ?? null, $_POST['filtro_scheda'] ?? $_GET['filtro_scheda'] ?? null);
+        $clienti = $this->ordinaClienti($clienti, $_POST['ordine'] ?? $_GET['ordine'] ?? null);
+        $this->view->mostraListaClienti($this->mappaClientiPerView($clienti));
+    }
 
-        switch ($filtroAbbonamento) {
-            case 'attivo':
-                $clienti = array_filter($clienti, function($c) {
-                    return $c->isAbbonamentoAttivo();
-                });
-                break;
-            case 'scaduto':
-                $clienti = array_filter($clienti, function($c) {
-                    return !$c->isAbbonamentoAttivo();
-                });
-                break;
+    // =========================================================================
+    // 2. VISUALIZZA ALLENATORI (/allenatori)
+    // =========================================================================
+
+    public function visualizzaAllenatori(): void 
+    {
+        $idUt = $this->session->getLoggedUserId();
+        $admin = ($idUt && $this->session->getLoggedUserRole() === 'amministratore') ? $this->entityManager->find(Amministratore::class, $idUt) : null;
+        $pal = $admin ? $this->palestraRepo->findByAmministratore($admin) : null;
+        if (!$admin || !$pal) {
+            $this->view->mostraErrore("Accesso riservato all'Amministratore o palestra non trovata.");
+            return;
         }
+        $allenatori = $this->allenatoreRepo->findByPalestra($pal);
+        $this->view->mostraListaAllenatori($this->mappaAllenatoriPerView($allenatori));
+    }
 
-        if ($filtroScheda !== null && trim($filtroScheda) !== '') {
-            $oggi = new \DateTimeImmutable('today');
-            $clienti = array_filter($clienti, function($c) use ($filtroScheda, $oggi) {
-                $scheda = $c->getScheda();
-                switch ($filtroScheda) {
-                    case 'scadute':
-                        return $scheda !== null && $scheda->getData_fine() < $oggi;
-                    case 'richieste':
-                        return $scheda === null;
-                    case 'in_regola':
-                        return $scheda !== null && $scheda->getData_fine() >= $oggi;
-                    default:
-                        return true;
-                }
-            });
+    // =========================================================================
+    // FILTRI ED HELPER DI ORDINAMENTO E MAPPATURA
+    // =========================================================================
+
+    private function applicaFiltriClienti(array $clienti, ?string $q, ?string $fCert, ?string $fAbb, ?string $fSch): array
+    {
+        $clienti = $this->applicaFiltroRicerca($clienti, $q);
+        $clienti = $this->applicaFiltroCertificato($clienti, $fCert);
+        $clienti = $this->applicaFiltroAbbonamento($clienti, $fAbb);
+        return $this->applicaFiltroScheda($clienti, $fSch);
+    }
+
+    private function applicaFiltroRicerca(array $clienti, ?string $q): array
+    {
+        if ($q === null || trim($q) === '') return $clienti;
+        $search = strtolower(trim($q));
+        return array_filter($clienti, fn($c) => str_contains(strtolower($c->getNome()), $search) || str_contains(strtolower($c->getCognome()), $search));
+    }
+
+    private function applicaFiltroCertificato(array $clienti, ?string $f): array
+    {
+        if ($f === 'scaduti') {
+            return array_filter($clienti, fn($c) => $c->getCertificatoMedico() === null || $c->getCertificatoMedico()->giorniAllaScadenza() < 0);
+        } elseif ($f === 'in_scadenza') {
+            return array_filter($clienti, fn($c) => $c->getCertificatoMedico() !== null && $c->getCertificatoMedico()->giorniAllaScadenza() >= 0 && $c->getCertificatoMedico()->giorniAllaScadenza() <= 30);
+        } elseif ($f === 'in_regola') {
+            return array_filter($clienti, fn($c) => $c->getCertificatoMedico() !== null && $c->getCertificatoMedico()->giorniAllaScadenza() > 30);
         }
-
         return $clienti;
+    }
+
+    private function applicaFiltroAbbonamento(array $clienti, ?string $f): array
+    {
+        if ($f === 'attivo') {
+            return array_filter($clienti, fn($c) => $c->isAbbonamentoAttivo());
+        } elseif ($f === 'scaduto') {
+            return array_filter($clienti, fn($c) => !$c->isAbbonamentoAttivo());
+        }
+        return $clienti;
+    }
+
+    private function applicaFiltroScheda(array $clienti, ?string $f): array
+    {
+        if ($f === null || trim($f) === '') return $clienti;
+        $oggi = new \DateTimeImmutable('today');
+        return array_filter($clienti, function($c) use ($f, $oggi) {
+            $s = $c->getScheda();
+            if ($f === 'scadute') return $s !== null && $s->getData_fine() < $oggi;
+            if ($f === 'richieste') return $s === null;
+            if ($f === 'in_regola') return $s !== null && $s->getData_fine() >= $oggi;
+            return true;
+        });
     }
 
     private function ordinaClienti(array $clienti, ?string $ordine): array
@@ -116,103 +147,41 @@ class VisualizzazioneUtentiController
         return $clienti;
     }
 
-    public function visualizzaClienti(): void 
+    private function recuperaPalestraUtenti(int $idUt, string $ruolo): ?Palestra
     {
-        $idUtente = $this->session->getLoggedUserId();
-        $ruolo = $this->session->getLoggedUserRole();
-        if (!$idUtente || !$ruolo) {
-            $this->view->mostraErrore("Sessione non valida. Effettua il login.");
-            return;
-        }
-
-        $palestra = null;
         if ($ruolo === 'amministratore') {
-            $admin = $this->entityManager->find(Amministratore::class, $idUtente);
-            if ($admin) {
-                $palestra = $this->palestraRepo->findByAmministratore($admin);
-            }
+            $admin = $this->entityManager->find(Amministratore::class, $idUt);
+            return $admin ? $this->palestraRepo->findByAmministratore($admin) : null;
         } elseif ($ruolo === 'allenatore') {
-            $trainer = $this->entityManager->find(Allenatore::class, $idUtente);
-            if ($trainer) {
-                $palestra = $trainer->getPalestra();
-            }
+            $trainer = $this->entityManager->find(Allenatore::class, $idUt);
+            return $trainer ? $trainer->getPalestra() : null;
         }
-
-        if (!$palestra) {
-            $this->view->mostraErrore("Accesso negato o palestra non trovata.");
-            return;
-        }
-
-        $query = $_POST['search_query'] ?? $_GET['search_query'] ?? null;
-        $filtroCertificato = $_POST['filtro_certificato'] ?? $_GET['filtro_certificato'] ?? null;
-        $filtroAbbonamento = $_POST['filtro_abbonamento'] ?? $_GET['filtro_abbonamento'] ?? null;
-        $filtroScheda = $_POST['filtro_scheda'] ?? $_GET['filtro_scheda'] ?? null;
-        $ordine = $_POST['ordine'] ?? $_GET['ordine'] ?? null;
-
-        $clienti = $this->clienteRepo->findByPalestra($palestra);
-        $clienti = $this->applicaFiltriClienti($clienti, $query, $filtroCertificato, $filtroAbbonamento, $filtroScheda);
-        $clienti = $this->ordinaClienti($clienti, $ordine);
-
-        $clientiData = [];
-        foreach ($clienti as $c) {
-            $clientiData[] = [
-                'id' => $c->getId(),
-                'nome' => $c->getNome(),
-                'cognome' => $c->getCognome(),
-                'email' => $c->getEmail(),
-                'cf' => $c->getCF(),
-                'fotoProfilo' => $c->getProfilePicture() ? base64_encode($c->getProfilePicture()) : null
-            ];
-        }
-
-        $this->view->mostraListaClienti($clientiData);
+        return null;
     }
 
-    public function visualizzaAllenatori(): void 
+    private function mappaClientiPerView(array $clienti): array
     {
-        $idUtente = $this->session->getLoggedUserId();
-        $ruolo = $this->session->getLoggedUserRole();
-        if (!$idUtente || !$ruolo) {
-            $this->view->mostraErrore("Sessione non valida. Effettua il login.");
-            return;
+        $data = [];
+        foreach ($clienti as $c) {
+            $data[] = [
+                'id' => $c->getId(), 'nome' => $c->getNome(), 'cognome' => $c->getCognome(), 'email' => $c->getEmail(),
+                'cf' => $c->getCF(), 'fotoProfilo' => $c->getProfilePicture() ? base64_encode($c->getProfilePicture()) : null
+            ];
         }
+        return $data;
+    }
 
-        if ($ruolo !== 'amministratore') {
-            $this->view->mostraErrore("Accesso riservato all'Amministratore.");
-            return;
-        }
-
-        $admin = $this->entityManager->find(Amministratore::class, $idUtente);
-        if (!$admin) {
-            $this->view->mostraErrore("Amministratore non trovato.");
-            return;
-        }
-
-        $palestra = $this->palestraRepo->findByAmministratore($admin);
-        if (!$palestra) {
-            $this->view->mostraErrore("Palestra associata non trovata.");
-            return;
-        }
-
-        $allenatori = $this->allenatoreRepo->findByPalestra($palestra);
-        $allenatoriData = [];
+    private function mappaAllenatoriPerView(array $allenatori): array
+    {
+        $data = [];
         foreach ($allenatori as $a) {
-            $attivitaNomi = [];
-            foreach ($a->getAttivitaAbilitate() as $att) {
-                $attivitaNomi[] = $att->getNome();
-            }
-            $allenatoriData[] = [
-                'id' => $a->getId(),
-                'nome' => $a->getNome(),
-                'cognome' => $a->getCognome(),
-                'email' => $a->getEmail(),
-                'cf' => $a->getCF(),
-                'sesso' => $a->getSesso()->value,
-                'attivita' => implode(',', $attivitaNomi),
+            $nomi = array_map(fn($att) => $att->getNome(), $a->getAttivitaAbilitate()->toArray());
+            $data[] = [
+                'id' => $a->getId(), 'nome' => $a->getNome(), 'cognome' => $a->getCognome(), 'email' => $a->getEmail(),
+                'cf' => $a->getCF(), 'sesso' => $a->getSesso()->value, 'attivita' => implode(',', $nomi),
                 'fotoProfilo' => $a->getProfilePicture() ? base64_encode($a->getProfilePicture()) : null
             ];
         }
-
-        $this->view->mostraListaAllenatori($allenatoriData);
+        return $data;
     }
 }

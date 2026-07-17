@@ -35,104 +35,79 @@ class ReportController
         $this->view = new ReportViewSmarty();
     }
 
-    /**
-     * Visualizza i report grafici dell'amministratore (dati 100% reali dal DB, filtrati per mese ed anno)
-     */
+    // =========================================================================
+    // 1. VISUALIZZA REPORT (/report)
+    // =========================================================================
+
     public function visualizzaReport(): void
     {
-        $idUtente = $this->session->getLoggedUserId();
-        $ruolo = $this->session->getLoggedUserRole();
-
-        if (!$idUtente || $ruolo !== 'amministratore') {
-            $this->view->mostraErrore("Accesso negato. Solo l'amministratore può visualizzare i report.");
+        $idUt = $this->session->getLoggedUserId();
+        $admin = ($idUt && $this->session->getLoggedUserRole() === 'amministratore') ? $this->utenteRepo->findById($idUt) : null;
+        $palestra = $admin ? $this->palestraRepo->findByAmministratore($admin) : null;
+        if (!$admin || !$palestra) {
+            $this->view->mostraErrore("Accesso negato o palestra non associata.");
             return;
         }
-
-        // Recupera la palestra dell'amministratore loggato
-        $admin = $this->utenteRepo->findById($idUtente);
-        $palestra = $this->palestraRepo->findByAmministratore($admin);
-
-        if (!$palestra) {
-            $this->view->mostraErrore("Nessuna palestra associata a questo amministratore.");
-            return;
-        }
-
-        // Filtri temporali (default: mese e anno correnti)
-        $meseSelezionato = isset($_GET['mese']) ? (int)$_GET['mese'] : (int)date('m');
-        $annoSelezionato = isset($_GET['anno']) ? (int)$_GET['anno'] : (int)date('Y');
-
-        // Calcola intervalli temporali del mese scelto
-        $primoDelMese = new \DateTimeImmutable("$annoSelezionato-$meseSelezionato-01 00:00:00");
-        $fineDelMese = $primoDelMese->modify('last day of this month 23:59:59');
-        $numeroGiorniMese = (int)$fineDelMese->format('d');
-
-        // Carica tutti i clienti della palestra
+        $mese = isset($_GET['mese']) ? (int)$_GET['mese'] : (int)date('m');
+        $anno = isset($_GET['anno']) ? (int)$_GET['anno'] : (int)date('Y');
+        $giorni = (int)(new \DateTimeImmutable("$anno-$mese-01"))->modify('last day of this month')->format('d');
         $clienti = $this->clienteRepo->findByPalestra($palestra);
 
-        // 1. Tipologia Abbonamento (Iniziati nel mese/anno selezionato)
-        $abbonamentiDati = [];
-        
+        $this->view->mostraReport([
+            'utente' => $admin, 'meseSelezionato' => $mese, 'annoSelezionato' => $anno,
+            'mesiNomi' => [1 => 'Gen', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mag', 6 => 'Giu', 7 => 'Lug', 8 => 'Ago', 9 => 'Set', 10 => 'Ott', 11 => 'Nov', 12 => 'Dic'],
+            'abbonamentiDati' => $this->calcolaAbbonamentiDati($clienti, $mese, $anno),
+            'prenotazioniCorsi' => $this->calcolaPrenotazioniCorsi($palestra->getId(), $mese, $anno),
+            'iscrittiGiornalieri' => $this->calcolaIscrittiGiornalieri($clienti, $mese, $anno, $giorni),
+            'giorniMese' => range(1, $giorni), 'anniDisponibili' => [2025, 2026, 2027]
+        ]);
+    }
+
+    private function calcolaAbbonamentiDati(array $clienti, int $mese, int $anno): array
+    {
+        $dati = [];
         foreach ($clienti as $cliente) {
             $abb = $cliente->getAbbonamento();
-            if ($abb) {
-                $start = $abb->getDataInizio();
-                if ((int)$start->format('n') === $meseSelezionato && (int)$start->format('Y') === $annoSelezionato) {
-                    $tipoObj = $abb->getAbbonamento();
-                    if ($tipoObj) {
-                        $tipologiaName = $tipoObj->getTipologia();
-                        $abbonamentiDati[$tipologiaName] = ($abbonamentiDati[$tipologiaName] ?? 0) + 1;
-                    }
+            if ($abb && (int)$abb->getDataInizio()->format('n') === $mese && (int)$abb->getDataInizio()->format('Y') === $anno) {
+                $tipoObj = $abb->getAbbonamento();
+                if ($tipoObj) {
+                    $name = $tipoObj->getTipologia();
+                    $dati[$name] = ($dati[$name] ?? 0) + 1;
                 }
             }
         }
+        return $dati;
+    }
 
-        // 2. Numero prenotazioni alle attività pianificate (Nel mese/anno selezionato)
-        $tutteAp = $this->attivitaPianificataRepo->findAll();
-        $prenotazioniCorsi = [];
-
-        foreach ($tutteAp as $ap) {
-            if ($ap->getSala() && $ap->getSala()->getPalestra() && $ap->getSala()->getPalestra()->getId() === $palestra->getId()) {
-                $giorno = $ap->getGiorno();
-                if ((int)$giorno->format('Y') === $annoSelezionato && (int)$giorno->format('n') === $meseSelezionato) {
-                    $nomeAttivita = $ap->getAttivita()->getNome();
-                    $prenotazioniCorsi[$nomeAttivita] = ($prenotazioniCorsi[$nomeAttivita] ?? 0) + $ap->getPrenotati();
+    private function calcolaPrenotazioniCorsi(int $palestraId, int $mese, int $anno): array
+    {
+        $prenotazioni = [];
+        foreach ($this->attivitaPianificataRepo->findAll() as $ap) {
+            $sala = $ap->getSala();
+            if ($ap->getSala() && $sala->getPalestra()->getId() === $palestraId) {
+                $g = $ap->getGiorno();
+                if ((int)$g->format('Y') === $anno && (int)$g->format('n') === $mese) {
+                    $nome = $ap->getAttivita()->getNome();
+                    $prenotazioni[$nome] = ($prenotazioni[$nome] ?? 0) + $ap->getPrenotati();
                 }
             }
         }
-        // Ordina per prenotazioni decrescenti
-        arsort($prenotazioniCorsi);
-        $prenotazioniCorsi = array_slice($prenotazioniCorsi, 0, 5);
+        arsort($prenotazioni);
+        return array_slice($prenotazioni, 0, 5);
+    }
 
-        // 3. Numero iscritti giornalieri nel mese selezionato (1 a N giorni)
-        $iscrittiGiornalieri = array_fill(1, $numeroGiorniMese, 0);
+    private function calcolaIscrittiGiornalieri(array $clienti, int $mese, int $anno, int $giorni): array
+    {
+        $iscritti = array_fill(1, $giorni, 0);
         foreach ($clienti as $cliente) {
             $iscrizione = $cliente->getIscrizione();
             if ($iscrizione) {
                 $dataIni = $iscrizione->getDataInizio();
-                if ((int)$dataIni->format('Y') === $annoSelezionato && (int)$dataIni->format('n') === $meseSelezionato) {
-                    $g = (int)$dataIni->format('d');
-                    $iscrittiGiornalieri[$g]++;
+                if ((int)$dataIni->format('Y') === $anno && (int)$dataIni->format('n') === $mese) {
+                    $iscritti[(int)$dataIni->format('d')]++;
                 }
             }
         }
-
-        $mesiNomi = [
-            1 => 'Gen', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mag', 6 => 'Giu',
-            7 => 'Lug', 8 => 'Ago', 9 => 'Set', 10 => 'Ott', 11 => 'Nov', 12 => 'Dic'
-        ];
-
-        $datiView = [
-            'utente' => $admin,
-            'meseSelezionato' => $meseSelezionato,
-            'annoSelezionato' => $annoSelezionato,
-            'mesiNomi' => $mesiNomi,
-            'abbonamentiDati' => $abbonamentiDati,
-            'prenotazioniCorsi' => $prenotazioniCorsi,
-            'iscrittiGiornalieri' => $iscrittiGiornalieri,
-            'giorniMese' => range(1, $numeroGiorniMese),
-            'anniDisponibili' => [2025, 2026, 2027]
-        ];
-
-        $this->view->mostraReport($datiView);
+        return $iscritti;
     }
 }
