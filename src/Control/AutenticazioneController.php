@@ -36,18 +36,18 @@ class AutenticazioneController
     // 1. LOGIN (/login)
     // =========================================================================
 
-    public function login(): void
+    public function login(): void   //gestisce la richiesta di login
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {    //mostra il form di login se la richiesta è GET
             $this->view->mostraFormLogin();
             return;
         }
         $this->eseguiLogin();
     }
 
-    private function eseguiLogin(): void
+    private function eseguiLogin(): void     //esegue il login dell'utente, controllando le credenziali e impostando la sessione
     {
-        $loginData = $this->view->richiediCredenzialiLogin();
+        $loginData = $this->view->richiediCredenzialiLogin();   //richiede le credenziali di login dalla view
         $email = $loginData['email'] ?? '';
         $password = $loginData['password'] ?? '';
         if (empty($email) || empty($password)) {
@@ -55,7 +55,7 @@ class AutenticazioneController
             return;
         }
         $utente = $this->utenteRepo->findByEmail($email);
-        if ($utente === null || !$utente->verificaPassword($password)) {
+        if ($utente === null || !$utente->verificaPassword($password)) {   //verifica se la password in chiaro corrisponde all'hash memorizzato nel database
             $this->view->mostraStatoOperazione(false, "Credenziali errate.", "login", "Torna al Login");
             return;
         }
@@ -89,7 +89,7 @@ class AutenticazioneController
     private function eseguiRegistrazione(): void
     {
         $dati = $this->view->richiediDatiRegistrazione();
-        if (!$this->validaCampiObbligatori($dati)) {
+        if (!$this->validaCampiObbligatori($dati)) {        //controlla se tutti i campi obbligatori sono stati compilati
             $this->view->mostraStatoOperazione(false, "Tutti i campi sono obbligatori per completare la registrazione.");
             return;
         }
@@ -117,7 +117,7 @@ class AutenticazioneController
     private function salvaAmministratoreEPalestra(array $dati): void
     {
         try {
-            $this->entityManager->beginTransaction();
+            $this->entityManager->beginTransaction();   //inizia una transazione per salvare sia l'amministratore che la palestra
             $admin = new Amministratore(
                 $dati['nome'], $dati['cognome'], $dati['email'], $dati['cf'],
                 $dati['indirizzo'], Sesso::from($dati['sesso']), $dati['password'], null, $dati['telefono']
@@ -127,18 +127,18 @@ class AutenticazioneController
             );
             $this->amministratoreRepo->save($admin);
             $this->palestraRepo->save($palestra);
-            $this->entityManager->commit();
+            $this->entityManager->commit();    //committa la transazione se tutto è andato a buon fine
             $this->view->mostraStatoOperazione(true, "Registrazione di amministratore e palestra effettuata con successo.");
         } catch (\Throwable $e) {
             $this->effettuaRollback();
-            $prefix = ($e instanceof \InvalidArgumentException) ? "Dati non validi: " : "Errore: ";
+            $prefix = ($e instanceof \InvalidArgumentException) ? "Dati non validi: " : "Errore: ";   //aggiunge un prefisso al messaggio di errore in base al tipo di eccezione
             $this->view->mostraStatoOperazione(false, $prefix . $e->getMessage());
         }
     }
 
     private function effettuaRollback(): void
     {
-        if ($this->entityManager->getConnection()->isTransactionActive()) {
+        if ($this->entityManager->getConnection()->isTransactionActive()) {    //controlla se la transazione è attiva prima di effettuare il rollback
             $this->entityManager->rollback();
         }
     }

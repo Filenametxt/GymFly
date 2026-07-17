@@ -42,7 +42,7 @@ class EserciziController
     // 1. INIZIALIZZAZIONE NUOVO ESERCIZIO (/crea-esercizio)
     // =========================================================================
 
-    public function apriFormCreazioneEsercizio(): void
+    public function apriFormCreazioneEsercizio(): void    //gestisce la richiesta di apertura del form di creazione esercizio
     {
         $idAllenatore = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
@@ -53,22 +53,26 @@ class EserciziController
         $this->eseguiAperturaForm();
     }
 
-    private function eseguiAperturaForm(): void
+    private function eseguiAperturaForm(): void      //mostra il form di creazione esercizio con i dati iniziali
     {
         $idProvvisorio = 'es_bozza_' . bin2hex(random_bytes(8));
-        $_SESSION['bozze_esercizi'][$idProvvisorio] = [
+        $_SESSION['bozze_esercizi'][$idProvvisorio] = [                    //inizializza i dati provvisori dell'esercizio nella sessione
             'stato' => 'inizializzato', 'nome' => '', 'descrizione' => '',
-            'tracciamento_carico' => 1, 'gruppi_muscolari' => [],
-            'attrezzatura' => null, 'immagine_bin' => null
+            'tracciamento_carico' => 1,             //1 = Ripetizioni, 2 = Durata
+            'gruppi_muscolari' => [],           
+            'attrezzatura' => null, 
+            'immagine_bin' => null
         ];
-        $this->view->mostraFormEsercizio([
+        $this->view->mostraFormEsercizio([      //la form viene popolata con i dati inizializzati nella sessione
             'id_provvisorio' => $idProvvisorio,
             'gruppi_muscolari' => $this->gruppoMuscolareRepo->findAll(),
             'attrezzature' => $this->attrezzaturaRepo->findAll(),
             'esercizi_esistenti' => $this->esercizioRepo->findAll(),
             'is_copia' => false, 'nome_esercizio' => '', 'descrizione' => '',
-            'tracciamento_carico' => 1, 'selected_gruppi' => [],
-            'selected_attrezzatura' => null, 'immagine_preview' => null
+            'tracciamento_carico' => 1, 
+            'selected_gruppi' => [],
+            'selected_attrezzatura' => null, 
+            'immagine_preview' => null
         ]);
     }
 
@@ -81,8 +85,7 @@ class EserciziController
         $idAllenatore = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
         if (!$idAllenatore || $ruolo !== 'allenatore') {
-            header('Content-Type: application/json; charset=utf-8');
-            echo json_encode(['success' => false, 'errore' => 'Azione non autorizzata.']);
+            $this->view->mostraStatoOperazione(false, "Azione non autorizzata.", "login");
             return;
         }
         $nome = trim($_POST['nome'] ?? '');
@@ -90,12 +93,16 @@ class EserciziController
         $esisteDuplicato = ($nome !== '') ? $this->esercizioRepo->existsByNome($nome) : false;
         $erroreFile = $this->verificaErroreImmagine($idProv);
 
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode([
-            'success' => !$esisteDuplicato && !$erroreFile, 'duplicato' => $esisteDuplicato,
-            'errore_nome' => $esisteDuplicato ? 'Esiste già un esercizio con questo nome.' : null,
-            'errore_file' => $erroreFile
-        ]);
+        if ($esisteDuplicato) {
+            $this->view->mostraStatoOperazione(false, "Esiste già un esercizio con questo nome.", "crea-esercizio");
+            return;
+        }
+        if ($erroreFile) {
+            $this->view->mostraStatoOperazione(false, $erroreFile, "crea-esercizio");
+            return;
+        }
+
+        $this->view->mostraStatoOperazione(true, "Dati validati con successo.", "crea-esercizio");
     }
 
     private function verificaErroreImmagine(string $idProvvisorio): ?string
