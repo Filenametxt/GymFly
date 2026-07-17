@@ -85,6 +85,12 @@ class AttivitaPianificataController
         $apList = $this->caricaAttivitaPianificate($palestra, $ruolo, $idUt);
         $spList = $this->caricaSessioniPrivate($ruolo, $idUt, $dateStr);
         $selAp = $this->recuperaApSelezionata($palestra, $ruolo, $idUt);            //QUELLA SELEZIONATA
+
+        $codaCounts = [];
+        foreach ($apList as $ap) {
+            $codaCounts[$ap->getId()] = $this->codaAttesaRepo->countByAttivitaPianificata($ap);
+        }
+
         $datiView = [
             'grid' => $this->costruisciGriglia($apList, $spList, $dateStr),
             'fasceOrarie' => range(8, 20), 
@@ -101,6 +107,7 @@ class AttivitaPianificataController
             'selectedAp' => $selAp, 
             'codaAttesa' => $selAp ? $this->codaAttesaRepo->findByAttivitaPianificata($selAp) : [],   //se c'è un'attività pianificata selezionata, recupera la coda di attesa per quell'attività
             'selectedSp' => $this->recuperaSpSelezionata($ruolo, $idUt), 
+            'codaCounts' => $codaCounts,
             'nuovo' => isset($_GET['nuovo']) ? 1 : 0,       //se è stato passato il parametro nuovo nella query string, allora mostra il form per creare una nuova attività pianificata
             'nuova_sessione' => isset($_GET['nuova_sessione']) ? 1 : 0
         ];
