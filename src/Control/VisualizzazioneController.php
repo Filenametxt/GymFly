@@ -53,8 +53,12 @@ class VisualizzazioneController
     {
         $id = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-        if (!$id || $ruolo !== 'amministratore') {
-            $this->view->mostraStatoOperazione(false, "Accesso negato. Questa area è riservata all'amministratore.");
+        if (!$id) {
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Questa area è riservata all'amministratore.", "login", "Torna al Login");
+            return;
+        }
+        if ($ruolo !== 'amministratore') {
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Questa area è riservata all'amministratore.", "dashboard-" . $ruolo, "Torna alla Dashboard");
             return;
         }
 
@@ -210,8 +214,12 @@ class VisualizzazioneController
     {
         $id = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-        if (!$id || $ruolo !== 'allenatore') {
-            $this->view->mostraStatoOperazione(false, "Accesso negato. Questa area è riservata agli allenatori.");
+        if (!$id) {
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Questa area è riservata agli allenatori.", "login", "Torna al Login");
+            return;
+        }
+        if ($ruolo !== 'allenatore') {
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Questa area è riservata agli allenatori.", "dashboard-" . $ruolo, "Torna alla Dashboard");
             return;
         }
 
@@ -287,8 +295,12 @@ class VisualizzazioneController
     {
         $id = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-        if (!$id || $ruolo !== 'cliente') {
-            $this->view->mostraStatoOperazione(false, "Accesso negato. Questa area è riservata ai clienti.");
+        if (!$id) {
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Questa area è riservata ai clienti.", "login", "Torna al Login");
+            return;
+        }
+        if ($ruolo !== 'cliente') {
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Questa area è riservata ai clienti.", "dashboard-" . $ruolo, "Torna alla Dashboard");
             return;
         }
 
