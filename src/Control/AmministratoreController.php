@@ -74,7 +74,7 @@ class AmministratoreController
     {
         $palestra = $this->recuperaPalestraAdmin();
         if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.", "dashboard-admin", "Torna alla Dashboard");
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Nessuna palestra associata all'utente.", "login", "Torna al Login");
             return;
         }
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -143,7 +143,7 @@ class AmministratoreController
     {
         $palestra = $this->recuperaPalestraAdmin();
         if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.", "dashboard-admin", "Torna alla Dashboard");
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Nessuna palestra associata all'utente.", "login", "Torna al Login");
             return;
         }
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -196,7 +196,7 @@ class AmministratoreController
     {
         $palestra = $this->recuperaPalestraAdmin();
         if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.", "dashboard-admin", "Torna alla Dashboard");
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Nessuna palestra associata all'utente.", "login", "Torna al Login");
             return;
         }
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -237,7 +237,7 @@ class AmministratoreController
     {
         $palestra = $this->recuperaPalestraAdmin();
         if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.", "dashboard-admin", "Torna alla Dashboard");
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Nessuna palestra associata all'utente.", "login", "Torna al Login");
             return;
         }
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -294,7 +294,7 @@ class AmministratoreController
     {
         $palestra = $this->recuperaPalestraAdmin();
         if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.", "dashboard-admin", "Torna alla Dashboard");
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Nessuna palestra associata all'utente.", "login", "Torna al Login");
             return;
         }
         $idCliente = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -394,7 +394,7 @@ class AmministratoreController
     {
         $palestra = $this->recuperaPalestraAdmin();
         if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.", "dashboard-admin", "Torna alla Dashboard");
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Nessuna palestra associata all'utente.", "login", "Torna al Login");
             return;
         }
         $idAllenatore = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -429,7 +429,7 @@ class AmministratoreController
     {
         $palestra = $this->recuperaPalestraAdmin();
         if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.", "dashboard-admin", "Torna alla Dashboard");
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Nessuna palestra associata all'utente.", "login", "Torna al Login");
             return;
         }
         $idAttivita = isset($_GET['id']) ? (int)$_GET['id'] : 0;

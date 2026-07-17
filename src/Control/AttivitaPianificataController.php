@@ -80,7 +80,7 @@ class AttivitaPianificataController
     {
         $palestra = $this->recuperaPalestraUtente();
         if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato. Nessuna palestra associata all'utente.");
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Nessuna palestra associata all'utente.", "login", "Torna al Login");
             return;
         }
         $ruolo = $this->session->getLoggedUserRole();
@@ -271,7 +271,7 @@ class AttivitaPianificataController
     {
         $palestra = $this->recuperaPalestraUtente();
         if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.");
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Nessuna palestra associata all'utente.", "login", "Torna al Login");
             return;
         }
         $idAp = (int)($_REQUEST['id_attivita_pianificata'] ?? 0);      //recupera l'id dell'attività pianificata dalla query string; REQUEST è un array che contiene i dati della richiesta HTTP, sia GET che POST
@@ -352,7 +352,7 @@ class AttivitaPianificataController
     {
         $palestra = $this->recuperaPalestraUtente();
         if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.");
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Nessuna palestra associata all'utente.", "login", "Torna al Login");
             return;
         }
         $idAp = (int)($_REQUEST['id_attivita_pianificata'] ?? 0);      //recupera l'id dell'attività pianificata dalla query string; REQUEST è un array che contiene i dati della richiesta HTTP, sia GET che POST

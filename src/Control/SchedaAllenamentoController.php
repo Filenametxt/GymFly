@@ -425,7 +425,7 @@ class SchedaAllenamentoController
         $scheda = $cliente->getScheda();
         $all = $this->entityManager->find(Allenamento::class, isset($_REQUEST['id_allenamento']) ? (int)$_REQUEST['id_allenamento'] : 0);
         if (!$all || $all->getScheda()->getId() !== $scheda->getId()) {
-            $this->view->mostraStatoOperazione(false, "Allenamento non trovato.", "visualizza-scheda");
+            $this->view->mostraStatoOperazione(false, "Allenamento non trovato.", "visualizza-scheda", "Torna alla Scheda");
             return;
         }
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -453,7 +453,7 @@ class SchedaAllenamentoController
             }
         }
         $this->schedaRepo->save($scheda);
-        $this->view->mostraStatoOperazione(true, "Dettagli aggiornati con successo.", "visualizza-scheda");
+        $this->view->mostraStatoOperazione(true, "Dettagli aggiornati con successo.", "visualizza-scheda", "Torna alla Scheda");
     }
 
     private function registraProgressiCliente(Cliente $cli, DettaglioAllenamento $det, \DateTimeImmutable $oggi, float $carico, float $oldCarico, ?int $reps, ?int $oldReps, ?string $tempo, ?string $oldTempo): void
