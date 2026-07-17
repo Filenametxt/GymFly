@@ -29,4 +29,6 @@ interface CodaAttesaRepositoryInterface
     public function findPrimoInCoda(AttivitaPianificata $attivita): ?CodaAttesa;
 
     public function existsInCoda(Cliente $cliente, AttivitaPianificata $attivita): bool;
+
+    public function countByAttivitaPianificata(AttivitaPianificata $attivita): int;
 }

@@ -98,4 +98,15 @@ class DoctrineCodaAttesaRepository implements CodaAttesaRepositoryInterface
 
         return $count > 0;
     }
+
+    public function countByAttivitaPianificata(AttivitaPianificata $attivita): int
+    {
+        return (int) $this->em->createQueryBuilder()
+            ->select('COUNT(c.id)')
+            ->from(CodaAttesa::class, 'c')
+            ->where('c.attivitaPianificata = :attivita')
+            ->setParameter('attivita', $attivita)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }
