@@ -3,6 +3,7 @@ namespace App\Control;
 
 use App\View\Interface\MessaggiView;
 use App\View\MessaggiViewSmarty;
+use App\View\VisualizzazioneViewSmarty;
 use App\Foundation\Session;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Cliente;
@@ -54,7 +55,7 @@ class MessaggiController
         $ut = ($idUt && $ruolo) ? $this->utenteRepo->findById($idUt) : null;
         $pal = $ut ? $this->recuperaPalestraMessaggi($ut, $ruolo) : null;
         if (!$ut || !$pal) {
-            $this->view->mostraErrore("Sessione non valida, utente o palestra non trovata.");
+            $this->mostraStatoOperazione(false, "Sessione non valida, utente o palestra non trovata.");
             return;
         }
         $dati = [                                                        // array associativo che contiene i dati da passare alla view per la visualizzazione della bacheca dei messaggi
@@ -102,14 +103,14 @@ class MessaggiController
         $ruolo = $this->session->getLoggedUserRole();
         $utente = ($idUt && $ruolo) ? $this->utenteRepo->findById($idUt) : null;
         if (!$utente || !$utente->mssAllowed() || $_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->view->mostraErrore("Azione non autorizzata o richiesta non valida.", "messaggi", "Torna alla Bacheca");
+            $this->mostraStatoOperazione(false, "Azione non autorizzata o richiesta non valida.", "messaggi", "Torna alla Bacheca");
             return;
         }
         $palestra = $this->recuperaPalestraMessaggi($utente, $ruolo);
         $oggetto = trim($_POST['oggetto'] ?? '');
         $contenuto = trim($_POST['contenuto'] ?? '');
         if (!$palestra || $oggetto === '' || $contenuto === '') {
-            $this->view->mostraErrore("Dati del messaggio o palestra non trovati.", "messaggi", "Torna alla Bacheca");
+            $this->mostraStatoOperazione(false, "Dati del messaggio o palestra non trovati.", "messaggi", "Torna alla Bacheca");
             return;
         }
         $this->eseguiInvio($utente, $ruolo, $palestra, $oggetto, $contenuto);
@@ -119,7 +120,7 @@ class MessaggiController
     {
         $recipients = $this->recuperaDestinatari($ut, $ruolo, $pal);
         if (empty($recipients)) {
-            $this->view->mostraErrore("Nessun destinatario valido trovato.", "messaggi", "Torna alla Bacheca");
+            $this->mostraStatoOperazione(false, "Nessun destinatario valido trovato.", "messaggi", "Torna alla Bacheca");
             return;
         }
         try {
@@ -128,9 +129,9 @@ class MessaggiController
                 $messaggio->aggiungiDestinatario($recipient);
             }
             $this->messaggioRepo->save($messaggio);
-            $this->view->mostraConfermaInviato("Messaggio inviato con successo!", "messaggi", "Torna alla Bacheca");
+            $this->mostraStatoOperazione(true, "Messaggio inviato con successo!", "messaggi", "Torna alla Bacheca");
         } catch (\InvalidArgumentException $e) {
-            $this->view->mostraErrore("Errore di validazione: " . $e->getMessage(), "messaggi", "Torna alla Bacheca");
+            $this->mostraStatoOperazione(false, "Errore di validazione: " . $e->getMessage(), "messaggi", "Torna alla Bacheca");
         }
     }
 
@@ -171,5 +172,11 @@ class MessaggiController
                 $recipients = array_merge($recipients, $this->allenatoreRepo->findByPalestra($pal));
             }
         }
+    }
+
+    private function mostraStatoOperazione(bool $successo, string $messaggio, ?string $ritorno = null, ?string $testoBottone = null): void
+    {
+        $statusView = new VisualizzazioneViewSmarty();
+        $statusView->mostraStatoOperazione($successo, $messaggio, $ritorno, $testoBottone);
     }
 }

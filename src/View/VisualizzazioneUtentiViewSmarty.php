@@ -32,16 +32,6 @@ class VisualizzazioneUtentiViewSmarty implements VisualizzazioneUtentiView
     {
         header('Content-Type: text/html; charset=utf-8');
         $this->smarty->assign('clienti', $clientiData);
-        $this->smarty->assign('filtro_certificato', $_POST['filtro_certificato'] ?? $_GET['filtro_certificato'] ?? null);
-        $this->smarty->assign('filtro_abbonamento', $_POST['filtro_abbonamento'] ?? $_GET['filtro_abbonamento'] ?? null);
-        
-        $filtroScheda = $_POST['filtro_scheda'] ?? $_GET['filtro_scheda'] ?? null;
-        if ($filtroScheda === 'richieste') {
-            $filtroScheda = 'assenti';
-        }
-        $this->smarty->assign('filtro_scheda', $filtroScheda);
-        
-        $this->smarty->assign('ordine', $_POST['ordine'] ?? $_GET['ordine'] ?? null);
         $this->smarty->assign('ritorno', $this->determinaRitorno());
         $this->smarty->display('lista_clienti.tpl');
     }
@@ -52,15 +42,5 @@ class VisualizzazioneUtentiViewSmarty implements VisualizzazioneUtentiView
         $this->smarty->assign('allenatori', $allenatoriData);
         $this->smarty->assign('ritorno', $this->determinaRitorno());
         $this->smarty->display('lista_allenatori.tpl');
-    }
-
-    public function mostraErrore(string $messaggio, ?string $ritorno = null, ?string $testoBottone = null): void
-    {
-        header('Content-Type: text/html; charset=utf-8');
-        $this->smarty->assign('successo', false);
-        $this->smarty->assign('messaggio', $messaggio);
-        $this->smarty->assign('ritorno', $ritorno ?? $this->determinaRitorno());
-        $this->smarty->assign('testo_bottone', $testoBottone);
-        $this->smarty->display('stato_operazione.tpl');
     }
 }

@@ -11,6 +11,7 @@ use App\Foundation\Persistence\Repository\DoctrineAttivitaPianificataRepository;
 use App\Foundation\Persistence\Repository\DoctrineUtenteRepository;
 use App\View\Interface\ReportView;
 use App\View\ReportViewSmarty;
+use App\View\VisualizzazioneViewSmarty;
 use App\Foundation\Session;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -45,7 +46,7 @@ class ReportController
         $admin = ($idUt && $this->session->getLoggedUserRole() === 'amministratore') ? $this->utenteRepo->findById($idUt) : null;
         $palestra = $admin ? $this->palestraRepo->findByAmministratore($admin) : null;
         if (!$admin || !$palestra) {
-            $this->view->mostraErrore("Accesso negato o palestra non associata.");
+            $this->mostraStatoOperazione(false, "Accesso negato o palestra non associata.");
             return;
         }
         $mese = isset($_GET['mese']) ? (int)$_GET['mese'] : (int)date('m');
@@ -109,5 +110,11 @@ class ReportController
             }
         }
         return $iscritti;
+    }
+
+    private function mostraStatoOperazione(bool $successo, string $messaggio, ?string $ritorno = null, ?string $testoBottone = null): void
+    {
+        $statusView = new VisualizzazioneViewSmarty();
+        $statusView->mostraStatoOperazione($successo, $messaggio, $ritorno, $testoBottone);
     }
 }
