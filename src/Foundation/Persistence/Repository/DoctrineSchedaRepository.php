@@ -178,7 +178,7 @@ class DoctrineSchedaRepository implements SchedaRepositoryInterface
             ->getResult();
     }
 
-    public function findPendenteByCliente(Cliente $cliente): ?Scheda
+    public function findRichiestaByCliente(Cliente $cliente): ?Scheda
     {
         return $this->em->createQueryBuilder()
             ->select('s')

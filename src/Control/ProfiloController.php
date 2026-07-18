@@ -496,10 +496,10 @@ class ProfiloController
 
 
     // =========================================================================
-    // 11. AGGIORNA ABILITAZIONI ALLENATORE IN BLOCCO (/aggiorna-abilitazioni-profilo)
+    // 9. AGGIORNA ABILITAZIONI ALLENATORE IN BLOCCO (/aggiorna-abilitazioni-profilo)
     // =========================================================================
 
-    public function aggiornaAbilitazioniAllenatore(): void
+    public function aggiornaAbilitazioniAllenatore(): void     //gestisce la richiesta di aggiornamento delle abilitazioni di un allenatore, verificando i permessi dell'utente loggato e aggiornando le attività abilitate in blocco
     {
         $idLog = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
@@ -523,7 +523,7 @@ class ProfiloController
     private function eseguiAggiornamentoAbilitazioniInBlocco(Allenatore $allenatore, array $sel, int $idLog): void
     {
         try {
-            foreach ($allenatore->getAttivitaAbilitate() as $c) {
+            foreach ($allenatore->getAttivitaAbilitate() as $c) {    // rimuove tutte le abilitazioni esistenti dell'allenatore prima di aggiungere le nuove selezionate, in modo da aggiornare completamente le attività abilitate
                 $allenatore->removeAbilitazione($c);
             }
             $this->utenteRepo->save($allenatore);
@@ -555,8 +555,6 @@ class ProfiloController
         }
         return true;
     }
-
-
 
     private function recuperaClienteTarget(string $ruolo, ?int $idUtente): ?Cliente
     {

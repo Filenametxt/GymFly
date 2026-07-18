@@ -39,7 +39,7 @@ class ReportController
     // 1. VISUALIZZA REPORT (/report)
     // =========================================================================
 
-    public function visualizzaReport(): void
+    public function visualizzaReport(): void      //gestisce la richiesta di visualizzazione del report, verificando i permessi dell'utente loggato e calcolando i dati da mostrare nel report
     {
         $idUt = $this->session->getLoggedUserId();
         $admin = ($idUt && $this->session->getLoggedUserRole() === 'amministratore') ? $this->utenteRepo->findById($idUt) : null;
@@ -63,16 +63,16 @@ class ReportController
         ]);
     }
 
-    private function calcolaAbbonamentiDati(array $clienti, int $mese, int $anno): array
+    private function calcolaAbbonamentiDati(array $clienti, int $mese, int $anno): array     //grafico a torta
     {
         $dati = [];
         foreach ($clienti as $cliente) {
             $abb = $cliente->getAbbonamento();
             if ($abb && (int)$abb->getDataInizio()->format('n') === $mese && (int)$abb->getDataInizio()->format('Y') === $anno) {
-                $tipoObj = $abb->getAbbonamento();
+                $tipoObj = $abb->getAbbonamento();    // Ottieni l'oggetto Abbonamento associato al cliente
                 if ($tipoObj) {
                     $name = $tipoObj->getTipologia();
-                    $dati[$name] = ($dati[$name] ?? 0) + 1;
+                    $dati[$name] = ($dati[$name] ?? 0) + 1;    // Incrementa il conteggio per la tipologia di abbonamento
                 }
             }
         }
@@ -88,17 +88,17 @@ class ReportController
                 $g = $ap->getGiorno();
                 if ((int)$g->format('Y') === $anno && (int)$g->format('n') === $mese) {
                     $nome = $ap->getAttivita()->getNome();
-                    $prenotazioni[$nome] = ($prenotazioni[$nome] ?? 0) + $ap->getPrenotati();
+                    $prenotazioni[$nome] = ($prenotazioni[$nome] ?? 0) + $ap->getPrenotati();    
                 }
             }
         }
-        arsort($prenotazioni);
-        return array_slice($prenotazioni, 0, 5);
+        arsort($prenotazioni);      // Ordina in ordine decrescente per numero di prenotazioni
+        return array_slice($prenotazioni, 0, 5);            // Restituisce solo le prime 5 attività con più prenotazioni
     }
 
     private function calcolaIscrittiGiornalieri(array $clienti, int $mese, int $anno, int $giorni): array
     {
-        $iscritti = array_fill(1, $giorni, 0);
+        $iscritti = array_fill(1, $giorni, 0);   // Inizializza un array con chiavi da 1 a $giorni, tutte impostate a 0
         foreach ($clienti as $cliente) {
             $iscrizione = $cliente->getIscrizione();
             if ($iscrizione) {

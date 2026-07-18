@@ -66,7 +66,6 @@ class FrontController
             '/richiedi-scheda' => [SchedaAllenamentoController::class, 'apriFormRichiestaScheda'],
             '/crea-scheda' => [SchedaAllenamentoController::class, 'apriFormCreazioneScheda'],
             '/modifica-scheda' => [SchedaAllenamentoController::class, 'apriFormModificaScheda'],
-            '/salva-scheda' => [SchedaAllenamentoController::class, 'salvaScheda'],
             '/invia-scheda' => [SchedaAllenamentoController::class, 'inviaScheda'],
             '/elimina-scheda' => [SchedaAllenamentoController::class, 'eliminaScheda'],
             '/visualizza-scheda' => [SchedaAllenamentoController::class, 'visualizzaScheda'],

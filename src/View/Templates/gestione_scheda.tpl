@@ -93,7 +93,7 @@
 
             <!-- SCHEDA FORM -->
             <div class="control-box">
-                <form id="form-scheda" action="salva-scheda" method="POST">
+                <form id="form-scheda" action="modifica-scheda?id={$scheda->getId()}{if isset($azione_rapida) && $azione_rapida == 1}&azione_rapida=1{/if}" method="POST">
                             <input type="hidden" name="id_scheda" id="id_scheda" value="{$scheda->getId()}">
                             <input type="hidden" name="azione" id="azione-field" value="salva">
                             <!-- BOX METADATI CON NOME COGNOME ATLETA E INPUT (Layout bozza) -->
@@ -316,7 +316,6 @@
                                 </div>
                             </div>
 
-                            <!-- ACTION BUTTONS (In basso a destra come da bozza: "Manda") -->
                             <!-- ACTION BUTTONS -->
                             <div class="field is-grouped is-grouped-right mt-5">
                                 <div class="control">

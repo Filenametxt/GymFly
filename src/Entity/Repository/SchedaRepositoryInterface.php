@@ -99,5 +99,5 @@ interface SchedaRepositoryInterface
     /**
      * Cerca la scheda con stato 'Pendente' per un determinato cliente.
      */
-    public function findPendenteByCliente(Cliente $cliente): ?Scheda;
+    public function findRichiestaByCliente(Cliente $cliente): ?Scheda;
 }

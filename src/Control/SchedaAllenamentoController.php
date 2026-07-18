@@ -67,7 +67,7 @@ class SchedaAllenamentoController
     // 1. RICHIESTA SCHEDA AD ALLENATORE (/richiedi-scheda)
     // =========================================================================
 
-    public function apriFormRichiestaScheda(): void
+    public function apriFormRichiestaScheda(): void     //gestisce la richiesta di apertura del form per richiedere una scheda ad un allenatore, verificando i permessi dell'utente loggato e mostrando il form con gli allenatori disponibili
     {
         $id = $this->session->getLoggedUserId();
         if (!$id || $this->session->getLoggedUserRole() !== 'cliente') {
@@ -79,8 +79,8 @@ class SchedaAllenamentoController
             $this->view->mostraStatoOperazione(false, "Cliente non trovato.", "login");
             return;
         }
-        if ($this->schedaRepo->findPendenteByCliente($cliente)) {
-            $this->view->mostraStatoOperazione(false, "Hai già una richiesta pendente.", "dashboard-cliente");
+        if ($this->schedaRepo->findRichiestaByCliente($cliente)) {             // Controlla se esiste già una richiesta per il cliente  
+            $this->view->mostraStatoOperazione(false, "Hai già effettuato una richiesta.", "dashboard-cliente");
             return;
         }
         $this->gestisciAzioneRichiesta($cliente);
@@ -102,7 +102,7 @@ class SchedaAllenamentoController
         );
     }
 
-    public function richiestaSchedaAllenatore(string $obiettivo, int $nAllenamenti, string $cfAllenatore): void
+    public function richiestaSchedaAllenatore(string $obiettivo, int $nAllenamenti, string $cfAllenatore): void    //gestisce la richiesta di una scheda ad un allenatore, verificando i permessi dell'utente loggato, i dati del form e creando la richiesta di scheda con gli allenamenti specificati
     {
         $cliente = $this->clienteRepo->findById($this->session->getLoggedUserId());
         if (!$cliente) {
@@ -131,11 +131,11 @@ class SchedaAllenamentoController
         }
     }
 
-    private function creaRichiestaSchedaConAllenamenti(Cliente $cli, Allenatore $all, string $ob, int $num): void
+    private function creaRichiestaSchedaConAllenamenti(Cliente $cli, Allenatore $all, string $ob, int $num): void      //gestisce la creazione di una nuova richiesta di scheda con un numero specificato di allenamenti, associata a un cliente e a un allenatore, e salva la richiesta nel repository
     {
         try {
             $scheda = new Scheda("Richiesta Nuova Scheda", new \DateTimeImmutable('today'), new \DateTimeImmutable('+1 month'), $ob, $cli, $all);
-            $letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+            $letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];   // Array di lettere per nominare gli allenamenti
             for ($i = 0; $i < $num; $i++) {
                 $scheda->addAllenamento(new Allenamento("Allenamento " . $letters[$i], "Informazioni " . $letters[$i]));
             }
@@ -150,7 +150,7 @@ class SchedaAllenamentoController
     // 2. CREAZIONE DELLA SCHEDA (/crea-scheda)
     // =========================================================================
 
-    public function apriFormCreazioneScheda(): void
+    public function apriFormCreazioneScheda(): void       //gestisce la richiesta di apertura del form per creare una nuova scheda
     {
         $idAllenatore = $this->session->getLoggedUserId();
         if (!$idAllenatore || $this->session->getLoggedUserRole() !== 'allenatore') {
@@ -173,16 +173,17 @@ class SchedaAllenamentoController
             $this->view->mostraStatoOperazione(false, "Cliente non valido.", "dashboard-allenatore");
             return;
         }
-        $scheda = $this->schedaRepo->findPendenteByCliente($cli);
-        if (!$scheda) {
+        $scheda = $this->schedaRepo->findRichiestaByCliente($cli);
+        if (!$scheda) {                            // Se non esiste una richiesta, crea una nuova scheda con allenamenti predefiniti
             $this->eliminaVecchieSchede($cli);
             $scheda = new Scheda("Nuovo Protocollo", new \DateTimeImmutable('today'), new \DateTimeImmutable('+1 month'), "Inserisci obiettivo", $cli, $all);
-            foreach (['A', 'B', 'C'] as $l) $scheda->addAllenamento(new Allenamento("Allenamento " . $l, "Informazioni " . $l));
+            foreach (['A', 'B', 'C'] as $l) 
+                $scheda->addAllenamento(new Allenamento("Allenamento " . $l, "Informazioni " . $l));
         } else {
             $scheda->setNome_scheda("Nuovo Protocollo");
         }
         $this->schedaRepo->save($scheda);
-        header("Location: modifica-scheda?id=" . $scheda->getId() . (isset($_REQUEST['azione_rapida']) ? "&azione_rapida=1" : ""));
+        header("Location: modifica-scheda?id=" . $scheda->getId() . (isset($_REQUEST['azione_rapida']) ? "&azione_rapida=1" : ""));    // Reindirizza alla pagina di modifica della scheda appena creata o selezionata
         exit();
     }
 
@@ -190,7 +191,7 @@ class SchedaAllenamentoController
     // 3. MODIFICA SCHEDA (/modifica-scheda)
     // =========================================================================
 
-    public function apriFormModificaScheda(): void
+    public function apriFormModificaScheda(): void      //gestisce la richiesta di apertura del form per modificare una scheda esistente, verificando i permessi dell'utente loggato e mostrando il form con i dati della scheda selezionata
     {
         $idAllenatore = $this->session->getLoggedUserId();
         $allenatore = $idAllenatore ? $this->allenatoreRepo->findById($idAllenatore) : null;
@@ -199,32 +200,24 @@ class SchedaAllenamentoController
             return;
         }
         $idScheda = isset($_GET['id']) ? (int)$_GET['id'] : (int)($_POST['id_scheda'] ?? 0);
-        if ($idScheda <= 0) {
-            $this->reindirizzaASchedaEsistente($allenatore);
+        
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->modificaScheda();
             return;
         }
         $scheda = $this->schedaRepo->findById($idScheda);
-        if (!$scheda || $scheda->getCliente()->getPalestra()->getId() !== $allenatore->getPalestra()->getId()) {
+        if ($idScheda <= 0 || !$scheda || $scheda->getCliente()->getPalestra()->getId() !== $allenatore->getPalestra()->getId()) {
             $this->view->mostraStatoOperazione(false, "Scheda non trovata o accesso negato.", "dashboard-allenatore");
             return;
         }
         if (isset($_GET['copia_da'])) {
             $this->eseguiClonazioneScheda($scheda, (int)$_GET['copia_da']);
         }
-        $this->mostraFormModificaSchedaConDati($allenatore, $scheda);
-    }
-
-    private function reindirizzaASchedaEsistente(Allenatore $allenatore): void
-    {
-        $palestra = $allenatore->getPalestra();
-        $schede = $palestra ? $this->schedaRepo->findByPalestra($palestra) : [];
-        if (!empty($schede)) {
-            $url = "modifica-scheda?id=" . $schede[0]->getId() . (isset($_GET['azione_rapida']) ? "&azione_rapida=1" : "");
-            header("Location: " . $url);
-        } else {
-            header("Location: dashboard-allenatore");
-        }
-        exit();
+        $this->view->mostraTemplate('gestione_scheda.tpl', [
+            'utente' => $allenatore, 'scheda' => $scheda, 'esercizi' => $this->esercizioRepo->findAll(),
+            'altre_schede' => $this->schedaRepo->findAltreByPalestra($allenatore->getPalestra(), $scheda->getId()),
+            'azione_rapida' => isset($_GET['azione_rapida']) ? 1 : 0
+        ]);
     }
 
     private function eseguiClonazioneScheda(Scheda $scheda, int $idSorgente): void
@@ -235,11 +228,10 @@ class SchedaAllenamentoController
                 $scheda->removeAllenamento($all);
             }
             $this->schedaRepo->save($scheda);
-            /** @var Allenamento $srcAll */
             foreach ($sorgente->getAllenamenti() as $srcAll) {
                 $nuovoAll = new Allenamento($srcAll->getNome(), $srcAll->getDescrizione());
                 $scheda->addAllenamento($nuovoAll);
-                /** @var DettaglioAllenamento $srcDet */
+                /** @var DettaglioAllenamento $srcDet */                   // Copia i dettagli dell'allenamento sorgente nel nuovo allenamento
                 foreach ($srcAll->getDettagli() as $srcDet) {
                     $nuovoAll->addDettaglio(new DettaglioAllenamento(
                         $srcDet->getEsercizio(), $nuovoAll, $srcDet->getSerie(),
@@ -251,29 +243,17 @@ class SchedaAllenamentoController
         }
     }
 
-    private function mostraFormModificaSchedaConDati(Allenatore $all, Scheda $scheda): void
-    {
-        $this->view->mostraTemplate('gestione_scheda.tpl', [
-            'utente' => $all, 'scheda' => $scheda, 'esercizi' => $this->esercizioRepo->findAll(),
-            'altre_schede' => $this->schedaRepo->findAltreByPalestra($all->getPalestra(), $scheda->getId()),
-            'azione_rapida' => isset($_GET['azione_rapida']) ? 1 : 0
-        ]);
-    }
-
     // =========================================================================
-    // 4. SALVA SCHEDA (/salva-scheda)
+    // 4. SALVA SCHEDA (gestito in POST su /modifica-scheda)
     // =========================================================================
 
-    public function salvaScheda(?int $idScheda = null): void
+    public function salvaScheda(int $idScheda): void       //gestisce la richiesta di salvataggio di una scheda, verificando i permessi dell'utente loggato e salvando le modifiche apportate alla scheda selezionata
     {
-        if ($idScheda === null) {
-            $this->modificaScheda();
-            return;
-        }
         $scheda = $this->schedaRepo->findById($idScheda);
         if ($scheda) {
             $this->schedaRepo->save($scheda);
-            $this->view->mostraStatoOperazione(true, "Scheda salvata come bozza.", "dashboard-allenatore");
+            $azioneRapidaPart = isset($_REQUEST['azione_rapida']) ? "&azione_rapida=1" : "";
+            $this->view->mostraStatoOperazione(true, "Scheda salvata come bozza.", "modifica-scheda?id=" . $idScheda . $azioneRapidaPart, "Torna alla Modifica");
         }
     }
 
@@ -290,7 +270,8 @@ class SchedaAllenamentoController
         $ini = $_POST['data_inizio'] ?? '';
         $fine = $_POST['data_fine'] ?? '';
         if ($nome === '' || $ini === '' || $fine === '') {
-            $this->view->mostraStatoOperazione(false, "Campi obbligatori mancanti.", "modifica-scheda?id=" . $idScheda);
+            $azioneRapidaPart = isset($_REQUEST['azione_rapida']) ? "&azione_rapida=1" : "";
+            $this->view->mostraStatoOperazione(false, "Campi obbligatori mancanti.", "modifica-scheda?id=" . $idScheda . $azioneRapidaPart, "Torna alla Modifica");
             return;
         }
         $this->eseguiAggiornamentoScheda($scheda, $nome, $ini, $fine, $idScheda);
@@ -309,7 +290,8 @@ class SchedaAllenamentoController
             $this->schedaRepo->save($scheda);
             (($_POST['azione'] ?? 'salva') === 'invia') ? $this->inviaScheda($idScheda) : $this->salvaScheda($idScheda);
         } catch (\Throwable $e) {
-            $this->view->mostraStatoOperazione(false, "Errore: " . $e->getMessage(), "modifica-scheda?id=" . $idScheda);
+            $azioneRapidaPart = isset($_REQUEST['azione_rapida']) ? "&azione_rapida=1" : "";
+            $this->view->mostraStatoOperazione(false, "Errore: " . $e->getMessage(), "modifica-scheda?id=" . $idScheda . $azioneRapidaPart, "Torna alla Modifica");
         }
     }
 
