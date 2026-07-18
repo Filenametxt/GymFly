@@ -20,6 +20,8 @@ use App\Entity\Repository\ProgressoCaricoRepositoryInterface;
 use App\Entity\Repository\ProgressoRipetizioniRepositoryInterface;
 use App\Entity\Repository\ProgressoDurataRepositoryInterface;
 use App\Entity\Repository\MessaggioRepositoryInterface;
+use App\Entity\Repository\AllenamentoRepositoryInterface;
+use App\Entity\Repository\DettaglioAllenamentoRepositoryInterface;
 use App\Foundation\Persistence\Repository\DoctrineSchedaRepository;
 use App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository;
 use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
@@ -29,6 +31,8 @@ use App\Foundation\Persistence\Repository\DoctrineProgressoCaricoRepository;
 use App\Foundation\Persistence\Repository\DoctrineProgressoRipetizioniRepository;
 use App\Foundation\Persistence\Repository\DoctrineProgressoDurataRepository;
 use App\Foundation\Persistence\Repository\DoctrineMessaggioRepository;
+use App\Foundation\Persistence\Repository\DoctrineAllenamentoRepository;
+use App\Foundation\Persistence\Repository\DoctrineDettaglioAllenamentoRepository;
 use App\View\Interface\SchedaAllenamentoView;
 use App\View\SchedaAllenamentoViewSmarty;
 use App\Foundation\Session;
@@ -45,6 +49,8 @@ class SchedaAllenamentoController
     private ProgressoRipetizioniRepositoryInterface $progressoRipetizioniRepo;
     private ProgressoDurataRepositoryInterface $progressoDurataRepo;
     private MessaggioRepositoryInterface $messaggioRepo;
+    private AllenamentoRepositoryInterface $allenamentoRepo;
+    private DettaglioAllenamentoRepositoryInterface $dettaglioAllenamentoRepo;
     private SchedaAllenamentoView $view;
 
     public function __construct(
@@ -60,6 +66,8 @@ class SchedaAllenamentoController
         $this->progressoRipetizioniRepo = new DoctrineProgressoRipetizioniRepository($this->entityManager);
         $this->progressoDurataRepo = new DoctrineProgressoDurataRepository($this->entityManager);
         $this->messaggioRepo = new DoctrineMessaggioRepository($this->entityManager);
+        $this->allenamentoRepo = new DoctrineAllenamentoRepository($this->entityManager);
+        $this->dettaglioAllenamentoRepo = new DoctrineDettaglioAllenamentoRepository($this->entityManager);
         $this->view = new SchedaAllenamentoViewSmarty();
     }
 
@@ -124,7 +132,8 @@ class SchedaAllenamentoController
 
     private function eliminaVecchieSchede(Cliente $cliente): void
     {
-        foreach ($this->schedaRepo->findByCliente($cliente) as $vs) {
+        $vs = $this->schedaRepo->findByCliente($cliente);
+        if ($vs) {
             $cliente->setScheda(null);
             $this->clienteRepo->save($cliente);
             $this->schedaRepo->delete($vs);
@@ -243,21 +252,7 @@ class SchedaAllenamentoController
         }
     }
 
-    // =========================================================================
-    // 4. SALVA SCHEDA (gestito in POST su /modifica-scheda)
-    // =========================================================================
-
-    public function salvaScheda(int $idScheda): void       //gestisce la richiesta di salvataggio di una scheda, verificando i permessi dell'utente loggato e salvando le modifiche apportate alla scheda selezionata
-    {
-        $scheda = $this->schedaRepo->findById($idScheda);
-        if ($scheda) {
-            $this->schedaRepo->save($scheda);
-            $azioneRapidaPart = isset($_REQUEST['azione_rapida']) ? "&azione_rapida=1" : "";
-            $this->view->mostraStatoOperazione(true, "Scheda salvata come bozza.", "modifica-scheda?id=" . $idScheda . $azioneRapidaPart, "Torna alla Modifica");
-        }
-    }
-
-    public function modificaScheda(): void
+    public function modificaScheda(): void           //gestisce la richiesta di modifica di una scheda, verificando i permessi dell'utente loggato e aggiornando i dati della scheda selezionata con le informazioni fornei nel form
     {
         $all = $this->allenatoreRepo->findById($this->session->getLoggedUserId());
         $idScheda = (int)($_POST['id_scheda'] ?? 0);
@@ -284,11 +279,12 @@ class SchedaAllenamentoController
             $scheda->setData_inizio(new \DateTimeImmutable($ini));
             $scheda->setData_fine(new \DateTimeImmutable($fine));
             $scheda->setObiettivo(trim($_POST['obiettivo'] ?? ''));
-            foreach ($scheda->getAllenamenti() as $all) $scheda->removeAllenamento($all);
+            foreach ($scheda->getAllenamenti() as $all) 
+                $scheda->removeAllenamento($all);
             $this->schedaRepo->save($scheda);
             $this->salvaWorkoutData($scheda, $_POST['workouts'] ?? []);
             $this->schedaRepo->save($scheda);
-            (($_POST['azione'] ?? 'salva') === 'invia') ? $this->inviaScheda($idScheda) : $this->salvaScheda($idScheda);
+            $this->inviaScheda($idScheda);
         } catch (\Throwable $e) {
             $azioneRapidaPart = isset($_REQUEST['azione_rapida']) ? "&azione_rapida=1" : "";
             $this->view->mostraStatoOperazione(false, "Errore: " . $e->getMessage(), "modifica-scheda?id=" . $idScheda . $azioneRapidaPart, "Torna alla Modifica");
@@ -301,7 +297,7 @@ class SchedaAllenamentoController
             $all = new Allenamento(trim($wData['nome'] ?? 'Allenamento'), trim($wData['descrizione'] ?? ''));
             $scheda->addAllenamento($all);
             foreach ($wData['dettagli'] ?? [] as $dData) {
-                $es = $this->entityManager->find(Esercizio::class, (int)($dData['esercizio_id'] ?? 0));
+                $es = $this->esercizioRepo->findById((int)($dData['esercizio_id'] ?? 0));
                 if ($es) {
                     $reps = isset($dData['ripetizioni']) && $dData['ripetizioni'] !== '' ? (int)$dData['ripetizioni'] : null;
                     $temp = isset($dData['tempo']) && trim($dData['tempo']) !== '' ? trim($dData['tempo']) : null;
@@ -312,7 +308,7 @@ class SchedaAllenamentoController
     }
 
     // =========================================================================
-    // 5. INVIA SCHEDA (/invia-scheda)
+    // 4. INVIA SCHEDA (/invia-scheda)
     // =========================================================================
 
     public function inviaScheda(int $idScheda): void
@@ -331,14 +327,14 @@ class SchedaAllenamentoController
     }
 
     // =========================================================================
-    // 6. ELIMINA SCHEDA / RIMUOVI SCHEDA (/elimina-scheda, /rimuovi-scheda)
+    // 5. ELIMINA SCHEDA / RIMUOVI SCHEDA (/elimina-scheda, /rimuovi-scheda)
     // =========================================================================
 
-    public function eliminaScheda(): void
+    public function eliminaScheda(): void         //gestisce la richiesta di eliminazione di una scheda, verificando i permessi dell'utente loggato e rimuovendo la scheda selezionata dal repository
     {
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-        if (!$idUt || ($ruolo !== 'amministratore' && $ruolo !== 'allenatore')) {
+        if (!$idUt || ($ruolo !== 'allenatore')) {
             $this->view->mostraStatoOperazione(false, "Accesso negato.", "login");
             return;
         }
@@ -347,13 +343,11 @@ class SchedaAllenamentoController
             $this->view->mostraStatoOperazione(false, "Scheda non trovata.", "dashboard-" . $ruolo);
             return;
         }
-        if ($ruolo === 'allenatore') {
-            $all = $this->allenatoreRepo->findById($idUt);
-            if ($scheda->getCliente()->getPalestra()->getId() !== $all->getPalestra()->getId()) {
-                $this->view->mostraStatoOperazione(false, "Accesso negato. IDOR rilevato.", "dashboard-allenatore");
-                return;
+        $all = $this->allenatoreRepo->findById($idUt);
+         if ($scheda->getCliente()->getPalestra()->getId() !== $all->getPalestra()->getId()) {
+            $this->view->mostraStatoOperazione(false, "Accesso negato.", "dashboard-allenatore");
+            return;
             }
-        }
         $this->eseguiRimozioneScheda($scheda, $ruolo);
     }
 
@@ -371,14 +365,11 @@ class SchedaAllenamentoController
     }
 
     // =========================================================================
-    // 7. VISUALIZZA SCHEDA DA PARTE DEL CLIENTE (/visualizza-scheda)
+    // 6. VISUALIZZA SCHEDA DA PARTE DEL CLIENTE (/visualizza-scheda)
     // =========================================================================
 
-    public function visualizzaScheda(): void
+    public function visualizzaScheda(): void    //gestisce la richiesta di visualizzazione della scheda da parte del cliente, verificando i permessi dell'utente loggato e mostrando la scheda se disponibile
     {
-        header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-        header("Cache-Control: post-check=0, pre-check=0", false);
-        header("Pragma: no-cache");
         $id = $this->session->getLoggedUserId();
         if (!$id || $this->session->getLoggedUserRole() !== 'cliente') {
             $this->view->mostraStatoOperazione(false, "Accesso negato.", "login");
@@ -393,10 +384,10 @@ class SchedaAllenamentoController
     }
 
     // =========================================================================
-    // 8. MODIFICA DETTAGLI SCHEDA DA PARTE DEL CLIENTE (/modifica-dettagli)
+    // 7. MODIFICA DETTAGLI SCHEDA DA PARTE DEL CLIENTE (/modifica-dettagli)
     // =========================================================================
 
-    public function apriFormModificaSchedaCliente(): void
+    public function apriFormModificaSchedaCliente(): void      //gestisce la richiesta di apertura del form per modificare i dettagli della scheda da parte del cliente, verificando i permessi dell'utente loggato e mostrando il form con i dettagli dell'allenamento selezionato
     {
         $id = $this->session->getLoggedUserId();
         $cliente = ($id && $this->session->getLoggedUserRole() === 'cliente') ? $this->clienteRepo->findById($id) : null;
@@ -405,7 +396,7 @@ class SchedaAllenamentoController
             return;
         }
         $scheda = $cliente->getScheda();
-        $all = $this->entityManager->find(Allenamento::class, isset($_REQUEST['id_allenamento']) ? (int)$_REQUEST['id_allenamento'] : 0);
+        $all = $this->allenamentoRepo->findById(isset($_REQUEST['id_allenamento']) ? (int)$_REQUEST['id_allenamento'] : 0);
         if (!$all || $all->getScheda()->getId() !== $scheda->getId()) {
             $this->view->mostraStatoOperazione(false, "Allenamento non trovato.", "visualizza-scheda", "Torna alla Scheda");
             return;
@@ -422,7 +413,7 @@ class SchedaAllenamentoController
         $dettagliModificati = $_POST['dettagli'] ?? [];
         $oggi = new \DateTimeImmutable('today');
         foreach ($dettagliModificati as $idDet => $data) {
-            $dettaglio = $this->entityManager->find(DettaglioAllenamento::class, (int)$idDet);
+            $dettaglio = $this->dettaglioAllenamentoRepo->findById((int)$idDet);
             if ($dettaglio && $dettaglio->getAllenamento()->getScheda()->getId() === $scheda->getId()) {
                 $oldReps = $dettaglio->getRipetizioni(); $oldCarico = $dettaglio->getCarico(); $oldTempo = $dettaglio->getTempo();
                 $reps = isset($data['ripetizioni']) && $data['ripetizioni'] !== '' ? (int)$data['ripetizioni'] : null;
@@ -452,10 +443,10 @@ class SchedaAllenamentoController
     }
 
     // =========================================================================
-    // 9. VISUALIZZA PROGRESSI CLIENTE (/progressi-cliente)
+    // 8. VISUALIZZA PROGRESSI CLIENTE (/progressi-cliente)
     // =========================================================================
 
-    public function visualizzaProgressiCliente(): void
+    public function visualizzaProgressiCliente(): void    //gestisce la richiesta di visualizzazione dei progressi del cliente, verificando i permessi dell'utente loggato e mostrando i progressi della scheda di allenamento associata al cliente
     {
         $idUt = $this->session->getLoggedUserId();
         $all = ($idUt && $this->session->getLoggedUserRole() === 'allenatore') ? $this->allenatoreRepo->findById($idUt) : null;
@@ -464,12 +455,11 @@ class SchedaAllenamentoController
             return;
         }
         $cli = $this->clienteRepo->findById(isset($_GET['id_cliente']) ? (int)$_GET['id_cliente'] : 0);
-        if (!$cli || ($cli->getPalestra() && $cli->getPalestra()->getId() !== $all->getPalestra()->getId())) {
-            $this->view->mostraStatoOperazione(false, "Cliente non trovato o IDOR rilevato.", "clienti");
+        if (!$cli ||  $cli->getPalestra()->getId() !== $all->getPalestra()->getId()) {
+            $this->view->mostraStatoOperazione(false, "Cliente non trovato", "clienti");
             return;
         }
-        $schede = $this->schedaRepo->findByCliente($cli);
-        $scheda = $cli->getScheda() ?: (!empty($schede) ? $schede[0] : null);
+        $scheda = $cli->getScheda();
         if (!$scheda) {
             $this->view->mostraStatoOperazione(false, "Nessuna scheda di allenamento associata.", "clienti");
             return;
@@ -506,7 +496,7 @@ class SchedaAllenamentoController
     {
         $carico = []; $reps = []; $durata = []; $storico = [];
         foreach ($progressi as $p) {
-            $dStr = $p->getData()->format('d/m/Y'); $dGraf = $p->getData()->format('d/m');
+            $dStr = $p->getData()->format('d/m/Y'); $dGraf = $p->getData()->format('d/m');              // Formato per il grafico (giorno/mese)
             if ($p instanceof ProgressoCarico) {
                 $carico[] = ['data' => $dGraf, 'valore' => $val = $p->getNuovoCarico()];
                 $storico[] = ['data' => $dStr, 'tipo' => 'Carico', 'valore' => $val . ' Kg'];
@@ -521,10 +511,5 @@ class SchedaAllenamentoController
         usort($storico, fn($a, $b) => strcmp($b['data'], $a['data']));
         return ['carico' => $carico, 'reps' => $reps, 'durata' => $durata, 'storico' => $storico];
     }
-
-    // =========================================================================
-    // HELPER GENERALI
-    // =========================================================================
-
 
 }

@@ -27,13 +27,10 @@ interface SchedaRepositoryInterface
     // -------------------------------------------------------------------------
 
     /**
-     * Tutte le schede assegnate a un cliente, ordinate per data inizio
-     * discendente (la più recente per prima).
-     * Caso d'uso: storico schede nella vista cliente.
-     *
-     * @return Scheda[]
+     * La scheda assegnata a un cliente.
+     * Restituisce null se il cliente non ha schede associate.
      */
-    public function findByCliente(Cliente $cliente): array;
+    public function findByCliente(Cliente $cliente): ?Scheda;
 
     /**
      * La scheda attualmente attiva per un cliente (data_inizio <= oggi <= data_fine).

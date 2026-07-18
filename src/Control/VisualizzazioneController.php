@@ -11,6 +11,7 @@ use App\Entity\Repository\AllenatoreRepositoryInterface;
 use App\Entity\Repository\UtenteRepositoryInterface;
 use App\Entity\Repository\AttivitaRepositoryInterface;
 use App\Entity\Repository\EsercizioRepositoryInterface;
+use App\Entity\Repository\MessaggioRepositoryInterface;
 use App\Foundation\Persistence\Repository\DoctrinePalestraRepository;
 use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
 use App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository;
@@ -33,6 +34,7 @@ class VisualizzazioneController
     private UtenteRepositoryInterface $utenteRepo;
     private AttivitaRepositoryInterface $attivitaRepo;
     private EsercizioRepositoryInterface $esercizioRepo;
+    private MessaggioRepositoryInterface $messaggioRepo;
 
     public function __construct(
         private EntityManagerInterface $entityManager,
@@ -44,6 +46,7 @@ class VisualizzazioneController
         $this->utenteRepo = new DoctrineUtenteRepository($this->entityManager);
         $this->attivitaRepo = new DoctrineAttivitaRepository($this->entityManager);
         $this->esercizioRepo = new DoctrineEsercizioRepository($this->entityManager);
+        $this->messaggioRepo = new DoctrineMessaggioRepository($this->entityManager);
         $this->view = new VisualizzazioneViewSmarty();
     }
 
@@ -51,7 +54,7 @@ class VisualizzazioneController
     // 1. MOSTRA HOME (/)
     // =========================================================================
 
-    public function mostraHome(): void
+    public function mostraHome(): void    //gestisce la richiesta di visualizzazione della home page
     {
         $this->view->mostraHome();
     }
@@ -60,7 +63,7 @@ class VisualizzazioneController
     // 2. MOSTRA DASHBOARD ADMIN (/dashboard-admin)
     // =========================================================================
 
-    public function mostraDashboardAdmin(): void
+    public function mostraDashboardAdmin(): void     //gestisce la richiesta di visualizzazione della dashboard dell'amministratore, verificando i permessi dell'utente loggato e calcolando i dati da mostrare nella dashboard
     {
         $id = $this->session->getLoggedUserId();
         $admin = ($id && $this->session->getLoggedUserRole() === 'amministratore') ? $this->utenteRepo->findById($id) : null;
@@ -71,46 +74,31 @@ class VisualizzazioneController
         }
         $pal = $this->palestraRepo->findByAmministratore($admin);
         $clienti = $pal ? $this->clienteRepo->findByPalestra($pal) : [];
-        [$scaduti, $inScadenza, $validi] = $this->calcolaSemaforoCertificati($clienti);
-        [$budgetAtt, $budgetTar, $percentBudget] = $this->calcolaBudget($clienti);
-        $msgRepo = new DoctrineMessaggioRepository($this->entityManager);
+        [$scaduti, $inScadenza, $validi] = $this->calcolaSemaforoCertificati($clienti, 30);
 
         $this->view->mostraDashboardAdmin([
             'utente' => $admin, 'clienti' => $clienti, 'allenatori' => $pal ? $this->allenatoreRepo->findByPalestra($pal) : [],
             'certificati_scaduti' => $scaduti, 'certificati_in_scadenza' => $inScadenza, 'certificati_validi' => $validi,
-            'budget_attuale' => $budgetAtt, 'budget_target' => $budgetTar, 'percentuale_budget' => $percentBudget,
             'punti_registrazioni' => $this->costruisciGraficoRegistrazioni($this->caricaRegistrazioniMese($clienti)),
-            'ultimi_messaggi' => array_slice($msgRepo->findByMittente($admin), 0, 4),
+            'ultimi_messaggi' => array_slice($this->messaggioRepo->findByMittente($admin), 0, 4),
             'eventi_oggi' => $this->caricaEventiOggi(), 'attivita' => $this->attivitaRepo->findAll()
         ]);
     }
 
-    private function calcolaSemaforoCertificati(array $clienti): array
+    private function calcolaSemaforoCertificati(array $clienti, int $giorniScadenza): array
     {
         $scaduti = 0; $inScadenza = 0; $validi = 0;
         foreach ($clienti as $c) {
             $cert = $c->getCertificatoMedico();
             if (!$cert || $cert->giorniAllaScadenza() < 0) {
                 $scaduti++;
-            } elseif ($cert->giorniAllaScadenza() <= 30) {
+            } elseif ($cert->giorniAllaScadenza() <= $giorniScadenza) {
                 $inScadenza++;
             } else {
                 $validi++;
             }
         }
         return [$scaduti, $inScadenza, $validi];
-    }
-
-    private function calcolaBudget(array $clienti): array
-    {
-        $attivi = 0;
-        foreach ($clienti as $c) {
-            $abb = $c->getAbbonamento();
-            if ($abb && !$abb->isScaduto()) $attivi++;
-        }
-        $attuale = $attivi * 50;
-        $target = 1500;
-        return [$attuale, $target, min(100, round(($attuale / $target) * 100))];
     }
 
     private function caricaRegistrazioniMese(array $clienti): array
@@ -177,12 +165,11 @@ class VisualizzazioneController
         }
         $clienti = $all->getPalestra() ? $this->clienteRepo->findByPalestra($all->getPalestra()) : [];
         [$scadute, $richieste, $inRegola] = $this->calcolaStatisticheSchede($clienti);
-        $msgRepo = new DoctrineMessaggioRepository($this->entityManager);
 
         $this->view->mostraDashboardAllenatore([
             'utente' => $all, 'clienti' => $clienti, 'esercizi' => $this->esercizioRepo->findAll(),
             'schede_scadute' => $scadute, 'richieste_scheda' => $richieste, 'schede_in_regola' => $inRegola,
-            'ultimi_messaggi' => array_slice($msgRepo->findByMittente($all), 0, 5), 'eventi_oggi' => $this->caricaEventiOggi()
+            'ultimi_messaggi' => array_slice($this->messaggioRepo->findByMittente($all), 0, 5), 'eventi_oggi' => $this->caricaEventiOggi()
         ]);
     }
 

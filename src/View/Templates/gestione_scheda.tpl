@@ -95,7 +95,6 @@
             <div class="control-box">
                 <form id="form-scheda" action="modifica-scheda?id={$scheda->getId()}{if isset($azione_rapida) && $azione_rapida == 1}&azione_rapida=1{/if}" method="POST">
                             <input type="hidden" name="id_scheda" id="id_scheda" value="{$scheda->getId()}">
-                            <input type="hidden" name="azione" id="azione-field" value="salva">
                             <!-- BOX METADATI CON NOME COGNOME ATLETA E INPUT (Layout bozza) -->
                             <div class="box mb-5">
                                 {if isset($azione_rapida) && $azione_rapida == 1}
@@ -352,7 +351,6 @@
             const container = document.getElementById('workouts-container');
             const addWorkoutBtn = document.getElementById('add-workout-btn');
             const form = document.getElementById('form-scheda');
-            const actionField = document.getElementById('azione-field');
 
             // 1. Gestione Copia Scheda da altro cliente
             const btnCopia = document.getElementById('btn-copia-scheda');
@@ -384,7 +382,6 @@
 
             // 2. Click Invio al Cliente
             document.getElementById('btn-save-send').addEventListener('click', () => {
-                actionField.value = 'invia';
                 form.submit();
             });
 

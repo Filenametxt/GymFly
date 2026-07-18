@@ -46,17 +46,15 @@ class DoctrineSchedaRepository implements SchedaRepositoryInterface
     // Query per cliente
     // -------------------------------------------------------------------------
 
-    /** @return Scheda[] */
-    public function findByCliente(Cliente $cliente): array
+    public function findByCliente(Cliente $cliente): ?Scheda
     {
         return $this->em->createQueryBuilder()
             ->select('s')
             ->from(Scheda::class, 's')
             ->where('s.cliente = :cliente')
             ->setParameter('cliente', $cliente)
-            ->orderBy('s.data_inizio', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getOneOrNullResult();
     }
 
     public function findAttivaByCliente(Cliente $cliente): ?Scheda

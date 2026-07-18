@@ -300,7 +300,8 @@ class AmministratoreController
         foreach ($this->parametriRepo->findByCliente($cliente) as $p) {
             $this->parametriRepo->delete($p);
         }
-        foreach ($this->schedaRepo->findByCliente($cliente) as $s) {
+        $s = $this->schedaRepo->findByCliente($cliente);
+        if ($s) {
             $cliente->setScheda(null);
             $this->schedaRepo->delete($s);
         }
