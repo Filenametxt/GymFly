@@ -453,16 +453,16 @@ class ProfiloController
     // 8. CARICA FOTO PROFILO (/carica-foto)
     // =========================================================================
 
-    public function caricaFotoProfilo(): void 
+    public function caricaFotoProfilo(): void                  //gestisce la richiesta di caricamento della foto del profilo per l'utente loggato, recuperando i dati dell'utente e mostrando la view corrispondente
     {
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-        $ut = $idUt ? $this->recuperaUtenteLoggato($this->entityManager, $idUt, $ruolo) : null;
+        $ut = $idUt ? $this->recuperaUtenteLoggato($this->entityManager, $idUt, $ruolo) : null;       // recupera l'oggetto utente loggato in base al suo ID e al ruolo
         if (!$ut) {
             $this->view->mostraErrore("Profilo non trovato.");
             return;
         }
-        if (isset($_FILES['foto_profilo']) && in_array($_FILES['foto_profilo']['error'], [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE])) {
+        if (isset($_FILES['foto_profilo']) && in_array($_FILES['foto_profilo']['error'], [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE])) {   //gli errori UPLOAD_ERR_INI_SIZE e UPLOAD_ERR_FORM_SIZE indicano che la dimensione del file caricato supera il limite consentito dal server o dal form HTML, quindi viene mostrato un messaggio di errore appropriato
             $this->view->mostraErrore("Dimensione file eccessiva.", "profilo", "Torna al Profilo");
             return;
         }
@@ -475,17 +475,17 @@ class ProfiloController
 
     private function eseguiCaricamentoFoto(Utente $ut): void
     {
-        $tmp = $_FILES['foto_profilo']['tmp_name'];
-        if ($_FILES['foto_profilo']['size'] > 60 * 1024) {
+        $tmp = $_FILES['foto_profilo']['tmp_name'];               // recupera il percorso del file temporaneo caricato sul server
+        if ($_FILES['foto_profilo']['size'] > 60 * 1024) {        
             $this->view->mostraErrore("La dimensione supera i 60 KB.", "profilo", "Torna al Profilo");
             return;
         }
-        $info = @getimagesize($tmp);
-        if ($info === false || !in_array($info[2], [IMAGETYPE_JPEG, IMAGETYPE_PNG])) {
+        $info = @getimagesize($tmp);                     // recupera le informazioni sull'immagine, come tipo e dimensioni, e restituisce false se il file non è un'immagine valida
+        if ($info === false || !in_array($info[2], [IMAGETYPE_JPEG, IMAGETYPE_PNG])) {     // controlla se il file è un'immagine valida e se il tipo di immagine è consentito (JPG o PNG), mostrando un messaggio di errore se non lo è
             $this->view->mostraErrore("Formato non consentito (ammessi solo JPG/PNG).", "profilo", "Torna al Profilo");
             return;
         }
-        $content = file_get_contents($tmp);
+        $content = file_get_contents($tmp);       // legge il contenuto del file temporaneo e lo memorizza in una variabile, restituendo false se non riesce a leggere il file
         if ($content !== false) {
             $ut->setProfilePicture($content);
             $this->utenteRepo->save($ut);
@@ -497,11 +497,11 @@ class ProfiloController
     // 9. AGGIUNGI ABILITAZIONE ALLENATORE (/aggiungi-attivita-profilo)
     // =========================================================================
 
-    public function aggiungiAttivitaAllenatore(): void
+    public function aggiungiAttivitaAllenatore(): void    //gestisce la richiesta di aggiunta di un'abilitazione per un allenatore, recuperando i dati dell'allenatore e dell'attività e mostrando la view corrispondente
     {
         $idLog = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-        if (!$idLog || ($ruolo !== 'amministratore' && $ruolo !== 'allenatore')) {
+        if (!$idLog || ($ruolo == 'cliente')) {
             $this->view->mostraErrore("Azione non consentita.");
             return;
         }
