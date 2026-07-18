@@ -16,8 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Rileva la pagina corrente per evidenziare il pulsante attivo nella sidebar
-    const currentPath = window.location.pathname;
-    const links = document.querySelectorAll('.app-sidebar .sidebar-menu-link');
+    const currentPath = window.location.pathname;      //salva l'indirizzo attuale del sito
+    const links = document.querySelectorAll('.app-sidebar .sidebar-menu-link');        //prende tutti i link dalla sidebar, cerca gli elementi app sidebar, legge gli attributi smarty e li converte in booleani
 
     // Determina se stiamo visualizzando il profilo dell'utente loggato o di un altro utente (assegnato da ProfiloController)
     const sidebarEl = document.querySelector('.app-sidebar');
@@ -40,8 +40,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Aggiungi event listener a tutti i link della sidebar per salvare la selezione in sessionStorage
-    links.forEach(link => {
-        link.addEventListener('click', () => {
+    links.forEach(link => {        // Aggiungi un event listener per il click su ciascun link
+        link.addEventListener('click', () => {                // Quando un link viene cliccato, salviamo il suo href in sessionStorage
             const href = link.getAttribute('href');
             if (href) {
                 sessionStorage.setItem('activeSidebarHref', href);
@@ -50,12 +50,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Funzione per determinare l'elemento attivo basandosi sull'URL corrente
-    function getActiveLinkByUrl() {
+    function getActiveLinkByUrl() {      // Funzione per determinare quale link della sidebar dovrebbe essere attivo basandosi sull'URL corrente
         let activeLink = null;
         
-        links.forEach(link => {
+        links.forEach(link => {      // Itera su tutti i link della sidebar
             if (activeLink) return;
-            const href = link.getAttribute('href');
+            const href = link.getAttribute('href');   // Prendi l'href del link corrente
             if (!href) return;
 
             // Se stiamo guardando il profilo di qualcun altro, evitiamo il match esatto con la voce "profilo" (il mio profilo)
@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 (currentPath.includes('visualizza-profilo') && userRole === 'cliente') ||
                 (currentPath.includes('progressi-cliente') && userRole === 'cliente')
             )) {
-                activeLink = link;
+                activeLink = link;    // Se siamo nel profilo dell'utente loggato e stiamo visualizzando una delle pagine correlate al profilo, impostiamo il link "profilo" come attivo
             }
             if (href === 'visualizza-scheda' && (
                 currentPath.includes('modifica-dettagli') || 

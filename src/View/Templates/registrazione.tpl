@@ -214,16 +214,16 @@
     </section>
 
     <!-- Simple JavaScript for Step Management -->
-    {literal}
+    {literal}                                                               //condizione per evitare che Smarty interpreti il codice JavaScript come template
     <script>
         function goToStep(step) {
-            if (step === 2) {
+            if (step === 2) {                                                  //se lo step è 2, prendiamo i campi dello step 1 e controlliamo se sono validi
                 // Semplice controllo di validazione per lo Step 1 prima di procedere
                 const fields = ['nome', 'cognome', 'email', 'cf', 'sesso', 'indirizzo', 'password'];
-                let valid = true;
+                let valid = true;                           //flag per verificare se tutti i campi sono validi
 
-                fields.forEach(function(fieldId) {
-                    const el = document.getElementById('field-' + fieldId);
+                fields.forEach(function(fieldId) {                      //per ogni campo dello step 1, prendiamo l'elemento e controlliamo se è valido
+                    const el = document.getElementById('field-' + fieldId);       //prendiamo l'elemento con l'id corrispondente al campo
                     if (!el.checkValidity()) {
                         el.reportValidity();
                         valid = false;
