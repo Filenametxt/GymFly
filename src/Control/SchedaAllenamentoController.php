@@ -225,7 +225,8 @@ class SchedaAllenamentoController
         $this->view->mostraTemplate('gestione_scheda.tpl', [
             'utente' => $allenatore, 'scheda' => $scheda, 'esercizi' => $this->esercizioRepo->findAll(),
             'altre_schede' => $this->schedaRepo->findAltreByPalestra($allenatore->getPalestra(), $scheda->getId()),
-            'azione_rapida' => isset($_GET['azione_rapida']) ? 1 : 0
+            'azione_rapida' => isset($_GET['azione_rapida']) ? 1 : 0,
+            'clienti' => $this->clienteRepo->findByPalestra($allenatore->getPalestra())
         ]);
     }
 

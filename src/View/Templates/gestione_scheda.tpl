@@ -98,8 +98,6 @@
                             <!-- BOX METADATI CON NOME COGNOME ATLETA E INPUT (Layout bozza) -->
                             <div class="box mb-5">
                                 {if isset($azione_rapida) && $azione_rapida == 1}
-                                    {assign var="em" value=App\Infrastructure\Doctrine\EntityManagerFactory::create()}
-                                    {assign var="clienti" value=$em->getRepository('App\Entity\Cliente')->findBy(['palestra' => $utente->getPalestra()])}
                                     <div class="field mb-4">
                                         <label class="label"><i class="fas fa-user-circle mr-2" style="color: var(--gymfly-primary);"></i> Atleta Cliente</label>
                                         <div class="control">
