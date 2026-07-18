@@ -233,58 +233,7 @@ class AmministratoreController
     // 4. ABILITAZIONE ATTIVITA ALLENATORE
     // =========================================================================
 
-    public function abilitaAttivitaAllenatore(): void       //va a recuperare la palestra dall'amministratore e mostra il form per abilitare o disabilitare un allenatore ad una attività
-    {
-        $palestra = $this->recuperaPalestraAdmin();
-        if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato. Nessuna palestra associata all'utente.", "login", "Torna al Login");
-            return;
-        }
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            $this->view->mostraFormAbilitaAttivita([        //checkbox
-                'allenatori' => $this->allenatoreRepo->findByPalestra($palestra),
-                'attivita' => $this->attivitaRepo->findAll()
-            ]);
-            return;
-        }
-        $this->eseguiAbilitazioneAllenatore($palestra);
-    }
 
-    private function eseguiAbilitazioneAllenatore(Palestra $palestra): void     //esegue l'abilitazione o disabilitazione di un allenatore ad una attività, validando i dati e salvando le modifiche
-    {
-        $idAllenatore = isset($_POST['id_allenatore']) ? (int)$_POST['id_allenatore'] : 0;  //recupera l'id dell'allenatore selezionato dal form
-        $idAttivita = isset($_POST['id_attivita']) ? (int)$_POST['id_attivita'] : 0;
-        $azione = isset($_POST['azione']) ? $_POST['azione'] : 'abilita';       //checki della checkbox
-        $allenatore = $this->allenatoreRepo->findById($idAllenatore);
-        $attivita = $this->attivitaRepo->findById($idAttivita);
-
-        if (!$allenatore || !$attivita) {
-            $this->view->mostraStatoOperazione(false, "Allenatore o Attività non validi.", "allenatori", "Torna a Gestione Allenatori");
-            return;
-        }
-        if ($allenatore->getPalestra()->getId() !== $palestra->getId()) {   //se l'allenatore non fa parte di quella palestra
-            $this->view->mostraStatoOperazione(false, "L'allenatore non appartiene al tuo centro sportivo.", "allenatori", "Torna a Gestione Allenatori");
-            return;
-        }
-        $this->salvaAbilitazioneAllenatore($allenatore, $attivita, $azione);
-    }
-
-    private function salvaAbilitazioneAllenatore(Allenatore $allenatore, Attivita $attivita, string $azione): void
-    {
-        try {
-            if ($azione === 'abilita') {
-                $allenatore->addAbilitazione($attivita);
-                $msg = "Allenatore abilitato con successo all'attività " . $attivita->getNome() . ".";
-            } else {
-                $allenatore->removeAbilitazione($attivita);
-                $msg = "Abilitazione all'attività " . $attivita->getNome() . " rimossa con successo.";
-            }
-            $this->entityManager->flush();      //salva le modifiche al database
-            $this->view->mostraStatoOperazione(true, $msg, "allenatori", "Torna a Gestione Allenatori");
-        } catch (\Throwable $e) {
-            $this->view->mostraStatoOperazione(false, "Errore: " . $e->getMessage(), "allenatori", "Torna a Gestione Allenatori");
-        }
-    }
 
     // =========================================================================
     // 5. RIMOZIONE CLIENTE
@@ -456,8 +405,12 @@ class AmministratoreController
     // HELPER PRIVATI GENERALI
     // =========================================================================
 
-    private function recuperaPalestraAdmin(): ?Palestra     //recupera la palestra dall'amministratore
+    private function recuperaPalestraAdmin(): ?Palestra     //recupera la palestra dall'utente loggato se autorizzato
     {
+        $ruolo = $this->session->getLoggedUserRole();
+        if ($ruolo !== 'amministratore' && $ruolo !== 'allenatore') {
+            return null;
+        }
         return AttivitaPianificataController::recuperaPalestraUtenteStatic(
             $this->session,
             $this->utenteRepo,

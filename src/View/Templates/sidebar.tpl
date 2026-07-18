@@ -246,7 +246,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (href === 'allenatori' && (
                 currentPath.includes('crea-allenatore') ||
-                currentPath.includes('abilita-attivita-allenatore') ||
                 currentPath.includes('rimuovi-allenatore') ||
                 (!isSelfProfile && isTrainerProfile)
             )) {

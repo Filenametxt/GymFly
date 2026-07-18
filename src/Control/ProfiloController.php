@@ -493,59 +493,7 @@ class ProfiloController
         }
     }
 
-    // =========================================================================
-    // 9. AGGIUNGI ABILITAZIONE ALLENATORE (/aggiungi-attivita-profilo)
-    // =========================================================================
 
-    public function aggiungiAttivitaAllenatore(): void    //gestisce la richiesta di aggiunta di un'abilitazione per un allenatore, recuperando i dati dell'allenatore e dell'attività e mostrando la view corrispondente
-    {
-        $idLog = $this->session->getLoggedUserId();
-        $ruolo = $this->session->getLoggedUserRole();
-        if (!$idLog || ($ruolo == 'cliente')) {
-            $this->view->mostraErrore("Azione non consentita.");
-            return;
-        }
-        $idAll = isset($_POST['id_allenatore']) ? (int)$_POST['id_allenatore'] : 0;
-        $idAtt = isset($_POST['id_attivita']) ? (int)$_POST['id_attivita'] : 0;
-        if ($idAll <= 0 || $idAtt <= 0 || ($ruolo !== 'amministratore' && $idAll !== $idLog)) {
-            $this->view->mostraErrore("Dati non validi o non autorizzato.");
-            return;
-        }
-        $allenatore = $this->allenatoreRepo->findById($idAll);
-        $attivita = $this->attivitaRepo->findById($idAtt);
-        if (!$allenatore || !$attivita || !$this->validaPalestraAllenatore($idLog, $ruolo, $allenatore)) {
-            $this->view->mostraErrore("Risorsa non valida o non appartenente alla palestra.");
-            return;
-        }
-        $this->eseguiAbilitazione($allenatore, $attivita, 'add', $idLog);
-    }
-
-    // =========================================================================
-    // 10. RIMUOVI ABILITAZIONE ALLENATORE (/rimuovi-attivita-profilo)
-    // =========================================================================
-
-    public function rimuoviAttivitaAllenatore(): void
-    {
-        $idLog = $this->session->getLoggedUserId();
-        $ruolo = $this->session->getLoggedUserRole();
-        if (!$idLog || ($ruolo !== 'amministratore' && $ruolo !== 'allenatore')) {
-            $this->view->mostraErrore("Azione non consentita.");
-            return;
-        }
-        $idAll = isset($_POST['id_allenatore']) ? (int)$_POST['id_allenatore'] : 0;
-        $idAtt = isset($_POST['id_attivita']) ? (int)$_POST['id_attivita'] : 0;
-        if ($idAll <= 0 || $idAtt <= 0 || ($ruolo !== 'amministratore' && $idAll !== $idLog)) {
-            $this->view->mostraErrore("Dati non validi o non autorizzato.");
-            return;
-        }
-        $allenatore = $this->allenatoreRepo->findById($idAll);
-        $attivita = $this->attivitaRepo->findById($idAtt);
-        if (!$allenatore || !$attivita || !$this->validaPalestraAllenatore($idLog, $ruolo, $allenatore)) {
-            $this->view->mostraErrore("Risorsa non valida o non appartenente alla palestra.");
-            return;
-        }
-        $this->eseguiAbilitazione($allenatore, $attivita, 'remove', $idLog);
-    }
 
     // =========================================================================
     // 11. AGGIORNA ABILITAZIONI ALLENATORE IN BLOCCO (/aggiorna-abilitazioni-profilo)
@@ -608,22 +556,7 @@ class ProfiloController
         return true;
     }
 
-    private function eseguiAbilitazione(Allenatore $allenatore, Attivita $attivita, string $azione, int $idLog): void
-    {
-        try {
-            if ($azione === 'add') {
-                $allenatore->addAbilitazione($attivita);
-            } else {
-                $allenatore->removeAbilitazione($attivita);
-            }
-            $this->utenteRepo->save($allenatore);
-            $loc = ($allenatore->getId() === $idLog) ? 'profilo' : 'visualizza-profilo?id=' . $allenatore->getId();
-            header('Location: ' . $loc);
-            exit();
-        } catch (\Throwable $e) {
-            $this->view->mostraErrore("Impossibile modificare l'abilitazione: " . $e->getMessage());
-        }
-    }
+
 
     private function recuperaClienteTarget(string $ruolo, ?int $idUtente): ?Cliente
     {
