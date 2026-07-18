@@ -59,7 +59,7 @@
                         <h3 class="title is-5 mb-4 style-theme-text">Immagine Esecuzione</h3>
                         <div class="image-container" style="width: 100%; max-width: 320px; aspect-ratio: 1/1; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f5f5f5; border: 1px solid #dbdbdb;">
                             {if isset($immagine) && $immagine !== null}
-                                <img src="data:image/jpeg;base64,{$immagine}" alt="Esecuzione Esercizio" style="width: 100%; height: 100%; object-fit: cover;">
+                                <img src="data:{if isset($immagine_type)}{$immagine_type}{else}image/jpeg{/if};base64,{$immagine}" alt="Esecuzione Esercizio" style="width: 100%; height: 100%; object-fit: cover;">
                             {else}
                                 <div class="has-text-centered has-text-grey-light">
                                     <span class="icon is-large"><i class="fas fa-dumbbell fa-4x"></i></span>

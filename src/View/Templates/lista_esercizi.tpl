@@ -92,7 +92,7 @@
                             <div>
                                 <div class="mb-3" style="width: 100%; height: 140px; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f5f5f5;">
                                     {if isset($e.immagine) && $e.immagine !== null}
-                                        <img src="data:image/jpeg;base64,{$e.immagine}" alt="Foto Esercizio" style="width: 100%; height: 100%; object-fit: cover;">
+                                        <img src="data:{if isset($e.immagine_type)}{$e.immagine_type}{else}image/jpeg{/if};base64,{$e.immagine}" alt="Foto Esercizio" style="width: 100%; height: 100%; object-fit: cover;">
                                     {else}
                                         <span class="icon is-large has-text-grey-light">
                                             <i class="fas fa-dumbbell fa-3x"></i>
@@ -125,7 +125,7 @@
                     <a href="visualizza-esercizio?id={$e.id}" class="box customer-list-item mb-3">
                         <div class="mr-4" style="width: 48px; height: 48px; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f5f5f5; flex-shrink: 0;">
                             {if isset($e.immagine) && $e.immagine !== null}
-                                <img src="data:image/jpeg;base64,{$e.immagine}" alt="Foto Esercizio" style="width: 100%; height: 100%; object-fit: cover;">
+                                <img src="data:{if isset($e.immagine_type)}{$e.immagine_type}{else}image/jpeg{/if};base64,{$e.immagine}" alt="Foto Esercizio" style="width: 100%; height: 100%; object-fit: cover;">
                             {else}
                                 <span class="icon is-medium has-text-grey-light">
                                     <i class="fas fa-dumbbell fa-lg"></i>

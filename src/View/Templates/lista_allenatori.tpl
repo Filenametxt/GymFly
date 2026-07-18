@@ -159,7 +159,7 @@
                         <a href="visualizza-profilo?id={$a.id}" class="box customer-card">
                             <div class="customer-avatar mb-3" style="width: 96px; height: 96px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
                                 {if isset($a.fotoProfilo) && $a.fotoProfilo !== null}
-                                    <img src="data:image/jpeg;base64,{$a.fotoProfilo}" alt="Foto Profilo" style="width: 100%; height: 100%; object-fit: cover;">
+                                    <img src="data:{if isset($a.fotoProfiloType)}{$a.fotoProfiloType}{else}image/jpeg{/if};base64,{$a.fotoProfilo}" alt="Foto Profilo" style="width: 100%; height: 100%; object-fit: cover;">
                                 {else}
                                     <span class="icon is-large">
                                         <i class="fas fa-user-ninja fa-4x"></i>
@@ -200,7 +200,7 @@
                        data-search="{$a.nome} {$a.cognome}">
                         <div class="customer-avatar mr-4" style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                             {if isset($a.fotoProfilo) && $a.fotoProfilo !== null}
-                                <img src="data:image/jpeg;base64,{$a.fotoProfilo}" alt="Foto Profilo" style="width: 100%; height: 100%; object-fit: cover;">
+                                <img src="data:{if isset($a.fotoProfiloType)}{$a.fotoProfiloType}{else}image/jpeg{/if};base64,{$a.fotoProfilo}" alt="Foto Profilo" style="width: 100%; height: 100%; object-fit: cover;">
                             {else}
                                 <span class="icon is-medium">
                                     <i class="fas fa-user-ninja fa-2x"></i>

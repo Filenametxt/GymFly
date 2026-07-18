@@ -326,7 +326,7 @@
                                                     {if $dettaglio->getEsercizio()->getImmagine()}
                                                         <div style="margin-top: 0.75rem; text-align: center;">
                                                             <figure class="image is-96x96 is-inline-block" style="border-radius: 8px; overflow: hidden; border: 1px solid var(--gymfly-accent);">
-                                                                <img src="data:image/jpeg;base64,{$dettaglio->getEsercizio()->getImmagine()|base64_encode}" alt="Esercizio" style="object-fit: cover; width: 100%; height: 100%;">
+                                                                <img src="data:{if $dettaglio->getEsercizio()->getTipoImmagine()}{$dettaglio->getEsercizio()->getTipoImmagine()}{else}image/jpeg{/if};base64,{$dettaglio->getEsercizio()->getImmagine()|base64_encode}" alt="Esercizio" style="object-fit: cover; width: 100%; height: 100%;">
                                                             </figure>
                                                         </div>
                                                     {/if}

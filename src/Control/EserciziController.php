@@ -61,7 +61,8 @@ class EserciziController
             'tracciamento_carico' => 1,             //1 = Ripetizioni, 2 = Durata
             'gruppi_muscolari' => [],           
             'attrezzatura' => null, 
-            'immagine_bin' => null
+            'immagine_bin' => null,
+            'immagine_type' => null
         ];
         $this->view->mostraFormEsercizio([      //la form viene popolata con i dati inizializzati nella sessione
             'id_provvisorio' => $idProvvisorio,
@@ -72,7 +73,8 @@ class EserciziController
             'tracciamento_carico' => 1, 
             'selected_gruppi' => [],
             'selected_attrezzatura' => null, 
-            'immagine_preview' => null
+            'immagine_preview' => null,
+            'immagine_type' => null
         ]);
     }
 
@@ -121,6 +123,7 @@ class EserciziController
         $content = file_get_contents($_FILES['immagine']['tmp_name']);           //salva il contenuto binario del file caricato nella sessione per poterlo recuperare in seguito
         if ($content !== false && $idProvvisorio !== '') {
             $_SESSION['bozze_esercizi'][$idProvvisorio]['immagine_bin'] = $content;
+            $_SESSION['bozze_esercizi'][$idProvvisorio]['immagine_type'] = $type;
         }
         return null;
     }
@@ -155,7 +158,9 @@ class EserciziController
         $att = $this->recuperaAttrezzatura($_POST['attrezzatura_id'] ?? '', trim($_POST['nuova_attrezzatura_nome'] ?? ''));   //recupera l'attrezzatura selezionata o creane una nuova se necessario
         $tip = $this->recuperaTipologia(isset($_POST['tracciamento_carico']) ? (int)$_POST['tracciamento_carico'] : 1);       //recupera la tipologia in base al tracciamento del carico selezionato (1 = Ripetizioni, 2 = Durata)
         $all = $this->entityManager->find(Allenatore::class, $idAllenatore);
-        $es = new Esercizio($nome, trim($_POST['descrizione'] ?? ''), $tip, $att, $all, $this->recuperaImmagine($idProv));
+        $immagineType = null;
+        $immagineBin = $this->recuperaImmagine($idProv, $immagineType);
+        $es = new Esercizio($nome, trim($_POST['descrizione'] ?? ''), $tip, $att, $all, $immagineBin, $immagineType);
         $this->associaGruppiMuscolari($es, $_POST['gruppi_muscolari'] ?? [], trim($_POST['nuovo_gruppo_nome'] ?? ''));
         try {
             $this->esercizioRepo->save($es);
@@ -193,12 +198,14 @@ class EserciziController
         return (is_numeric($idAttrPost) && $idAttrPost !== '') ? $this->attrezzaturaRepo->findById((int)$idAttrPost) : null;    //se l'utente ha selezionato un'attrezzatura esistente, la recupera dal repository, altrimenti ritorna null   (best practice: usare is_numeric per permettere a chi legge di capire che il valore può essere un numero o una stringa vuota)
     }
 
-    private function recuperaImmagine(string $idProvvisorio): ?string
+    private function recuperaImmagine(string $idProvvisorio, ?string &$type = null): ?string
     {
         if (isset($_FILES['immagine']) && $_FILES['immagine']['error'] === UPLOAD_ERR_OK) {
+            $type = $_FILES['immagine']['type'];
             return file_get_contents($_FILES['immagine']['tmp_name']);        //se l'utente ha caricato un'immagine, la legge dal file temporaneo e la ritorna come stringa binaria
         }
         if ($idProvvisorio !== '' && isset($_SESSION['bozze_esercizi'][$idProvvisorio]['immagine_bin'])) {    //se l'utente non ha caricato un'immagine ma esiste un'immagine salvata nella sessione per questo esercizio provvisorio, la ritorna come stringa binaria
+            $type = $_SESSION['bozze_esercizi'][$idProvvisorio]['immagine_type'] ?? null;
             return $_SESSION['bozze_esercizi'][$idProvvisorio]['immagine_bin'];
         }
         return null;
@@ -259,7 +266,8 @@ class EserciziController
             'tracciamento_carico' => $isDurata ? 0 : 1,       //0 = Durata, 1 = Ripetizioni
             'gruppi_muscolari' => array_map(fn($gm) => $gm->getId(), $sorgente->getGruppiMuscolari()->toArray()),      //salva gli ID dei gruppi muscolari associati all'esercizio sorgente
             'attrezzatura' => $attr ? $attr->getId() : null,
-            'immagine_bin' => $sorgente->getImmagine()
+            'immagine_bin' => $sorgente->getImmagine(),
+            'immagine_type' => $sorgente->getTipoImmagine()
         ];
         $_SESSION['bozze_esercizi'][$idProv] = $bozza;      //salva i dati provvisori dell'esercizio copiato nella sessione per poterli recuperare in seguito
 
@@ -274,7 +282,8 @@ class EserciziController
             'tracciamento_carico' => $bozza['tracciamento_carico'],
             'selected_gruppi' => $bozza['gruppi_muscolari'],
             'selected_attrezzatura' => $bozza['attrezzatura'],
-            'immagine_preview' => $bozza['immagine_bin'] ? base64_encode($bozza['immagine_bin']) : null     //se l'esercizio sorgente aveva un'immagine, la converte in base64 per poterla visualizzare nel form
+            'immagine_preview' => $bozza['immagine_bin'] ? base64_encode($bozza['immagine_bin']) : null,     //se l'esercizio sorgente aveva un'immagine, la converte in base64 per poterla visualizzare nel form
+            'immagine_type' => $bozza['immagine_type'] ?? 'image/jpeg'
         ]);
     }
 
@@ -311,7 +320,8 @@ class EserciziController
                 'attrezzatura' => $e->getAttrezzaturaNecessaria() ? $e->getAttrezzaturaNecessaria()->getNomeAttrezzatura() : 'Nessuna',
                 'tipologia' => $e->getTipologia()->getNomeTipologia(), 'gruppiMuscolari' => implode(', ', $gruppiNomi),
                 'creatore' => $e->getCreatore() ? ($e->getCreatore()->getNome() . ' ' . $e->getCreatore()->getCognome()) : 'Sistema',
-                'immagine' => $e->getImmagine() ? base64_encode($e->getImmagine()) : null
+                'immagine' => $e->getImmagine() ? base64_encode($e->getImmagine()) : null,
+                'immagine_type' => $e->getTipoImmagine() ?? 'image/jpeg'
             ];
         }
         return $eserciziData;
@@ -340,7 +350,8 @@ class EserciziController
             'attrezzatura' => $esercizio->getAttrezzaturaNecessaria() ? $esercizio->getAttrezzaturaNecessaria()->getNomeAttrezzatura() : 'Nessuna',
             'tipologia' => $esercizio->getTipologia()->getNomeTipologia(), 'gruppiMuscolari' => implode(', ', $gruppiNomi),
             'creatore' => $esercizio->getCreatore() ? ($esercizio->getCreatore()->getNome() . ' ' . $esercizio->getCreatore()->getCognome()) : 'Sistema',
-            'immagine' => $esercizio->getImmagine() ? base64_encode($esercizio->getImmagine()) : null
+            'immagine' => $esercizio->getImmagine() ? base64_encode($esercizio->getImmagine()) : null,
+            'immagine_type' => $esercizio->getTipoImmagine() ?? 'image/jpeg'
         ]);
     }
 }

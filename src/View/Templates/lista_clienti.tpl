@@ -193,7 +193,7 @@
                         <a href="visualizza-profilo?id={$c.id}" class="box customer-card">
                             <div class="customer-avatar mb-3" style="width: 96px; height: 96px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
                                 {if isset($c.fotoProfilo) && $c.fotoProfilo !== null}
-                                    <img src="data:image/jpeg;base64,{$c.fotoProfilo}" alt="Foto Profilo" style="width: 100%; height: 100%; object-fit: cover;">
+                                    <img src="data:{if isset($c.fotoProfiloType)}{$c.fotoProfiloType}{else}image/jpeg{/if};base64,{$c.fotoProfilo}" alt="Foto Profilo" style="width: 100%; height: 100%; object-fit: cover;">
                                 {else}
                                     <span class="icon is-large">
                                         <i class="fas fa-user-circle fa-4x"></i>
@@ -221,7 +221,7 @@
                     <a href="visualizza-profilo?id={$c.id}" class="box customer-list-item mb-3">
                         <div class="customer-avatar mr-4" style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                             {if isset($c.fotoProfilo) && $c.fotoProfilo !== null}
-                                <img src="data:image/jpeg;base64,{$c.fotoProfilo}" alt="Foto Profilo" style="width: 100%; height: 100%; object-fit: cover;">
+                                <img src="data:{if isset($c.fotoProfiloType)}{$c.fotoProfiloType}{else}image/jpeg{/if};base64,{$c.fotoProfilo}" alt="Foto Profilo" style="width: 100%; height: 100%; object-fit: cover;">
                             {else}
                                 <span class="icon is-medium">
                                     <i class="fas fa-user-circle fa-2x"></i>

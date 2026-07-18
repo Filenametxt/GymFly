@@ -86,6 +86,7 @@ class ProfiloController
             'utente' => $ut, 'isClient' => ($ut instanceof Cliente), 'isTrainer' => ($ut instanceof Allenatore),
             'isSelf' => $isSelf, 'nome' => $ut->getNome(), 'cognome' => $ut->getCognome(), 'email' => $ut->getEmail(),
             'cf' => $ut->getCF(), 'fotoProfilo' => $ut->getProfilePicture() ? base64_encode($ut->getProfilePicture()) : null,
+            'fotoProfiloType' => $ut->getTipoImmagine() ?? 'image/jpeg',
             'abbonamento' => null, 'abbonamento_attivo' => false, 'has_progress' => false, 'parametri' => null,
             'certificato' => null, 'attivitaAbilitate' => null, 'attivitaNonAbilitate' => [], 'tutteAttivita' => []
         ];
@@ -476,8 +477,8 @@ class ProfiloController
     private function eseguiCaricamentoFoto(Utente $ut): void
     {
         $tmp = $_FILES['foto_profilo']['tmp_name'];               // recupera il percorso del file temporaneo caricato sul server
-        if ($_FILES['foto_profilo']['size'] > 60 * 1024) {        
-            $this->view->mostraErrore("La dimensione supera i 60 KB.", "profilo", "Torna al Profilo");
+        if ($_FILES['foto_profilo']['size'] > 16 * 1024 * 1024) {        
+            $this->view->mostraErrore("La dimensione supera i 16 MB.", "profilo", "Torna al Profilo");
             return;
         }
         $info = @getimagesize($tmp);                     // recupera le informazioni sull'immagine, come tipo e dimensioni, e restituisce false se il file non è un'immagine valida
@@ -488,6 +489,7 @@ class ProfiloController
         $content = file_get_contents($tmp);       // legge il contenuto del file temporaneo e lo memorizza in una variabile, restituendo false se non riesce a leggere il file
         if ($content !== false) {
             $ut->setProfilePicture($content);
+            $ut->setTipoImmagine($info['mime'] ?? 'image/jpeg');
             $this->utenteRepo->save($ut);
             $this->view->mostraConfermaModifica("Foto profilo aggiornata con successo.", "profilo", "Torna al Profilo");
         }

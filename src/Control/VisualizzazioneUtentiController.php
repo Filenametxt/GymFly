@@ -172,7 +172,8 @@ class VisualizzazioneUtentiController
         foreach ($clienti as $c) {
             $data[] = [
                 'id' => $c->getId(), 'nome' => $c->getNome(), 'cognome' => $c->getCognome(), 'email' => $c->getEmail(),
-                'cf' => $c->getCF(), 'fotoProfilo' => $c->getProfilePicture() ? base64_encode($c->getProfilePicture()) : null
+                'cf' => $c->getCF(), 'fotoProfilo' => $c->getProfilePicture() ? base64_encode($c->getProfilePicture()) : null,
+                'fotoProfiloType' => $c->getTipoImmagine() ?? 'image/jpeg'
             ];
         }
         return $data;
@@ -186,7 +187,8 @@ class VisualizzazioneUtentiController
             $data[] = [
                 'id' => $a->getId(), 'nome' => $a->getNome(), 'cognome' => $a->getCognome(), 'email' => $a->getEmail(),
                 'cf' => $a->getCF(), 'sesso' => $a->getSesso()->value, 'attivita' => implode(',', $nomi),
-                'fotoProfilo' => $a->getProfilePicture() ? base64_encode($a->getProfilePicture()) : null
+                'fotoProfilo' => $a->getProfilePicture() ? base64_encode($a->getProfilePicture()) : null,
+                'fotoProfiloType' => $a->getTipoImmagine() ?? 'image/jpeg'
             ];
         }
         return $data;
