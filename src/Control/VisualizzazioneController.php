@@ -79,7 +79,7 @@ class VisualizzazioneController
         $this->view->mostraDashboardAdmin([
             'utente' => $admin, 'clienti' => $clienti, 'allenatori' => $pal ? $this->allenatoreRepo->findByPalestra($pal) : [],
             'certificati_scaduti' => $scaduti, 'certificati_in_scadenza' => $inScadenza, 'certificati_validi' => $validi,
-            'punti_registrazioni' => $this->costruisciGraficoRegistrazioni($this->caricaRegistrazioniMese($clienti)),
+            'registrazioni' => array_values($this->caricaRegistrazioniMese($clienti)),
             'ultimi_messaggi' => array_slice($this->messaggioRepo->findByMittente($admin), 0, 4),
             'eventi_oggi' => $this->caricaEventiOggi(), 'attivita' => $this->attivitaRepo->findAll()
         ]);
@@ -106,7 +106,7 @@ class VisualizzazioneController
         $dati = [];
         $oggi = new DateTimeImmutable();
         $nomi = ['Jan' => 'Gen', 'Feb' => 'Feb', 'Mar' => 'Mar', 'Apr' => 'Apr', 'May' => 'Mag', 'Jun' => 'Giu', 'Jul' => 'Lug', 'Aug' => 'Ago', 'Sep' => 'Set', 'Oct' => 'Ott', 'Nov' => 'Nov', 'Dec' => 'Dic'];
-        for ($i = 4; $i >= 0; $i--) {
+        for ($i = 7; $i >= 0; $i--) {
             $d = $oggi->modify("-$i month");
             $dati[$d->format('Y-m')] = ['data' => $nomi[$d->format('M')] ?? $d->format('M'), 'valore' => 0];
         }
@@ -119,21 +119,7 @@ class VisualizzazioneController
         return $dati;
     }
 
-    private function costruisciGraficoRegistrazioni(array $datiGrafico): array
-    {
-        $punti = [];
-        $maxVal = max(1, max(array_column($datiGrafico, 'valore')));
-        $count = count($datiGrafico);
-        $passoX = ($count > 1) ? 360 / ($count - 1) : 360;
-        $x = 40;
-        foreach ($datiGrafico as $dati) {
-            $val = $dati['valore'];
-            $alt = max(6, ($val / $maxVal) * 220);
-            $punti[] = ['x' => $x, 'y' => 265 - $alt, 'altezza' => $alt, 'valore' => $val, 'data' => $dati['data']];
-            $x += $passoX;
-        }
-        return $punti;
-    }
+
 
     private function caricaEventiOggi(): array
     {
