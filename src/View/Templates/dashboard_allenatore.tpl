@@ -51,7 +51,7 @@
                                     <div class="notification is-warning is-light p-3" style="border-radius: 12px; border: 1px solid #ffdd57; cursor: pointer;">
                                         <span class="icon is-large"><i class="fas fa-exclamation-triangle fa-2x"></i></span>
                                         <h4 class="title is-4 mt-2 mb-0">{$richieste_scheda}</h4>
-                                        <p class="is-size-7 font-weight-bold">RICHIESTE</p>
+                                        <p class="is-size-7 font-weight-bold">ASSENTI</p>
                                     </div>
                                 </a>
                             </div>

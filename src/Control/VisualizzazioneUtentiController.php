@@ -4,9 +4,11 @@ namespace App\Control;
 use App\Entity\Repository\ClienteRepositoryInterface;
 use App\Entity\Repository\AllenatoreRepositoryInterface;
 use App\Entity\Repository\PalestraRepositoryInterface;
+use App\Entity\Repository\AmministratoreRepositoryInterface;
 use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
 use App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository;
 use App\Foundation\Persistence\Repository\DoctrinePalestraRepository;
+use App\Foundation\Persistence\Repository\DoctrineAmministratoreRepository;
 use App\View\Interface\VisualizzazioneUtentiView;
 use App\View\VisualizzazioneUtentiViewSmarty;
 use App\Foundation\Session;
@@ -23,6 +25,7 @@ class VisualizzazioneUtentiController
     private AllenatoreRepositoryInterface $allenatoreRepo;
     private PalestraRepositoryInterface $palestraRepo;
     private UtenteRepositoryInterface $utenteRepo;
+    private AmministratoreRepositoryInterface $amministratoreRepo;
     private VisualizzazioneUtentiView $view;
 
     public function __construct(
@@ -33,6 +36,7 @@ class VisualizzazioneUtentiController
         $this->allenatoreRepo = new DoctrineAllenatoreRepository($this->entityManager);
         $this->palestraRepo = new DoctrinePalestraRepository($this->entityManager);
         $this->utenteRepo = new DoctrineUtenteRepository($this->entityManager);
+        $this->amministratoreRepo = new DoctrineAmministratoreRepository($this->entityManager);
         $this->view = new VisualizzazioneUtentiViewSmarty();
     }
 
@@ -40,7 +44,7 @@ class VisualizzazioneUtentiController
     // 1. VISUALIZZA CLIENTI (/clienti)
     // =========================================================================
 
-    public function visualizzaClienti(): void 
+    public function visualizzaClienti(): void     //gestisce la richiesta di visualizzazione dei clienti, verificando i permessi dell'utente loggato e calcolando i dati da mostrare nella lista dei clienti
     {
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
@@ -66,7 +70,7 @@ class VisualizzazioneUtentiController
     public function visualizzaAllenatori(): void 
     {
         $idUt = $this->session->getLoggedUserId();
-        $admin = ($idUt && $this->session->getLoggedUserRole() === 'amministratore') ? $this->entityManager->find(Amministratore::class, $idUt) : null;
+        $admin = ($idUt && $this->session->getLoggedUserRole() === 'amministratore') ? $this->amministratoreRepo->findById($idUt) : null;
         $pal = $admin ? $this->palestraRepo->findByAmministratore($admin) : null;
         if (!$admin || !$pal) {
             $this->view->mostraErrore("Accesso riservato all'Amministratore o palestra non trovata.");
@@ -80,12 +84,13 @@ class VisualizzazioneUtentiController
     // FILTRI ED HELPER DI ORDINAMENTO E MAPPATURA
     // =========================================================================
 
-    private function applicaFiltriClienti(array $clienti, ?string $q, ?string $fCert, ?string $fAbb, ?string $fSch): array
+    private function applicaFiltriClienti(array $clienti, ?string $q, ?string $fCert, ?string $fAbb, ?string $fSch): array   // Applica i filtri di ricerca e di stato ai clienti
     {
-        $clienti = $this->applicaFiltroRicerca($clienti, $q);
+        $clienti = $this->applicaFiltroRicerca($clienti, $q);     
         $clienti = $this->applicaFiltroCertificato($clienti, $fCert);
         $clienti = $this->applicaFiltroAbbonamento($clienti, $fAbb);
-        return $this->applicaFiltroScheda($clienti, $fSch);
+        $clienti = $this->applicaFiltroScheda($clienti, $fSch);
+        return $clienti;
     }
 
     private function applicaFiltroRicerca(array $clienti, ?string $q): array
@@ -133,7 +138,7 @@ class VisualizzazioneUtentiController
     private function ordinaClienti(array $clienti, ?string $ordine): array
     {
         usort($clienti, function($a, $b) use ($ordine) {
-            switch ($ordine) {
+            switch ($ordine) {       // Applica l'ordinamento in base al parametro $ordine
                 case 'cognome_desc':
                     $cmp = strcmp($b->getCognome(), $a->getCognome());
                     return $cmp !== 0 ? $cmp : strcmp($a->getNome(), $b->getNome());
@@ -161,7 +166,7 @@ class VisualizzazioneUtentiController
         );
     }
 
-    private function mappaClientiPerView(array $clienti): array
+    private function mappaClientiPerView(array $clienti): array    //MAPPING CLIENTI PER LA VIEW
     {
         $data = [];
         foreach ($clienti as $c) {
