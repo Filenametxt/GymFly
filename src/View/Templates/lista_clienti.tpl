@@ -84,8 +84,8 @@
                                 {if isset($filtro_scheda) && $filtro_scheda !== null}
                                     {if $filtro_scheda === 'scadute'}
                                         <span class="tag is-danger font-weight-bold">Scheda Scaduta</span>
-                                    {elseif $filtro_scheda === 'richieste'}
-                                        <span class="tag is-warning font-weight-bold">Scheda Richiesta/Assente</span>
+                                    {elseif $filtro_scheda === 'assenti'}
+                                        <span class="tag is-warning font-weight-bold">Scheda Assente</span>
                                     {elseif $filtro_scheda === 'in_regola'}
                                         <span class="tag is-success font-weight-bold">Scheda in Regola</span>
                                     {/if}
@@ -109,7 +109,7 @@
                                 {if $smarty.session.ruolo_utente === 'allenatore'}
                                     <p class="dropdown-item font-weight-bold" style="font-size: 0.85rem; color: var(--gymfly-primary) !important; margin-bottom: 0;">SCHEDA ALLENAMENTO</p>
                                     <a href="clienti?filtro_scheda=scadute{if isset($ordine)}&ordine={$ordine}{/if}" class="dropdown-item {if isset($filtro_scheda) && $filtro_scheda === 'scadute'}is-active{/if}">Scaduta</a>
-                                    <a href="clienti?filtro_scheda=richieste{if isset($ordine)}&ordine={$ordine}{/if}" class="dropdown-item {if isset($filtro_scheda) && $filtro_scheda === 'richieste'}is-active{/if}">Richiesta / Assente</a>
+                                    <a href="clienti?filtro_scheda=assenti{if isset($ordine)}&ordine={$ordine}{/if}" class="dropdown-item {if isset($filtro_scheda) && $filtro_scheda === 'assenti'}is-active{/if}">Assente</a>
                                     <a href="clienti?filtro_scheda=in_regola{if isset($ordine)}&ordine={$ordine}{/if}" class="dropdown-item {if isset($filtro_scheda) && $filtro_scheda === 'in_regola'}is-active{/if}">In regola</a>
                                 {else}
                                     <p class="dropdown-item font-weight-bold" style="font-size: 0.85rem; color: var(--gymfly-primary) !important; margin-bottom: 0;">CERTIFICATO MEDICO</p>

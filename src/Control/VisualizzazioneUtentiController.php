@@ -129,7 +129,7 @@ class VisualizzazioneUtentiController
         return array_filter($clienti, function($c) use ($f, $oggi) {
             $s = $c->getScheda();
             if ($f === 'scadute') return $s !== null && $s->getData_fine() < $oggi;
-            if ($f === 'richieste') return $s === null;
+            if ($f === 'assenti' || $f === 'richieste') return $s === null;
             if ($f === 'in_regola') return $s !== null && $s->getData_fine() >= $oggi;
             return true;
         });

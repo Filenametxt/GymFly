@@ -155,30 +155,30 @@ class VisualizzazioneController
             exit;
         }
         $clienti = $all->getPalestra() ? $this->clienteRepo->findByPalestra($all->getPalestra()) : [];        
-        [$scadute, $richieste, $inRegola] = $this->calcolaStatisticheSchede($clienti);
+        [$scadute, $assenti, $inRegola] = $this->calcolaStatisticheSchede($clienti);
 
         $this->view->mostraDashboardAllenatore([
             'utente' => $all, 'clienti' => $clienti, 'esercizi' => $this->esercizioRepo->findAll(),
-            'schede_scadute' => $scadute, 'richieste_scheda' => $richieste, 'schede_in_regola' => $inRegola,
+            'schede_scadute' => $scadute, 'schede_assenti' => $assenti, 'schede_in_regola' => $inRegola,
             'ultimi_messaggi' => array_slice($this->messaggioRepo->findByMittente($all), 0, 5), 'eventi_oggi' => $this->caricaEventiOggi()
         ]);
     }
 
     private function calcolaStatisticheSchede(array $clienti): array
     {
-        $scadute = 0; $richieste = 0; $inRegola = 0;
+        $scadute = 0; $assenti = 0; $inRegola = 0;
         $oggi = new DateTimeImmutable();
         foreach ($clienti as $c) {
             $scheda = $c->getScheda();
             if (!$scheda) {
-                $richieste++;
+                $assenti++;
             } elseif ($scheda->getData_fine() < $oggi) {
                 $scadute++;
             } else {
                 $inRegola++;
             }
         }
-        return [$scadute, $richieste, $inRegola];
+        return [$scadute, $assenti, $inRegola];
     }
 
     // =========================================================================
