@@ -1,7 +1,7 @@
 <?php
 namespace App\Control;
 
-use App\Infrastructure\Doctrine\EntityManagerFactory;
+use App\Foundation\Persistence\Config\EntityManagerFactory;
 use App\Foundation\Session;
 
 class FrontController
