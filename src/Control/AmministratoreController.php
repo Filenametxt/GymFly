@@ -374,32 +374,6 @@ class AmministratoreController
     // 7. RIMOZIONE ATTIVITA
     // =========================================================================
 
-    public function rimuoviAttivita(): void         //recupera la palestra dall'amministratore e rimuove l'attività selezionata, gestendo eventuali errori
-    {
-        $palestra = $this->recuperaPalestraAdmin();
-        if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato. Nessuna palestra associata all'utente.", "login", "Torna al Login");
-            return;
-        }
-        $idAttivita = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-        $attivita = $this->attivitaRepo->findById($idAttivita);
-        if (!$attivita) {
-            $this->view->mostraStatoOperazione(false, "Attività non trovata.", "crea-attivita", "Torna all'Attività");
-            return;
-        }
-        $this->eseguiRimozioneAttivita($attivita);
-    }
-
-    private function eseguiRimozioneAttivita(Attivita $attivita): void
-    {
-        try {
-            $nomeAttivita = $attivita->getNome();
-            $this->attivitaRepo->delete($attivita);
-            $this->view->mostraStatoOperazione(true, "Attività '" . $nomeAttivita . "' rimossa con successo dal catalogo.", "crea-attivita", "Torna all'Attività");
-        } catch (\Throwable $e) {
-            $this->view->mostraStatoOperazione(false, "Impossibile rimuovere l'attività: " . $e->getMessage(), "crea-attivita", "Torna all'Attività");
-        }
-    }
 
     // =========================================================================
     // HELPER PRIVATI GENERALI

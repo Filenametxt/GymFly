@@ -47,7 +47,6 @@ class FrontController
 
             '/rimuovi-cliente' => [AmministratoreController::class, 'rimuoviCliente'],
             '/rimuovi-allenatore' => [AmministratoreController::class, 'rimuoviAllenatore'],
-            '/rimuovi-attivita' => [AmministratoreController::class, 'rimuoviAttivita'],
             
             '/crea-esercizio' => [EserciziController::class, 'apriFormCreazioneEsercizio'],
             '/valida-esercizio' => [EserciziController::class, 'compilaDatiEsercizio'],
@@ -70,7 +69,6 @@ class FrontController
             '/salva-scheda' => [SchedaAllenamentoController::class, 'salvaScheda'],
             '/invia-scheda' => [SchedaAllenamentoController::class, 'inviaScheda'],
             '/elimina-scheda' => [SchedaAllenamentoController::class, 'eliminaScheda'],
-            '/rimuovi-scheda' => [SchedaAllenamentoController::class, 'eliminaScheda'],
             '/visualizza-scheda' => [SchedaAllenamentoController::class, 'visualizzaScheda'],
             '/modifica-dettagli' => [SchedaAllenamentoController::class, 'apriFormModificaSchedaCliente'],
             '/progressi-cliente' => [SchedaAllenamentoController::class, 'visualizzaProgressiCliente'],
