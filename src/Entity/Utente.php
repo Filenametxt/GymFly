@@ -12,6 +12,7 @@ abstract class Utente
     private string $email;
     private string $CF;
     private $profilePicture = null;
+    private ?string $tipoImmagine = null;
     private ?string $telefono = null;
     private string $indirizzo;
     private Sesso $sesso;
@@ -31,7 +32,8 @@ abstract class Utente
         Sesso $sesso,
         string $password = "",
         ?string $profilePicture = null,
-        ?string $telefono = null
+        ?string $telefono = null,
+        ?string $tipoImmagine = null
     ) {
         $this->messaggiInviati = new ArrayCollection();
         $this->messaggiRicevuti = new ArrayCollection();
@@ -48,7 +50,8 @@ abstract class Utente
             $this->setProfilePicture($profilePicture);
         } else {
             $this->profilePicture = null;
-            }
+        }
+        $this->setTipoImmagine($tipoImmagine);
         
         // Se il telefono è stato passato (non è null e non è vuoto), avvia il setter con la pulizia
         if ($telefono !== null && trim($telefono) !== '') {
@@ -96,6 +99,11 @@ abstract class Utente
             return stream_get_contents($this->profilePicture);
         }
         return $this->profilePicture;
+    }
+
+    public function getTipoImmagine(): ?string
+    {
+        return $this->tipoImmagine;
     }
 
     public function getTelefono(): ?string
@@ -238,6 +246,12 @@ abstract class Utente
     public function setProfilePicture(?string $profilePicture): self
     {
         $this->profilePicture = $profilePicture;
+        return $this;
+    }
+
+    public function setTipoImmagine(?string $tipoImmagine): self
+    {
+        $this->tipoImmagine = $tipoImmagine;
         return $this;
     }
 

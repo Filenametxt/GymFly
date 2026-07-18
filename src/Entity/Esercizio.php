@@ -26,6 +26,7 @@ class Esercizio
 
     // Contenuto binario (BLOB) dell'immagine (gif/png/jpg)
     private $immagine = null;
+    private ?string $tipoImmagine = null;
 
     public function __construct(
         ?string $nomeEsercizio,
@@ -33,7 +34,8 @@ class Esercizio
         Tipologia $tipologia,
         ?Attrezzatura $attrezzaturaNecessaria = null,
         ?Allenatore $creatore = null,
-        ?string $immagine = null
+        ?string $immagine = null,
+        ?string $tipoImmagine = null
     ) {
         $this->gruppiMuscolari = new ArrayCollection();
         $this->setNomeEsercizio($nomeEsercizio);
@@ -42,6 +44,7 @@ class Esercizio
         $this->setAttrezzaturaNecessaria($attrezzaturaNecessaria);
         $this->setCreatore($creatore);
         $this->setImmagine($immagine);
+        $this->setTipoImmagine($tipoImmagine);
     }
 
     // -------------------------------------------------------------------------
@@ -86,6 +89,11 @@ class Esercizio
             return stream_get_contents($this->immagine);
         }
         return $this->immagine;
+    }
+
+    public function getTipoImmagine(): ?string
+    {
+        return $this->tipoImmagine;
     }
 
     // -------------------------------------------------------------------------
@@ -144,6 +152,12 @@ class Esercizio
     public function setImmagine(?string $immagine): self
     {
         $this->immagine = $immagine;
+        return $this;
+    }
+
+    public function setTipoImmagine(?string $tipoImmagine): self
+    {
+        $this->tipoImmagine = $tipoImmagine;
         return $this;
     }
 

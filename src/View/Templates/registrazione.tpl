@@ -12,34 +12,29 @@
 <body>
 
     <!-- NAVBAR -->
-    <nav class="navbar" role="navigation" aria-label="main navigation">
-        <div class="container">
-            <div class="navbar-brand">
-                <a class="navbar-item" href="./" style="display: flex; align-items: center; gap: 6px;">
-                    <strong class="is-size-4" style="color: var(--gymfly-text) !important; font-weight: 800;">GymFly</strong>
-                    <div class="gf-logo-icon" style="width: 44px; height: 44px;"></div>
-                </a>
-            </div>
-
-            <div class="navbar-end">
-                <a class="navbar-item is-tab is-active-register px-4 mr-2" href="registrazione">
-                    <span>SIGN IN</span>
-                    <span class="icon is-small ml-2">
-                        <i class="fas fa-user-plus"></i>
-                    </span>
-                </a>
-                <a class="navbar-item is-tab px-4" href="login">
-                    <span>LOG IN</span>
-                    <span class="icon is-small ml-2">
-                        <i class="fas fa-user"></i>
-                    </span>
-                </a>
-            </div>
+    <nav class="gf-navbar">
+        <a href="home" class="gf-navbar-brand" style="display: flex; align-items: center; gap: 6px;">
+            <strong style="color: var(--gymfly-text) !important; font-weight: 800;">GymFly</strong>
+            <div class="gf-logo-icon"></div>
+        </a>
+        <div class="gf-navbar-actions" style="height: 100%; display: flex; align-items: flex-end;">
+            <a class="navbar-item is-tab is-active-register px-4 mr-2" href="registrazione" style="height: auto; align-self: flex-end;">
+                <span>SIGN IN</span>
+                <span class="icon is-small ml-2">
+                    <i class="fas fa-user-plus"></i>
+                </span>
+            </a>
+            <a class="navbar-item is-tab px-4" href="login" style="height: auto; align-self: flex-end;">
+                <span>LOG IN</span>
+                <span class="icon is-small ml-2">
+                    <i class="fas fa-user"></i>
+                </span>
+            </a>
         </div>
     </nav>
 
     <!-- CONTENT -->
-    <section class="hero is-fullheight-with-navbar" style="background: var(--gradient-bottom-right) !important;">
+    <section class="hero is-fullheight" style="background: var(--gradient-bottom-right) !important; padding-top: 64px;">
         <div class="hero-body">
             <div class="container">
                 <div class="columns is-centered">

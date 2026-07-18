@@ -24,7 +24,9 @@ class VisualizzazioneViewSmarty implements VisualizzazioneView
         header('Content-Type: text/html; charset=utf-8');
         $utente = $dati['utente'] ?? null;
         $fotoProfilo = ($utente && $utente->getProfilePicture()) ? base64_encode($utente->getProfilePicture()) : null;
+        $fotoProfiloType = ($utente && $utente->getTipoImmagine()) ? $utente->getTipoImmagine() : 'image/jpeg';
         $this->smarty->assign('fotoProfilo', $fotoProfilo);
+        $this->smarty->assign('fotoProfiloType', $fotoProfiloType);
         foreach ($dati as $key => $value) {
             $this->smarty->assign($key, $value);
         }
@@ -36,7 +38,9 @@ class VisualizzazioneViewSmarty implements VisualizzazioneView
         header('Content-Type: text/html; charset=utf-8');
         $utente = $dati['utente'] ?? null;
         $fotoProfilo = ($utente && $utente->getProfilePicture()) ? base64_encode($utente->getProfilePicture()) : null;
+        $fotoProfiloType = ($utente && $utente->getTipoImmagine()) ? $utente->getTipoImmagine() : 'image/jpeg';
         $this->smarty->assign('fotoProfilo', $fotoProfilo);
+        $this->smarty->assign('fotoProfiloType', $fotoProfiloType);
         foreach ($dati as $key => $value) {
             $this->smarty->assign($key, $value);
         }
@@ -48,9 +52,11 @@ class VisualizzazioneViewSmarty implements VisualizzazioneView
         header('Content-Type: text/html; charset=utf-8');
         
         $fotoProfilo = null;
+        $fotoProfiloType = 'image/jpeg';
         if (isset($dati['utente'])) {
             $clienteOriginale = $dati['utente'];
             $fotoProfilo = $clienteOriginale->getProfilePicture() ? base64_encode($clienteOriginale->getProfilePicture()) : null;
+            $fotoProfiloType = $clienteOriginale->getTipoImmagine() ?? 'image/jpeg';
             $dati['utente'] = new class($clienteOriginale) {
                 private $cliente;
                 private $schedaWrapped = null;
@@ -88,6 +94,7 @@ class VisualizzazioneViewSmarty implements VisualizzazioneView
         }
 
         $this->smarty->assign('fotoProfilo', $fotoProfilo);
+        $this->smarty->assign('fotoProfiloType', $fotoProfiloType);
         foreach ($dati as $key => $value) {
             $this->smarty->assign($key, $value);
         }

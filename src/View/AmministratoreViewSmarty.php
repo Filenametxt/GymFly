@@ -58,15 +58,7 @@ class AmministratoreViewSmarty implements AmministratoreView
         $this->smarty->display('crea_attivita.tpl');
     }
 
-    public function mostraFormAbilitaAttivita(array $dati): void
-    {
-        header('Content-Type: text/html; charset=utf-8');
-        foreach ($dati as $key => $value) {
-            $this->smarty->assign($key, $value);
-        }
-        $this->smarty->assign('ritorno', $this->determinaRitorno());
-        $this->smarty->display('gestione_attivita_allenatore.tpl');
-    }
+
 
     public function mostraStatoOperazione(bool $successo, string $messaggio, ?string $ritorno = null, ?string $testoBottone = null): void
     {

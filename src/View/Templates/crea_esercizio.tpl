@@ -104,7 +104,7 @@
                                     <span class="file-cta" style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; border: 2px dashed var(--gymfly-primary); border-radius: 12px; background-color: var(--gymfly-card-bg); overflow: hidden; position: relative; padding: 0;">
                                         {if $immagine_preview}
                                             <!-- Preview esistente -->
-                                            <img id="img-preview-tag" src="data:image/jpeg;base64,{$immagine_preview}" style="width: 100%; height: 100%; object-fit: cover;">
+                                            <img id="img-preview-tag" src="data:{if isset($immagine_type)}{$immagine_type}{else}image/jpeg{/if};base64,{$immagine_preview}" style="width: 100%; height: 100%; object-fit: cover;">
                                             <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); color: white; padding: 5px; text-align: center; font-size: 0.8rem;">
                                                 <i class="fas fa-sync-alt mr-1"></i> Cambia Immagine
                                             </div>

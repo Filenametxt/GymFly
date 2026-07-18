@@ -34,10 +34,16 @@
                             Torna a Gestione Esercizi
                         {elseif isset($ritorno) && $ritorno === 'crea-attivita'}
                             Torna all'Attività
+                        {elseif isset($ritorno) && $ritorno|replace:'scheda':'' !== $ritorno}
+                            Torna alla Scheda
                         {elseif isset($ritorno) && $ritorno|replace:'calendario':'' !== $ritorno}
                             Torna al Calendario
                         {else}
-                            Torna alla Dashboard
+                            {if !isset($ritorno) || $ritorno === 'login'}
+                                Torna al Login
+                            {else}
+                                Torna alla Dashboard
+                            {/if}
                         {/if}
                     </a>
                 </div>

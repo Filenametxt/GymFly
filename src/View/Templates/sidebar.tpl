@@ -228,7 +228,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentPath.includes('modifica-dettagli') || 
                 currentPath.includes('modifica-scheda') || 
                 currentPath.includes('crea-scheda') ||
-                currentPath.includes('salva-scheda') ||
                 currentPath.includes('invia-scheda')
             )) {
                 activeLink = link;
@@ -246,7 +245,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (href === 'allenatori' && (
                 currentPath.includes('crea-allenatore') ||
-                currentPath.includes('abilita-attivita-allenatore') ||
                 currentPath.includes('rimuovi-allenatore') ||
                 (!isSelfProfile && isTrainerProfile)
             )) {

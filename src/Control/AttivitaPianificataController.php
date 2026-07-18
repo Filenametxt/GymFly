@@ -80,7 +80,7 @@ class AttivitaPianificataController
     {
         $palestra = $this->recuperaPalestraUtente();
         if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato. Nessuna palestra associata all'utente.");
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Nessuna palestra associata all'utente.", "login", "Torna al Login");
             return;
         }
         $ruolo = $this->session->getLoggedUserRole();
@@ -271,7 +271,7 @@ class AttivitaPianificataController
     {
         $palestra = $this->recuperaPalestraUtente();
         if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.");
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Nessuna palestra associata all'utente.", "login", "Torna al Login");
             return;
         }
         $idAp = (int)($_REQUEST['id_attivita_pianificata'] ?? 0);      //recupera l'id dell'attività pianificata dalla query string; REQUEST è un array che contiene i dati della richiesta HTTP, sia GET che POST
@@ -352,7 +352,7 @@ class AttivitaPianificataController
     {
         $palestra = $this->recuperaPalestraUtente();
         if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.");
+            $this->view->mostraStatoOperazione(false, "Accesso negato. Nessuna palestra associata all'utente.", "login", "Torna al Login");
             return;
         }
         $idAp = (int)($_REQUEST['id_attivita_pianificata'] ?? 0);      //recupera l'id dell'attività pianificata dalla query string; REQUEST è un array che contiene i dati della richiesta HTTP, sia GET che POST
@@ -587,14 +587,14 @@ class AttivitaPianificataController
     // 6. RIMUOVI ATTIVITÀ PIANIFICATA (/rimuovi-attivita-pianificata)
     // =========================================================================
 
-    public function rimuoviAttivitaPianificata(): void
+    public function rimuoviAttivitaPianificata(): void          //gestisce la richiesta di rimozione di un'attività pianificata; controlla se l'utente loggato è un amministratore e se l'attività pianificata appartiene alla palestra dell'utente; se sì, chiama il metodo eseguiRimozioneAp per rimuovere l'attività pianificata
     {
         $palestra = $this->recuperaPalestraUtente();
         if (!$palestra || $this->session->getLoggedUserRole() !== 'amministratore') {
             $this->view->mostraStatoOperazione(false, "Accesso negato.");
             return;
         }
-        $id = (int)($_REQUEST['id_attivita_pianificata'] ?? 0);
+        $id = (int)($_REQUEST['id_attivita_pianificata'] ?? 0); //recupera l'id dell'attività pianificata dalla query string; REQUEST è un array che contiene i dati della richiesta HTTP, sia GET che POST
         $ap = $this->attivitaPianificataRepo->findById($id);
         if (!$ap || $ap->getSala()->getPalestra()->getId() !== $palestra->getId()) {
             $this->view->mostraStatoOperazione(false, "Attività non trovata o accesso negato.", "calendario", "Torna al Calendario");
@@ -606,12 +606,12 @@ class AttivitaPianificataController
     private function eseguiRimozioneAp(AttivitaPianificata $ap): void
     {
         try {
-            $rit = "calendario?data=" . $ap->getGiorno()->format('Y-m-d');
+            $rit = "calendario?data=" . $ap->getGiorno()->format('Y-m-d');   //ritorna alla settimana corretta dopo la rimozione dell'attività pianificata
             foreach ($ap->getUtenti() as $cliente) {
                 $cliente->cancellaIscrizioneAttivita($ap);
                 $this->clienteRepo->save($cliente);
             }
-            $this->attivitaPianificataRepo->delete($ap);
+            $this->attivitaPianificataRepo->delete($ap);    //rimuove l'attività pianificata dal repository
             $this->view->mostraStatoOperazione(true, "Attività pianificata rimossa.", $rit, "Torna al Calendario");
         } catch (\Throwable $e) {
             $this->view->mostraStatoOperazione(false, "Errore: " . $e->getMessage(), "calendario", "Torna al Calendario");
@@ -622,14 +622,14 @@ class AttivitaPianificataController
     // 7. DISDICI SESSIONE PRIVATA (/disdici-sessione-privata)
     // =========================================================================
 
-    public function disdiciSessionePrivata(): void
+    public function disdiciSessionePrivata(): void      //gestisce la richiesta di disdetta di una sessione privata
     {
         $palestra = $this->recuperaPalestraUtente();
-        if (!$palestra || !in_array($this->session->getLoggedUserRole(), ['cliente', 'allenatore'])) {
+        if (!$palestra || $this->session->getLoggedUserRole() === 'amministratore') {   //controlla se l'utente loggato è un cliente o un allenatore; se no, mostra un messaggio di accesso negato
             $this->view->mostraStatoOperazione(false, "Accesso negato.");
             return;
         }
-        $idAllenatore = (int)($_REQUEST['id_allenatore'] ?? 0);
+        $idAllenatore = (int)($_REQUEST['id_allenatore'] ?? 0);     //recupera l'id dell'allenatore dalla query string;
         $oraInStr = trim($_REQUEST['ora_inizio'] ?? '');
         $oraFiStr = trim($_REQUEST['ora_fine'] ?? '');
         if ($idAllenatore <= 0 || $oraInStr === '' || $oraFiStr === '') {
@@ -685,7 +685,7 @@ class AttivitaPianificataController
     // HELPER GENERALI
     // =========================================================================
 
-    private function recuperaPalestraUtente(): ?Palestra
+    private function recuperaPalestraUtente(): ?Palestra     //recupera la palestra in questo controller, utilizzando la funzione statica recuperaPalestraUtenteStatic per evitare ripetizioni di codice in altri controller
     {
         return self::recuperaPalestraUtenteStatic(
             $this->session,
@@ -695,7 +695,7 @@ class AttivitaPianificataController
         );
     }
 
-    public static function recuperaPalestraUtenteStatic(
+    public static function recuperaPalestraUtenteStatic(   //statico in modo tale da poter essere richiamato anche senza istanza della classe, utilizzato in altri controller per evitare ripetizioni di codice
         Session $session,
         UtenteRepositoryInterface $utenteRepo,
         PalestraRepositoryInterface $palestraRepo,

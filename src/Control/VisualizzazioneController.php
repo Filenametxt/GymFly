@@ -11,6 +11,9 @@ use App\Entity\Repository\AllenatoreRepositoryInterface;
 use App\Entity\Repository\UtenteRepositoryInterface;
 use App\Entity\Repository\AttivitaRepositoryInterface;
 use App\Entity\Repository\EsercizioRepositoryInterface;
+use App\Entity\Repository\MessaggioRepositoryInterface;
+use App\Entity\Repository\AttivitaPianificataRepositoryInterface;
+use App\Entity\Repository\ParametriRepositoryInterface;
 use App\Foundation\Persistence\Repository\DoctrinePalestraRepository;
 use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
 use App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository;
@@ -33,6 +36,9 @@ class VisualizzazioneController
     private UtenteRepositoryInterface $utenteRepo;
     private AttivitaRepositoryInterface $attivitaRepo;
     private EsercizioRepositoryInterface $esercizioRepo;
+    private MessaggioRepositoryInterface $messaggioRepo;
+    private AttivitaPianificataRepositoryInterface $attivitaPianificataRepo;
+    private ParametriRepositoryInterface $parametriRepo;
 
     public function __construct(
         private EntityManagerInterface $entityManager,
@@ -44,6 +50,9 @@ class VisualizzazioneController
         $this->utenteRepo = new DoctrineUtenteRepository($this->entityManager);
         $this->attivitaRepo = new DoctrineAttivitaRepository($this->entityManager);
         $this->esercizioRepo = new DoctrineEsercizioRepository($this->entityManager);
+        $this->messaggioRepo = new DoctrineMessaggioRepository($this->entityManager);
+        $this->attivitaPianificataRepo = new DoctrineAttivitaPianificataRepository($this->entityManager);
+        $this->parametriRepo = new DoctrineParametriRepository($this->entityManager);
         $this->view = new VisualizzazioneViewSmarty();
     }
 
@@ -51,7 +60,7 @@ class VisualizzazioneController
     // 1. MOSTRA HOME (/)
     // =========================================================================
 
-    public function mostraHome(): void
+    public function mostraHome(): void    //gestisce la richiesta di visualizzazione della home page
     {
         $this->view->mostraHome();
     }
@@ -60,7 +69,7 @@ class VisualizzazioneController
     // 2. MOSTRA DASHBOARD ADMIN (/dashboard-admin)
     // =========================================================================
 
-    public function mostraDashboardAdmin(): void
+    public function mostraDashboardAdmin(): void     //gestisce la richiesta di visualizzazione della dashboard dell'amministratore, verificando i permessi dell'utente loggato e calcolando i dati da mostrare nella dashboard
     {
         $id = $this->session->getLoggedUserId();
         $admin = ($id && $this->session->getLoggedUserRole() === 'amministratore') ? $this->utenteRepo->findById($id) : null;
@@ -71,28 +80,25 @@ class VisualizzazioneController
         }
         $pal = $this->palestraRepo->findByAmministratore($admin);
         $clienti = $pal ? $this->clienteRepo->findByPalestra($pal) : [];
-        [$scaduti, $inScadenza, $validi] = $this->calcolaSemaforoCertificati($clienti);
-        [$budgetAtt, $budgetTar, $percentBudget] = $this->calcolaBudget($clienti);
-        $msgRepo = new DoctrineMessaggioRepository($this->entityManager);
+        [$scaduti, $inScadenza, $validi] = $this->calcolaSemaforoCertificati($clienti, 30);
 
         $this->view->mostraDashboardAdmin([
             'utente' => $admin, 'clienti' => $clienti, 'allenatori' => $pal ? $this->allenatoreRepo->findByPalestra($pal) : [],
             'certificati_scaduti' => $scaduti, 'certificati_in_scadenza' => $inScadenza, 'certificati_validi' => $validi,
-            'budget_attuale' => $budgetAtt, 'budget_target' => $budgetTar, 'percentuale_budget' => $percentBudget,
-            'punti_registrazioni' => $this->costruisciGraficoRegistrazioni($this->caricaRegistrazioniMese($clienti)),
-            'ultimi_messaggi' => array_slice($msgRepo->findByMittente($admin), 0, 4),
+            'registrazioni' => array_values($this->caricaRegistrazioniMese($clienti)),
+            'ultimi_messaggi' => array_slice($this->messaggioRepo->findByMittente($admin), 0, 4),
             'eventi_oggi' => $this->caricaEventiOggi(), 'attivita' => $this->attivitaRepo->findAll()
         ]);
     }
 
-    private function calcolaSemaforoCertificati(array $clienti): array
+    private function calcolaSemaforoCertificati(array $clienti, int $giorniScadenza): array
     {
         $scaduti = 0; $inScadenza = 0; $validi = 0;
         foreach ($clienti as $c) {
             $cert = $c->getCertificatoMedico();
             if (!$cert || $cert->giorniAllaScadenza() < 0) {
                 $scaduti++;
-            } elseif ($cert->giorniAllaScadenza() <= 30) {
+            } elseif ($cert->giorniAllaScadenza() <= $giorniScadenza) {
                 $inScadenza++;
             } else {
                 $validi++;
@@ -101,26 +107,14 @@ class VisualizzazioneController
         return [$scaduti, $inScadenza, $validi];
     }
 
-    private function calcolaBudget(array $clienti): array
-    {
-        $attivi = 0;
-        foreach ($clienti as $c) {
-            $abb = $c->getAbbonamento();
-            if ($abb && !$abb->isScaduto()) $attivi++;
-        }
-        $attuale = $attivi * 50;
-        $target = 1500;
-        return [$attuale, $target, min(100, round(($attuale / $target) * 100))];
-    }
-
     private function caricaRegistrazioniMese(array $clienti): array
     {
         $dati = [];
         $oggi = new DateTimeImmutable();
         $nomi = ['Jan' => 'Gen', 'Feb' => 'Feb', 'Mar' => 'Mar', 'Apr' => 'Apr', 'May' => 'Mag', 'Jun' => 'Giu', 'Jul' => 'Lug', 'Aug' => 'Ago', 'Sep' => 'Set', 'Oct' => 'Ott', 'Nov' => 'Nov', 'Dec' => 'Dic'];
-        for ($i = 4; $i >= 0; $i--) {
-            $d = $oggi->modify("-$i month");
-            $dati[$d->format('Y-m')] = ['data' => $nomi[$d->format('M')] ?? $d->format('M'), 'valore' => 0];
+        for ($i = 7; $i >= 0; $i--) {
+            $d = $oggi->modify("-$i month");     // Ottieni la data del primo giorno del mese corrente meno $i mesi
+            $dati[$d->format('Y-m')] = ['data' => $nomi[$d->format('M')] ?? $d->format('M'), 'valore' => 0];      // Inizializza il conteggio delle registrazioni per quel mese
         }
         foreach ($clienti as $c) {
             $isc = $c->getIscrizione();
@@ -131,29 +125,14 @@ class VisualizzazioneController
         return $dati;
     }
 
-    private function costruisciGraficoRegistrazioni(array $datiGrafico): array
-    {
-        $punti = [];
-        $maxVal = max(1, max(array_column($datiGrafico, 'valore')));
-        $count = count($datiGrafico);
-        $passoX = ($count > 1) ? 360 / ($count - 1) : 360;
-        $x = 40;
-        foreach ($datiGrafico as $dati) {
-            $val = $dati['valore'];
-            $alt = max(6, ($val / $maxVal) * 220);
-            $punti[] = ['x' => $x, 'y' => 265 - $alt, 'altezza' => $alt, 'valore' => $val, 'data' => $dati['data']];
-            $x += $passoX;
-        }
-        return $punti;
-    }
+
 
     private function caricaEventiOggi(): array
     {
-        $repo = new DoctrineAttivitaPianificataRepository($this->entityManager);
         $eventi = [];
-        foreach ($repo->findByGiorno(new DateTimeImmutable()) as $ap) {
-            $in = str_pad($ap->getOrario(), 2, '0', STR_PAD_LEFT) . ':00';
-            $fi = str_pad($ap->getOrario() + 1, 2, '0', STR_PAD_LEFT) . ':00';
+        foreach ($this->attivitaPianificataRepo->findByGiorno(new DateTimeImmutable()) as $ap) {
+            $in = str_pad($ap->getOrario(), 2, '0', STR_PAD_LEFT) . ':00';    // Formatta l'orario di inizio con due cifre e aggiungi ":00"
+            $fi = str_pad($ap->getOrario() + 1, 2, '0', STR_PAD_LEFT) . ':00';       // Formatta l'orario di fine con due cifre e aggiungi ":00"
             $eventi[] = [
                 'nome' => $ap->getAttivita()->getNome(), 'orario' => "$in - $fi", 'colore' => '#3273dc',
                 'allenatore' => $ap->getAllenatore()->getNome() . ' ' . $ap->getAllenatore()->getCognome()
@@ -166,41 +145,40 @@ class VisualizzazioneController
     // 3. MOSTRA DASHBOARD ALLENATORI (/dashboard-allenatore)
     // =========================================================================
 
-    public function mostraDashboardAllenatore(): void
+    public function mostraDashboardAllenatore(): void    //gestisce la richiesta di visualizzazione della dashboard dell'allenatore, verificando i permessi dell'utente loggato e calcolando i dati da mostrare nella dashboard
     {
         $id = $this->session->getLoggedUserId();
-        $all = ($id && $this->session->getLoggedUserRole() === 'allenatore') ? $this->entityManager->find(Allenatore::class, $id) : null;
+        $all = ($id && $this->session->getLoggedUserRole() === 'allenatore') ? $this->allenatoreRepo->findById($id) : null;
         if (!$all) {
             $this->session->logout();
             header("Location: login");
             exit;
         }
-        $clienti = $all->getPalestra() ? $this->clienteRepo->findByPalestra($all->getPalestra()) : [];
-        [$scadute, $richieste, $inRegola] = $this->calcolaStatisticheSchede($clienti);
-        $msgRepo = new DoctrineMessaggioRepository($this->entityManager);
+        $clienti = $all->getPalestra() ? $this->clienteRepo->findByPalestra($all->getPalestra()) : [];        
+        [$scadute, $assenti, $inRegola] = $this->calcolaStatisticheSchede($clienti);
 
         $this->view->mostraDashboardAllenatore([
             'utente' => $all, 'clienti' => $clienti, 'esercizi' => $this->esercizioRepo->findAll(),
-            'schede_scadute' => $scadute, 'richieste_scheda' => $richieste, 'schede_in_regola' => $inRegola,
-            'ultimi_messaggi' => array_slice($msgRepo->findByMittente($all), 0, 5), 'eventi_oggi' => $this->caricaEventiOggi()
+            'schede_scadute' => $scadute, 'schede_assenti' => $assenti, 'schede_in_regola' => $inRegola,
+            'ultimi_messaggi' => array_slice($this->messaggioRepo->findByMittente($all), 0, 5), 'eventi_oggi' => $this->caricaEventiOggi()
         ]);
     }
 
     private function calcolaStatisticheSchede(array $clienti): array
     {
-        $scadute = 0; $richieste = 0; $inRegola = 0;
+        $scadute = 0; $assenti = 0; $inRegola = 0;
         $oggi = new DateTimeImmutable();
         foreach ($clienti as $c) {
             $scheda = $c->getScheda();
             if (!$scheda) {
-                $richieste++;
+                $assenti++;
             } elseif ($scheda->getData_fine() < $oggi) {
                 $scadute++;
             } else {
                 $inRegola++;
             }
         }
-        return [$scadute, $richieste, $inRegola];
+        return [$scadute, $assenti, $inRegola];
     }
 
     // =========================================================================
@@ -210,13 +188,12 @@ class VisualizzazioneController
     public function mostraDashboardCliente(): void
     {
         $id = $this->session->getLoggedUserId();
-        $cli = ($id && $this->session->getLoggedUserRole() === 'cliente') ? $this->entityManager->find(Cliente::class, $id) : null;
+        $cli = ($id && $this->session->getLoggedUserRole() === 'cliente') ? $this->clienteRepo->findById($id) : null;
         if (!$cli) {
             $this->session->logout();
             header("Location: login");
             exit;
         }
-        $parametriRepo = new DoctrineParametriRepository($this->entityManager);
         $attivitaOggi = [];
         $oggiStr = (new DateTimeImmutable('today'))->format('Y-m-d');
         foreach ($cli->getAttivitaPianificate() as $ap) {
@@ -225,24 +202,7 @@ class VisualizzazioneController
             }
         }
         $this->view->mostraDashboardCliente([
-            'utente' => $cli, 'ultimaMisure' => $parametriRepo->findUltimaByCliente($cli), 'attivitaOggi' => $attivitaOggi
+            'utente' => $cli, 'ultimaMisure' => $this->parametriRepo->findUltimaByCliente($cli), 'attivitaOggi' => $attivitaOggi
         ]);
-    }
-
-    // =========================================================================
-    // 5. MOSTRA ERRORE D'APPLICAZIONE
-    // =========================================================================
-
-    public function mostraErrore(): void
-    {
-        $msg = $_GET['msg'] ?? 'Si è verificato un errore imprevisto.';
-        $success = isset($_GET['success']) && $_GET['success'] == 1;
-        $ritorno = 'login';
-        if ($this->session->isLogged()) {
-            $ruolo = $this->session->getLoggedUserRole();
-            $mappa = ['amministratore' => 'dashboard-admin', 'allenatore' => 'dashboard-allenatore', 'cliente' => 'dashboard-cliente'];
-            $ritorno = $mappa[$ruolo] ?? 'login';
-        }
-        $this->view->mostraStatoOperazione($success, $msg, $ritorno);
     }
 }

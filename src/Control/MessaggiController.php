@@ -47,7 +47,7 @@ class MessaggiController
     // 1. MOSTRA MESSAGGI (/messaggi)
     // =========================================================================
 
-    public function mostraMessaggi(): void
+    public function mostraMessaggi(): void    //gestisce la richiesta di visualizzazione della bacheca dei messaggi, recuperando i messaggi ricevuti e inviati dall'utente loggato e mostrando la view corrispondente
     {
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
@@ -57,11 +57,11 @@ class MessaggiController
             $this->view->mostraErrore("Sessione non valida, utente o palestra non trovata.");
             return;
         }
-        $dati = [
+        $dati = [                                                        // array associativo che contiene i dati da passare alla view per la visualizzazione della bacheca dei messaggi
             'utenteLoggato' => $ut, 'ruolo' => $ruolo,
             'messaggiRicevuti' => $this->messaggioRepo->findByDestinatario($ut),
-            'messaggiInviati' => [], 'clientiCandidati' => [],
-            'allenatoriCandidati' => [], 'adminCandidati' => [], 'invioConsentito' => $ut->mssAllowed()
+            'messaggiInviati' => [], 'clientiCandidati' => [],                     // inizializza gli array dei candidati a vuoto, verranno popolati solo se l'utente ha il permesso di inviare messaggi
+            'allenatoriCandidati' => [], 'invioConsentito' => $ut->mssAllowed()
         ];
         if ($ut->mssAllowed()) {
             $this->caricaCandidatiDestinatari($ut, $ruolo, $pal, $dati);
@@ -85,14 +85,10 @@ class MessaggiController
 
     private function caricaCandidatiDestinatari(Utente $ut, string $ruolo, Palestra $pal, array &$dati): void
     {
-        $dati['messaggiInviati'] = $this->messaggioRepo->findByMittente($ut);
-        $dati['clientiCandidati'] = $this->clienteRepo->findByPalestra($pal);
+        $dati['messaggiInviati'] = $this->messaggioRepo->findByMittente($ut);      // recupera i messaggi inviati dall'utente loggato per mostrarli nella bacheca dei messaggi
+        $dati['clientiCandidati'] = $this->clienteRepo->findByPalestra($pal);      // recupera i clienti della palestra per mostrarli come candidati destinatari dei messaggi
         if ($ruolo === 'amministratore') {
-            $dati['allenatoriCandidati'] = $this->allenatoreRepo->findByPalestra($pal);
-            $adminGym = $pal->getAmministratore();
-            if ($adminGym && $adminGym->getId() !== $ut->getId()) {
-                $dati['adminCandidati'] = [$adminGym];
-            }
+            $dati['allenatoriCandidati'] = $this->allenatoreRepo->findByPalestra($pal);    // recupera gli allenatori della palestra solo se l'utente loggato è un amministratore, per mostrarli come candidati destinatari dei messaggi
         }
     }
 
@@ -100,7 +96,7 @@ class MessaggiController
     // 2. INVIA MESSAGGIO (/invia-messaggio)
     // =========================================================================
 
-    public function inviaMessaggio(): void
+    public function inviaMessaggio(): void      //gestisce la richiesta di invio di un nuovo messaggio, recuperando i dati del messaggio dalla richiesta POST e salvandolo nel repository
     {
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
@@ -141,20 +137,20 @@ class MessaggiController
     private function recuperaDestinatari(Utente $ut, string $ruolo, Palestra $pal): array
     {
         $recipients = [];
-        $destinatariTipo = $_POST['destinatari_tipo'] ?? 'selezionati';
+        $destinatariTipo = $_POST['destinatari_tipo'] ?? 'selezionati';     // recupera il tipo di destinatari selezionato dall'utente (selezionati o gruppo)
         if ($destinatariTipo === 'selezionati') {
             $this->filtraDestinatariSelezionati($_POST['destinatari_ids'] ?? [], $pal, $recipients);
         } else {
             $this->raccogliDestinatariGruppo($_POST['gruppo_tipo'] ?? '', $ruolo, $pal, $recipients);
         }
-        return array_filter($recipients, fn($r) => $r->getId() !== $ut->getId());
+        return array_filter($recipients, fn($r) => $r->getId() !== $ut->getId());       // filtra i destinatari per escludere l'utente mittente stesso
     }
 
     private function filtraDestinatariSelezionati(array $ids, Palestra $pal, array &$recipients): void
     {
         foreach ($ids as $idStr) {
-            $recipient = $this->utenteRepo->findById((int)$idStr);
-            if ($recipient) {
+            $recipient = $this->utenteRepo->findById((int)$idStr);      // recupera l'utente destinatario dal repository in base all'ID selezionato
+            if ($recipient && $recipient->getRuolo() !== 'amministratore') {
                 $palRecipient = $this->recuperaPalestraMessaggi($recipient, $recipient->getRuolo());
                 if ($palRecipient && $palRecipient->getId() === $pal->getId()) {
                     $recipients[] = $recipient;
@@ -173,8 +169,6 @@ class MessaggiController
             $recipients = $this->clienteRepo->findByPalestra($pal);
             if ($ruolo === 'amministratore') {
                 $recipients = array_merge($recipients, $this->allenatoreRepo->findByPalestra($pal));
-            } elseif ($ruolo === 'allenatore' && $pal->getAmministratore()) {
-                $recipients[] = $pal->getAmministratore();
             }
         }
     }
