@@ -1,12 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Risolve il link "Vedi Esercizi" con href="#" per evitare di modificare dashboard_cliente.tpl
-    const btns = document.querySelectorAll('a.button');
-    btns.forEach(btn => {
-        if (btn.textContent.includes('Vedi Esercizi')) {
-            btn.setAttribute('href', 'visualizza-scheda');
-        }
-    });
-
     // Uniforma l'altezza e la centratura di tutte le card dei titoli (solo su schermi non-mobile)
     if (window.innerWidth >= 769) {
         const headers = document.querySelectorAll('[class*="dashboard-header"]');

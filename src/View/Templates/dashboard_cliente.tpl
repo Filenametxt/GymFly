@@ -68,7 +68,7 @@
                                 <p class="is-size-7 has-text-grey-dark">{$utente->getScheda()->getDescrizione()|default:'Nessuna descrizione'}</p>
                             </div>
                             <div class="has-text-right">
-                                <a href="#" class="button is-gymfly is-small">
+                                <a href="visualizza-scheda" class="button is-gymfly is-small">
                                     <span>Vedi Esercizi</span>
                                     <span class="icon"><i class="fas fa-arrow-right"></i></span>
                                 </a>
