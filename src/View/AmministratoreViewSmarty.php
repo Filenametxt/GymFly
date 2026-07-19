@@ -60,13 +60,5 @@ class AmministratoreViewSmarty implements AmministratoreView
 
 
 
-    public function mostraStatoOperazione(bool $successo, string $messaggio, ?string $ritorno = null, ?string $testoBottone = null): void
-    {
-        header('Content-Type: text/html; charset=utf-8');
-        $this->smarty->assign('successo', $successo);
-        $this->smarty->assign('messaggio', $messaggio);
-        $this->smarty->assign('ritorno', $ritorno ?? $this->determinaRitorno());
-        $this->smarty->assign('testo_bottone', $testoBottone);
-        $this->smarty->display('stato_operazione.tpl');
-    }
+
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Infrastructure\Doctrine;
+namespace App\Foundation\Persistence\Config;
 
 use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\EntityManager;
@@ -17,7 +17,7 @@ final class EntityManagerFactory
         // Override time_immutable to return stringable DateTimeImmutable objects
         Type::overrideType('time_immutable', StringableTimeImmutableType::class);
 
-        $mappingPath = __DIR__ . '/../../Foundation/Persistence/Mapping';
+        $mappingPath = __DIR__ . '/../Mapping';
 
         $xmlDriver = new XmlDriver(
             new \Doctrine\Persistence\Mapping\Driver\DefaultFileLocator(

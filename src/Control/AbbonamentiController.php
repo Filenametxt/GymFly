@@ -3,6 +3,7 @@ namespace App\Control;
 
 use App\View\Interface\AbbonamentiView;
 use App\View\AbbonamentiViewSmarty;
+use App\View\VisualizzazioneViewSmarty;
 use App\Foundation\Session;
 use App\Entity\Repository\PalestraRepositoryInterface;
 use App\Entity\Repository\AbbonamentoRepositoryInterface;
@@ -70,19 +71,19 @@ class AbbonamentiController
         $idAdmin = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
         if (!$idAdmin || $ruolo !== 'amministratore') {  //se l'id non è stato definito o non appartiene ad un admin allora mostra errore    
-            $this->view->mostraErrore("Accesso negato. Questa operazione è riservata all'Amministratore.", "login", "Effettua il Login");
+            $this->mostraStatoOperazione(false, "Accesso negato. Questa operazione è riservata all'Amministratore.", "login", "Effettua il Login");
             return null;
         }
         $idCliente = $_GET['id'] ?? $_POST['id_cliente'] ?? null;           //riprende l'id dall'URL, se non c'è lì lo prende dalla form, altrimenti è null
         $cliente = $idCliente ? $this->clienteRepo->findById((int)$idCliente) : null;       //Se abbiamo l'ID di un cliente, cercalo nel database tramite il suo Repository. Altrimenti è null
         if (!$cliente) {        //se è null
-            $this->view->mostraErrore("Cliente non trovato o non specificato.", "clienti", "Torna ai Clienti");
+            $this->mostraStatoOperazione(false, "Cliente non trovato o non specificato.", "clienti", "Torna ai Clienti");
             return null;
         }
         $admin = $this->amministratoreRepo->findById($idAdmin);             //cerca l'admin nel repo tramite il suo id
         $palestra = $admin ? $this->palestraRepo->findByAmministratore($admin) : null;     //se l'amministratore esiste allora vai a trovare la palestra per admin, altrimenti è null
         if (!$palestra || !$cliente->getPalestra() || $cliente->getPalestra()->getId() !== $palestra->getId()) {   //se la palestra non esiste, oppure il cliente non è associato ad alcuna palestra, oppure il cliente è associato ad un altra palestra
-            $this->view->mostraErrore("Accesso negato. Il cliente non appartiene alla palestra gestita.", "dashboard-admin", "Torna alla Dashboard");
+            $this->mostraStatoOperazione(false, "Accesso negato. Il cliente non appartiene alla palestra gestita.", "dashboard-admin", "Torna alla Dashboard");
             return null;
         }
         return $cliente;
@@ -98,7 +99,7 @@ class AbbonamentiController
         } elseif ($azione === 'iscrizione') {
             $this->aggiornaIscrizioneCliente($cliente);
         } else {
-            $this->view->mostraErrore("Azione non riconosciuta.", "visualizza-profilo?id=" . $cliente->getId(), "Torna al Profilo");
+            $this->mostraStatoOperazione(false, "Azione non riconosciuta.", "visualizza-profilo?id=" . $cliente->getId(), "Torna al Profilo");
         }
     }
 
@@ -107,7 +108,7 @@ class AbbonamentiController
         $idPlan = $_POST['abbonamento_id'] ?? null;     
         $plan = $idPlan ? $this->abbonamentoRepo->findById((int)$idPlan) : null;    
         if (!$plan) {   //se l'id non esiste mostra errore
-            $this->view->mostraErrore("Piano di abbonamento non valido.", "visualizza-profilo?id=" . $cliente->getId(), "Torna al Profilo");
+            $this->mostraStatoOperazione(false, "Piano di abbonamento non valido.", "visualizza-profilo?id=" . $cliente->getId(), "Torna al Profilo");
             return;
         }
         $start = $this->parseDataInizio($_POST['data_inizio_abbonamento'] ?? '', $cliente); //mette nella variabile start la data di inizio dell'abbonamento scritta in maniera corretta
@@ -119,7 +120,7 @@ class AbbonamentiController
         $cliente->setAbbonamento($newAbb);          //viene associato al cliente un nuovo abbonamento
         $this->abbonamentoAttivoRepo->save($newAbb); //lo inserisce nel database
         $this->clienteRepo->save($cliente);         //le modifiche vengono confermate
-        $this->view->mostraConferma("Abbonamento registrato con successo!", "visualizza-profilo?id=" . $cliente->getId(), "Torna al Profilo");
+        $this->mostraStatoOperazione(true, "Abbonamento registrato con successo!", "visualizza-profilo?id=" . $cliente->getId(), "Torna al Profilo");
     }
 
     private function parseDataInizio(string $dataStr, Cliente $cliente): ?\DateTimeImmutable
@@ -127,7 +128,7 @@ class AbbonamentiController
         try {
             return $dataStr !== '' ? new \DateTimeImmutable($dataStr) : new \DateTimeImmutable();       //prova a trasformare questo testo in una data vera
         } catch (\Exception $e) {   //se l'utente ha inserito una data inventata o scritta male mostra un messaggio di errore e torna indietro
-            $this->view->mostraErrore("Formato data non valido.", "visualizza-profilo?id=" . $cliente->getId(), "Torna al Profilo");
+            $this->mostraStatoOperazione(false, "Formato data non valido.", "visualizza-profilo?id=" . $cliente->getId(), "Torna al Profilo");
             return null;
         }
     }
@@ -148,7 +149,7 @@ class AbbonamentiController
         $categoria = $_POST['nuova_categoria'] ?? '';
         $durata = $_POST['nuova_durata'] ?? '';
         if (empty($tipologia) || empty($categoria) || empty($durata)) {
-            $this->view->mostraErrore("Campi tipologia incompleti.", "gestione-abbonamento?id=" . $cliente->getId(), "Torna all'Abbonamento");
+            $this->mostraStatoOperazione(false, "Campi tipologia incompleti.", "gestione-abbonamento?id=" . $cliente->getId(), "Torna all'Abbonamento");
             return;
         }
         try {
@@ -157,7 +158,7 @@ class AbbonamentiController
             header('Location: gestione-abbonamento?id=' . $cliente->getId());       //mettendo l'header location il browser ti sposta nella nuova pagina
             exit();
         } catch (\Exception $e) {
-            $this->view->mostraErrore("Errore creazione tipologia: " . $e->getMessage(), "gestione-abbonamento?id=" . $cliente->getId(), "Torna all'Abbonamento");
+            $this->mostraStatoOperazione(false, "Errore creazione tipologia: " . $e->getMessage(), "gestione-abbonamento?id=" . $cliente->getId(), "Torna all'Abbonamento");
         }
     }
 
@@ -177,9 +178,15 @@ class AbbonamentiController
                 $this->iscrizioneRepo->save($nuovaIscrizione);
             }
             $this->clienteRepo->save($cliente);
-            $this->view->mostraConferma("Iscrizione annuale aggiornata con successo!", "visualizza-profilo?id=" . $cliente->getId(), "Torna al Profilo");
+            $this->mostraStatoOperazione(true, "Iscrizione annuale aggiornata con successo!", "visualizza-profilo?id=" . $cliente->getId(), "Torna al Profilo");
         } catch (\InvalidArgumentException $e) {
-            $this->view->mostraErrore("Errore di validazione: " . $e->getMessage(), "visualizza-profilo?id=" . $cliente->getId(), "Torna al Profilo");
+            $this->mostraStatoOperazione(false, "Errore di validazione: " . $e->getMessage(), "visualizza-profilo?id=" . $cliente->getId(), "Torna al Profilo");
         }
+    }
+
+    private function mostraStatoOperazione(bool $successo, string $messaggio, ?string $ritorno = null, ?string $testoBottone = null): void
+    {
+        $statusView = new VisualizzazioneViewSmarty();
+        $statusView->mostraStatoOperazione($successo, $messaggio, $ritorno, $testoBottone);
     }
 }

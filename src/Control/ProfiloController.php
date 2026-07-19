@@ -22,6 +22,7 @@ use App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository;
 use App\Foundation\Persistence\Repository\DoctrineAmministratoreRepository;
 use App\View\Interface\ProfiloView;
 use App\View\ProfiloViewSmarty;
+use App\View\VisualizzazioneViewSmarty;
 use App\Control\AttivitaPianificataController;
 use App\Foundation\Session;
 use App\Entity\Parametri;
@@ -73,13 +74,13 @@ class ProfiloController
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
         if (!$idUt) {
-            $this->view->mostraErrore("Sessione non valida. Effettua il login.");
+            $this->mostraStatoOperazione(false, "Sessione non valida. Effettua il login.");
             return;
         }
         $isSelf = true;                                                // indica se l'utente sta visualizzando il proprio profilo o quello di un altro utente
         $ut = $this->determinaUtenteProfilo($idUt, $ruolo, $isSelf);
         if (!$ut) {
-            $this->view->mostraErrore("Profilo non trovato o accesso negato.");
+            $this->mostraStatoOperazione(false, "Profilo non trovato o accesso negato.");
             return;
         }
         $dati = [                                                          //inizializza un array associativo che conterrà i dati da passare alla view per la visualizzazione del profilo
@@ -164,14 +165,14 @@ class ProfiloController
     {
         $idUtente = $this->session->getLoggedUserId();
         if (!$idUtente) {
-            $this->view->mostraErrore("Sessione scaduta.");
+            $this->mostraStatoOperazione(false, "Sessione scaduta.");
             return;
         }
         $ruolo = $this->session->getLoggedUserRole();
         $isSelf = true;
         $utente = $this->determinaUtenteModifica($idUtente, $ruolo, $isSelf);
         if (!$utente) {
-            $this->view->mostraErrore("Profilo non trovato o accesso negato.");
+            $this->mostraStatoOperazione(false, "Profilo non trovato o accesso negato.");
             return;
         }
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -215,7 +216,7 @@ class ProfiloController
         $isClient = ($cliente !== null);
 
         if (empty($nome) || empty($cognome) || empty($res) || ($isClient && $ruolo === 'amministratore' && empty($pag))) {      // controlla se i campi obbligatori sono stati compilati, se manca qualcosa mostra un errore e ritorna alla pagina di modifica
-            $this->view->mostraErrore("Campi obbligatori mancanti.", $rit, "Torna al Profilo");
+            $this->mostraStatoOperazione(false, "Campi obbligatori mancanti.", $rit, "Torna al Profilo");
             return;
         }
         try {
@@ -233,7 +234,7 @@ class ProfiloController
             header('Location: ' . $rit);
             exit();
         } catch (\InvalidArgumentException $e) {
-            $this->view->mostraErrore("Errore: " . $e->getMessage(), $rit, "Torna al Profilo");
+            $this->mostraStatoOperazione(false, "Errore: " . $e->getMessage(), $rit, "Torna al Profilo");
         }
     }
 
@@ -247,7 +248,7 @@ class ProfiloController
         $ruolo = $this->session->getLoggedUserRole();
         $cliente = $idUt ? $this->recuperaClienteTarget($ruolo, $idUt) : null;    // recupera il cliente target in base al ruolo dell'utente loggato e al suo ID
         if (!$cliente) {
-            $this->view->mostraErrore("Cliente non trovato o accesso non consentito.");
+            $this->mostraStatoOperazione(false, "Cliente non trovato o accesso non consentito.");
             return;
         }
         $storico = $this->parametriRepo->findByCliente($cliente);
@@ -269,12 +270,12 @@ class ProfiloController
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
         if (!$idUt || $ruolo === 'allenatore') {
-            $this->view->mostraErrore("Azione non consentita.");
+            $this->mostraStatoOperazione(false, "Azione non consentita.");
             return;
         }
         $cliente = $this->recuperaClienteTarget($ruolo, $idUt);
         if (!$cliente) {
-            $this->view->mostraErrore("Cliente non trovato o accesso non consentito.");
+            $this->mostraStatoOperazione(false, "Cliente non trovato o accesso non consentito.");
             return;
         }
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -289,7 +290,7 @@ class ProfiloController
         $peso = isset($_POST['peso']) ? (float)$_POST['peso'] : 0.0;
         $altezza = isset($_POST['altezza']) ? (float)$_POST['altezza'] : 0.0;
         if ($peso <= 0 || $altezza <= 0) {
-            $this->view->mostraErrore("Peso e altezza sono obbligatori.");
+            $this->mostraStatoOperazione(false, "Peso e altezza sono obbligatori.");
             return;
         }
         $f = fn($key) => !empty($_POST[$key]) ? (float)$_POST[$key] : null;      // funzione anonima per recuperare i valori delle misure corporee dal POST, restituendo null se il campo è vuoto
@@ -304,7 +305,7 @@ class ProfiloController
             header('Location: aggiorna-misure' . ($ruolo !== 'cliente' ? '?id=' . $cliente->getId() : ''));
             exit();
         } catch (\InvalidArgumentException $e) {
-            $this->view->mostraErrore("Dati non validi: " . $e->getMessage());
+            $this->mostraStatoOperazione(false, "Dati non validi: " . $e->getMessage());
         }
     }
 
@@ -317,12 +318,12 @@ class ProfiloController
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
         if (!$idUt || $ruolo === 'allenatore') {
-            $this->view->mostraErrore("Accesso negato.");
+            $this->mostraStatoOperazione(false, "Accesso negato.");
             return;
         }
         $cliente = $this->recuperaClienteTarget($ruolo, $idUt);
         if (!$cliente) {
-            $this->view->mostraErrore("Cliente non trovato o accesso non consentito.");
+            $this->mostraStatoOperazione(false, "Cliente non trovato o accesso non consentito.");
             return;
         }
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -336,13 +337,13 @@ class ProfiloController
     private function eseguiUploadCertificato(Cliente $cliente, string $rit): void
     {
         if (empty($_POST) && empty($_FILES) && isset($_SERVER['CONTENT_LENGTH']) && $_SERVER['CONTENT_LENGTH'] > 0) {     // controlla se la richiesta POST è vuota e se la dimensione del contenuto supera il limite consentito, mostrando un errore se necessario
-            $this->view->mostraErrore("File troppo grande.", $rit, "Torna al Profilo");
+            $this->mostraStatoOperazione(false, "File troppo grande.", $rit, "Torna al Profilo");
             return;
         }
         $medico = $_POST['medico'] ?? null;
         $emissione = $_POST['data_emissione'] ?? null;
         if (empty($medico) || empty($emissione) || !isset($_FILES['file_certificato']) || $_FILES['file_certificato']['error'] !== UPLOAD_ERR_OK) {
-            $this->view->mostraErrore("Dati certificato incompleti o file non valido.", $rit, "Torna al Profilo");
+            $this->mostraStatoOperazione(false, "Dati certificato incompleti o file non valido.", $rit, "Torna al Profilo");
             return;
         }
         try {
@@ -353,9 +354,9 @@ class ProfiloController
             $cliente->setCertificatoMedico($cert);
             $this->clienteRepo->save($cliente);
             if ($vecchio) $this->certificatoRepo->delete($vecchio);
-            $this->view->mostraConfermaModifica("Certificato medico caricato correttamente.", $rit, "Torna al Profilo");
+            $this->mostraStatoOperazione(true, "Certificato medico caricato correttamente.", $rit, "Torna al Profilo");
         } catch (\Exception $e) {
-            $this->view->mostraErrore("Errore: " . $e->getMessage(), $rit, "Torna al Profilo");
+            $this->mostraStatoOperazione(false, "Errore: " . $e->getMessage(), $rit, "Torna al Profilo");
         }
     }
 
@@ -367,7 +368,7 @@ class ProfiloController
     {
         $idUt = $this->session->getLoggedUserId();
         if (!$idUt) {
-            $this->view->mostraErrore("Sessione scaduta o non valida.");
+            $this->mostraStatoOperazione(false, "Sessione scaduta o non valida.");
             return;
         }
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -378,7 +379,7 @@ class ProfiloController
         $new = $_POST['nuova_password'] ?? '';
         $conf = $_POST['conferma_password'] ?? '';
         if ($old === '' || $new === '' || $conf === '' || $new !== $conf) {
-            $this->view->mostraErrore("Campi vuoti o password non coincidenti.", "profilo", "Torna al Profilo");
+            $this->mostraStatoOperazione(false, "Campi vuoti o password non coincidenti.", "profilo", "Torna al Profilo");
             return;
         }
         $this->eseguiCambioPassword($idUt, $this->session->getLoggedUserRole(), $old, $new);
@@ -388,15 +389,15 @@ class ProfiloController
     {
         $ut = $this->recuperaUtenteLoggato($this->entityManager, $idUt, $ruolo);
         if (!$ut || !$ut->verificaPassword($old)) {
-            $this->view->mostraErrore("Utente non trovato o password errata.", "profilo", "Torna al Profilo");
+            $this->mostraStatoOperazione(false, "Utente non trovato o password errata.", "profilo", "Torna al Profilo");
             return;
         }
         try {
             $ut->setPassword($new);
             $this->utenteRepo->save($ut);
-            $this->view->mostraConfermaModifica("Password aggiornata con successo.", "profilo", "Torna al Profilo");
+            $this->mostraStatoOperazione(true, "Password aggiornata con successo.", "profilo", "Torna al Profilo");
         } catch (\InvalidArgumentException $e) {
-            $this->view->mostraErrore("Errore: " . $e->getMessage(), "profilo", "Torna al Profilo");
+            $this->mostraStatoOperazione(false, "Errore: " . $e->getMessage(), "profilo", "Torna al Profilo");
         }
     }
 
@@ -410,7 +411,7 @@ class ProfiloController
         $ruolo = $this->session->getLoggedUserRole();
         $cliente = $idUt ? $this->recuperaClienteTarget($ruolo, $idUt) : null;
         if (!$cliente) {
-            $this->view->mostraErrore("Cliente non trovato o accesso non consentito.");
+            $this->mostraStatoOperazione(false, "Cliente non trovato o accesso non consentito.");
             return;
         }
         $tipo = $_GET['tipo'] ?? 'peso';                                             // indica il tipo di grafico da visualizzare (peso, superiore o inferiore), con un valore predefinito di "peso" se non specificato
@@ -460,15 +461,15 @@ class ProfiloController
         $ruolo = $this->session->getLoggedUserRole();
         $ut = $idUt ? $this->recuperaUtenteLoggato($this->entityManager, $idUt, $ruolo) : null;       // recupera l'oggetto utente loggato in base al suo ID e al ruolo
         if (!$ut) {
-            $this->view->mostraErrore("Profilo non trovato.");
+            $this->mostraStatoOperazione(false, "Profilo non trovato.");
             return;
         }
         if (isset($_FILES['foto_profilo']) && in_array($_FILES['foto_profilo']['error'], [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE])) {   //gli errori UPLOAD_ERR_INI_SIZE e UPLOAD_ERR_FORM_SIZE indicano che la dimensione del file caricato supera il limite consentito dal server o dal form HTML, quindi viene mostrato un messaggio di errore appropriato
-            $this->view->mostraErrore("Dimensione file eccessiva.", "profilo", "Torna al Profilo");
+            $this->mostraStatoOperazione(false, "Dimensione file eccessiva.", "profilo", "Torna al Profilo");
             return;
         }
         if (!isset($_FILES['foto_profilo']) || $_FILES['foto_profilo']['error'] !== UPLOAD_ERR_OK) {
-            $this->view->mostraErrore("File non valido.", "profilo", "Torna al Profilo");
+            $this->mostraStatoOperazione(false, "File non valido.", "profilo", "Torna al Profilo");
             return;
         }
         $this->eseguiCaricamentoFoto($ut);
@@ -478,12 +479,12 @@ class ProfiloController
     {
         $tmp = $_FILES['foto_profilo']['tmp_name'];               // recupera il percorso del file temporaneo caricato sul server
         if ($_FILES['foto_profilo']['size'] > 16 * 1024 * 1024) {        
-            $this->view->mostraErrore("La dimensione supera i 16 MB.", "profilo", "Torna al Profilo");
+            $this->mostraStatoOperazione(false, "La dimensione supera i 16 MB.", "profilo", "Torna al Profilo");
             return;
         }
         $info = @getimagesize($tmp);                     // recupera le informazioni sull'immagine, come tipo e dimensioni, e restituisce false se il file non è un'immagine valida
         if ($info === false || !in_array($info[2], [IMAGETYPE_JPEG, IMAGETYPE_PNG])) {     // controlla se il file è un'immagine valida e se il tipo di immagine è consentito (JPG o PNG), mostrando un messaggio di errore se non lo è
-            $this->view->mostraErrore("Formato non consentito (ammessi solo JPG/PNG).", "profilo", "Torna al Profilo");
+            $this->mostraStatoOperazione(false, "Formato non consentito (ammessi solo JPG/PNG).", "profilo", "Torna al Profilo");
             return;
         }
         $content = file_get_contents($tmp);       // legge il contenuto del file temporaneo e lo memorizza in una variabile, restituendo false se non riesce a leggere il file
@@ -491,7 +492,7 @@ class ProfiloController
             $ut->setProfilePicture($content);
             $ut->setTipoImmagine($info['mime'] ?? 'image/jpeg');
             $this->utenteRepo->save($ut);
-            $this->view->mostraConfermaModifica("Foto profilo aggiornata con successo.", "profilo", "Torna al Profilo");
+            $this->mostraStatoOperazione(true, "Foto profilo aggiornata con successo.", "profilo", "Torna al Profilo");
         }
     }
 
@@ -506,17 +507,17 @@ class ProfiloController
         $idLog = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
         if (!$idLog || ($ruolo !== 'amministratore' && $ruolo !== 'allenatore')) {
-            $this->view->mostraErrore("Azione non consentita.");
+            $this->mostraStatoOperazione(false, "Azione non consentita.");
             return;
         }
         $idAll = isset($_POST['id_allenatore']) ? (int)$_POST['id_allenatore'] : 0;
         if ($idAll <= 0 || ($ruolo !== 'amministratore' && $idAll !== $idLog)) {
-            $this->view->mostraErrore("Dati non validi o non autorizzato.");
+            $this->mostraStatoOperazione(false, "Dati non validi o non autorizzato.");
             return;
         }
         $allenatore = $this->allenatoreRepo->findById($idAll);
         if (!$allenatore || !$this->validaPalestraAllenatore($idLog, $ruolo, $allenatore)) {
-            $this->view->mostraErrore("Allenatore non trovato o non appartenente alla palestra.");
+            $this->mostraStatoOperazione(false, "Allenatore non trovato o non appartenente alla palestra.");
             return;
         }
         $this->eseguiAggiornamentoAbilitazioniInBlocco($allenatore, $_POST['attivita'] ?? [], $idLog);
@@ -538,7 +539,7 @@ class ProfiloController
             header('Location: ' . $loc);
             exit();
         } catch (\Throwable $e) {
-            $this->view->mostraErrore("Impossibile aggiornare abilitazioni: " . $e->getMessage());
+            $this->mostraStatoOperazione(false, "Impossibile aggiornare abilitazioni: " . $e->getMessage());
         }
     }
 
@@ -605,5 +606,11 @@ class ProfiloController
             return $this->amministratoreRepo->findById($idUtente);
         }
         return $this->utenteRepo->findById($idUtente);
+    }
+
+    private function mostraStatoOperazione(bool $successo, string $messaggio, ?string $ritorno = null, ?string $testoBottone = null): void
+    {
+        $statusView = new VisualizzazioneViewSmarty();
+        $statusView->mostraStatoOperazione($successo, $messaggio, $ritorno, $testoBottone);
     }
 }

@@ -251,6 +251,7 @@ class ComposerStaticInitd6fc2815da0fa7b5d90c2fe6dfa95f67
         'App\\Entity\\Tipologia' => __DIR__ . '/../..' . '/src/Entity/Tipologia.php',
         'App\\Entity\\Utente' => __DIR__ . '/../..' . '/src/Entity/Utente.php',
         'App\\Enum\\Sesso' => __DIR__ . '/../..' . '/src/Enum/Sesso.php',
+        'App\\Foundation\\Persistence\\Config\\EntityManagerFactory' => __DIR__ . '/../..' . '/src/Foundation/Persistence/Config/EntityManagerFactory.php',
         'App\\Foundation\\Persistence\\Repository\\AbstractDoctrineProgressoRepository' => __DIR__ . '/../..' . '/src/Foundation/Persistence/Repository/AbstractDoctrineProgressoRepository.php',
         'App\\Foundation\\Persistence\\Repository\\AbstractDoctrineUtenteRepository' => __DIR__ . '/../..' . '/src/Foundation/Persistence/Repository/AbstractDoctrineUtenteRepository.php',
         'App\\Foundation\\Persistence\\Repository\\DoctrineAbbonamentoAttivoRepository' => __DIR__ . '/../..' . '/src/Foundation/Persistence/Repository/DoctrineAbbonamentoAttivoRepository.php',
@@ -279,9 +280,9 @@ class ComposerStaticInitd6fc2815da0fa7b5d90c2fe6dfa95f67
         'App\\Foundation\\Persistence\\Repository\\DoctrineSchedaRepository' => __DIR__ . '/../..' . '/src/Foundation/Persistence/Repository/DoctrineSchedaRepository.php',
         'App\\Foundation\\Persistence\\Repository\\DoctrineSessionePrivataRepository' => __DIR__ . '/../..' . '/src/Foundation/Persistence/Repository/DoctrineSessionePrivataRepository.php',
         'App\\Foundation\\Persistence\\Repository\\DoctrineTipologiaRepository' => __DIR__ . '/../..' . '/src/Foundation/Persistence/Repository/DoctrineTipologiaRepository.php',
+        'App\\Foundation\\Persistence\\Repository\\DoctrineUtenteRepository' => __DIR__ . '/../..' . '/src/Foundation/Persistence/Repository/DoctrineUtenteRepository.php',
         'App\\Foundation\\Persistence\\Type\\StringableTimeImmutableType' => __DIR__ . '/../..' . '/src/Foundation/Persistence/Type/StringableTimeImmutableType.php',
         'App\\Foundation\\Session' => __DIR__ . '/../..' . '/src/Foundation/Session.php',
-        'App\\Infrastructure\\Doctrine\\EntityManagerFactory' => __DIR__ . '/../..' . '/src/Infrastructure/Doctrine/EntityManagerFactory.php',
         'App\\View\\AbbonamentiViewSmarty' => __DIR__ . '/../..' . '/src/View/AbbonamentiViewSmarty.php',
         'App\\View\\AmministratoreViewSmarty' => __DIR__ . '/../..' . '/src/View/AmministratoreViewSmarty.php',
         'App\\View\\AttivitaPianificataViewSmarty' => __DIR__ . '/../..' . '/src/View/AttivitaPianificataViewSmarty.php',
@@ -3399,7 +3400,7 @@ class ComposerStaticInitd6fc2815da0fa7b5d90c2fe6dfa95f67
         'TheSeer\\Tokenizer\\TokenCollectionException' => __DIR__ . '/..' . '/theseer/tokenizer/src/TokenCollectionException.php',
         'TheSeer\\Tokenizer\\Tokenizer' => __DIR__ . '/..' . '/theseer/tokenizer/src/Tokenizer.php',
         'TheSeer\\Tokenizer\\XMLSerializer' => __DIR__ . '/..' . '/theseer/tokenizer/src/XMLSerializer.php',
-        'Â©' => __DIR__ . '/..' . '/symfony/cache/Traits/ValueWrapper.php',
+        '©' => __DIR__ . '/..' . '/symfony/cache/Traits/ValueWrapper.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

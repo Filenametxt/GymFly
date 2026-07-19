@@ -40,11 +40,11 @@
                         
                         <div class="login-box">
                             
-                            <div class="avatar-container">{if isset($userAvatar) && $userAvatar != ''}<img src="{$userAvatar}" alt="Profile Picture">{else}<i class="fas fa-user-circle"></i>{/if}</div>
+                            <div class="avatar-container"><i class="fas fa-user-circle"></i></div>
 
                             <h3 class="title is-3 has-text-centered mb-5" style="color: #AFAFE2; letter-spacing: 2px;">LOG IN</h3>
 
-                            {if isset($errorMessage) && $errorMessage != ''}
+                            {if isset($errorMessage) && $errorMessage != ''}                             //smarty
                                 <div class="notification is-danger is-light py-2 px-4 mb-4 is-size-7">
                                     <i class="fas fa-exclamation-triangle mr-2"></i> {$errorMessage}
                                 </div>

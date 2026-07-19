@@ -12,7 +12,7 @@ use App\Foundation\Session;
 use App\Control\AutenticazioneController;
 use App\View\AutenticazioneViewSmarty;
 use App\Repository\DoctrineClienteRepository;
-use App\Infrastructure\Doctrine\EntityManagerFactory;
+use App\Foundation\Persistence\Config\EntityManagerFactory;
 
 try {
     // 1. SETUP: Prepara la view che vogliamo testare

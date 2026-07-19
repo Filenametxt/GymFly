@@ -31,7 +31,7 @@ use App\Entity\Allenamento;
 use App\Entity\DettaglioAllenamento;
 use App\Entity\Parametri;
 use App\Enum\Sesso;
-use App\Infrastructure\Doctrine\EntityManagerFactory;
+use App\Foundation\Persistence\Config\EntityManagerFactory;
 
 echo "[DEBUG] 1. Caricamento autoload...\n";
 require_once __DIR__ . '/vendor/autoload.php';

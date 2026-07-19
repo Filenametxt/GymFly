@@ -11,6 +11,7 @@ use App\Foundation\Persistence\Repository\DoctrinePalestraRepository;
 use App\Foundation\Persistence\Repository\DoctrineAmministratoreRepository;
 use App\View\Interface\VisualizzazioneUtentiView;
 use App\View\VisualizzazioneUtentiViewSmarty;
+use App\View\VisualizzazioneViewSmarty;
 use App\Foundation\Session;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Amministratore;
@@ -49,12 +50,12 @@ class VisualizzazioneUtentiController
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
         if (!$idUt || !$ruolo) {
-            $this->view->mostraErrore("Sessione non valida. Effettua il login.");
+            $this->mostraStatoOperazione(false, "Sessione non valida. Effettua il login.");
             return;
         }
         $pal = $this->recuperaPalestraUtenti();
         if (!$pal) {
-            $this->view->mostraErrore("Accesso negato o palestra non trovata.");
+            $this->mostraStatoOperazione(false, "Accesso negato o palestra non trovata.");
             return;
         }
         $clienti = $this->clienteRepo->findByPalestra($pal);
@@ -73,7 +74,7 @@ class VisualizzazioneUtentiController
         $admin = ($idUt && $this->session->getLoggedUserRole() === 'amministratore') ? $this->amministratoreRepo->findById($idUt) : null;
         $pal = $admin ? $this->palestraRepo->findByAmministratore($admin) : null;
         if (!$admin || !$pal) {
-            $this->view->mostraErrore("Accesso riservato all'Amministratore o palestra non trovata.");
+            $this->mostraStatoOperazione(false, "Accesso riservato all'Amministratore o palestra non trovata.");
             return;
         }
         $allenatori = $this->allenatoreRepo->findByPalestra($pal);
@@ -192,5 +193,11 @@ class VisualizzazioneUtentiController
             ];
         }
         return $data;
+    }
+
+    private function mostraStatoOperazione(bool $successo, string $messaggio, ?string $ritorno = null, ?string $testoBottone = null): void
+    {
+        $statusView = new VisualizzazioneViewSmarty();
+        $statusView->mostraStatoOperazione($successo, $messaggio, $ritorno, $testoBottone);
     }
 }

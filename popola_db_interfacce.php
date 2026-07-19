@@ -23,7 +23,7 @@ use App\Entity\Iscrizione;
 use App\Entity\CertificatoMedico;
 use App\Entity\Messaggio;
 use App\Enum\Sesso;
-use App\Infrastructure\Doctrine\EntityManagerFactory;
+use App\Foundation\Persistence\Config\EntityManagerFactory;
 
 
 echo "[DEBUG] 1. Caricamento autoload...\n";
