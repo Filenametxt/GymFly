@@ -53,6 +53,10 @@ class VisualizzazioneUtentiController
             $this->mostraStatoOperazione(false, "Sessione non valida. Effettua il login.");
             return;
         }
+        if ($ruolo !== 'amministratore' && $ruolo !== 'allenatore') {
+            $this->mostraStatoOperazione(false, "Accesso negato. Non sei autorizzato a visualizzare la lista dei clienti.");
+            return;
+        }
         $pal = $this->recuperaPalestraUtenti();
         if (!$pal) {
             $this->mostraStatoOperazione(false, "Accesso negato o palestra non trovata.");
