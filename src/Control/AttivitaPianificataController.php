@@ -577,7 +577,7 @@ class AttivitaPianificataController
                 }
                 $this->attivitaPianificataRepo->save(new AttivitaPianificata($giornoImm, $orario, $sala, $all, $att));
             }
-            $this->view->mostraStatoOperazione(true, "Corso pianificato con successo.", $rit, "Torna al Calendario");
+            $this->view->mostraStatoOperazione(true, "Attività pianificata con successo.", $rit, "Torna al Calendario");
         } catch (\Throwable $e) {
             $this->view->mostraStatoOperazione(false, "Errore: " . $e->getMessage(), $rit, "Torna al Calendario");
         }
