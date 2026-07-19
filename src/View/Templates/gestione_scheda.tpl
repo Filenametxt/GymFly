@@ -60,69 +60,18 @@
                 <strong class="is-size-4 style-theme-text" style="letter-spacing: 1px; flex-grow: 1;">REALIZZA SCHEDA</strong>
             </div>
 
-            <!-- OPTION: COPIA DA UN ALTRO CLIENTE -->
-            {if $altre_schede|@count > 0}
-            <div class="control-box mb-5">
-                <h3 class="title is-5 mb-3" style="color: #AFAFE2;">
-                    <i class="fas fa-copy mr-2"></i> Copia Programma da altro Cliente
-                </h3>
-                <p class="subtitle is-6 has-text-grey-dark mb-4">
-                    Scegli una scheda esistente nel sistema per importarne l'elenco degli allenamenti e degli esercizi in questa scheda.
-                </p>
-            <form action="modifica-scheda" method="GET">
-                <input type="hidden" name="id" value="{$scheda->getId()}">
-                <div class="field has-addons">
-                    <div class="control is-expanded">
-                        <div class="select is-fullwidth">
-                            <select name="copia_da" required>
-                                <option value="">-- Seleziona Scheda Sorgente --</option>
-                                {foreach $altre_schede as $als}
-                                    <option value="{$als->getId()}">
-                                        {$als->getCliente()->getNome()} {$als->getCliente()->getCognome()} - {$als->getNome_scheda()}
-                                    </option>
-                                {/foreach}
-                            </select>
-                        </div>
-                    </div>
-                    <div class="control">
-                        <button type="submit" class="button is-gymfly">
-                            <i class="fas fa-clone mr-2"></i> Copia Struttura
-                        </button>
-                    </div>
-                </div>
-            </form>
-            </div>
-            {/if}
-
             <!-- SCHEDA FORM -->
             <div class="control-box">
-                <form id="form-scheda" action="modifica-scheda?id={$scheda->getId()}{if isset($azione_rapida) && $azione_rapida == 1}&azione_rapida=1{/if}" method="POST">
+                <form id="form-scheda" action="modifica-scheda?id={$scheda->getId()}" method="POST">
                             <input type="hidden" name="id_scheda" id="id_scheda" value="{$scheda->getId()}">
                             <!-- BOX METADATI CON NOME COGNOME ATLETA E INPUT (Layout bozza) -->
                             <div class="box mb-5">
-                                {if isset($azione_rapida) && $azione_rapida == 1}
-                                    <div class="field mb-4">
-                                        <label class="label"><i class="fas fa-user-circle mr-2" style="color: var(--gymfly-primary);"></i> Atleta Cliente</label>
-                                        <div class="control">
-                                            <div class="select is-fullwidth">
-                                                <select id="select-cambia-cliente">
-                                                    {foreach $clienti as $c}
-                                                        <option value="{$c->getCF()}" {if $c->getCF() === $scheda->getCliente()->getCF()}selected{/if} data-scheda-id="{if $c->getScheda()}{$c->getScheda()->getId()}{else}0{/if}">
-                                                            {$c->getNome()} {$c->getCognome()} ({$c->getCF()})
-                                                        </option>
-                                                    {/foreach}
-                                                </select>
-                                            </div>
-                                        </div>
+                                <div class="field mb-4">
+                                    <label class="label"><i class="fas fa-user-circle mr-2" style="color: var(--gymfly-primary);"></i> Atleta Cliente</label>
+                                    <div class="control">
+                                        <input class="input" type="text" readonly value="{$scheda->getCliente()->getNome()} {$scheda->getCliente()->getCognome()} ({$scheda->getCliente()->getCF()})">
                                     </div>
-                                {else}
-                                    <div class="field mb-4">
-                                        <label class="label"><i class="fas fa-user-circle mr-2" style="color: var(--gymfly-primary);"></i> Atleta Cliente</label>
-                                        <div class="control">
-                                            <input class="input" type="text" readonly value="{$scheda->getCliente()->getNome()} {$scheda->getCliente()->getCognome()} ({$scheda->getCliente()->getCF()})">
-                                        </div>
-                                    </div>
-                                {/if}
+                                </div>
                                 
                                 <div class="columns is-multiline">
                                     <!-- NOME SCHEDA -->
@@ -173,7 +122,7 @@
                                 <div class="mb-5">
                                     <h3 class="title is-4 style-theme-text mb-0"><i class="fas fa-running mr-2"></i> Allenamenti della Scheda</h3>
                                 </div>
-                                {assign var="letters" value=['A','B','C','D','E','F','G','H','I','J']}
+                                {assign var="letters" value=['A','B','C','D','E','F','G']}
                                 <div id="workouts-container">
                                     {foreach $scheda->getAllenamenti() as $wIndex => $allenamento}
                                         <div class="box workout-box mb-4" data-workout-index="{$wIndex}">

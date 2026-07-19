@@ -296,7 +296,7 @@
                     </div>
                 </div>
 
-                <!-- ALLENAMENTI ACCORDION -->
+                <!-- ALLENAMENTI -->
                 <div>
                     <h2 class="title is-5 style-theme-text mb-3">
                         <i class="fas fa-running mr-2"></i> I tuoi Allenamenti
@@ -405,7 +405,7 @@
 
     <!-- SCRIPT ACCORDION GESTIONE -->
     <script>
-        function toggleAccordion(headerElement) {
+        function toggleAccordion(headerElement) {     //per il menu a scomparsa
             const accordionItem = headerElement.parentElement;
             accordionItem.classList.toggle('active');
         }
