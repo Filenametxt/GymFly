@@ -164,7 +164,7 @@
                                 <div class="column is-6">
                                     <label class="label">Gruppo Muscolare *</label>
                                     <div class="select is-fullwidth">
-                                        <select name="gruppi_muscolari[]" id="gruppi_muscolari" required onchange="toggleNuovoGruppoForm(this.value)">
+                                        <select name="gruppi_muscolari[]" id="gruppi_muscolari" required>
                                             <option value="">-- Seleziona --</option>
                                             {foreach $gruppi_muscolari as $gm}
                                                 <option value="{$gm->getId()}" {if in_array($gm->getId(), $selected_gruppi)}selected{/if}>
@@ -203,7 +203,7 @@
                                 <div class="column is-6">
                                     <label class="label">Attrezzatura</label>
                                     <div class="select is-fullwidth">
-                                        <select name="attrezzatura_id" id="attrezzatura_id" onchange="toggleNuovaAttrezzaturaForm(this.value)">
+                                        <select name="attrezzatura_id" id="attrezzatura_id">
                                             <option value="">Corpo Libero (Nessuna)</option>
                                             {foreach $attrezzature as $att}
                                                 <option value="{$att->getId()}" {if $selected_attrezzatura == $att->getId()}selected{/if}>
@@ -248,11 +248,6 @@
                             <i class="fas fa-save mr-2"></i> Salva Esercizio
                         </button>
                     </div>
-                    <div class="control">
-                        <a href="elimina-bozza?id={$id_provvisorio}" class="button is-danger is-light">
-                            <i class="fas fa-trash-alt mr-2"></i> Elimina
-                        </a>
-                    </div>
                 </div>
 
             </form>
@@ -263,53 +258,25 @@
     <!-- SCRIPT VALIDAZIONE E PREVIEW DIMOSTRATIVA -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // 0. Gestione inserimento dinamico gruppo muscolare
-            window.toggleNuovoGruppoForm = function(val) {
-                const box = document.getElementById('container-nuovo-gruppo');
-                const input = document.getElementById('nuovo-gruppo-nome');
-                if (val === 'nuovo_gruppo') {
-                    box.classList.remove('is-hidden');
-                    input.setAttribute('required', 'true');
-                } else {
-                    box.classList.add('is-hidden');
-                    input.removeAttribute('required');
-                }
+            // Helper per gestire l'inserimento dinamico (mostra/nascondi container e imposta required)
+            const toggleForm = (selectId, containerId, inputId, triggerValue) => {
+                const select = document.getElementById(selectId);
+                const toggle = () => {
+                    const isTrigger = select.value === triggerValue;
+                    document.getElementById(containerId).classList.toggle('is-hidden', !isTrigger);
+                    document.getElementById(inputId).toggleAttribute('required', isTrigger);
+                };
+                select.addEventListener('change', toggle);
+                toggle();
             };
-            toggleNuovoGruppoForm(document.getElementById('gruppi_muscolari').value);
+            toggleForm('gruppi_muscolari', 'container-nuovo-gruppo', 'nuovo-gruppo-nome', 'nuovo_gruppo');
+            toggleForm('attrezzatura_id', 'container-nuova-attrezzatura', 'nuova-attrezzatura-nome', 'nuova_attrezzatura');
 
-            // Previene il submit del form se l'utente preme Invio nell'input del nuovo gruppo muscolare
-            const nuovoGruppoInput = document.getElementById('nuovo-gruppo-nome');
-            if (nuovoGruppoInput) {
-                nuovoGruppoInput.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                    }
-                });
-            }
-
-            // 0b. Gestione inserimento dinamico attrezzatura
-            window.toggleNuovaAttrezzaturaForm = function(val) {
-                const box = document.getElementById('container-nuova-attrezzatura');
-                const input = document.getElementById('nuova-attrezzatura-nome');
-                if (val === 'nuova_attrezzatura') {
-                    box.classList.remove('is-hidden');
-                    input.setAttribute('required', 'true');
-                } else {
-                    box.classList.add('is-hidden');
-                    input.removeAttribute('required');
-                }
-            };
-            toggleNuovaAttrezzaturaForm(document.getElementById('attrezzatura_id').value);
-
-            // Previene il submit del form se l'utente preme Invio nell'input della nuova attrezzatura
-            const nuovaAttrezzaturaInput = document.getElementById('nuova-attrezzatura-nome');
-            if (nuovaAttrezzaturaInput) {
-                nuovaAttrezzaturaInput.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                    }
-                });
-            }
+            // Previene l'invio del form premendo Invio sui campi di testo dinamici
+            ['nuovo-gruppo-nome', 'nuova-attrezzatura-nome'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('keydown', e => e.key === 'Enter' && e.preventDefault());
+            });
 
             const nomeInput = document.getElementById('nome-esercizio');
             const fileInput = document.getElementById('immagine-input');
@@ -319,41 +286,33 @@
             const idProvvisorio = document.getElementById('id_provvisorio').value;
             const btnSave = document.getElementById('btn-save');
 
-            // 1. Gestione Copia da Esistente (Redirection)
+            // Copia da Esistente
             const btnCopia = document.getElementById('btn-copia');
             if (btnCopia) {
                 btnCopia.addEventListener('click', () => {
-                    const select = document.getElementById('select-copia');
-                    if (select.value) {
-                        window.location.href = `copia-esercizio?id=${ select.value }`;
-                    } else {
-                        alert('Seleziona un esercizio da copiare.');
-                    }
+                    const val = document.getElementById('select-copia').value;
+                    if (val) window.location.href = `copia-esercizio?id=${val}`;
+                    else alert('Seleziona un esercizio da copiare.');
                 });
             }
 
-            // 2. Anteprima immagine in tempo reale su upload client-side
+            // Anteprima immagine in tempo reale
             fileInput.addEventListener('change', () => {
-                if (fileInput.files.length > 0) {
-                    const file = fileInput.files[0];
+                if (fileInput.files[0]) {
                     const reader = new FileReader();
-                    reader.onload = (e) => {
+                    reader.onload = e => {
                         const imgTag = document.getElementById('img-preview-tag');
+                        imgTag.src = e.target.result;
+                        imgTag.classList.remove('is-hidden');
                         const placeholder = document.getElementById('img-placeholder');
-                        if (imgTag) {
-                            imgTag.src = e.target.result;
-                            imgTag.classList.remove('is-hidden');
-                        }
-                        if (placeholder) {
-                            placeholder.classList.add('is-hidden');
-                        }
+                        if (placeholder) placeholder.classList.add('is-hidden');
                     };
-                    reader.readAsDataURL(file);
+                    reader.readAsDataURL(fileInput.files[0]);
                 }
                 validaDati();
             });
 
-            // 3. Debounce validazione in tempo reale
+            // Debounce validazione in tempo reale
             let timeout = null;
             nomeInput.addEventListener('input', () => {
                 clearTimeout(timeout);
@@ -364,55 +323,26 @@
                 const formData = new FormData();
                 formData.append('nome', nomeInput.value);
                 formData.append('id_provvisorio', idProvvisorio);
-                
-                if (fileInput.files.length > 0) {
-                    formData.append('immagine', fileInput.files[0]);
-                }
+                if (fileInput.files[0]) formData.append('immagine', fileInput.files[0]);
 
-                fetch('valida-esercizio', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
+                fetch('valida-esercizio', { method: 'POST', body: formData })
+                .then(res => res.json())
                 .then(data => {
-                    // Validazione Nome
-                    if (data.duplicato) {
-                        nomeInput.classList.add('is-danger');
-                        nomeInput.classList.remove('is-success');
-                        errorNome.textContent = data.errore_nome;
-                        errorNome.classList.remove('is-hidden');
-                        successNome.classList.add('is-hidden');
-                    } else if (nomeInput.value.trim() !== '') {
-                        nomeInput.classList.remove('is-danger');
-                        nomeInput.classList.add('is-success');
-                        errorNome.classList.add('is-hidden');
-                        successNome.classList.remove('is-hidden');
-                    } else {
-                        nomeInput.classList.remove('is-danger', 'is-success');
-                        errorNome.classList.add('is-hidden');
-                        successNome.classList.add('is-hidden');
-                    }
+                    const isDuplicato = !!data.duplicato;
+                    nomeInput.classList.toggle('is-danger', isDuplicato);
+                    nomeInput.classList.toggle('is-success', !isDuplicato && nomeInput.value.trim() !== '');
+                    errorNome.textContent = data.errore_name || data.errore_nome || '';
+                    errorNome.classList.toggle('is-hidden', !isDuplicato);
+                    successNome.classList.toggle('is-hidden', isDuplicato || nomeInput.value.trim() === '');
 
-                    // Validazione File
-                    if (data.errore_file) {
-                        errorFile.textContent = data.errore_file;
-                        errorFile.classList.remove('is-hidden');
-                        fileInput.classList.add('is-danger');
-                    } else {
-                        errorFile.classList.add('is-hidden');
-                        fileInput.classList.remove('is-danger');
-                    }
+                    const isErroreFile = !!data.errore_file;
+                    errorFile.textContent = data.errore_file || '';
+                    errorFile.classList.toggle('is-hidden', !isErroreFile);
+                    fileInput.classList.toggle('is-danger', isErroreFile);
 
-                    // Abilita/Disabilita pulsante salvataggio
-                    if (data.success && nomeInput.value.trim() !== '') {
-                        btnSave.disabled = false;
-                    } else if (nomeInput.value.trim() === '') {
-                        btnSave.disabled = false;
-                    } else {
-                        btnSave.disabled = true;
-                    }
+                    btnSave.disabled = (nomeInput.value.trim() !== '' && !data.success);
                 })
-                .catch(err => console.error('Errore durante la validazione:', err));
+                .catch(err => console.error('Errore validazione:', err));
             }
         });
     </script>
