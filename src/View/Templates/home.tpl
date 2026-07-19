@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="light">
-    <meta name="description" content="GymFly">
-    <title>GymFly</title>
+    <meta name="description" content="GymFly - Il gestionale intelligente per palestre moderne. Gestisci atleti, attività, abbonamenti e sessioni private in un unico posto.">
+    <title>GymFly - Il gestionale per palestre intelligente</title>
     <link rel="stylesheet" href="css/bulma.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
@@ -192,16 +192,16 @@
 
     <script>
         // Scroll animations
-        var observer = new IntersectionObserver(function(entries) {    //crea un osservatore che rileva quando un elemento entra nella viewport
+        var observer = new IntersectionObserver(function(entries) {
             entries.forEach(function(entry) {
                 if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');     //aggiunge la classe 'visible' all'elemento quando entra nella viewport
+                    entry.target.classList.add('visible');
                 }
             });
-        }, { threshold: 0.12 });                 //imposta la soglia di visibilità al 12% dell'elemento
+        }, { threshold: 0.12 });
 
-        document.querySelectorAll('.animate-on-scroll').forEach(function(el) {    //seleziona tutti gli elementi con la classe animate-on-scroll
-            observer.observe(el);                                                 //osserva ciascun elemento
+        document.querySelectorAll('.animate-on-scroll').forEach(function(el) {
+            observer.observe(el);
         });
     </script>
 
