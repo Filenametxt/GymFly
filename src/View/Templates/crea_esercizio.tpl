@@ -279,13 +279,22 @@
             const nomeInput = document.getElementById('nome-esercizio');
             const fileInput = document.getElementById('immagine-input');
 
-            // Copia da Esistente
+            // Copia da Esistente con validazione custom per evitare popup bloccanti
             const btnCopia = document.getElementById('btn-copia');
             if (btnCopia) {
-                btnCopia.addEventListener('click', () => {
-                    const val = document.getElementById('select-copia').value;
-                    if (val) window.location.href = `copia-esercizio?id=${val}`;
-                    else alert('Seleziona un esercizio da copiare.');
+                btnCopia.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const select = document.getElementById('select-copia');
+                    const val = select.value;
+                    if (val) {
+                        window.location.href = `copia-esercizio?id=${val}`;
+                    } else {
+                        select.setCustomValidity('Seleziona un esercizio da copiare.');
+                        select.reportValidity();
+                    }
+                });
+                document.getElementById('select-copia').addEventListener('change', (e) => {
+                    e.target.setCustomValidity('');
                 });
             }
 
