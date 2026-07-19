@@ -169,6 +169,16 @@ class ProfiloController
             return;
         }
         $ruolo = $this->session->getLoggedUserRole();
+        if ($ruolo !== 'amministratore' && $ruolo !== 'cliente') {
+            $this->mostraStatoOperazione(false, "Accesso negato. La modifica dell'anagrafica è riservata solo ad Amministratori e Clienti.");
+            return;
+        }
+        $targetId = isset($_GET['id']) ? (int)$_GET['id'] : (isset($_POST['id']) ? (int)$_POST['id'] : $idUtente);
+        if ($ruolo === 'cliente' && $targetId !== $idUtente) {
+            $this->mostraStatoOperazione(false, "Accesso negato. Non sei autorizzato a modificare l'anagrafica di un altro utente.");
+            return;
+        }
+
         $isSelf = true;
         $utente = $this->determinaUtenteModifica($idUtente, $ruolo, $isSelf);
         if (!$utente) {
@@ -185,22 +195,20 @@ class ProfiloController
 
     private function determinaUtenteModifica(int $idUt, string $ruolo, bool &$isSelf): ?Utente       //determina quale utente deve essere modificato in base all'ID dell'utente loggaton enal ruolo
     {
-        $isSelf = !isset($_GET['id']) && !isset($_POST['id']);      //devono essere entrambi settati su false (col NOT diventa true)
+        $targetId = isset($_GET['id']) ? (int)$_GET['id'] : (isset($_POST['id']) ? (int)$_POST['id'] : $idUt);
+        $isSelf = ($targetId === $idUt);
         if ($isSelf) {
             return $this->recuperaUtenteLoggato($this->entityManager, $idUt, $ruolo);     //se devo vedere il mio profilo ho bisogno del mio id
         }
-        if ($ruolo === 'allenatore') {
+        if ($ruolo !== 'amministratore') {
             return null;
         }
-        $targetId = isset($_GET['id']) ? (int)$_GET['id'] : (int)$_POST['id'];
         $utente = $this->utenteRepo->findById($targetId);
-        if ($ruolo === 'amministratore') {
-            $admin = $this->amministratoreRepo->findById($idUt);
-            $pal = $this->palestraRepo->findByAmministratore($admin);
-            $palTarget = $utente ? $this->recuperaPalestraUtente($utente) : null;
-            if (!$utente || !$palTarget || !$pal || $palTarget->getId() !== $pal->getId()) {
-                return null;
-            }
+        $admin = $this->amministratoreRepo->findById($idUt);
+        $pal = $this->palestraRepo->findByAmministratore($admin);
+        $palTarget = $utente ? $this->recuperaPalestraUtente($utente) : null;
+        if (!$utente || !$palTarget || !$pal || $palTarget->getId() !== $pal->getId()) {
+            return null;
         }
         return $utente;
     }
@@ -369,6 +377,11 @@ class ProfiloController
         $idUt = $this->session->getLoggedUserId();
         if (!$idUt) {
             $this->mostraStatoOperazione(false, "Sessione scaduta o non valida.");
+            return;
+        }
+        $targetId = isset($_GET['id']) ? (int)$_GET['id'] : (isset($_POST['id']) ? (int)$_POST['id'] : $idUt);
+        if ($targetId !== $idUt) {
+            $this->mostraStatoOperazione(false, "Accesso negato. Il cambio password è strettamente personale.");
             return;
         }
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
