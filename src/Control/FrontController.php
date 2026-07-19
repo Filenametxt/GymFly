@@ -49,7 +49,6 @@ class FrontController
             '/rimuovi-allenatore' => [AmministratoreController::class, 'rimuoviAllenatore'],
             
             '/crea-esercizio' => [EserciziController::class, 'apriFormCreazioneEsercizio'],
-            '/valida-esercizio' => [EserciziController::class, 'compilaDatiEsercizio'],
             '/salva-esercizio' => [EserciziController::class, 'salvaEsercizio'],
             '/copia-esercizio' => [EserciziController::class, 'copiaEsercizio'],
             '/esercizi' => [EserciziController::class, 'listaEsercizi'],

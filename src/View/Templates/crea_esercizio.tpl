@@ -123,7 +123,6 @@
                                     </span>
                                 </label>
                             </div>
-                            <p class="help is-danger is-hidden" id="error-file"></p>
                         </div>
                     </div>
 
@@ -143,8 +142,6 @@
                                         <i class="fas fa-tag"></i>
                                     </span>
                                 </div>
-                                <p class="help is-danger is-hidden" id="error-nome"></p>
-                                <p class="help is-success is-hidden" id="success-nome">Nome disponibile.</p>
                             </div>
 
                             <!-- PRIMA RIGA SELEZIONI (Tipologia e Gruppo Muscolare) -->
@@ -281,11 +278,6 @@
 
             const nomeInput = document.getElementById('nome-esercizio');
             const fileInput = document.getElementById('immagine-input');
-            const errorNome = document.getElementById('error-nome');
-            const successNome = document.getElementById('success-nome');
-            const errorFile = document.getElementById('error-file');
-            const idProvvisorio = document.getElementById('id_provvisorio').value;
-            const btnSave = document.getElementById('btn-save');
 
             // Copia da Esistente
             const btnCopia = document.getElementById('btn-copia');
@@ -310,41 +302,7 @@
                     };
                     reader.readAsDataURL(fileInput.files[0]);
                 }
-                validaDati();
             });
-
-            // Debounce validazione in tempo reale
-            let timeout = null;
-            nomeInput.addEventListener('input', () => {
-                clearTimeout(timeout);
-                timeout = setTimeout(validaDati, 500);
-            });
-
-            function validaDati() {
-                const formData = new FormData();
-                formData.append('nome', nomeInput.value);
-                formData.append('id_provvisorio', idProvvisorio);
-                if (fileInput.files[0]) formData.append('immagine', fileInput.files[0]);
-
-                fetch('valida-esercizio', { method: 'POST', body: formData })
-                .then(res => res.json())
-                .then(data => {
-                    const isDuplicato = !!data.duplicato;
-                    nomeInput.classList.toggle('is-danger', isDuplicato);
-                    nomeInput.classList.toggle('is-success', !isDuplicato && nomeInput.value.trim() !== '');
-                    errorNome.textContent = data.errore_name || data.errore_nome || '';
-                    errorNome.classList.toggle('is-hidden', !isDuplicato);
-                    successNome.classList.toggle('is-hidden', isDuplicato || nomeInput.value.trim() === '');
-
-                    const isErroreFile = !!data.errore_file;
-                    errorFile.textContent = data.errore_file || '';
-                    errorFile.classList.toggle('is-hidden', !isErroreFile);
-                    fileInput.classList.toggle('is-danger', isErroreFile);
-
-                    btnSave.disabled = (nomeInput.value.trim() !== '' && !data.success);
-                })
-                .catch(err => console.error('Errore validazione:', err));
-            }
         });
         {/literal}
     </script>
