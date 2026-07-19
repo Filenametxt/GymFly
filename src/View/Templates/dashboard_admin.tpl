@@ -28,31 +28,37 @@
             <!-- STATS -->
             <div class="columns mb-6">
                 <div class="column">
-                    <div class="stat-card">
-                        <span class="icon is-large mb-2">
-                            <i class="fas fa-users fa-2x" style="color: #AFAFE2 !important;"></i>
-                        </span>
-                        <h3 class="title is-4 mb-1">{$clienti|@count}</h3>
-                        <p class="heading has-text-grey">Clienti Totali</p>
-                    </div>
+                    <a href="clienti" style="display: block; text-decoration: none;">
+                        <div class="stat-card">
+                            <span class="icon is-large mb-2">
+                                <i class="fas fa-users fa-2x" style="color: #AFAFE2 !important;"></i>
+                            </span>
+                            <h3 class="title is-4 mb-1">{$clienti|@count}</h3>
+                            <p class="heading has-text-grey">Clienti Totali</p>
+                        </div>
+                    </a>
                 </div>
                 <div class="column">
-                    <div class="stat-card">
-                        <span class="icon is-large mb-2">
-                            <i class="fas fa-user-tie fa-2x" style="color: #99CDEA !important;"></i>
-                        </span>
-                        <h3 class="title is-4 mb-1">{$allenatori|@count}</h3>
-                        <p class="heading has-text-grey">Allenatori Attivi</p>
-                    </div>
+                    <a href="allenatori" style="display: block; text-decoration: none;">
+                        <div class="stat-card">
+                            <span class="icon is-large mb-2">
+                                <i class="fas fa-user-tie fa-2x" style="color: #99CDEA !important;"></i>
+                            </span>
+                            <h3 class="title is-4 mb-1">{$allenatori|@count}</h3>
+                            <p class="heading has-text-grey">Allenatori Attivi</p>
+                        </div>
+                    </a>
                 </div>
                 <div class="column">
-                    <div class="stat-card">
-                        <span class="icon is-large mb-2">
-                            <i class="fas fa-dumbbell fa-2x" style="color: #AFAFE2 !important;"></i>
-                        </span>
-                        <h3 class="title is-4 mb-1">Attiva</h3>
-                        <p class="heading has-text-grey">Stato Palestra</p>
-                    </div>
+                    <a href="report" style="display: block; text-decoration: none;">
+                        <div class="stat-card">
+                            <span class="icon is-large mb-2">
+                                <i class="fas fa-dumbbell fa-2x" style="color: #AFAFE2 !important;"></i>
+                            </span>
+                            <h3 class="title is-4 mb-1">Attiva</h3>
+                            <p class="heading has-text-grey">Stato Palestra</p>
+                        </div>
+                    </a>
                 </div>
             </div>
 
