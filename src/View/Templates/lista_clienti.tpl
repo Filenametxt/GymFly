@@ -50,7 +50,13 @@
                 <strong class="is-size-4 style-theme-text" style="letter-spacing: 1px;">CLIENTI</strong>
             </div>
 
-            {assign var="hasFilters" value=(isset($filtro_certificato) && $filtro_certificato !== null) || (isset($filtro_abbonamento) && $filtro_abbonamento !== null) || (isset($filtro_scheda) && $filtro_scheda !== null)}
+            {assign var="filtro_certificato" value=(isset($smarty.request.filtro_certificato) && $smarty.request.filtro_certificato !== '' ? $smarty.request.filtro_certificato : null)}
+            {assign var="filtro_abbonamento" value=(isset($smarty.request.filtro_abbonamento) && $smarty.request.filtro_abbonamento !== '' ? $smarty.request.filtro_abbonamento : null)}
+            {assign var="filtro_scheda" value=(isset($smarty.request.filtro_scheda) && $smarty.request.filtro_scheda !== '' ? $smarty.request.filtro_scheda : null)}
+            {assign var="ordine" value=(isset($smarty.request.ordine) && $smarty.request.ordine !== '' ? $smarty.request.ordine : null)}
+            {assign var="search_query" value=(isset($smarty.request.search_query) && $smarty.request.search_query !== '' ? $smarty.request.search_query : null)}
+
+            {assign var="hasFilters" value=($filtro_certificato !== null) || ($filtro_abbonamento !== null) || ($filtro_scheda !== null)}
 
             <!-- CONTROLS / TOOLBAR -->
             <div class="is-flex is-justify-content-between is-align-items-center {if $hasFilters}mb-6 pb-2{else}mb-5{/if} is-flex-wrap-wrap" style="gap: 15px;">
@@ -174,7 +180,7 @@
                             {if isset($ordine)}<input type="hidden" name="ordine" value="{$ordine}">{/if}
                             <div class="field mb-0">
                                 <div class="control has-icons-left">
-                                    <input class="input" type="text" name="search_query" placeholder="Search" value="{if isset($smarty.post.search_query)}{$smarty.post.search_query}{/if}">
+                                    <input class="input" type="text" name="search_query" placeholder="Search" value="{$search_query}">
                                     <span class="icon is-left">
                                         <i class="fas fa-search"></i>
                                     </span>
