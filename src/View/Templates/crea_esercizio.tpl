@@ -257,6 +257,7 @@
 
     <!-- SCRIPT VALIDAZIONE E PREVIEW DIMOSTRATIVA -->
     <script>
+        {literal}
         document.addEventListener('DOMContentLoaded', () => {
             // Helper per gestire l'inserimento dinamico (mostra/nascondi container e imposta required)
             const toggleForm = (selectId, containerId, inputId, triggerValue) => {
@@ -345,6 +346,7 @@
                 .catch(err => console.error('Errore validazione:', err));
             }
         });
+        {/literal}
     </script>
 </body>
 </html>
