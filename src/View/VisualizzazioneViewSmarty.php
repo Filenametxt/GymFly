@@ -22,11 +22,6 @@ class VisualizzazioneViewSmarty implements VisualizzazioneView
     public function mostraDashboardAdmin(array $dati): void
     {
         header('Content-Type: text/html; charset=utf-8');
-        $utente = $dati['utente'] ?? null;
-        $fotoProfilo = ($utente && $utente->getProfilePicture()) ? base64_encode($utente->getProfilePicture()) : null;
-        $fotoProfiloType = ($utente && $utente->getTipoImmagine()) ? $utente->getTipoImmagine() : 'image/jpeg';
-        $this->smarty->assign('fotoProfilo', $fotoProfilo);
-        $this->smarty->assign('fotoProfiloType', $fotoProfiloType);
         foreach ($dati as $key => $value) {
             $this->smarty->assign($key, $value);
         }
@@ -36,11 +31,6 @@ class VisualizzazioneViewSmarty implements VisualizzazioneView
     public function mostraDashboardAllenatore(array $dati): void
     {
         header('Content-Type: text/html; charset=utf-8');
-        $utente = $dati['utente'] ?? null;
-        $fotoProfilo = ($utente && $utente->getProfilePicture()) ? base64_encode($utente->getProfilePicture()) : null;
-        $fotoProfiloType = ($utente && $utente->getTipoImmagine()) ? $utente->getTipoImmagine() : 'image/jpeg';
-        $this->smarty->assign('fotoProfilo', $fotoProfilo);
-        $this->smarty->assign('fotoProfiloType', $fotoProfiloType);
         foreach ($dati as $key => $value) {
             $this->smarty->assign($key, $value);
         }
@@ -50,11 +40,6 @@ class VisualizzazioneViewSmarty implements VisualizzazioneView
     public function mostraDashboardCliente(array $dati): void
     {
         header('Content-Type: text/html; charset=utf-8');
-        $utente = $dati['utente'] ?? null;
-        $fotoProfilo = ($utente && $utente->getProfilePicture()) ? base64_encode($utente->getProfilePicture()) : null;
-        $fotoProfiloType = ($utente && $utente->getTipoImmagine()) ? $utente->getTipoImmagine() : 'image/jpeg';
-        $this->smarty->assign('fotoProfilo', $fotoProfilo);
-        $this->smarty->assign('fotoProfiloType', $fotoProfiloType);
         foreach ($dati as $key => $value) {
             $this->smarty->assign($key, $value);
         }

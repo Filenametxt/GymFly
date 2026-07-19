@@ -281,9 +281,9 @@
 
                                 <!-- ACCORDION CONTENT -->
                                 <div class="accordion-content">
-                                    {if $allenamento->getDescrizione()|pulisci_descrizione}
+                                    {if $allenamento->getDescrizione()}
                                         <p class="subtitle is-6 has-text-grey mb-3" style="font-size: 0.85rem;">
-                                            <i class="fas fa-note-sticky mr-1"></i> {$allenamento->getDescrizione()|pulisci_descrizione}
+                                            <i class="fas fa-note-sticky mr-1"></i> {$allenamento->getDescrizione()}
                                         </p>
                                     {/if}
 

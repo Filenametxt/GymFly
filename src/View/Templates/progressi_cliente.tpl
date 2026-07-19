@@ -287,9 +287,9 @@
 
                             <!-- Accordion Content -->
                             <div class="workout-accordion-content">
-                                {if $wData.allenamento->getDescrizione()|pulisci_descrizione}
+                                {if $wData.allenamento->getDescrizione()}
                                     <p class="is-size-7 style-theme-text mb-4" style="font-style: italic;">
-                                        <i class="fas fa-info-circle mr-1" style="color: var(--gymfly-primary);"></i> {$wData.allenamento->getDescrizione()|pulisci_descrizione}
+                                        <i class="fas fa-info-circle mr-1" style="color: var(--gymfly-primary);"></i> {$wData.allenamento->getDescrizione()}
                                     </p>
                                 {/if}
 
