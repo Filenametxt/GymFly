@@ -230,30 +230,69 @@
     <div class="app-container">
         {include file='sidebar.tpl'}
         <main class="app-content">
-            <div class="container custom-mobile-container">
+            <div class="container">
                 
-                <!-- BACK LINK -->
-                <div class="mb-4">
+                <!-- TORNA INDIETRO (Desktop) -->
+                <div class="mb-5 is-hidden-mobile">
                     <a href="dashboard-cliente" class="button is-ghost has-text-grey pl-0">
                         <span class="icon"><i class="fas fa-arrow-left"></i></span>
                         <span>Torna alla Dashboard</span>
                     </a>
                 </div>
 
-                <!-- HEADER SCHEDA -->
-                <div class="box p-5 mb-5" style="border: 2px solid var(--gymfly-accent); border-radius: 15px; background-color: var(--gymfly-card-bg); box-shadow: 0 8px 16px rgba(0,0,0,0.02) !important;">
-                    <div class="mb-3">
-                        <span class="tag is-success is-light mb-2">
-                            <i class="fas fa-check-circle mr-1"></i> SCHEDA ATTIVA
-                        </span>
+                <!-- ================= DESKTOP HEADER ================= -->
+                {assign var="headerClass" value="dashboard-header"}
+                {if isset($smarty.session.ruolo_utente)}
+                    {if $smarty.session.ruolo_utente === 'amministratore'}
+                        {assign var="headerClass" value="dashboard-header-admin"}
+                    {elseif $smarty.session.ruolo_utente === 'allenatore'}
+                        {assign var="headerClass" value="dashboard-header-trainer"}
+                    {/if}
+                {/if}
+                <div class="{$headerClass} is-hidden-mobile" style="margin-bottom: 2rem;">
+                    <div class="columns is-vcentered">
+                        <div class="column">
+                            <div class="mb-2">
+                                <span class="tag is-success is-light">
+                                    <i class="fas fa-check-circle mr-1"></i> SCHEDA ATTIVA
+                                </span>
+                            </div>
+                            <h1 class="title is-2 has-text-white mb-2">{$scheda->getNome_scheda()}</h1>
+                            <p class="subtitle is-5 has-text-white-ter mb-3">Obiettivo: {$scheda->getObiettivo()}</p>
+                            <div class="has-text-white-ter is-size-6 mt-4">
+                                <span class="mr-5"><i class="fas fa-user-tie mr-2"></i>Coach: <strong>{$scheda->getAllenatore()->getNome()} {$scheda->getAllenatore()->getCognome()}</strong></span>
+                                <span><i class="fas fa-calendar-alt mr-2"></i>Validità: <strong>{$scheda->getData_inizio()->format('d/m/Y')} — {$scheda->getData_fine()->format('d/m/Y')}</strong></span>
+                            </div>
+                        </div>
+                        <div class="column is-narrow">
+                            <figure class="image is-96x96">
+                                <span class="icon is-large has-text-white">
+                                    <i class="fas fa-heartbeat fa-5x"></i>
+                                </span>
+                            </figure>
+                        </div>
                     </div>
-                    <h1 class="title is-2 style-theme-text mb-2">{$scheda->getNome_scheda()}</h1>
-                    <p class="subtitle is-6 has-text-grey-dark mb-4">
-                        <strong>Obiettivo:</strong> {$scheda->getObiettivo()}
-                    </p>
-                    <div class="is-size-7 has-text-grey mb-4">
-                        <p><strong>Coach:</strong> {$scheda->getAllenatore()->getNome()} {$scheda->getAllenatore()->getCognome()}</p>
-                        <p><strong>Validità:</strong> {$scheda->getData_inizio()->format('d/m/Y')} — {$scheda->getData_fine()->format('d/m/Y')}</p>
+                </div>
+
+                <!-- ================= MOBILE HEADER ================= -->
+                <div class="mb-5 is-hidden-tablet" style="padding-top: 5px;">
+                    <div class="is-flex is-align-items-center mb-3">
+                        <div style="width: 45px;"></div>
+                        <a href="dashboard-cliente" class="button is-ghost p-0 mr-3" style="color: inherit; height: auto;">
+                            <span class="icon is-medium"><i class="fas fa-arrow-left fa-lg"></i></span>
+                        </a>
+                        <strong class="is-size-4 style-theme-text" style="letter-spacing: 1px; flex-grow: 1;">LA MIA SCHEDA</strong>
+                    </div>
+                    <div class="box p-4" style="background-color: var(--gymfly-card-bg); border: 1px solid var(--gymfly-accent);">
+                        <div class="mb-2">
+                            <span class="tag is-success is-light"><i class="fas fa-check-circle mr-1"></i> SCHEDA ATTIVA</span>
+                        </div>
+                        <h2 class="title is-4 style-theme-text mb-2">{$scheda->getNome_scheda()}</h2>
+                        <p class="subtitle is-6 has-text-grey-dark mb-3">Obiettivo: {$scheda->getObiettivo()}</p>
+                        <div class="is-size-7 has-text-grey">
+                            <p class="mb-1"><i class="fas fa-user-tie mr-1"></i> <strong>Coach:</strong> {$scheda->getAllenatore()->getNome()} {$scheda->getAllenatore()->getCognome()}</p>
+                            <p><i class="fas fa-calendar-alt mr-1"></i> <strong>Validità:</strong> {$scheda->getData_inizio()->format('d/m/Y')} — {$scheda->getData_fine()->format('d/m/Y')}</p>
+                        </div>
                     </div>
                 </div>
 
@@ -292,44 +331,46 @@
                                         <div class="exercises-list">
                                             {foreach $allenamento->getDettagli() as $dettaglio}
                                                 <div class="exercise-card">
-                                                    <!-- EXERCISE NAME -->
-                                                    <div class="exercise-name">
-                                                        <span class="exercise-serie-badge">S{$dettaglio->getSerie()}</span>
-                                                        <span>{$dettaglio->getEsercizio()->getNomeEsercizio()}</span>
-                                                    </div>
+                                                    <div class="columns is-mobile is-vcentered">
+                                                        {if $dettaglio->getEsercizio()->getImmagine()}
+                                                            <div class="column is-narrow">
+                                                                <figure class="image is-96x96" style="border-radius: 8px; overflow: hidden; border: 1px solid var(--gymfly-accent); background-color: #f5f5f5;">
+                                                                    <img src="data:{if $dettaglio->getEsercizio()->getTipoImmagine()}{$dettaglio->getEsercizio()->getTipoImmagine()}{else}image/jpeg{/if};base64,{$dettaglio->getEsercizio()->getImmagine()|base64_encode}" alt="Esercizio" style="object-fit: cover; width: 100%; height: 100%;">
+                                                                </figure>
+                                                            </div>
+                                                        {/if}
+                                                        <div class="column">
+                                                            <!-- EXERCISE NAME -->
+                                                            <div class="exercise-name" style="margin-bottom: 0.5rem;">
+                                                                <span class="exercise-serie-badge">S{$dettaglio->getSerie()}</span>
+                                                                <span>{$dettaglio->getEsercizio()->getNomeEsercizio()}</span>
+                                                            </div>
 
-                                                    <!-- EXERCISE PARAMS -->
-                                                    {assign var="nomeTipo" value=$dettaglio->getEsercizio()->getTipologia()->getNomeTipologia()|lower}
-                                                    {assign var="isDurata" value=($nomeTipo === 'durata')}
-                                                    <div class="exercise-params">
-                                                        <div class="param-box" {if $isDurata}style="opacity: 0.5;"{/if}>
-                                                            <div class="param-label">
-                                                                <i class="fas fa-redo mr-1"></i> Ripetizioni
+                                                            <!-- EXERCISE PARAMS -->
+                                                            {assign var="nomeTipo" value=$dettaglio->getEsercizio()->getTipologia()->getNomeTipologia()|lower}
+                                                            {assign var="isDurata" value=($nomeTipo === 'durata')}
+                                                            <div class="exercise-params" style="margin-bottom: 0;">
+                                                                <div class="param-box" {if $isDurata}style="opacity: 0.5;"{/if}>
+                                                                    <div class="param-label">
+                                                                        <i class="fas fa-redo mr-1"></i> Ripetizioni
+                                                                    </div>
+                                                                    <div class="param-value">{if $isDurata}—{else}{$dettaglio->getRipetizioni()}{/if}</div>
+                                                                </div>
+                                                                <div class="param-box">
+                                                                    <div class="param-label">
+                                                                        <i class="fas fa-weight mr-1"></i> Carico
+                                                                    </div>
+                                                                    <div class="param-value">{$dettaglio->getCarico()} Kg</div>
+                                                                </div>
+                                                                <div class="param-box" {if !$isDurata}style="opacity: 0.5;"{/if}>
+                                                                    <div class="param-label">
+                                                                        <i class="fas fa-stopwatch mr-1"></i> Tempo
+                                                                    </div>
+                                                                    <div class="param-value">{if !$isDurata}—{else}{$dettaglio->getTempo()|default:'—'}{/if}</div>
+                                                                </div>
                                                             </div>
-                                                            <div class="param-value">{if $isDurata}—{else}{$dettaglio->getRipetizioni()}{/if}</div>
-                                                        </div>
-                                                        <div class="param-box">
-                                                            <div class="param-label">
-                                                                <i class="fas fa-weight mr-1"></i> Carico
-                                                            </div>
-                                                            <div class="param-value">{$dettaglio->getCarico()} Kg</div>
-                                                        </div>
-                                                        <div class="param-box" {if !$isDurata}style="opacity: 0.5;"{/if}>
-                                                            <div class="param-label">
-                                                                <i class="fas fa-stopwatch mr-1"></i> Tempo
-                                                            </div>
-                                                            <div class="param-value">{if !$isDurata}—{else}{$dettaglio->getTempo()|default:'—'}{/if}</div>
                                                         </div>
                                                     </div>
-
-                                                    <!-- EXERCISE IMAGE (optional) -->
-                                                    {if $dettaglio->getEsercizio()->getImmagine()}
-                                                        <div style="margin-top: 0.75rem; text-align: center;">
-                                                            <figure class="image is-96x96 is-inline-block" style="border-radius: 8px; overflow: hidden; border: 1px solid var(--gymfly-accent);">
-                                                                <img src="data:{if $dettaglio->getEsercizio()->getTipoImmagine()}{$dettaglio->getEsercizio()->getTipoImmagine()}{else}image/jpeg{/if};base64,{$dettaglio->getEsercizio()->getImmagine()|base64_encode}" alt="Esercizio" style="object-fit: cover; width: 100%; height: 100%;">
-                                                            </figure>
-                                                        </div>
-                                                    {/if}
                                                 </div>
                                             {/foreach}
                                         </div>
