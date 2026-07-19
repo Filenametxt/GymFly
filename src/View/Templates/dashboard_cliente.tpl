@@ -13,7 +13,7 @@
             .dashboard-header {
                 height: auto !important;
                 min-height: auto !important;
-                padding: 1rem 1.2rem !important; /* Ridotto il padding verticale per rendere la card più corta */
+                padding: 1rem 1.2rem !important; 
                 flex-direction: column !important;
                 align-items: flex-start !important;
                 justify-content: center !important;

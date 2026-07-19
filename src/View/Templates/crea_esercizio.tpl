@@ -283,7 +283,7 @@
             const btnCopia = document.getElementById('btn-copia');
             if (btnCopia) {
                 btnCopia.addEventListener('click', (e) => {
-                    e.preventDefault();
+                    e.preventDefault();         //blocca il comportamento predefinito di browser
                     const select = document.getElementById('select-copia');
                     const val = select.value;
                     if (val) {
@@ -302,14 +302,14 @@
             fileInput.addEventListener('change', () => {
                 if (fileInput.files[0]) {
                     const reader = new FileReader();
-                    reader.onload = e => {
+                    reader.onload = e => {               //carica l'elemento
                         const imgTag = document.getElementById('img-preview-tag');
-                        imgTag.src = e.target.result;
+                        imgTag.src = e.target.result; 
                         imgTag.classList.remove('is-hidden');
                         const placeholder = document.getElementById('img-placeholder');
                         if (placeholder) placeholder.classList.add('is-hidden');
                     };
-                    reader.readAsDataURL(fileInput.files[0]);
+                    reader.readAsDataURL(fileInput.files[0]);      //converti in un indirizzo web temporaneo
                 }
             });
         });
