@@ -232,7 +232,7 @@
 
                 if (!valid) return;
 
-                document.getElementById('step-1').classList.remove('is-active');
+                document.getElementById('step-1').classList.remove('is-active');           //se mi trovo nello step 2 i dati dello step 1 sono valisi e li imposta come non active
                 document.getElementById('step-2').classList.add('is-active');
                 document.getElementById('indicator-1').classList.remove('is-active');
                 document.getElementById('indicator-2').classList.add('is-active');

@@ -4,7 +4,7 @@
     <meta name="color-scheme" content="light">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GymFly - Profilo Cliente</title>
+    <title>GymFly - Profilo </title>
     <link rel="stylesheet" href="css/bulma.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
@@ -114,9 +114,9 @@
                         <h3 class="title is-5 style-theme-text mb-3">
                             Abbonamento 
                             {if $abbonamento && !$abbonamento->isScaduto()}
-                                <span class="has-text-success">attivo</span>
+                                <span class="has-text-success">ATTIVO</span>
                             {else}
-                                <span class="has-text-danger">scaduto</span>
+                                <span class="has-text-danger">SCADUTO</span>
                             {/if}
                         </h3>
                         
@@ -144,7 +144,7 @@
                     </div>
                     {/if}
 
-                    <!-- ATTIVITÀ ABILITATE (Visibile solo per gli Allenatori) -->
+                    <!-- ATTIVITÀ ABILITATE (Visibile solo per gli Allenatori e Amministratore) -->
                     {if isset($isTrainer) && $isTrainer}
                     <div class="box p-4 mb-4">
                         <h3 class="title is-5 style-theme-text mb-3">
@@ -280,7 +280,7 @@
                         {/if}
 
                         <!-- Modifica Dati -->
-                        {if !($smarty.session.ruolo_utente === 'allenatore' && !$isSelf)}
+                        {if $smarty.session.ruolo_utente === 'amministratore' || $isSelf}
                         <a href="modifica-anagrafica{if !$isSelf}?id={$utente->getId()}{/if}" class="navigation-box-card">
                             <span class="is-flex is-align-items-center">
                                 <span class="icon mr-3 has-text-link"><i class="fas fa-pen fa-lg"></i></span>
@@ -346,9 +346,9 @@
                     <script>
                         function confermaEliminazioneCliente(id, nomeCompleto) {
                             var text = "Sei sicuro di voler eliminare definitivamente il cliente " + nomeCompleto + "? Tutti i dati relativi (misure, abbonamenti, schede) verranno persi. Questa operazione non può essere annullata.";
-                            document.getElementById("delete-modal-text").innerText = text;
+                            document.getElementById("delete-modal-text").innerText = text;                                  //elemento nascosto nascosto dove va a inserire il testo
                             document.getElementById("delete-modal-confirm-btn").href = "rimuovi-cliente?id=" + id;
-                            document.getElementById("confirm-delete-modal").classList.add("is-active");
+                            document.getElementById("confirm-delete-modal").classList.add("is-active");                     //prima viene costruita la finestra poi viene mostrata a schermo
                         }
                         function confermaEliminazioneAllenatore(id, nomeCompleto) {
                             var text = "Sei sicuro di voler eliminare definitivamente l'allenatore " + nomeCompleto + "? Questa operazione non può essere annullata.";
@@ -357,7 +357,7 @@
                             document.getElementById("confirm-delete-modal").classList.add("is-active");
                         }
                         function hideDeleteModal() {
-                            document.getElementById("confirm-delete-modal").classList.remove("is-active");
+                            document.getElementById("confirm-delete-modal").classList.remove("is-active");                   //rimuove la visualizzazione della finestra
                         }
                     </script>
                     {/if}

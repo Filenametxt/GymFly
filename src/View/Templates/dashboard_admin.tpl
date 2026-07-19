@@ -257,51 +257,51 @@
         </main>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>      <!--importa tutta la libreria chart.js-->
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const ctx = document.getElementById('chartRegistrazioni');
+    document.addEventListener('DOMContentLoaded', () => {     //attesa del caricamento
+        const ctx = document.getElementById('chartRegistrazioni');     //si applica all'elemento con l'id chart registrazioni
         if (!ctx) return;
 
-        // Impostazioni globali di stile per Chart.js in linea con GymFly
+        // Impostazioni globali di stile per Chart.js in linea con GymFly (TEMA)
         Chart.defaults.font.family = "'Outfit', 'Inter', 'BlinkMacSystemFont', -apple-system, 'Segoe UI', 'Roboto', sans-serif";
         Chart.defaults.color = "#4B3F72";
 
-        const rawData = {$registrazioni|json_encode};
-        const labels = rawData.map(pt => pt.data);
-        const dati = rawData.map(pt => pt.valore);
+        const rawData = {$registrazioni|json_encode};       //il server php manda un array con i dati e viene tradotto in json da js
+        const labels = rawData.map(pt => pt.data);          //prende la data delle iscrizioni
+        const dati = rawData.map(pt => pt.valore);          //prende il numero delle iscrizioni
 
         {literal}
-        new Chart(ctx.getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: labels,
+        new Chart(ctx.getContext('2d'), {          
+            type: 'bar',                         //è un grafico a barre
+            data: {                              
+                labels: labels,                  //imposta le date sull'asse x
                 datasets: [{
                     label: 'Nuovi Iscritti',
-                    data: dati,
+                    data: dati,                  //imposta i dati sull'asse y
                     backgroundColor: 'rgba(175, 175, 226, 0.75)', // color: #afafe2
                     borderColor: '#4B3F72',
                     borderWidth: 2,
-                    borderRadius: 6,
+                    borderRadius: 6,              //quanto sono arrotondati i bordi
                     borderSkipped: false
                 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
+            options: {                         
+                responsive: true,                          //il grafico si allarga/restringe da solo on base alla finestra
+                maintainAspectRatio: false,                //si adatta ll'altezza
+                plugins: {              
+                    legend: { display: false }             //nasconde la legenda
                 },
                 scales: {
                     y: {
-                        grid: { color: 'rgba(175, 175, 226, 0.15)' },
+                        grid: { color: 'rgba(175, 175, 226, 0.15)' },      //griglie orizzonatali quasi trasparenti
                         ticks: {
                             color: '#4B3F72',
-                            precision: 0
+                            precision: 0                             
                         }
                     },
                     x: {
-                        grid: { display: false },
+                        grid: { display: false },                           //nasconde linee griglia verticali
                         ticks: { color: '#4B3F72' }
                     }
                 }
