@@ -87,7 +87,7 @@ class ProfiloController
             'utente' => $ut, 'isClient' => ($ut instanceof Cliente), 'isTrainer' => ($ut instanceof Allenatore),
             'isSelf' => $isSelf, 'nome' => $ut->getNome(), 'cognome' => $ut->getCognome(), 'email' => $ut->getEmail(),
             'cf' => $ut->getCF(), 'fotoProfilo' => $ut->getProfilePicture() ? base64_encode($ut->getProfilePicture()) : null,
-            'fotoProfiloType' => $ut->getTipoImmagine() ?? 'image/jpeg',
+            'tipoImmagine' => $ut->getTipoImmagine() ?? 'image/jpeg',
             'abbonamento' => null, 'abbonamento_attivo' => false, 'has_progress' => false, 'parametri' => null,
             'certificato' => null, 'attivitaAbilitate' => null, 'attivitaNonAbilitate' => [], 'tutteAttivita' => []
         ];

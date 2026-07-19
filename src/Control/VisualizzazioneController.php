@@ -83,10 +83,10 @@ class VisualizzazioneController
         [$scaduti, $inScadenza, $validi] = $this->calcolaSemaforoCertificati($clienti, 30);
 
         $fotoProfilo = ($admin && $admin->getProfilePicture()) ? base64_encode($admin->getProfilePicture()) : null;
-        $fotoProfiloType = ($admin && $admin->getTipoImmagine()) ? $admin->getTipoImmagine() : 'image/jpeg';
+        $tipoImmagine = ($admin && $admin->getTipoImmagine()) ? $admin->getTipoImmagine() : 'image/jpeg';
 
         $this->view->mostraDashboardAdmin([
-            'utente' => $admin, 'fotoProfilo' => $fotoProfilo, 'fotoProfiloType' => $fotoProfiloType,
+            'utente' => $admin, 'fotoProfilo' => $fotoProfilo, 'tipoImmagine' => $tipoImmagine,
             'clienti' => $clienti, 'allenatori' => $pal ? $this->allenatoreRepo->findByPalestra($pal) : [],
             'certificati_scaduti' => $scaduti, 'certificati_in_scadenza' => $inScadenza, 'certificati_validi' => $validi,
             'registrazioni' => array_values($this->caricaRegistrazioniMese($clienti)),
@@ -162,10 +162,10 @@ class VisualizzazioneController
         [$scadute, $assenti, $inRegola] = $this->calcolaStatisticheSchede($clienti);
 
         $fotoProfilo = ($all && $all->getProfilePicture()) ? base64_encode($all->getProfilePicture()) : null;
-        $fotoProfiloType = ($all && $all->getTipoImmagine()) ? $all->getTipoImmagine() : 'image/jpeg';
+        $tipoImmagine = ($all && $all->getTipoImmagine()) ? $all->getTipoImmagine() : 'image/jpeg';
 
         $this->view->mostraDashboardAllenatore([
-            'utente' => $all, 'fotoProfilo' => $fotoProfilo, 'fotoProfiloType' => $fotoProfiloType,
+            'utente' => $all, 'fotoProfilo' => $fotoProfilo, 'tipoImmagine' => $tipoImmagine,
             'clienti' => $clienti, 'esercizi' => $this->esercizioRepo->findAll(),
             'schede_scadute' => $scadute, 'schede_assenti' => $assenti, 'schede_in_regola' => $inRegola,
             'ultimi_messaggi' => array_slice($this->messaggioRepo->findByMittente($all), 0, 5), 'eventi_oggi' => $this->caricaEventiOggi()
@@ -210,10 +210,10 @@ class VisualizzazioneController
             }
         }
         $fotoProfilo = ($cli && $cli->getProfilePicture()) ? base64_encode($cli->getProfilePicture()) : null;
-        $fotoProfiloType = ($cli && $cli->getTipoImmagine()) ? $cli->getTipoImmagine() : 'image/jpeg';
+        $tipoImmagine = ($cli && $cli->getTipoImmagine()) ? $cli->getTipoImmagine() : 'image/jpeg';
 
         $this->view->mostraDashboardCliente([
-            'utente' => $cli, 'fotoProfilo' => $fotoProfilo, 'fotoProfiloType' => $fotoProfiloType,
+            'utente' => $cli, 'fotoProfilo' => $fotoProfilo, 'tipoImmagine' => $tipoImmagine,
             'ultimaMisure' => $this->parametriRepo->findUltimaByCliente($cli), 'attivitaOggi' => $attivitaOggi
         ]);
     }

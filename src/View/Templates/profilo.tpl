@@ -71,7 +71,7 @@
                             <div class="has-text-centered" style="flex-shrink: 0; min-width: 120px; margin: 0 auto;">
                                 <div class="profile-avatar-circle" style="width: 100px !important; height: 100px !important; margin: 0 auto !important;">
                                     {if $fotoProfilo}
-                                        <img src="data:{if isset($fotoProfiloType)}{$fotoProfiloType}{else}image/jpeg{/if};base64,{$fotoProfilo}" alt="Foto Profilo" style="width: 100%; height: 100%; object-fit: cover;">
+                                        <img src="data:{$tipoImmagine};base64,{$fotoProfilo}" alt="Foto Profilo" style="width: 100%; height: 100%; object-fit: cover;">
                                     {else}
                                         <i class="fas fa-user-circle fa-5x" style="color: var(--gymfly-primary);"></i>
                                     {/if}
