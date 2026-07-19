@@ -258,16 +258,16 @@
     <!-- SCRIPT PER TOGGLE VISUALIZZAZIONE -->
     <script>
         function switchView(viewType) {
-            const gridView = document.getElementById('clienti-grid');
+            const gridView = document.getElementById('clienti-grid');       //visualizzazione
             const listView = document.getElementById('clienti-list');
-            const btnGrid = document.getElementById('btn-grid');
+            const btnGrid = document.getElementById('btn-grid');            //bottone
             const btnList = document.getElementById('btn-list');
 
             if (viewType === 'grid') {
                 gridView.classList.remove('is-hidden');
                 listView.classList.add('is-hidden');
                 
-                btnGrid.classList.add('is-gymfly');
+                btnGrid.classList.add('is-gymfly');               
                 btnGrid.classList.remove('is-light');
                 
                 btnList.classList.remove('is-gymfly');

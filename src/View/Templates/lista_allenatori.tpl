@@ -238,7 +238,7 @@
 
     <!-- SCRIPT PER TOGGLE VISUALIZZAZIONE E FILTRO -->
     <script>
-        let activeActivityFilter = 'ALL';
+        let activeActivityFilter = 'ALL';                    
         let activeSortOrder = 'cognome_asc';
 
         function switchView(viewType) {
@@ -254,20 +254,20 @@
             filterTrainers();
         }
 
-        function filterTrainers() {
-            const query = document.getElementById('search-input').value.toLowerCase();
-            const items = document.querySelectorAll('.trainer-grid-item, .trainer-list-item');
+        function filterTrainers() {                                                     
+            const query = document.getElementById('search-input').value.toLowerCase();                       //recupera i serch input e li mette in minuscolo
+            const items = document.querySelectorAll('.trainer-grid-item, .trainer-list-item');               //prende tutti gli allenatori in entrambe le viste
             let visibleGrid = 0, visibleList = 0;
 
             items.forEach(item => {
-                const searchTxt = item.getAttribute('data-search').toLowerCase();
-                const atts = item.getAttribute('data-attivita');
-                const matchesSearch = searchTxt.includes(query);
+                const searchTxt = item.getAttribute('data-search').toLowerCase();                     //data-serch = attributo HTML relativo alla search
+                const atts = item.getAttribute('data-attivita');                                      //data-attivita = attributo HTML relativo all'attività
+                const matchesSearch = searchTxt.includes(query);                                      //se il testo è incluso
                 const matchesActivity = activeActivityFilter === 'ALL' || (atts && atts.split(',').includes(activeActivityFilter));
 
-                if (matchesSearch && matchesActivity) {
+                if (matchesSearch && matchesActivity) {                                                 //se matcha
                     item.classList.remove('is-hidden');
-                    if (item.classList.contains('trainer-grid-item')) visibleGrid++;
+                    if (item.classList.contains('trainer-grid-item')) visibleGrid++;                    
                     else visibleList++;
                 } else {
                     item.classList.add('is-hidden');
@@ -285,17 +285,17 @@
                 if (atts) atts.split(',').forEach(a => activities.add(a.trim()));
             });
 
-            const container = document.getElementById('activity-filters-container');
+            const container = document.getElementById('activity-filters-container');              //tutte le attività
             const allFilter = document.getElementById('filter-activity-all');
             container.replaceChildren(allFilter);
 
             Array.from(activities).sort().forEach(activity => {
                 const link = document.createElement('a');
-                link.href = '#';
+                link.href = '#';                                   //rimani su questa pagina
                 link.className = 'dropdown-item';
                 link.textContent = activity;
                 link.onclick = (e) => {
-                    e.preventDefault();
+                    e.preventDefault();                  //quando clicco l'attività la pagina non deve saltare, e mostrami le attività del filtro
                     setActivityFilter(activity, link);
                 };
                 container.appendChild(link);
@@ -304,11 +304,11 @@
 
         function setActivityFilter(activity, clickedElement) {
             activeActivityFilter = activity;
-            document.querySelectorAll('#activity-filters-container .dropdown-item').forEach(l => l.classList.remove('is-active'));
-            if (clickedElement) {
-                clickedElement.classList.add('is-active');
+            document.querySelectorAll('#activity-filters-container .dropdown-item').forEach(l => l.classList.remove('is-active'));      //leva is-active a tutti
+            if (clickedElement) {             //se l'elemento è cliccato
+                clickedElement.classList.add('is-active');                  //mettici is-active
             } else {
-                document.getElementById('filter-activity-all').classList.add('is-active');
+                document.getElementById('filter-activity-all').classList.add('is-active');           //altrimenti metti is-active su tutte le attività
             }
             filterTrainers();
         }
@@ -319,12 +319,12 @@
         }
 
         function updateFilterTags() {
-            const hasFilters = activeActivityFilter !== 'ALL';
+            const hasFilters = activeActivityFilter !== 'ALL';             //ci sono dei filtri attivi
             document.getElementById('tag-activity').textContent = activeActivityFilter;
-            document.getElementById('tag-activity').classList.toggle('is-hidden', !hasFilters);
+            document.getElementById('tag-activity').classList.toggle('is-hidden', !hasFilters);     //se non ci sono filtri il tag è nascosto
             document.getElementById('active-filters-tags').classList.toggle('is-hidden', !hasFilters);
             
-            const resetBtn = document.getElementById('btn-reset-filters-shortcut');
+            const resetBtn = document.getElementById('btn-reset-filters-shortcut');     //la x vicino al tag
             if (resetBtn) resetBtn.classList.toggle('is-hidden', !hasFilters);
             
             const toolbar = document.getElementById('controls-toolbar');
@@ -351,10 +351,10 @@
             applySort();
         }
 
-        function applySort() {
-            const sortAndAppend = (containerId, selector) => {
-                const container = document.getElementById(containerId);
-                const items = Array.from(container.querySelectorAll(selector));
+        function applySort() {     //funzione richiamata per l'ordine
+            const sortAndAppend = (containerId, selector) => {      //funzione comune per griglia e lista
+                const container = document.getElementById(containerId);      //pagina corretta in cui lavorare
+                const items = Array.from(container.querySelectorAll(selector));     //vengono presi tutti gli allenatori che vengono trovati
                 items.sort((a, b) => compareItems(a, b, activeSortOrder));
                 items.forEach(item => container.appendChild(item));
             };
@@ -363,11 +363,11 @@
         }
 
         function compareItems(a, b, order) {
-            const isCognome = order.startsWith('cognome');
-            const attrName = isCognome ? 'data-cognome' : 'data-nome';
-            const valA = (a.getAttribute(attrName) || '').toLowerCase();
+            const isCognome = order.startsWith('cognome');      //la parola inizia per cognome?
+            const attrName = isCognome ? 'data-cognome' : 'data-nome';     //se isCognome è true prende il cognome, altrimenti il nome
+            const valA = (a.getAttribute(attrName) || '').toLowerCase();    //prende il valore di a e lo mette in minuscolo
             const valB = (b.getAttribute(attrName) || '').toLowerCase();
-            return order.endsWith('asc') ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            return order.endsWith('asc') ? valA.localeCompare(valB) : valB.localeCompare(valA);      //ordine alfabetico in base a quello che viene scelto
         }
 
         document.addEventListener('DOMContentLoaded', () => {

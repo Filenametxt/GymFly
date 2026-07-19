@@ -121,7 +121,7 @@
                         </select>
                     </div>
                     <div class="select">
-                        <select name="anno" onchange="this.form.submit()">
+                        <select name="anno" onchange="this.form.submit()">      <!--serve a creare un menu a tendina che invia automaticamente i dati non appena l'utente sceglie un'opzione-->
                             {foreach from=$anniDisponibili item=a}
                                 <option value="{$a}" {if $annoSelezionato === $a}selected{/if}>{$a}</option>
                             {/foreach}
@@ -189,7 +189,7 @@
     </div>    <!-- INIZIALIZZAZIONE GRAFICI CHART.JS -->
     <script>
         {literal}
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function() {       //verifica che la pagina sia completamente caricata
             
             // Impostazioni globali di stile per Chart.js in linea con GymFly
             Chart.defaults.font.family = "'Outfit', 'Inter', 'BlinkMacSystemFont', -apple-system, 'Segoe UI', 'Roboto', sans-serif";
@@ -198,15 +198,15 @@
 
             {if count($abbonamentiDati) > 0}
             // 1. Grafico Tipologie Abbonamento (Pie Chart)
-            const ctxTipologie = document.getElementById('chartTipologie').getContext('2d');
+            const ctxTipologie = document.getElementById('chartTipologie').getContext('2d');     //recupera tutte le chart tipologie e i posta il 2d
             
             {assign var="abbLabels" value=[]}
             {assign var="abbValues" value=[]}
             {foreach from=$abbonamentiDati key=tipo item=count}
-                {$abbLabels[] = $tipo}
-                {$abbValues[] = $count}
+                {$abbLabels[] = $tipo}              //array tutte chiavi
+                {$abbValues[] = $count}             //array tutti valori
             {/foreach}
-            const abbonamentiDati = {ldelim}
+            const abbonamentiDati = {ldelim}         //Non toccare questa riga, stampami semplicemente una normale parentesi graffa perché serve a JavaScript
                 labels: {$abbLabels|json_encode},
                 datasets: [{ldelim}
                     data: {$abbValues|json_encode},

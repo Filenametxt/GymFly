@@ -24,14 +24,32 @@
                 </div>
 
                 <!-- CLIENT INFO BOX -->
-                <div class="box mb-5">
-                    <div class="columns is-vcentered">
-                        <div class="column">
-                            <h1 class="title is-3 style-theme-text"><i class="fas fa-id-card mr-3"></i> Gestione Abbonamento & Iscrizione</h1>
-                            <p class="subtitle is-6 has-text-grey mt-1">Cliente: <strong>{$cliente->getNome()} {$cliente->getCognome()}</strong> (CF: {$cliente->getCF()})</p>
-                        </div>
+                 {assign var="headerClass" value="dashboard-header"}
+            {if isset($smarty.session.ruolo_utente)}
+                {if $smarty.session.ruolo_utente === 'amministratore'}
+                    {assign var="headerClass" value="dashboard-header-admin"}
+                {elseif $smarty.session.ruolo_utente === 'allenatore'}
+                    {assign var="headerClass" value="dashboard-header-trainer"}
+                {/if}
+            {/if}
+            <div class="{$headerClass} is-hidden-mobile">
+                <div class="columns is-vcentered">
+                    <div class="column">
+                        <h1 class="title is-2 has-text-white mb-2">
+                            Gestione Abbonamento & Iscrizione
+                        </h1>
+                        <p class="subtitle is-5 has-text-white-ter mt-1">Cliente: <strong>{$cliente->getNome()} {$cliente->getCognome()}</strong> (CF: {$cliente->getCF()})</p>
+                    </div>
+                    <div class="column is-narrow">
+                        <figure class="image is-96x96">
+                            <span class="icon is-large has-text-white">
+                                <i class="fas fa-id-card fa-5x"></i>
+                            </span>
+                        </figure>
                     </div>
                 </div>
+            </div>
+
 
                 <div class="columns">
                     

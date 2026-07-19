@@ -435,9 +435,9 @@ class AttivitaPianificataController
             $this->view->mostraStatoOperazione(false, "Allenatore non trovato.", "calendario", "Torna al Calendario");
             return;
         }
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {   //se la richiesta è GET, mostra il form per prenotare una sessione privata
-            $this->view->mostraFormPrenotaSessionePrivata(['clienti' => $this->clienteRepo->findByPalestra($palestra)]);
-            return;
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            header('Location: calendario');
+            exit();
         }
         $this->eseguiPrenotazioneSp($allenatore, $palestra);
     }

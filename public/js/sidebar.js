@@ -124,7 +124,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (href === 'calendario' && (
                 currentPath.includes('prenota-attivita') ||
                 currentPath.includes('disdici-prenotazione') ||
-                currentPath.includes('prenota-sessione-privata') ||
                 currentPath.includes('crea-attivita-pianificata') ||
                 currentPath.includes('rimuovi-attivita-pianificata') ||
                 currentPath.includes('disdici-sessione-privata')
