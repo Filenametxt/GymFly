@@ -50,49 +50,9 @@ class VisualizzazioneViewSmarty implements VisualizzazioneView
     public function mostraDashboardCliente(array $dati): void
     {
         header('Content-Type: text/html; charset=utf-8');
-        
-        $fotoProfilo = null;
-        $fotoProfiloType = 'image/jpeg';
-        if (isset($dati['utente'])) {
-            $clienteOriginale = $dati['utente'];
-            $fotoProfilo = $clienteOriginale->getProfilePicture() ? base64_encode($clienteOriginale->getProfilePicture()) : null;
-            $fotoProfiloType = $clienteOriginale->getTipoImmagine() ?? 'image/jpeg';
-            $dati['utente'] = new class($clienteOriginale) {
-                private $cliente;
-                private $schedaWrapped = null;
-
-                public function __construct($cliente) {
-                    $this->cliente = $cliente;
-                    $scheda = $cliente->getScheda();
-                    if ($scheda) {
-                        $this->schedaWrapped = new class($scheda) {
-                            private $scheda;
-                            public function __construct($scheda) {
-                                $this->scheda = $scheda;
-                            }
-                            public function getNome() {
-                                return $this->scheda->getNome_scheda();
-                            }
-                            public function getDescrizione() {
-                                return $this->scheda->getObiettivo();
-                            }
-                            public function __call($name, $arguments) {
-                                return call_user_func_array([$this->scheda, $name], $arguments);
-                            }
-                        };
-                    }
-                }
-
-                public function getScheda() {
-                    return $this->schedaWrapped;
-                }
-
-                public function __call($name, $arguments) {
-                    return call_user_func_array([$this->cliente, $name], $arguments);
-                }
-            };
-        }
-
+        $utente = $dati['utente'] ?? null;
+        $fotoProfilo = ($utente && $utente->getProfilePicture()) ? base64_encode($utente->getProfilePicture()) : null;
+        $fotoProfiloType = ($utente && $utente->getTipoImmagine()) ? $utente->getTipoImmagine() : 'image/jpeg';
         $this->smarty->assign('fotoProfilo', $fotoProfilo);
         $this->smarty->assign('fotoProfiloType', $fotoProfiloType);
         foreach ($dati as $key => $value) {

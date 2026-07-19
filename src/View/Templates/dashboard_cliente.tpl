@@ -64,8 +64,8 @@
                         
                         {if $utente->getScheda()}
                             <div class="p-4 mb-4" style="background-color: var(--gymfly-bg); border-radius: 12px; border-left: 4px solid var(--gymfly-primary);">
-                                <h4 class="title is-5 style-theme-text mb-2">{$utente->getScheda()->getNome()}</h4>
-                                <p class="is-size-7 has-text-grey-dark">{$utente->getScheda()->getDescrizione()|default:'Nessuna descrizione'}</p>
+                                <h4 class="title is-5 style-theme-text mb-2">{$utente->getScheda()->getNome_scheda()}</h4>
+                                <p class="is-size-7 has-text-grey-dark">{$utente->getScheda()->getObiettivo()|default:'Nessuna descrizione'}</p>
                             </div>
                             <div class="has-text-right">
                                 <a href="visualizza-scheda" class="button is-gymfly is-small">
