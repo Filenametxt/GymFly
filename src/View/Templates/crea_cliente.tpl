@@ -234,7 +234,7 @@
                         </button>
                     </div>
                     <div class="control">
-                        <a href="lista-clienti" class="button is-danger is-light">
+                        <a href="clienti" class="button is-danger is-light">
                             Annulla
                         </a>
                     </div>
