@@ -157,14 +157,11 @@
                             <!-- PRIMA RIGA SELEZIONI (Tipologia e Gruppo Muscolare) -->
                             <div class="columns is-mobile mb-2">
                                 <div class="column is-6">
-                                    <label class="label">Tipologia</label>
+                                    <label class="label">Tipologia *</label>
                                     <div class="select is-fullwidth">
-                                        <select name="tipologia_mock">
-                                            <option value="corpo_libero">CORPO LIBERO</option>
-                                            <option value="cardio">CARDIO</option>
-                                            <option value="macchinario">MACCHINARIO</option>
-                                            <option value="pesi_liberi">PESI LIBERI</option>
-                                            <option value="elastici">ELASTICI</option>
+                                        <select name="tracciamento_carico" id="tracciamento_carico" required>
+                                            <option value="1" {if $tracciamento_carico == 1}selected{/if}>Ripetizioni (Ripetizioni e Carico)</option>
+                                            <option value="0" {if $tracciamento_carico == 0}selected{/if}>Durata (Tempo/Durata e Carico)</option>
                                         </select>
                                     </div>
                                 </div>
@@ -196,18 +193,9 @@
                                 </div>
                             </div>
 
-                            <!-- SECONDA RIGA SELEZIONI (Esecuzione/Tracciamento e Attrezzatura) -->
+                            <!-- SECONDA RIGA SELEZIONI (Attrezzatura) -->
                             <div class="columns is-mobile">
-                                <div class="column is-6">
-                                    <label class="label">Esecuzione *</label>
-                                    <div class="select is-fullwidth">
-                                        <select name="tracciamento_carico" id="tracciamento_carico" required>
-                                            <option value="1" {if $tracciamento_carico == 1}selected{/if}>Ripetizioni (Ripetizioni e Carico)</option>
-                                            <option value="0" {if $tracciamento_carico == 0}selected{/if}>Durata (Tempo/Durata e Carico)</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="column is-6">
+                                <div class="column is-12">
                                     <label class="label">Attrezzatura</label>
                                     <div class="select is-fullwidth">
                                         <select name="attrezzatura_id" id="attrezzatura_id">
