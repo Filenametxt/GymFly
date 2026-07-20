@@ -25,7 +25,9 @@
 
                 <!-- ================= DESKTOP HEADER ================= -->
                 {assign var="headerClass" value="dashboard-header"}
+                {assign var="ruolo_sessione" value="cliente"}
                 {if isset($smarty.session.ruolo_utente)}
+                    {assign var="ruolo_sessione" value=$smarty.session.ruolo_utente}
                     {if $smarty.session.ruolo_utente === 'amministratore'}
                         {assign var="headerClass" value="dashboard-header-admin"}
                     {elseif $smarty.session.ruolo_utente === 'allenatore'}
@@ -36,7 +38,15 @@
                     <div class="columns is-vcentered">
                         <div class="column">
                             <h1 class="title is-2 has-text-white mb-2">Modifica Dati</h1>
-                            <p class="subtitle is-5 has-text-white-ter">Aggiorna le tue informazioni di residenza, domicilio e pagamento</p>
+                            {if $isClient}
+                                {if $ruolo_sessione === 'amministratore'}
+                                    <p class="subtitle is-5 has-text-white-ter">Aggiorna le informazioni di nome, cognome, residenza, domicilio e pagamento</p>
+                                {else}
+                                    <p class="subtitle is-5 has-text-white-ter">Aggiorna le tue informazioni di nome, cognome, residenza e domicilio</p>
+                                {/if}
+                            {else}
+                                <p class="subtitle is-5 has-text-white-ter">Aggiorna le tue informazioni di nome, cognome e residenza</p>
+                            {/if}
                         </div>
                         <div class="column is-narrow">
                             <figure class="image is-96x96">

@@ -214,7 +214,8 @@
     </section>
 
     <!-- Simple JavaScript for Step Management -->
-    {literal}                                                               //condizione per evitare che Smarty interpreti il codice JavaScript come template
+    <!-- lireral è una condizione per evitare che Smarty interpreti il codice JavaScript come template -->
+    {literal}                                                          
     <script>
         function goToStep(step) {
             if (step === 2) {                                                  //se lo step è 2, prendiamo i campi dello step 1 e controlliamo se sono validi
