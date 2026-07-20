@@ -226,13 +226,13 @@ class ProfiloController
         try {
             $ut->setNome(trim($nome));
             $ut->setCognome(trim($cognome));
-            $ut->setIndirizzoResidenza(trim($res));
+            $ut->setIndirizzo(trim($res));
             if ($ut instanceof Cliente) {
                 if (trim($pag) === '') {
                     $this->mostraStatoOperazione(false, "Il metodo di pagamento è obbligatorio per i clienti.", $rit, "Torna al Profilo");
                     return;
                 }
-                $ut->setMetodoPagamento(trim($pag));
+                $ut->setMetodoDiPagamento(trim($pag));
                 $ut->setIndirizzoDiDomicilio(HTTPMethods::post('indirizzo_domicilio', ''));
                 $this->clienteRepo->save($ut);
             } elseif ($ut instanceof Allenatore) {
@@ -253,13 +253,19 @@ class ProfiloController
     {
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-        $cliente = $this->recuperaClienteMisure($idUt, $ruolo);
+        $cliente = $this->recuperaClienteTarget($ruolo, $idUt);
         if (!$cliente) {
             $this->mostraStatoOperazione(false, "Cliente non trovato o accesso negato.");
             return;
         }
         if (HTTPMethods::method() === 'GET') {
-            $this->view->mostraFormMisure(['cliente' => $cliente, 'parametri' => $this->parametriRepo->findUltimaByCliente($cliente)]);
+            $isSelf = ($ruolo === 'cliente' && $cliente->getId() === $idUt);
+            $this->view->mostraFormMisure([
+                'utente' => $cliente,
+                'cliente' => $cliente,
+                'isSelf' => $isSelf,
+                'ultimaMisure' => $this->parametriRepo->findUltimaByCliente($cliente)
+            ]);
             return;
         }
         $this->eseguiAggiornamentoMisure($cliente, $ruolo);
@@ -276,7 +282,7 @@ class ProfiloController
 
         $f = fn($key) => HTTPMethods::postFloat($key);
         try {
-            $p = new Parametri(new \DateTimeImmutable(), $peso, $altezza, $cliente, $f('bicipite_destro'), $f('bicipite_sinistro'), $f('tricipite_destro'), $f('tricipite_sinistro'), $f('coscia_destra'), $f('coscia_sinistra'), $f('polpaccio_destro'), $f('polpaccio_sinistro'), $f('misura_petto'), $f('misura_vita'), $f('misura_spalle'), $f('misura_fianchi'));
+            $p = new Parametri($peso, $altezza, new \DateTimeImmutable(), $cliente, $f('bicipite_destro'), $f('bicipite_sinistro'), $f('tricipite_destro'), $f('tricipite_sinistro'), $f('coscia_destra'), $f('coscia_sinistra'), $f('polpaccio_destro'), $f('polpaccio_sinistro'), $f('misura_petto'), $f('misura_vita'), $f('misura_spalle'), $f('misura_fianchi'));
             $this->parametriRepo->save($p);
             $this->view->redirect('aggiorna-misure' . ($ruolo !== 'cliente' ? '?id=' . $cliente->getId() : ''));
         } catch (\Throwable $e) {
@@ -288,11 +294,11 @@ class ProfiloController
     // 4. INSERISCI MISURE CORPOREE (/inserisci-misure)
     // =========================================================================
 
-    public function inserisciMisureCorporee(): void     //gestisce la richiesta di inserimento di nuove misure corporee per il cliente loggato o per un altro cliente, recuperando i dati del cliente e mostrando la view corrispondente
+    public function inserisciMisureCorporee(): void
     {
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-        if (!$idUt || $ruolo !== 'cliente') {
+        if (!$idUt || ($ruolo !== 'cliente' && $ruolo !== 'amministratore')) {
             $this->mostraStatoOperazione(false, "Azione non consentita.");
             return;
         }
@@ -301,8 +307,14 @@ class ProfiloController
             $this->mostraStatoOperazione(false, "Cliente non trovato o accesso non consentito.");
             return;
         }
+        $isSelf = ($ruolo === 'cliente' && $cliente->getId() === $idUt);
         if (HTTPMethods::method() === 'GET') {
-            $this->view->mostraFormInserimentoMisure(['utente' => $cliente, 'ultimaMisure' => $this->parametriRepo->findUltimaByCliente($cliente)]);
+            $this->view->mostraFormInserimentoMisure([
+                'utente' => $cliente,
+                'cliente' => $cliente,
+                'isSelf' => $isSelf,
+                'ultimaMisure' => $this->parametriRepo->findUltimaByCliente($cliente)
+            ]);
             return;
         }
         $this->salvaMisurePost($cliente, $ruolo);
@@ -324,8 +336,9 @@ class ProfiloController
                 $f('coscia_destra'), $f('coscia_sinistra'), $f('polpaccio_destro'), $f('polpaccio_sinistro'),
                 $f('misura_petto'), $f('misura_vita'), $f('misura_spalle'), $f('misura_fianchi')
             );
+            $this->parametriRepo->save($p);
             $this->view->redirect('aggiorna-misure' . ($ruolo !== 'cliente' ? '?id=' . $cliente->getId() : ''));
-        } catch (\InvalidArgumentException $e) {
+        } catch (\Throwable $e) {
             $this->mostraStatoOperazione(false, "Dati non validi: " . $e->getMessage());
         }
     }
@@ -338,34 +351,44 @@ class ProfiloController
     {
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-        $cliente = ($idUt && $ruolo === 'cliente') ? $this->clienteRepo->findById($idUt) : null;
+        if (!$idUt || ($ruolo !== 'cliente' && $ruolo !== 'amministratore')) {
+            $this->mostraStatoOperazione(false, "Accesso negato.");
+            return;
+        }
+        $cliente = $this->recuperaClienteTarget($ruolo, $idUt);
         if (!$cliente) {
-            $this->mostraStatoOperazione(false, "Accesso negato. Funzionalità riservata ai clienti.");
+            $this->mostraStatoOperazione(false, "Cliente non trovato o accesso negato.");
             return;
         }
         if (HTTPMethods::method() === 'GET') {
-            $this->view->mostraFormCertificato(['certificato' => $this->certificatoRepo->findByCliente($cliente)]);
+            $this->view->mostraFormCertificato([
+                'utente' => $cliente,
+                'certificato' => $this->certificatoRepo->findByCliente($cliente)
+            ]);
             return;
         }
-        $this->eseguiCaricamentoCertificato($cliente);
+        $this->eseguiCaricamentoCertificato($cliente, $ruolo);
     }
 
-    private function eseguiCaricamentoCertificato(Cliente $cliente): void
+    private function eseguiCaricamentoCertificato(Cliente $cliente, string $ruolo): void
     {
         $medico = HTTPMethods::post('medico');
         $emissione = HTTPMethods::post('data_emissione');
         $file = HTTPMethods::files('file_certificato');
         if (empty($medico) || empty($emissione) || !$file || $file['error'] !== UPLOAD_ERR_OK) {
-            $this->mostraStatoOperazione(false, "Tutti i campi e il file del certificato sono obbligatori.", "carica-certificato", "Torna al Form");
+            $rit = ($ruolo === 'cliente') ? 'carica-certificato' : 'carica-certificato?id=' . $cliente->getId();
+            $this->mostraStatoOperazione(false, "Tutti i campi e il file del certificato sono obbligatori.", $rit, "Torna al Form");
             return;
         }
         try {
             $content = file_get_contents($file['tmp_name']);
-            $cert = new CertificatoMedico(new \DateTimeImmutable($emissione), trim($medico), $content, $cliente);
+            $cert = new CertificatoMedico(new \DateTimeImmutable($emissione), trim($medico), $cliente, $content);
             $this->certificatoRepo->save($cert);
-            $this->mostraStatoOperazione(true, "Certificato caricato con successo!", "visualizza-profilo", "Torna al Profilo");
+            $ritorno = ($ruolo === 'cliente') ? 'profilo' : 'visualizza-profilo?id=' . $cliente->getId();
+            $this->mostraStatoOperazione(true, "Certificato caricato con successo!", $ritorno, "Torna al Profilo");
         } catch (\Throwable $e) {
-            $this->mostraStatoOperazione(false, "Errore caricamento certificato: " . $e->getMessage(), "carica-certificato", "Torna al Form");
+            $rit = ($ruolo === 'cliente') ? 'carica-certificato' : 'carica-certificato?id=' . $cliente->getId();
+            $this->mostraStatoOperazione(false, "Errore caricamento certificato: " . $e->getMessage(), $rit, "Torna al Form");
         }
     }
 
@@ -381,8 +404,8 @@ class ProfiloController
             $this->mostraStatoOperazione(false, "Accesso negato.");
             return;
         }
-        $targetId = (int)HTTPMethods::request('id', $idUt);
-        $ut = $this->recuperaUtentePerModifica($idUt, $ruolo, $targetId);
+        $isSelf = true;
+        $ut = $this->determinaUtenteModifica($idUt, $ruolo, $isSelf);
         if (!$ut) {
             $this->mostraStatoOperazione(false, "Utente non trovato o accesso negato.");
             return;
@@ -412,11 +435,24 @@ class ProfiloController
             return;
         }
         try {
-            $ut->cambiaPassword($new);
+            $ut->setPassword($new);
             $this->salvaUtenteGenerico($ut);
             $this->mostraStatoOperazione(true, "Password aggiornata con successo!", "visualizza-profilo?id=" . $ut->getId(), "Torna al Profilo");
         } catch (\Throwable $e) {
             $this->mostraStatoOperazione(false, "Errore durante il cambio password: " . $e->getMessage(), "cambia-password", "Riprova");
+        }
+    }
+
+    private function salvaUtenteGenerico(Utente $ut): void
+    {
+        if ($ut instanceof Cliente) {
+            $this->clienteRepo->save($ut);
+        } elseif ($ut instanceof Allenatore) {
+            $this->allenatoreRepo->save($ut);
+        } elseif ($ut instanceof Amministratore) {
+            $this->amministratoreRepo->save($ut);
+        } else {
+            $this->utenteRepo->save($ut);
         }
     }
 
@@ -428,7 +464,7 @@ class ProfiloController
     {
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-        $cliente = $this->recuperaClienteMisure($idUt, $ruolo);
+        $cliente = $this->recuperaClienteTarget($ruolo, $idUt);
         if (!$cliente) {
             $this->mostraStatoOperazione(false, "Cliente non trovato o accesso negato.");
             return;

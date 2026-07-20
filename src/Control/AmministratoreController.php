@@ -24,6 +24,7 @@ use App\View\Interface\AmministratoreView;
 use App\View\AmministratoreViewSmarty;
 use App\View\VisualizzazioneViewSmarty;
 use App\Foundation\Session;
+use App\Foundation\Utility\HTTPMethods;
 use App\Enum\Sesso;
 use App\Entity\Allenatore;
 use App\Entity\Cliente;

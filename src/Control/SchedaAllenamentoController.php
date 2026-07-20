@@ -246,6 +246,7 @@ class SchedaAllenamentoController
             foreach ($sorgente->getAllenamenti() as $srcAll) {
                 $nuovoAll = new Allenamento($srcAll->getNome(), $srcAll->getDescrizione());
                 $scheda->addAllenamento($nuovoAll);
+                /** @var DettaglioAllenamento $srcDet */
                 foreach ($srcAll->getDettagli() as $srcDet) {
                     $nuovoAll->addDettaglio(new DettaglioAllenamento(
                         $srcDet->getEsercizio(), $nuovoAll, $srcDet->getSerie(),
@@ -418,6 +419,8 @@ class SchedaAllenamentoController
 
     private function eseguiSalvataggioDettagliCliente(Allenamento $all, array $dettagliModificati): void
     {
+        $scheda = $all->getScheda();
+        $cliente = $scheda->getCliente();
         $oggi = new \DateTimeImmutable('today');
         foreach ($dettagliModificati as $idDet => $data) {
             $dettaglio = $this->dettaglioAllenamentoRepo->findById((int)$idDet);
@@ -484,7 +487,12 @@ class SchedaAllenamentoController
             /** @var DettaglioAllenamento $dettaglio */
             foreach ($allenamento->getDettagli() as $dettaglio) {
                 $es = $dettaglio->getEsercizio();
-                $d = $this->elaboraProgressiGrafici($this->progressoRepo->findByClienteAndEsercizio($cli, $es));
+                $progressi = array_merge(
+                    $this->progressoCaricoRepo->findByClienteAndEsercizio($cli, $es),
+                    $this->progressoRipetizioniRepo->findByClienteAndEsercizio($cli, $es),
+                    $this->progressoDurataRepo->findByClienteAndEsercizio($cli, $es)
+                );
+                $d = $this->elaboraProgressiGrafici($progressi);
                 $eserciziData[] = [
                     'dettaglio' => $dettaglio, 'esercizio' => $es,
                     'carico' => $d['carico'],
