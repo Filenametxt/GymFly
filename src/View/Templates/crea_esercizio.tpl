@@ -14,6 +14,14 @@
         {include file='sidebar.tpl'}
         <main class="app-content">
 
+            <!-- BACK LINK -->
+            <div class="mb-4">
+                <a href="esercizi" class="button is-ghost has-text-grey pl-0">
+                    <span class="icon"><i class="fas fa-chevron-left"></i></span>
+                    <span>Torna a Gestione Esercizi</span>
+                </a>
+            </div>
+
             <!-- ================= DESKTOP HEADER ================= -->
             {assign var="headerClass" value="dashboard-header"}
             {if isset($ruolo_utente)}
@@ -51,7 +59,9 @@
 
             <!-- ================= MOBILE HEADER ================= -->
             <div class="is-flex is-align-items-center mb-5 is-hidden-tablet" style="padding-top: 5px;">
-                <div style="width: 45px;"></div>
+                <a href="esercizi" class="has-text-grey-dark" style="width: 45px; display: flex; align-items: center; justify-content: center;">
+                    <span class="icon is-medium"><i class="fas fa-chevron-left fa-lg"></i></span>
+                </a>
                 <strong class="is-size-4 style-theme-text" style="letter-spacing: 1px; flex-grow: 1;">CREA ESERCIZIO</strong>
             </div>
 
