@@ -22,6 +22,8 @@ use App\Entity\Repository\ProgressoDurataRepositoryInterface;
 use App\Entity\Repository\MessaggioRepositoryInterface;
 use App\Entity\Repository\AllenamentoRepositoryInterface;
 use App\Entity\Repository\DettaglioAllenamentoRepositoryInterface;
+use App\Entity\Repository\AmministratoreRepositoryInterface;
+use App\Entity\Repository\PalestraRepositoryInterface;
 use App\Foundation\Persistence\Repository\DoctrineSchedaRepository;
 use App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository;
 use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
@@ -33,6 +35,8 @@ use App\Foundation\Persistence\Repository\DoctrineProgressoDurataRepository;
 use App\Foundation\Persistence\Repository\DoctrineMessaggioRepository;
 use App\Foundation\Persistence\Repository\DoctrineAllenamentoRepository;
 use App\Foundation\Persistence\Repository\DoctrineDettaglioAllenamentoRepository;
+use App\Foundation\Persistence\Repository\DoctrineAmministratoreRepository;
+use App\Foundation\Persistence\Repository\DoctrinePalestraRepository;
 use App\View\Interface\SchedaAllenamentoView;
 use App\View\SchedaAllenamentoViewSmarty;
 use App\Foundation\Session;
@@ -52,6 +56,8 @@ class SchedaAllenamentoController
     private MessaggioRepositoryInterface $messaggioRepo;
     private AllenamentoRepositoryInterface $allenamentoRepo;
     private DettaglioAllenamentoRepositoryInterface $dettaglioAllenamentoRepo;
+    private AmministratoreRepositoryInterface $amministratoreRepo;
+    private PalestraRepositoryInterface $palestraRepo;
     private SchedaAllenamentoView $view;
 
     public function __construct(
@@ -69,6 +75,8 @@ class SchedaAllenamentoController
         $this->messaggioRepo = new DoctrineMessaggioRepository($this->entityManager);
         $this->allenamentoRepo = new DoctrineAllenamentoRepository($this->entityManager);
         $this->dettaglioAllenamentoRepo = new DoctrineDettaglioAllenamentoRepository($this->entityManager);
+        $this->amministratoreRepo = new DoctrineAmministratoreRepository($this->entityManager);
+        $this->palestraRepo = new DoctrinePalestraRepository($this->entityManager);
         $this->view = new SchedaAllenamentoViewSmarty();
     }
 
@@ -453,7 +461,7 @@ class SchedaAllenamentoController
             return;
         }
         if (HTTPMethods::method() === 'GET') {
-            $this->view->mostraTemplate('modifica_dettagli_cliente.tpl', ['allenamento' => $all]);
+            $this->view->mostraTemplate('modifica_dettagli.tpl', ['allenamento' => $all]);
             return;
         }
         $this->eseguiSalvataggioDettagliCliente($all, HTTPMethods::postArray('dettagli'));
