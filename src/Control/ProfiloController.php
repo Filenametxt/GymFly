@@ -103,7 +103,8 @@ class ProfiloController
         }
         $targetId = (int)$_GET['id'];
         $utente = $this->utenteRepo->findById($targetId);
-        if ($ruolo === 'amministratore' || $ruolo === 'allenatore') {
+        $targetRuolo=$utente->getRuolo();
+        if ($ruolo === 'amministratore' || $ruolo === 'allenatore' && $targetRuolo === 'cliente') {
             $pal = AttivitaPianificataController::recuperaPalestraUtenteStatic(
                 $this->session,
                 $this->utenteRepo,
@@ -114,8 +115,9 @@ class ProfiloController
             if (!$utente || !$palTarget || !$pal || $palTarget->getId() !== $pal->getId()) {
                 return null;
             }
+            return $utente;
         }
-        return $utente;
+        return null;
     }
 
     private function caricaDatiClient(Cliente $ut, string $ruolo): array               //recupera i dati specifici del cliente, come parametri corporei, certificato medico, abbonamento e progresso, e li restituisce in un array associativo
@@ -169,15 +171,12 @@ class ProfiloController
             return;
         }
         $ruolo = $this->session->getLoggedUserRole();
-        if ($ruolo !== 'amministratore' && $ruolo !== 'cliente') {
-            $this->mostraStatoOperazione(false, "Accesso negato. La modifica dell'anagrafica è riservata solo ad Amministratori e Clienti.");
-            return;
-        }
         $targetId = isset($_GET['id']) ? (int)$_GET['id'] : (isset($_POST['id']) ? (int)$_POST['id'] : $idUtente);
-        if ($ruolo === 'cliente' && $targetId !== $idUtente) {
-            $this->mostraStatoOperazione(false, "Accesso negato. Non sei autorizzato a modificare l'anagrafica di un altro utente.");
+        if ($ruolo !== 'amministratore' && ($idUtente  !==  $targetId)) {
+            $this->mostraStatoOperazione(false, "Accesso negato. Non sei autorizzato a modificare l'anagrafica");
             return;
         }
+        
 
         $isSelf = true;
         $utente = $this->determinaUtenteModifica($idUtente, $ruolo, $isSelf);
