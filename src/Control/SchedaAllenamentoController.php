@@ -228,8 +228,10 @@ class SchedaAllenamentoController
             $this->eseguiClonazioneScheda($scheda, (int)$copiaDa);
             return;
         }
-        $this->view->mostraTemplate('modifica_scheda.tpl', [
-            'scheda' => $scheda, 'eserciziDisponibili' => $this->esercizioRepo->findAll(),
+        $this->view->mostraTemplate('gestione_scheda.tpl', [
+            'scheda' => $scheda,
+            'esercizi' => $this->esercizioRepo->findAll(),
+            'eserciziDisponibili' => $this->esercizioRepo->findAll(),
             'azione_rapida' => HTTPMethods::get('azione_rapida') !== null ? 1 : 0,
             'schedeClonabili' => $this->schedaRepo->findByAllenatore($scheda->getAllenatore())
         ]);
@@ -376,20 +378,60 @@ class SchedaAllenamentoController
             $this->view->mostraStatoOperazione(false, "Accesso negato.", "login");
             return;
         }
-        $scheda = $this->schedaRepo->findById(HTTPMethods::get('id') ? (int)HTTPMethods::get('id') : 0);
+
+        $idScheda = (int)HTTPMethods::request('id', HTTPMethods::request('id_scheda', 0));
+        $scheda = null;
+        if ($idScheda > 0) {
+            $scheda = $this->schedaRepo->findById($idScheda);
+        }
+        if (!$scheda && $ruolo === 'cliente') {
+            $cliente = $this->clienteRepo->findById($idLog);
+            if ($cliente) {
+                $scheda = $this->schedaRepo->findAttivaByCliente($cliente) ?? $this->schedaRepo->findByCliente($cliente) ?? $cliente->getScheda();
+            }
+        }
+
         if (!$scheda || !$this->validaAccessoScheda($scheda, $idLog, $ruolo)) {
             $this->view->mostraStatoOperazione(false, "Scheda non trovata o accesso negato.");
             return;
         }
+
+        if ($ruolo === 'cliente' && str_starts_with(strtolower($scheda->getNome_scheda()), 'richiesta')) {
+            $nomeAllenatore = $scheda->getAllenatore() ? $scheda->getAllenatore()->getNome() . ' ' . $scheda->getAllenatore()->getCognome() : 'allenatore';
+            $this->view->mostraStatoOperazione(
+                false,
+                "La scheda non è ancora disponibile. La tua richiesta è in attesa di essere compilata e inviata dal tuo allenatore (" . $nomeAllenatore . ").",
+                "dashboard-cliente",
+                "Torna alla Dashboard"
+            );
+            return;
+        }
+
         $this->view->mostraTemplate('visualizza_scheda.tpl', [
-            'scheda' => $scheda, 'ruolo_utente' => $ruolo, 'isSelf' => ($ruolo === 'cliente' && $scheda->getCliente()->getId() === $idLog)
+            'scheda' => $scheda,
+            'ruolo_utente' => $ruolo,
+            'isSelf' => ($ruolo === 'cliente' && $scheda->getCliente() && $scheda->getCliente()->getId() === $idLog)
         ]);
     }
 
     private function validaAccessoScheda(Scheda $scheda, int $idLog, string $ruolo): bool
     {
-        if ($ruolo === 'cliente') return $scheda->getCliente()->getId() === $idLog;
-        if ($ruolo === 'allenatore') return $scheda->getAllenatore()->getId() === $idLog;
+        if ($ruolo === 'cliente') {
+            return $scheda->getCliente() && $scheda->getCliente()->getId() === $idLog;
+        }
+        if ($ruolo === 'allenatore') {
+            $trainer = $this->allenatoreRepo->findById($idLog);
+            $palTrainer = $trainer ? $trainer->getPalestra() : null;
+            $palScheda = $scheda->getCliente() ? $scheda->getCliente()->getPalestra() : null;
+            return ($scheda->getAllenatore() && $scheda->getAllenatore()->getId() === $idLog) ||
+                   ($palTrainer && $palScheda && $palTrainer->getId() === $palScheda->getId());
+        }
+        if ($ruolo === 'amministratore') {
+            $admin = $this->amministratoreRepo->findById($idLog);
+            $palAdmin = $admin ? $this->palestraRepo->findByAmministratore($admin) : null;
+            $palScheda = $scheda->getCliente() ? $scheda->getCliente()->getPalestra() : null;
+            return $palAdmin && $palScheda && $palAdmin->getId() === $palScheda->getId();
+        }
         return false;
     }
 

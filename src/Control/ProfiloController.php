@@ -98,11 +98,11 @@ class ProfiloController
 
     private function determinaUtenteProfilo(int $idUt, string $ruolo, bool &$isSelf): ?Utente
     {
-        $isSelf = HTTPMethods::get('id') === null;
+        $targetId = HTTPMethods::get('id') !== null ? (int)HTTPMethods::get('id') : $idUt;
+        $isSelf = ($targetId === $idUt);
         if ($isSelf) {
             return $this->recuperaUtenteLoggato($this->entityManager, $idUt, $ruolo);
         }
-        $targetId = (int)HTTPMethods::get('id');
         $utente = $this->utenteRepo->findById($targetId);
         $targetRuolo=$utente->getRuolo();
         if ($ruolo === 'amministratore' || $ruolo === 'allenatore' && $targetRuolo === 'cliente') {
@@ -437,7 +437,9 @@ class ProfiloController
         try {
             $ut->setPassword($new);
             $this->salvaUtenteGenerico($ut);
-            $this->mostraStatoOperazione(true, "Password aggiornata con successo!", "visualizza-profilo?id=" . $ut->getId(), "Torna al Profilo");
+            $idUt = $this->session->getLoggedUserId();
+            $ritorno = ($ut->getId() === $idUt) ? 'profilo' : 'visualizza-profilo?id=' . $ut->getId();
+            $this->mostraStatoOperazione(true, "Password aggiornata con successo!", $ritorno, "Torna al Profilo");
         } catch (\Throwable $e) {
             $this->mostraStatoOperazione(false, "Errore durante il cambio password: " . $e->getMessage(), "cambia-password", "Riprova");
         }
