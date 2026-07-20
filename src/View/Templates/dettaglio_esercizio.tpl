@@ -46,7 +46,9 @@
 
             <!-- ================= MOBILE HEADER ================= -->
             <div class="is-flex is-align-items-center mb-5 is-hidden-tablet" style="padding-top: 5px;">
-                <div style="width: 45px;"></div>
+                <a href="esercizi" class="has-text-grey-dark" style="width: 45px; display: flex; align-items: center; justify-content: center;">
+                    <span class="icon is-medium"><i class="fas fa-chevron-left fa-lg"></i></span>
+                </a>
                 <strong class="is-size-4 style-theme-text" style="letter-spacing: 1px;">DETTAGLI ESERCIZIO</strong>
             </div>
 
@@ -57,16 +59,14 @@
                 <div class="column is-12-mobile is-5-desktop">
                     <div class="box" style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 300px;">
                         <h3 class="title is-5 mb-4 style-theme-text">Immagine Esecuzione</h3>
-                        <div class="image-container" style="width: 100%; max-width: 320px; aspect-ratio: 1/1; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f5f5f5; border: 1px solid #dbdbdb;">
-                            {if isset($immagine) && $immagine !== null}
-                                <img src="data:{if isset($immagine_type)}{$immagine_type}{else}image/jpeg{/if};base64,{$immagine}" alt="Esecuzione Esercizio" style="width: 100%; height: 100%; object-fit: cover;">
-                            {else}
-                                <div class="has-text-centered has-text-grey-light">
-                                    <span class="icon is-large"><i class="fas fa-dumbbell fa-4x"></i></span>
-                                    <p class="is-size-7 mt-2">Nessuna immagine disponibile</p>
-                                </div>
-                            {/if}
-                        </div>
+                        {if isset($immagine) && $immagine !== null}
+                            <img src="data:{if isset($immagine_type)}{$immagine_type}{else}image/jpeg{/if};base64,{$immagine}" alt="Esecuzione Esercizio" style="max-width: 100%; max-height: 320px; border-radius: 12px; display: block; object-fit: contain;">
+                        {else}
+                            <div class="has-text-centered has-text-grey-light" style="padding: 2rem;">
+                                <span class="icon is-large"><i class="fas fa-dumbbell fa-4x"></i></span>
+                                <p class="is-size-7 mt-2">Nessuna immagine disponibile</p>
+                            </div>
+                        {/if}
                     </div>
                 </div>
 
