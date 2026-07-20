@@ -183,6 +183,10 @@ class SchedaAllenamentoController
             return;
         }
         $scheda = $this->schedaRepo->findRichiestaByCliente($cli);
+        if ($scheda && $scheda->getAllenatore()->getId() !== $all->getId()) {
+            $this->view->mostraStatoOperazione(false, "Accesso negato. La richiesta di scheda di questo cliente è indirizzata a un altro allenatore.", "clienti", "Torna a Gestione Clienti");
+            return;
+        }
         if (!$scheda) {                            // Se non esiste una richiesta, crea una nuova scheda con allenamenti predefiniti
             $this->eliminaVecchieSchede($cli);
             $scheda = new Scheda("Nuovo Protocollo", new \DateTimeImmutable('today'), new \DateTimeImmutable('+1 month'), "Inserisci obiettivo", $cli, $all);
@@ -215,7 +219,7 @@ class SchedaAllenamentoController
             return;
         }
         $scheda = $this->schedaRepo->findById($idScheda);
-        if ($idScheda <= 0 || !$scheda || $scheda->getCliente()->getPalestra()->getId() !== $allenatore->getPalestra()->getId()) {
+        if ($idScheda <= 0 || !$scheda || $scheda->getAllenatore()->getId() !== $allenatore->getId()) {
             $this->view->mostraStatoOperazione(false, "Scheda non trovata o accesso negato.", "dashboard-allenatore");
             return;
         }
@@ -258,7 +262,7 @@ class SchedaAllenamentoController
         $all = $this->allenatoreRepo->findById($this->session->getLoggedUserId());
         $idScheda = (int)($_POST['id_scheda'] ?? 0);
         $scheda = $this->schedaRepo->findById($idScheda);
-        if (!$scheda || $scheda->getCliente()->getPalestra()->getId() !== $all->getPalestra()->getId()) {
+        if (!$scheda || $scheda->getAllenatore()->getId() !== $all->getId()) {
             $this->view->mostraStatoOperazione(false, "Scheda non trovata o accesso negato.", "dashboard-allenatore");
             return;
         }
@@ -345,10 +349,10 @@ class SchedaAllenamentoController
             return;
         }
         $all = $this->allenatoreRepo->findById($idUt);
-         if ($scheda->getCliente()->getPalestra()->getId() !== $all->getPalestra()->getId()) {
+        if ($scheda->getAllenatore()->getId() !== $all->getId()) {
             $this->view->mostraStatoOperazione(false, "Accesso negato.", "dashboard-allenatore");
             return;
-            }
+        }
         $this->eseguiRimozioneScheda($scheda, $ruolo);
     }
 

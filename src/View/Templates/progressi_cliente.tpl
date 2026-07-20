@@ -287,9 +287,9 @@
 
                             <!-- Accordion Content -->
                             <div class="workout-accordion-content">
-                                {if $wData.allenamento->getDescrizione()|pulisci_descrizione}
+                                {if $wData.allenamento->getDescrizione()}
                                     <p class="is-size-7 style-theme-text mb-4" style="font-style: italic;">
-                                        <i class="fas fa-info-circle mr-1" style="color: var(--gymfly-primary);"></i> {$wData.allenamento->getDescrizione()|pulisci_descrizione}
+                                        <i class="fas fa-info-circle mr-1" style="color: var(--gymfly-primary);"></i> {$wData.allenamento->getDescrizione()}
                                     </p>
                                 {/if}
 
@@ -449,7 +449,7 @@
     <!-- SCRIPT PER ACCORDION, TABS E GRAFICI CHART.JS -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        function toggleAccordion(headerElement) {
+        function toggleAccordion(headerElement) {     //menu a scomparsa
             const accordionItem = headerElement.parentElement;
             accordionItem.classList.toggle('active');
         }
@@ -482,7 +482,7 @@
 
             const canvases = document.querySelectorAll('.exercise-chart');
             canvases.forEach(canvas => {
-                const rawPoints = JSON.parse(canvas.getAttribute('data-points') || '[]');
+                const rawPoints = JSON.parse(canvas.getAttribute('data-points') || '[]');     //tramuta gli oggetti in un array di dati Java Script
                 if (rawPoints.length === 0) return;
 
                 const labels = rawPoints.map(pt => pt.data);

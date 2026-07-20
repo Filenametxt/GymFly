@@ -435,9 +435,9 @@ class AttivitaPianificataController
             $this->view->mostraStatoOperazione(false, "Allenatore non trovato.", "calendario", "Torna al Calendario");
             return;
         }
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {   //se la richiesta è GET, mostra il form per prenotare una sessione privata
-            $this->view->mostraFormPrenotaSessionePrivata(['clienti' => $this->clienteRepo->findByPalestra($palestra)]);
-            return;
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            header('Location: calendario');
+            exit();
         }
         $this->eseguiPrenotazioneSp($allenatore, $palestra);
     }
@@ -577,7 +577,7 @@ class AttivitaPianificataController
                 }
                 $this->attivitaPianificataRepo->save(new AttivitaPianificata($giornoImm, $orario, $sala, $all, $att));
             }
-            $this->view->mostraStatoOperazione(true, "Corso pianificato con successo.", $rit, "Torna al Calendario");
+            $this->view->mostraStatoOperazione(true, "Attività pianificata con successo.", $rit, "Torna al Calendario");
         } catch (\Throwable $e) {
             $this->view->mostraStatoOperazione(false, "Errore: " . $e->getMessage(), $rit, "Torna al Calendario");
         }

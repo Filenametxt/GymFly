@@ -142,7 +142,7 @@
             </div>
 
             <!-- ACTION TOOLBAR (Nuova Attività) -->
-            {if isset($smarty.session.ruolo_utente) && ($smarty.session.ruolo_utente === 'amministratore' || $smarty.session.ruolo_utente === 'allenatore')}
+            {if isset($smarty.session.ruolo_utente) && ($smarty.session.ruolo_utente === 'amministratore')}
             <div class="mb-5">
                 <a href="calendario?nuovo=1" class="button is-gymfly" title="+ Nuova Attività" style="border-radius: 10px;">
                     <span class="icon"><i class="fas fa-plus"></i></span>
@@ -226,7 +226,7 @@
                                     </div>
                                     <progress class="progress is-link" value="{$selectedAp->getPrenotati()}" max="{$selectedAp->getMaxPartecipanti()}" style="height: 6px;"></progress>
                                 </div>
-
+                                <!-- LISTA UTENTI-->
                                 <div class="mt-5">
                                     <h3 class="title is-5 style-theme-text mb-3">Lista Iscritti</h3>
                                     {if $selectedAp->getUtenti()|@count === 0}
@@ -462,7 +462,7 @@
                 box.querySelectorAll('input').forEach(input => input.setAttribute('required', 'true'));
             } else {
                 box.style.display = 'none';
-                box.querySelectorAll('input').forEach(input => input.removeAttribute('required'));
+                box.querySelectorAll('input').forEach(input => input.removeAttribute('required'));    //bisogna comppilare la form necessariamente
             }
         }
 

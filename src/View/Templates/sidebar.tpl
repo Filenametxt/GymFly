@@ -13,10 +13,20 @@
     <i class="fas fa-bars"></i>
 </label>
 
+{assign var="is_carica_certificato" value=($smarty.server.REQUEST_URI !== ($smarty.server.REQUEST_URI|replace:'carica-certificato':''))}
+{assign var="is_inserisci_misure" value=($smarty.server.REQUEST_URI !== ($smarty.server.REQUEST_URI|replace:'inserisci-misure':''))}
+{assign var="is_aggiorna_misure" value=($smarty.server.REQUEST_URI !== ($smarty.server.REQUEST_URI|replace:'aggiorna-misure':''))}
+{assign var="is_visualizza_grafico" value=($smarty.server.REQUEST_URI !== ($smarty.server.REQUEST_URI|replace:'visualizza-grafico':''))}
+{assign var="is_gestione_abbonamento" value=($smarty.server.REQUEST_URI !== ($smarty.server.REQUEST_URI|replace:'gestione-abbonamento':''))}
+{assign var="is_gestione_scheda" value=($smarty.server.REQUEST_URI !== ($smarty.server.REQUEST_URI|replace:'gestione-scheda':''))}
+{assign var="is_progressi_cliente" value=($smarty.server.REQUEST_URI !== ($smarty.server.REQUEST_URI|replace:'progressi-cliente':''))}
+
+{assign var="is_client_subpage" value=($is_carica_certificato || $is_inserisci_misure || $is_aggiorna_misure || $is_visualizza_grafico || $is_gestione_abbonamento || $is_gestione_scheda || $is_progressi_cliente)}
+
 <aside class="app-sidebar" 
-       data-is-self="{if isset($isSelf) && !$isSelf}false{else}true{/if}"
-       data-is-client="{if isset($isClient) && $isClient}true{else}false{/if}"
-       data-is-trainer="{if isset($isTrainer) && $isTrainer}true{else}false{/if}">
+       data-is-self="{if isset($isSelf) && !$isSelf}false{elseif isset($smarty.session.ruolo_utente) && $smarty.session.ruolo_utente !== 'cliente' && $is_client_subpage}false{else}true{/if}"
+       data-is-client="{if isset($isClient) && $isClient}true{elseif isset($smarty.session.ruolo_utente) && $smarty.session.ruolo_utente !== 'cliente' && $is_client_subpage}true{else}false{/if}"
+       data-is-trainer="{if isset($isTrainer) && $isTrainer}true{elseif isset($isSelf) && !$isSelf && isset($isClient) && !$isClient}true{else}false{/if}">
     <!-- LOGO / BRANDING -->
     <div class="mb-5" style="display: flex; justify-content: flex-start; align-items: center; width: 100%; margin-top: -2.0rem !important; margin-left: 2.2rem !important; gap: 6px; padding: 0.5rem 0;">
         <strong class="is-size-2" style="color: var(--gymfly-text) !important; font-weight: 800;">GymFly</strong>

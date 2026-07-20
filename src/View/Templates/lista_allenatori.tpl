@@ -159,7 +159,7 @@
                         <a href="visualizza-profilo?id={$a.id}" class="box customer-card">
                             <div class="customer-avatar mb-3" style="width: 96px; height: 96px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
                                 {if isset($a.fotoProfilo) && $a.fotoProfilo !== null}
-                                    <img src="data:{if isset($a.fotoProfiloType)}{$a.fotoProfiloType}{else}image/jpeg{/if};base64,{$a.fotoProfilo}" alt="Foto Profilo" style="width: 100%; height: 100%; object-fit: cover;">
+                                    <img src="data:{$a.tipoImmagine};base64,{$a.fotoProfilo}" alt="Foto Profilo" style="width: 100%; height: 100%; object-fit: cover;">
                                 {else}
                                     <span class="icon is-large">
                                         <i class="fas fa-user-ninja fa-4x"></i>
@@ -200,7 +200,7 @@
                        data-search="{$a.nome} {$a.cognome}">
                         <div class="customer-avatar mr-4" style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                             {if isset($a.fotoProfilo) && $a.fotoProfilo !== null}
-                                <img src="data:{if isset($a.fotoProfiloType)}{$a.fotoProfiloType}{else}image/jpeg{/if};base64,{$a.fotoProfilo}" alt="Foto Profilo" style="width: 100%; height: 100%; object-fit: cover;">
+                                <img src="data:{$a.tipoImmagine};base64,{$a.fotoProfilo}" alt="Foto Profilo" style="width: 100%; height: 100%; object-fit: cover;">
                             {else}
                                 <span class="icon is-medium">
                                     <i class="fas fa-user-ninja fa-2x"></i>
@@ -238,137 +238,78 @@
 
     <!-- SCRIPT PER TOGGLE VISUALIZZAZIONE E FILTRO -->
     <script>
-        let activeActivityFilter = 'ALL';
+        let activeActivityFilter = 'ALL';                    
         let activeSortOrder = 'cognome_asc';
 
         function switchView(viewType) {
-            const gridView = document.getElementById('allenatori-grid');
-            const listView = document.getElementById('allenatori-list');
-            const btnGrid = document.getElementById('btn-grid');
-            const btnList = document.getElementById('btn-list');
-
-            if (viewType === 'grid') {
-                gridView.classList.remove('is-hidden');
-                listView.classList.add('is-hidden');
-                
-                btnGrid.classList.add('is-gymfly');
-                btnGrid.classList.remove('is-light');
-                
-                btnList.classList.remove('is-gymfly');
-                btnList.classList.add('is-light');
-                
-                localStorage.setItem('allenatori-view-preference', 'grid');
-            } else {
-                gridView.classList.add('is-hidden');
-                listView.classList.remove('is-hidden');
-                
-                btnList.classList.add('is-gymfly');
-                btnList.classList.remove('is-light');
-                
-                btnGrid.classList.remove('is-gymfly');
-                btnGrid.classList.add('is-light');
-                
-                localStorage.setItem('allenatori-view-preference', 'list');
-            }
-
-            // Ricalcola no-results per la vista attiva
+            const isGrid = viewType === 'grid';
+            document.getElementById('allenatori-grid').classList.toggle('is-hidden', !isGrid);
+            document.getElementById('allenatori-list').classList.toggle('is-hidden', isGrid);
+            document.getElementById('btn-grid').classList.toggle('is-gymfly', isGrid);
+            document.getElementById('btn-grid').classList.toggle('is-light', !isGrid);
+            document.getElementById('btn-list').classList.toggle('is-gymfly', !isGrid);
+            document.getElementById('btn-list').classList.toggle('is-light', isGrid);
+            
+            localStorage.setItem('allenatori-view-preference', viewType);
             filterTrainers();
         }
 
-        function filterTrainers() {
-            const query = document.getElementById('search-input').value.toLowerCase();
-            
-            // Filtra in griglia
-            const gridItems = document.querySelectorAll('#allenatori-grid .trainer-grid-item');
-            let visibleGridCount = 0;
-            gridItems.forEach(item => {
-                const searchTxt = item.getAttribute('data-search').toLowerCase();
-                const attivitaStr = item.getAttribute('data-attivita');
-                const attivitaList = attivitaStr ? attivitaStr.split(',') : [];
+        function filterTrainers() {                                                     
+            const query = document.getElementById('search-input').value.toLowerCase();                       //recupera i serch input e li mette in minuscolo
+            const items = document.querySelectorAll('.trainer-grid-item, .trainer-list-item');               //prende tutti gli allenatori in entrambe le viste
+            let visibleGrid = 0, visibleList = 0;
 
-                const matchesSearch = searchTxt.includes(query);
-                const matchesActivity = (activeActivityFilter === 'ALL' || attivitaList.includes(activeActivityFilter));
+            items.forEach(item => {
+                const searchTxt = item.getAttribute('data-search').toLowerCase();                     //data-serch = attributo HTML relativo alla search
+                const atts = item.getAttribute('data-attivita');                                      //data-attivita = attributo HTML relativo all'attività
+                const matchesSearch = searchTxt.includes(query);                                      //se il testo è incluso
+                const matchesActivity = activeActivityFilter === 'ALL' || (atts && atts.split(',').includes(activeActivityFilter));
 
-                if (matchesSearch && matchesActivity) {
+                if (matchesSearch && matchesActivity) {                                                 //se matcha
                     item.classList.remove('is-hidden');
-                    visibleGridCount++;
+                    if (item.classList.contains('trainer-grid-item')) visibleGrid++;                    
+                    else visibleList++;
                 } else {
                     item.classList.add('is-hidden');
                 }
             });
 
-            // Filtra in lista
-            const listItems = document.querySelectorAll('#allenatori-list .trainer-list-item');
-            let visibleListCount = 0;
-            listItems.forEach(item => {
-                const searchTxt = item.getAttribute('data-search').toLowerCase();
-                const attivitaStr = item.getAttribute('data-attivita');
-                const attivitaList = attivitaStr ? attivitaStr.split(',') : [];
-
-                const matchesSearch = searchTxt.includes(query);
-                const matchesActivity = (activeActivityFilter === 'ALL' || attivitaList.includes(activeActivityFilter));
-
-                if (matchesSearch && matchesActivity) {
-                    item.classList.remove('is-hidden');
-                    visibleListCount++;
-                } else {
-                    item.classList.add('is-hidden');
-                }
-            });
-
-            updateNoResultsMessage(visibleGridCount, visibleListCount);
+            updateNoResultsMessage(visibleGrid, visibleList);
             updateFilterTags();
         }
 
         function populateActivityFilters() {
             const activities = new Set();
-            const gridItems = document.querySelectorAll('#allenatori-grid .trainer-grid-item');
-            
-            gridItems.forEach(item => {
+            document.querySelectorAll('.trainer-grid-item').forEach(item => {
                 const atts = item.getAttribute('data-attivita');
-                if (atts) {
-                    atts.split(',').forEach(a => {
-                        const trimmed = a.trim();
-                        if (trimmed) activities.add(trimmed);
-                    });
-                }
+                if (atts) atts.split(',').forEach(a => activities.add(a.trim()));
             });
 
-            const container = document.getElementById('activity-filters-container');
+            const container = document.getElementById('activity-filters-container');              //tutte le attività
             const allFilter = document.getElementById('filter-activity-all');
-            container.innerHTML = '';
-            container.appendChild(allFilter);
+            container.replaceChildren(allFilter);
 
             Array.from(activities).sort().forEach(activity => {
                 const link = document.createElement('a');
-                link.href = '#';
+                link.href = '#';                                   //rimani su questa pagina
                 link.className = 'dropdown-item';
-                link.id = 'filter-activity-' + activity.replace(/\s+/g, '-');
                 link.textContent = activity;
                 link.onclick = (e) => {
-                    e.preventDefault();
-                    setActivityFilter(activity);
+                    e.preventDefault();                  //quando clicco l'attività la pagina non deve saltare, e mostrami le attività del filtro
+                    setActivityFilter(activity, link);
                 };
                 container.appendChild(link);
             });
         }
 
-        function setActivityFilter(activity) {
+        function setActivityFilter(activity, clickedElement) {
             activeActivityFilter = activity;
-            
-            const links = document.querySelectorAll('#activity-filters-container .dropdown-item');
-            links.forEach(link => link.classList.remove('is-active'));
-            
-            if (activity === 'ALL') {
-                document.getElementById('filter-activity-all').classList.add('is-active');
+            document.querySelectorAll('#activity-filters-container .dropdown-item').forEach(l => l.classList.remove('is-active'));      //leva is-active a tutti
+            if (clickedElement) {             //se l'elemento è cliccato
+                clickedElement.classList.add('is-active');                  //mettici is-active
             } else {
-                const targetId = 'filter-activity-' + activity.replace(/\s+/g, '-');
-                const targetLink = document.getElementById(targetId);
-                if (targetLink) {
-                    targetLink.classList.add('is-active');
-                }
+                document.getElementById('filter-activity-all').classList.add('is-active');           //altrimenti metti is-active su tutte le attività
             }
-            
             filterTrainers();
         }
 
@@ -378,116 +319,57 @@
         }
 
         function updateFilterTags() {
-            const tagsContainer = document.getElementById('active-filters-tags');
-            const tagActivity = document.getElementById('tag-activity');
+            const hasFilters = activeActivityFilter !== 'ALL';             //ci sono dei filtri attivi
+            document.getElementById('tag-activity').textContent = activeActivityFilter;
+            document.getElementById('tag-activity').classList.toggle('is-hidden', !hasFilters);     //se non ci sono filtri il tag è nascosto
+            document.getElementById('active-filters-tags').classList.toggle('is-hidden', !hasFilters);
+            
+            const resetBtn = document.getElementById('btn-reset-filters-shortcut');     //la x vicino al tag
+            if (resetBtn) resetBtn.classList.toggle('is-hidden', !hasFilters);
+            
             const toolbar = document.getElementById('controls-toolbar');
-            const resetBtn = document.getElementById('btn-reset-filters-shortcut');
-            
-            let hasFilters = false;
-            
-            if (activeActivityFilter !== 'ALL') {
-                tagActivity.textContent = activeActivityFilter;
-                tagActivity.classList.remove('is-hidden');
-                hasFilters = true;
-            } else {
-                tagActivity.classList.add('is-hidden');
-            }
-            
-            if (hasFilters) {
-                tagsContainer.classList.remove('is-hidden');
-                if (resetBtn) {
-                    resetBtn.classList.remove('is-hidden');
-                }
-                if (toolbar) {
-                    toolbar.classList.remove('mb-5');
-                    toolbar.classList.add('mb-6', 'pb-2');
-                }
-            } else {
-                tagsContainer.classList.add('is-hidden');
-                if (resetBtn) {
-                    resetBtn.classList.add('is-hidden');
-                }
-                if (toolbar) {
-                    toolbar.classList.add('mb-5');
-                    toolbar.classList.remove('mb-6', 'pb-2');
-                }
+            if (toolbar) {
+                toolbar.classList.toggle('mb-5', !hasFilters);
+                toolbar.classList.toggle('mb-6', hasFilters);
+                toolbar.classList.toggle('pb-2', hasFilters);
             }
         }
 
         function updateNoResultsMessage(visibleGridCount, visibleListCount) {
-            const noResults = document.getElementById('no-results-msg');
-            const gridView = document.getElementById('allenatori-grid');
-            const listView = document.getElementById('allenatori-list');
-            const isGridActive = !gridView.classList.contains('is-hidden');
-            const isListActive = !listView.classList.contains('is-hidden');
-            
+            const isGridActive = !document.getElementById('allenatori-grid').classList.contains('is-hidden');
             const count = isGridActive ? visibleGridCount : visibleListCount;
             const hasTotalItems = document.querySelectorAll('.trainer-grid-item').length > 0;
             
-            if (count === 0 && hasTotalItems) {
-                noResults.classList.remove('is-hidden');
-            } else {
-                noResults.classList.add('is-hidden');
-            }
+            document.getElementById('no-results-msg').classList.toggle('is-hidden', count > 0 || !hasTotalItems);
         }
 
         function setSortOrder(order) {
             activeSortOrder = order;
-            
-            document.getElementById('sort-cognome_asc').classList.remove('is-active');
-            document.getElementById('sort-cognome_desc').classList.remove('is-active');
-            document.getElementById('sort-nome_asc').classList.remove('is-active');
-            document.getElementById('sort-nome_desc').classList.remove('is-active');
-            
-            const activeLink = document.getElementById('sort-' + order);
-            if (activeLink) {
-                activeLink.classList.add('is-active');
-            }
-            
+            document.querySelectorAll('[id^="sort-"]').forEach(link => {
+                link.classList.toggle('is-active', link.id === 'sort-' + order);
+            });
             applySort();
         }
 
-        function applySort() {
-            // Ordina la griglia
-            const gridContainer = document.getElementById('allenatori-grid');
-            const gridItems = Array.from(gridContainer.querySelectorAll('.trainer-grid-item'));
-            
-            gridItems.sort((a, b) => {
-                return compareItems(a, b, activeSortOrder);
-            });
-            
-            gridItems.forEach(item => gridContainer.appendChild(item));
-            
-            // Ordina la lista
-            const listContainer = document.getElementById('allenatori-list');
-            const listItems = Array.from(listContainer.querySelectorAll('.trainer-list-item'));
-            
-            listItems.sort((a, b) => {
-                return compareItems(a, b, activeSortOrder);
-            });
-            
-            listItems.forEach(item => listContainer.appendChild(item));
+        function applySort() {     //funzione richiamata per l'ordine
+            const sortAndAppend = (containerId, selector) => {      //funzione comune per griglia e lista
+                const container = document.getElementById(containerId);      //pagina corretta in cui lavorare
+                const items = Array.from(container.querySelectorAll(selector));     //vengono presi tutti gli allenatori che vengono trovati
+                items.sort((a, b) => compareItems(a, b, activeSortOrder));
+                items.forEach(item => container.appendChild(item));
+            };
+            sortAndAppend('allenatori-grid', '.trainer-grid-item');
+            sortAndAppend('allenatori-list', '.trainer-list-item');
         }
 
         function compareItems(a, b, order) {
-            let valA, valB;
-            
-            if (order.startsWith('cognome')) {
-                valA = (a.getAttribute('data-cognome') || '').toLowerCase();
-                valB = (b.getAttribute('data-cognome') || '').toLowerCase();
-            } else {
-                valA = (a.getAttribute('data-nome') || '').toLowerCase();
-                valB = (b.getAttribute('data-nome') || '').toLowerCase();
-            }
-            
-            if (order.endsWith('asc')) {
-                return valA.localeCompare(valB);
-            } else {
-                return valB.localeCompare(valA);
-            }
+            const isCognome = order.startsWith('cognome');      //la parola inizia per cognome?
+            const attrName = isCognome ? 'data-cognome' : 'data-nome';     //se isCognome è true prende il cognome, altrimenti il nome
+            const valA = (a.getAttribute(attrName) || '').toLowerCase();    //prende il valore di a e lo mette in minuscolo
+            const valB = (b.getAttribute(attrName) || '').toLowerCase();
+            return order.endsWith('asc') ? valA.localeCompare(valB) : valB.localeCompare(valA);      //ordine alfabetico in base a quello che viene scelto
         }
 
-        // Ripristina preferenza
         document.addEventListener('DOMContentLoaded', () => {
             const pref = localStorage.getItem('allenatori-view-preference') || 'grid';
             switchView(pref);

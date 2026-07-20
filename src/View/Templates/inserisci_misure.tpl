@@ -1,141 +1,273 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta name="color-scheme" content="light">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
     <title>GymFly - Nuove Misure Corporee</title>
     <link rel="stylesheet" href="css/bulma.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
-    <style>
-        .custom-mobile-container {
-            max-width: 550px;
-            margin: 0 auto;
-        }
-        .form-section-title {
-            color: var(--gymfly-text);
-            border-bottom: 2px solid var(--gymfly-accent);
-            padding-bottom: 0.3rem;
-            margin-top: 1.5rem;
-            margin-bottom: 1rem;
-            font-weight: 600;
-        }
-    </style>
 </head>
 <body>
 
     <div class="app-container">
         {include file='sidebar.tpl'}
+        
         <main class="app-content">
-            <div class="container custom-mobile-container">
-                
-                <div class="mb-4">
-                    <a href="aggiorna-misure{if $smarty.session.ruolo_utente !== 'cliente'}?id={$utente->getId()}{/if}" class="button is-ghost has-text-grey pl-0">
-                        <span class="icon"><i class="fas fa-arrow-left"></i></span>
-                        <span>Annulla</span>
-                    </a>
-                </div>
-
-                <div class="box p-5" style="border: 2px solid var(--gymfly-accent); border-radius: 15px; background-color: var(--gymfly-card-bg); box-shadow: 0 8px 16px rgba(0,0,0,0.02) !important;">
-                    <div class="has-text-centered mb-4">
-                        <span class="icon is-large" style="color: var(--gymfly-primary);">
-                            <i class="fas fa-weight fa-3x"></i>
-                        </span>
-                        <h2 class="title is-4 style-theme-text mt-2">Registra Nuove Misure</h2>
-                        <p class="subtitle is-6 has-text-grey mt-1">Registra i parametri fisici correnti per tenere traccia dei tuoi progressi</p>
+            <!-- ================= DESKTOP HEADER ================= -->
+            {assign var="headerClass" value="dashboard-header"}
+            {if isset($smarty.session.ruolo_utente)}
+                {if $smarty.session.ruolo_utente === 'amministratore'}
+                    {assign var="headerClass" value="dashboard-header-admin"}
+                {elseif $smarty.session.ruolo_utente === 'allenatore'}
+                    {assign var="headerClass" value="dashboard-header-trainer"}
+                {/if}
+            {/if}
+            <div class="{$headerClass} is-hidden-mobile">
+                <div class="columns is-vcentered">
+                    <div class="column">
+                        <h1 class="title is-2 has-text-white mb-2">
+                            Registra Nuove Misure
+                        </h1>
+                        <p class="subtitle is-5 has-text-white-ter">
+                            Registra i parametri fisici correnti per tenere traccia dei progressi
+                        </p>
                     </div>
+                    <div class="column is-narrow">
+                        <figure class="image is-96x96">
+                            <span class="icon is-large has-text-white">
+                                <i class="fas fa-weight fa-5x"></i>
+                            </span>
+                        </figure>
+                    </div>
+                </div>
+            </div>
 
-                    <form action="inserisci-misure{if $smarty.session.ruolo_utente !== 'cliente'}?id={$utente->getId()}{/if}" method="POST">
-                        
-                        <!-- Parametri Generali -->
-                        <h3 class="is-size-5 form-section-title">Parametri Generali</h3>
-                        <div class="field">
-                            <label class="label">Peso (kg) *</label>
-                            <div class="control">
-                                <input class="input" type="number" step="0.1" name="peso" required value="{if $ultimaMisure}{$ultimaMisure->getPeso()}{/if}" placeholder="Es: 72.5">
-                            </div>
-                        </div>
-                        <div class="field">
-                            <label class="label">Altezza (cm) *</label>
-                            <div class="control">
-                                <input class="input" type="number" step="0.1" name="altezza" required value="{if $ultimaMisure}{$ultimaMisure->getAltezza()}{/if}" placeholder="Es: 178">
-                            </div>
-                        </div>
+            <!-- ================= MOBILE HEADER ================= -->
+            <div class="is-flex is-align-items-center mb-5 is-hidden-tablet" style="padding-top: 5px;">
+                <div style="width: 45px;"></div>
+                <strong class="is-size-4 style-theme-text" style="letter-spacing: 1px; flex-grow: 1;">REGISTRA MISURE</strong>
+            </div>
 
-                        <!-- Misure Parte Superiore -->
-                        <h3 class="is-size-5 form-section-title">Parte Superiore (cm)</h3>
-                        <div class="columns is-mobile">
-                            <div class="column">
-                                <label class="label is-size-7">Bicipite Dx</label>
-                                <input class="input" type="number" step="0.1" name="bicipite_destro" placeholder="Bic. Dx" value="{if $ultimaMisure}{$ultimaMisure->getBicipiteDestro()}{/if}">
+            <!-- FORM PRINCIPALE -->
+            <form action="inserisci-misure{if $smarty.session.ruolo_utente !== 'cliente'}?id={$utente->getId()}{/if}" method="POST">
+                
+                <!-- BOX 1: PARAMETRI GENERALI -->
+                <div class="columns">
+                    <div class="column is-12">
+                        <div class="box">
+                            <h3 class="title is-5 mb-4 style-theme-text">Parametri Generali</h3>
+                            
+                            <div class="columns">
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">Peso (kg) *</label>
+                                        <div class="control has-icons-left">
+                                            <input class="input" type="number" step="0.1" name="peso" required value="{if $ultimaMisure}{$ultimaMisure->getPeso()}{/if}" placeholder="Es: 72.5">
+                                            <span class="icon is-small is-left">
+                                                <i class="fas fa-weight"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">Altezza (cm) *</label>
+                                        <div class="control has-icons-left">
+                                            <input class="input" type="number" step="0.1" name="altezza" required value="{if $ultimaMisure}{$ultimaMisure->getAltezza()}{/if}" placeholder="Es: 178">
+                                            <span class="icon is-small is-left">
+                                                <i class="fas fa-ruler-vertical"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="column">
-                                <label class="label is-size-7">Bicipite Sx</label>
-                                <input class="input" type="number" step="0.1" name="bicipite_sinistro" placeholder="Bic. Sx" value="{if $ultimaMisure}{$ultimaMisure->getBicipiteSinistro()}{/if}">
-                            </div>
-                        </div>
-                        <div class="columns is-mobile">
-                            <div class="column">
-                                <label class="label is-size-7">Tricipite Dx</label>
-                                <input class="input" type="number" step="0.1" name="tricipite_destro" placeholder="Tri. Dx" value="{if $ultimaMisure}{$ultimaMisure->getTricipiteDestro()}{/if}">
-                            </div>
-                            <div class="column">
-                                <label class="label is-size-7">Tricipite Sx</label>
-                                <input class="input" type="number" step="0.1" name="tricipite_sinistro" placeholder="Tri. Sx" value="{if $ultimaMisure}{$ultimaMisure->getTricipiteSinistro()}{/if}">
-                            </div>
-                        </div>
-                        <div class="columns is-mobile">
-                            <div class="column">
-                                <label class="label is-size-7">Petto</label>
-                                <input class="input" type="number" step="0.1" name="misura_petto" placeholder="Petto" value="{if $ultimaMisure}{$ultimaMisure->getMisuraPetto()}{/if}">
-                            </div>
-                            <div class="column">
-                                <label class="label is-size-7">Spalle</label>
-                                <input class="input" type="number" step="0.1" name="misura_spalle" placeholder="Spalle" value="{if $ultimaMisure}{$ultimaMisure->getMisuraSpalle()}{/if}">
-                            </div>
-                        </div>
 
-                        <!-- Misure Parte Inferiore & Tronco -->
-                        <h3 class="is-size-5 form-section-title">Parte Inferiore & Tronco (cm)</h3>
-                        <div class="columns is-mobile">
-                            <div class="column">
-                                <label class="label is-size-7">Coscia Dx</label>
-                                <input class="input" type="number" step="0.1" name="coscia_destra" placeholder="Coscia Dx" value="{if $ultimaMisure}{$ultimaMisure->getCosciaDestra()}{/if}">
-                            </div>
-                            <div class="column">
-                                <label class="label is-size-7">Coscia Sx</label>
-                                <input class="input" type="number" step="0.1" name="coscia_sinistra" placeholder="Coscia Sx" value="{if $ultimaMisure}{$ultimaMisure->getCosciaSinistra()}{/if}">
-                            </div>
                         </div>
-                        <div class="columns is-mobile">
-                            <div class="column">
-                                <label class="label is-size-7">Polpaccio Dx</label>
-                                <input class="input" type="number" step="0.1" name="polpaccio_destro" placeholder="Polp. Dx" value="{if $ultimaMisure}{$ultimaMisure->getPolpaccioDestro()}{/if}">
-                            </div>
-                            <div class="column">
-                                <label class="label is-size-7">Polpaccio Sx</label>
-                                <input class="input" type="number" step="0.1" name="polpaccio_sinistro" placeholder="Polp. Sx" value="{if $ultimaMisure}{$ultimaMisure->getPolpaccioSinistro()}{/if}">
-                            </div>
-                        </div>
-                        <div class="columns is-mobile">
-                            <div class="column">
-                                <label class="label is-size-7">Vita</label>
-                                <input class="input" type="number" step="0.1" name="misura_vita" placeholder="Vita" value="{if $ultimaMisure}{$ultimaMisure->getMisuraVita()}{/if}">
-                            </div>
-                            <div class="column">
-                                <label class="label is-size-7">Fianchi</label>
-                                <input class="input" type="number" step="0.1" name="misura_fianchi" placeholder="Fianchi" value="{if $ultimaMisure}{$ultimaMisure->getPolpaccioSinistro()}{/if}">
-                            </div>
-                        </div>
-
-                        <button class="button is-gymfly is-fullwidth mt-5" type="submit" style="border-radius: 10px;">
-                            <span class="icon mr-1"><i class="fas fa-check"></i></span> Salva Parametri
-                        </button>
-                    </form>
+                    </div>
                 </div>
 
-            </div>
+                <!-- BOX 2: PARTE SUPERIORE -->
+                <div class="columns mt-4">
+                    <div class="column is-12">
+                        <div class="box">
+                            <h3 class="title is-5 mb-4 style-theme-text">Parte Superiore (cm)</h3>
+                            
+                            <div class="columns">
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">Bicipite Destro</label>
+                                        <div class="control has-icons-left">
+                                            <input class="input" type="number" step="0.1" name="bicipite_destro" placeholder="Es: 36.5" value="{if $ultimaMisure}{$ultimaMisure->getBicipiteDestro()}{/if}">
+                                            <span class="icon is-small is-left">
+                                                <i class="fas fa-dumbbell"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">Bicipite Sinistro</label>
+                                        <div class="control has-icons-left">
+                                            <input class="input" type="number" step="0.1" name="bicipite_sinistro" placeholder="Es: 36.2" value="{if $ultimaMisure}{$ultimaMisure->getBicipiteSinistro()}{/if}">
+                                            <span class="icon is-small is-left">
+                                                <i class="fas fa-dumbbell"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="columns">
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">Tricipite Destro</label>
+                                        <div class="control has-icons-left">
+                                            <input class="input" type="number" step="0.1" name="tricipite_destro" placeholder="Es: 31.0" value="{if $ultimaMisure}{$ultimaMisure->getTricipiteDestro()}{/if}">
+                                            <span class="icon is-small is-left">
+                                                <i class="fas fa-dumbbell"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">Tricipite Sinistro</label>
+                                        <div class="control has-icons-left">
+                                            <input class="input" type="number" step="0.1" name="tricipite_sinistro" placeholder="Es: 30.8" value="{if $ultimaMisure}{$ultimaMisure->getTricipiteSinistro()}{/if}">
+                                            <span class="icon is-small is-left">
+                                                <i class="fas fa-dumbbell"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="columns">
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">Misura Petto</label>
+                                        <div class="control has-icons-left">
+                                            <input class="input" type="number" step="0.1" name="misura_petto" placeholder="Es: 104" value="{if $ultimaMisure}{$ultimaMisure->getMisuraPetto()}{/if}">
+                                            <span class="icon is-small is-left">
+                                                <i class="fas fa-arrows-alt-h"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">Misura Spalle</label>
+                                        <div class="control has-icons-left">
+                                            <input class="input" type="number" step="0.1" name="misura_spalle" placeholder="Es: 118" value="{if $ultimaMisure}{$ultimaMisure->getMisuraSpalle()}{/if}">
+                                            <span class="icon is-small is-left">
+                                                <i class="fas fa-arrows-alt-h"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BOX 3: PARTE INFERIORE & TRONCO -->
+                <div class="columns mt-4">
+                    <div class="column is-12">
+                        <div class="box">
+                            <h3 class="title is-5 mb-4 style-theme-text">Parte Inferiore & Tronco (cm)</h3>
+                            
+                            <div class="columns">
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">Coscia Destra</label>
+                                        <div class="control has-icons-left">
+                                            <input class="input" type="number" step="0.1" name="coscia_destra" placeholder="Es: 54.5" value="{if $ultimaMisure}{$ultimaMisure->getCosciaDestra()}{/if}">
+                                            <span class="icon is-small is-left">
+                                                <i class="fas fa-walking"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">Coscia Sinistra</label>
+                                        <div class="control has-icons-left">
+                                            <input class="input" type="number" step="0.1" name="coscia_sinistra" placeholder="Es: 54.0" value="{if $ultimaMisure}{$ultimaMisure->getCosciaSinistra()}{/if}">
+                                            <span class="icon is-small is-left">
+                                                <i class="fas fa-walking"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="columns">
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">Polpaccio Destro</label>
+                                        <div class="control has-icons-left">
+                                            <input class="input" type="number" step="0.1" name="polpaccio_destro" placeholder="Es: 38.0" value="{if $ultimaMisure}{$ultimaMisure->getPolpaccioDestro()}{/if}">
+                                            <span class="icon is-small is-left">
+                                                <i class="fas fa-walking"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">Polpaccio Sinistro</label>
+                                        <div class="control has-icons-left">
+                                            <input class="input" type="number" step="0.1" name="polpaccio_sinistro" placeholder="Es: 37.8" value="{if $ultimaMisure}{$ultimaMisure->getPolpaccioSinistro()}{/if}">
+                                            <span class="icon is-small is-left">
+                                                <i class="fas fa-walking"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="columns">
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">Misura Vita</label>
+                                        <div class="control has-icons-left">
+                                            <input class="input" type="number" step="0.1" name="misura_vita" placeholder="Es: 82" value="{if $ultimaMisure}{$ultimaMisure->getMisuraVita()}{/if}">
+                                            <span class="icon is-small is-left">
+                                                <i class="fas fa-compress-alt"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="column">
+                                    <div class="field">
+                                        <label class="label">Misura Fianchi</label>
+                                        <div class="control has-icons-left">
+                                            <input class="input" type="number" step="0.1" name="misura_fianchi" placeholder="Es: 96" value="{if $ultimaMisure}{$ultimaMisure->getMisuraFianchi()}{/if}">
+                                            <span class="icon is-small is-left">
+                                                <i class="fas fa-compress-alt"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PULSANTI SALVATAGGIO -->
+                <div class="field is-grouped mt-5">
+                    <div class="control is-expanded">
+                        <button class="button is-gymfly is-fullwidth" type="submit">
+                            <i class="fas fa-check-circle mr-2"></i> Salva Parametri
+                        </button>
+                    </div>
+                </div>
+
+            </form>
         </main>
     </div>
 

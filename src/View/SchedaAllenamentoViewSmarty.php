@@ -12,48 +12,7 @@ class SchedaAllenamentoViewSmarty implements SchedaAllenamentoView
     {
         $this->smarty = require __DIR__ . '/../Foundation/Persistence/Config/smarty.php';
         $this->smarty->registerPlugin('modifier', 'base64_encode', 'base64_encode');
-        $this->smarty->registerPlugin('modifier', 'pulisci_descrizione', [self::class, 'pulisciDescrizione']);
-        $this->smarty->registerPlugin('modifier', 'estrai_recupero', [self::class, 'estraiRecupero']);
         $this->smarty->clearCompiledTemplate(); // Forza ricompilazione immediata dei template modificati
-    }
-
-    public static function pulisciDescrizione(?string $descrizione): string
-    {
-        if ($descrizione === null) {
-            return '';
-        }
-        return trim(preg_replace('/\[[^\]]+\]/', '', $descrizione));
-    }
-
-    public static function estraiRecupero(?string $descrizione, string $nomeEsercizio, ?int $serie = null, ?int $dettaglioId = null): string
-    {
-        if ($descrizione === null) {
-            return 'Non specificato';
-        }
-
-        // 1. Cerca per ID dettaglio univoco: "[DetId - ID - Recupero: X]"
-        if ($dettaglioId !== null) {
-            $patternId = '/\[DetId - ' . $dettaglioId . ' - Recupero: ([^\]\n]+)\]/';
-            if (preg_match($patternId, $descrizione, $matches)) {
-                return trim($matches[1]);
-            }
-        }
-
-        // 2. Fallback per nome esercizio e serie: "[Nome Esercizio - Serie: X - Recupero: Y]"
-        if ($serie !== null) {
-            $patternSerie = '/\[' . preg_quote($nomeEsercizio, '/') . ' - Serie: ' . $serie . ' - Recupero: ([^\]\n]+)\]/';
-            if (preg_match($patternSerie, $descrizione, $matches)) {
-                return trim($matches[1]);
-            }
-        }
-
-        // 3. Fallback per solo nome esercizio: "[Nome Esercizio - Recupero: X]"
-        $patternEsercizio = '/\[' . preg_quote($nomeEsercizio, '/') . ' - Recupero: ([^\]\n]+)\]/';
-        if (preg_match($patternEsercizio, $descrizione, $matches)) {
-            return trim($matches[1]);
-        }
-
-        return 'Non specificato';
     }
 
     public function mostraTemplate(string $tplName, array $dati = []): void
