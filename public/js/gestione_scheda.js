@@ -138,6 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     tr.querySelector('input[data-name="ripetizioni"]').name = `workouts[${wIndex}][dettagli][${globalExIndex}][ripetizioni]`;
                     tr.querySelector('input[data-name="carico"]').name = `workouts[${wIndex}][dettagli][${globalExIndex}][carico]`;
                     tr.querySelector('input[data-name="tempo"]').name = `workouts[${wIndex}][dettagli][${globalExIndex}][tempo]`;
+                    tr.querySelector('input[data-name="esercizio_id"]').name = `workouts[${wIndex}][dettagli][${globalExIndex}][esercizio_id]`;
 
                     globalExIndex++;     //la riga successiva (anche se appartiene a un esercizio diverso o a una scheda diversa) riceverà il numero successivo
                 });
