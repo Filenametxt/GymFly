@@ -254,7 +254,7 @@ class ProfiloController
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
         $cliente = $idUt ? $this->recuperaClienteTarget($ruolo, $idUt) : null;    // recupera il cliente target in base al ruolo dell'utente loggato e al suo ID
-        if (!$cliente) {
+        if (!$cliente || $ruolo!== 'cliente') {
             $this->mostraStatoOperazione(false, "Cliente non trovato o accesso non consentito.");
             return;
         }
@@ -276,7 +276,7 @@ class ProfiloController
     {
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-        if (!$idUt || $ruolo === 'allenatore') {
+        if (!$idUt || $ruolo !== 'cliente') {
             $this->mostraStatoOperazione(false, "Azione non consentita.");
             return;
         }
