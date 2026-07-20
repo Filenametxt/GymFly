@@ -17,7 +17,7 @@ class Attivita
     private string $descrizione;
     private int $maxPartecipanti;
 
-    /** @var Collection<int, Allenatore> */
+    /** @var Collection<int, Allenatore> */ //array allenatori che possono tenere questa attività
     private Collection $allenatori;
 
     public function __construct(string $nome, string $descrizione, int $maxPartecipanti)

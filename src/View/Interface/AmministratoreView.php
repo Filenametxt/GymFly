@@ -8,8 +8,4 @@ interface AmministratoreView
     public function mostraFormCreaAllenatore(array $dati): void;
 
     public function mostraFormCreaAttivita(array $dati): void;
-
-    public function mostraFormAbilitaAttivita(array $dati): void;
-
-    public function mostraStatoOperazione(bool $successo, string $messaggio, ?string $ritorno = null): void;
 }

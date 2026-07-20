@@ -9,11 +9,11 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class DoctrinePalestraRepository implements PalestraRepositoryInterface
 {
-    public function __construct(
-        private readonly EntityManagerInterface $em,
-    ) {}
+    public function __construct(private readonly EntityManagerInterface $em) {}
 
-    // --- CRUD base ---
+    // -------------------------------------------------------------------------
+    // CRUD base
+    // -------------------------------------------------------------------------
 
     public function findById(int $id): ?Palestra
     {
@@ -40,7 +40,9 @@ class DoctrinePalestraRepository implements PalestraRepositoryInterface
             ->findAll();
     }
 
-    // --- Lookup anagrafico ---
+    // -------------------------------------------------------------------------
+    // Lookup anagrafico
+    // -------------------------------------------------------------------------
 
     public function findByEmail(string $email): ?Palestra
     {
@@ -53,18 +55,9 @@ class DoctrinePalestraRepository implements PalestraRepositoryInterface
             ->getOneOrNullResult();
     }
 
-    /** @return Palestra[] */
-    public function findByNomeContaining(string $partial): array
-    {
-        return $this->em->createQueryBuilder()
-            ->select('p')
-            ->from(Palestra::class, 'p')
-            ->where('LOWER(p.nome) LIKE LOWER(:partial)')
-            ->setParameter('partial', '%' . $partial . '%')
-            ->orderBy('p.nome', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
+    // -------------------------------------------------------------------------
+    // Metodi specifici del dominio
+    // -------------------------------------------------------------------------
 
     public function existsByEmail(string $email): bool
     {
@@ -92,5 +85,16 @@ class DoctrinePalestraRepository implements PalestraRepositoryInterface
             ->getSingleScalarResult();
 
         return $count > 0;
+    }
+
+    public function findByAmministratore(Amministratore $admin): ?Palestra
+    {
+        return $this->em->createQueryBuilder()
+            ->select('p')
+            ->from(Palestra::class, 'p')
+            ->where('p.amministratore = :admin')
+            ->setParameter('admin', $admin)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 }

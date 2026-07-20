@@ -26,13 +26,6 @@ interface PalestraRepositoryInterface
     public function findByEmail(string $email): ?Palestra;
 
     /**
-     * Ricerca per nome — utile per ricerca utente o pannello admin.
-     *
-     * @return Palestra[]
-     */
-    public function findByNomeContaining(string $partial): array;
-
-    /**
      * Verifica se esiste già una palestra registrata con quell'email.
      * Guard prima del salvataggio per evitare duplicati.
      */
@@ -44,4 +37,8 @@ interface PalestraRepositoryInterface
      */
     public function existsByNomeAndIndirizzo(string $nome, string $indirizzo): bool;
 
+    /**
+     * Cerca una palestra gestita dall'amministratore specificato.
+     */
+    public function findByAmministratore(Amministratore $admin): ?Palestra;
 }

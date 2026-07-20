@@ -28,41 +28,10 @@ class ProfiloViewSmarty implements ProfiloView
 
     private function determinaRitorno(): string
     {
-        if (isset($_SESSION['ruolo_utente'])) {
-            switch ($_SESSION['ruolo_utente']) {
-                case 'amministratore':
-                    return 'dashboard-admin';
-                case 'allenatore':
-                    return 'dashboard-allenatore';
-                case 'cliente':
-                    return 'dashboard-cliente';
-            }
+        if (isset($_SESSION['id_utente'])) {
+            return 'profilo';
         }
         return 'login';
-    }
-
-    /**
-     * Mostra un messaggio di conferma per una modifica andata a buon fine.
-     */
-    public function mostraConfermaModifica(string $messaggio): void
-    {
-        header('Content-Type: text/html; charset=utf-8');
-        $this->smarty->assign('successo', true);
-        $this->smarty->assign('messaggio', $messaggio);
-        $this->smarty->assign('ritorno', $this->determinaRitorno());
-        $this->smarty->display('stato_operazione.tpl');
-    }
-
-    /**
-     * Mostra una schermata di errore in caso di fallimento o accesso vietato.
-     */
-    public function mostraErrore(string $messaggio): void
-    {
-        header('Content-Type: text/html; charset=utf-8');
-        $this->smarty->assign('successo', false);
-        $this->smarty->assign('messaggio', $messaggio);
-        $this->smarty->assign('ritorno', $this->determinaRitorno());
-        $this->smarty->display('stato_operazione.tpl');
     }
 
     public function mostraFormModifica(array $dati): void

@@ -1,14 +1,14 @@
 <?php
 namespace App\Control;
 
-use App\Infrastructure\Doctrine\EntityManagerFactory;
+use App\Foundation\Persistence\Config\EntityManagerFactory;
 use App\Foundation\Session;
 
 class FrontController
 {
-    private array $routes = [];
+    private array $routes = [];         //gli URL, ognuno dei quali è mappato da classe e metodo
 
-    public function __construct()
+    public function __construct()       //definisce il path delle rotte
     {
         $this->routes = [
             '/' => [VisualizzazioneController::class, 'mostraHome'],
@@ -27,8 +27,6 @@ class FrontController
             '/cambia-password' => [ProfiloController::class, 'cambiaPassword'],
             '/visualizza-grafico' => [ProfiloController::class, 'visualizzaGrafico'],
             '/carica-foto' => [ProfiloController::class, 'caricaFotoProfilo'],
-            '/aggiungi-attivita-profilo' => [ProfiloController::class, 'aggiungiAttivitaAllenatore'],
-            '/rimuovi-attivita-profilo' => [ProfiloController::class, 'rimuoviAttivitaAllenatore'],
             '/aggiorna-abilitazioni-profilo' => [ProfiloController::class, 'aggiornaAbilitazioniAllenatore'],
             
             '/dashboard-admin' => [VisualizzazioneController::class, 'mostraDashboardAdmin'],
@@ -46,16 +44,15 @@ class FrontController
             '/crea-cliente' => [AmministratoreController::class, 'creaCliente'],
             '/crea-allenatore' => [AmministratoreController::class, 'creaAllenatore'],
             '/crea-attivita' => [AmministratoreController::class, 'creaAttivita'],
-            '/abilita-attivita-allenatore' => [AmministratoreController::class, 'abilitaAttivitaAllenatore'],
+
             '/rimuovi-cliente' => [AmministratoreController::class, 'rimuoviCliente'],
             '/rimuovi-allenatore' => [AmministratoreController::class, 'rimuoviAllenatore'],
-            '/rimuovi-attivita' => [AmministratoreController::class, 'rimuoviAttivita'],
             
             '/crea-esercizio' => [EserciziController::class, 'apriFormCreazioneEsercizio'],
-            '/valida-esercizio' => [EserciziController::class, 'compilaDatiEsercizio'],
             '/salva-esercizio' => [EserciziController::class, 'salvaEsercizio'],
             '/copia-esercizio' => [EserciziController::class, 'copiaEsercizio'],
-            '/elimina-bozza' => [EserciziController::class, 'eliminaBozzaEsercizio'],
+            '/esercizi' => [EserciziController::class, 'listaEsercizi'],
+            '/visualizza-esercizio' => [EserciziController::class, 'visualizzaEsercizio'],
             
             '/calendario' => [AttivitaPianificataController::class, 'visualizzaCalendario'],
             '/prenota-attivita' => [AttivitaPianificataController::class, 'prenotaAttivita'],
@@ -68,10 +65,8 @@ class FrontController
             '/richiedi-scheda' => [SchedaAllenamentoController::class, 'apriFormRichiestaScheda'],
             '/crea-scheda' => [SchedaAllenamentoController::class, 'apriFormCreazioneScheda'],
             '/modifica-scheda' => [SchedaAllenamentoController::class, 'apriFormModificaScheda'],
-            '/salva-scheda' => [SchedaAllenamentoController::class, 'salvaScheda'],
             '/invia-scheda' => [SchedaAllenamentoController::class, 'inviaScheda'],
             '/elimina-scheda' => [SchedaAllenamentoController::class, 'eliminaScheda'],
-            '/rimuovi-scheda' => [SchedaAllenamentoController::class, 'eliminaScheda'],
             '/visualizza-scheda' => [SchedaAllenamentoController::class, 'visualizzaScheda'],
             '/modifica-dettagli' => [SchedaAllenamentoController::class, 'apriFormModificaSchedaCliente'],
             '/progressi-cliente' => [SchedaAllenamentoController::class, 'visualizzaProgressiCliente'],
@@ -85,7 +80,7 @@ class FrontController
     {
         $route = $this->resolveRoute();
 
-        if (!isset($this->routes[$route])) {
+        if (!isset($this->routes[$route])) {                //se la rotta non esiste, allora 404 Not Found
             header("HTTP/1.0 404 Not Found");
             echo "<h1>404 Not Found</h1><p>La pagina richiesta non esiste.</p>";
             return;
@@ -98,14 +93,14 @@ class FrontController
         $entityManager = EntityManagerFactory::create();
 
         // Istanziazione ed esecuzione dinamica del Controller
-        $controller = new $controllerClass($entityManager, $session);
+        $controller = new $controllerClass($entityManager, $session);           //viene richiamato il costruttore della classe $controllerClass
         $controller->$method();
     }
 
     /**
      * Risolve il percorso URL per estrarre la rotta pulita tramite query parameter passato da .htaccess.
      */
-    private function resolveRoute(): string
+    private function resolveRoute(): string    //risolve il percorso URL per estrarre la rotta pulita
     {
         $route = $_GET['route'] ?? '/';
         return '/' . ltrim($route, '/');

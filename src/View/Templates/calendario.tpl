@@ -261,7 +261,7 @@
                                     <p class="mb-3"><i class="fas fa-user-ninja mr-2"></i>Coach: <strong>{$selectedAp->getAllenatore()->getNome()} {$selectedAp->getAllenatore()->getCognome()}</strong></p>
                                     
                                     <div class="mb-2 is-size-7 is-flex is-justify-content-between">
-                                        <span>Prenotati</span>
+                                        <span class="mr-2">Prenotati</span>
                                         <span><strong>{$selectedAp->getPrenotati()}</strong> / {$selectedAp->getMaxPartecipanti()}</span>
                                     </div>
                                     <progress class="progress is-link" value="{$selectedAp->getPrenotati()}" max="{$selectedAp->getMaxPartecipanti()}" style="height: 6px;"></progress>
@@ -269,26 +269,33 @@
 
                                 {if $ruolo_utente === 'cliente'}
                                     <div class="mt-4">
-                                        {if isset($iscrittoMap[$selectedAp->getId()]) && $iscrittoMap[$selectedAp->getId()]}
-                                            <a href="disdici-prenotazione?id_attivita_pianificata={$selectedAp->getId()}" class="button is-danger is-light is-fullwidth">
-                                                <span class="icon"><i class="fas fa-calendar-minus"></i></span>
-                                                <span>Disdici la mia Prenotazione</span>
-                                            </a>
-                                        {elseif isset($inQueueMap[$selectedAp->getId()]) && $inQueueMap[$selectedAp->getId()]}
-                                            <a href="disdici-prenotazione?id_attivita_pianificata={$selectedAp->getId()}" class="button is-danger is-light is-fullwidth">
-                                                <span class="icon"><i class="fas fa-calendar-minus"></i></span>
-                                                <span>Disdici Coda di Attesa</span>
-                                            </a>
-                                        {elseif $selectedAp->getPrenotati() >= $selectedAp->getMaxPartecipanti()}
-                                            <a href="prenota-attivita?id_attivita_pianificata={$selectedAp->getId()}" class="button is-warning is-fullwidth" {if isset($puoPrenotare) && !$puoPrenotare}disabled onclick="return false;"{/if}>
-                                                <span class="icon"><i class="fas fa-hourglass-half"></i></span>
-                                                <span>Prenota</span>
-                                            </a>
+                                        {if $isPassata}
+                                            <div class="notification is-warning is-light has-text-centered p-3 is-size-7">
+                                                <span class="icon"><i class="fas fa-exclamation-triangle"></i></span>
+                                                <span>L'attività è passata. Non è possibile effettuare prenotazioni o inserirsi in coda.</span>
+                                            </div>
                                         {else}
-                                            <a href="prenota-attivita?id_attivita_pianificata={$selectedAp->getId()}" class="button is-gymfly is-fullwidth" {if isset($puoPrenotare) && !$puoPrenotare}disabled onclick="return false;"{/if}>
-                                                <span class="icon"><i class="fas fa-calendar-check"></i></span>
-                                                <span>Iscriviti all'attività</span>
-                                            </a>
+                                            {if isset($iscrittoMap[$selectedAp->getId()]) && $iscrittoMap[$selectedAp->getId()]}
+                                                <a href="disdici-prenotazione?id_attivita_pianificata={$selectedAp->getId()}" class="button is-danger is-light is-fullwidth">
+                                                    <span class="icon"><i class="fas fa-calendar-minus"></i></span>
+                                                    <span>Disdici la mia Prenotazione</span>
+                                                </a>
+                                            {elseif isset($inQueueMap[$selectedAp->getId()]) && $inQueueMap[$selectedAp->getId()]}
+                                                <a href="disdici-prenotazione?id_attivita_pianificata={$selectedAp->getId()}" class="button is-danger is-light is-fullwidth">
+                                                    <span class="icon"><i class="fas fa-calendar-minus"></i></span>
+                                                    <span>Disdici Coda di Attesa</span>
+                                                </a>
+                                            {elseif $selectedAp->getPrenotati() >= $selectedAp->getMaxPartecipanti()}
+                                                <a href="prenota-attivita?id_attivita_pianificata={$selectedAp->getId()}" class="button is-warning is-fullwidth" {if isset($puoPrenotare) && !$puoPrenotare}disabled onclick="return false;"{/if}>
+                                                    <span class="icon"><i class="fas fa-hourglass-half"></i></span>
+                                                    <span>Prenota</span>
+                                                </a>
+                                            {else}
+                                                <a href="prenota-attivita?id_attivita_pianificata={$selectedAp->getId()}" class="button is-gymfly is-fullwidth" {if isset($puoPrenotare) && !$puoPrenotare}disabled onclick="return false;"{/if}>
+                                                    <span class="icon"><i class="fas fa-calendar-check"></i></span>
+                                                    <span>Iscriviti all'attività</span>
+                                                </a>
+                                            {/if}
                                         {/if}
                                     </div>
                                 {/if}
@@ -314,7 +321,7 @@
                                 </div>
 
                                 <div class="mt-4">
-                                    <a href="disdici-sessione-privata?id_allenatore={$selectedSp->getAllenatore()->getId()}&ora_inizio={$selectedSp->getOraInizio()->format('H:i:s')}&ora_fine={$selectedSp->getOraFine()->format('H:i:s')}" class="button is-danger is-light is-fullwidth" onclick="return confirm('Sei sicuro di voler annullare questa sessione privata?');">
+                                    <a href="disdici-sessione-privata?id_allenatore={$selectedSp->getAllenatore()->getId()}&ora_inizio={$selectedSp->getOraInizio()->format('H:i:s')}&ora_fine={$selectedSp->getOraFine()->format('H:i:s')}" class="button is-danger is-light is-fullwidth">
                                         <span class="icon"><i class="fas fa-calendar-times"></i></span>
                                         <span>Disdici Sessione</span>
                                     </a>

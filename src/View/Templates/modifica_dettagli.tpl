@@ -9,34 +9,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
     <style>
-        .modifica-container {
-            max-width: 600px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        /* HEADER ALLENAMENTO */
-        .allenamento-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid var(--gymfly-accent);
-            margin-bottom: 1.5rem;
-        }
-
-        .allenamento-titolo {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--gymfly-text);
-            letter-spacing: 0.5px;
-        }
-
-        .allenamento-icon {
-            font-size: 1.5rem;
-            color: var(--gymfly-primary);
-        }
-
         /* ESERCIZIO BLOCK */
         .esercizio-block {
             background: var(--gymfly-bg);
@@ -116,111 +88,157 @@
     <div class="app-container">
         {include file='sidebar.tpl'}
         <main class="app-content">
-            <div class="container modifica-container">
+            <div class="container">
 
-                <!-- BACK LINK -->
-                <div class="mb-4">
+                <!-- TORNA INDIETRO (Desktop) -->
+                <div class="mb-5 is-hidden-mobile">
                     <a href="visualizza-scheda" class="button is-ghost has-text-grey pl-0">
                         <span class="icon"><i class="fas fa-arrow-left"></i></span>
                         <span>Torna alla Scheda</span>
                     </a>
                 </div>
 
-                <div class="box p-5" style="border: 2px solid var(--gymfly-accent); border-radius: 15px; background-color: var(--gymfly-card-bg); box-shadow: 0 8px 16px rgba(0,0,0,0.02) !important;">
-                    
-                    <!-- HEADER ALLENAMENTO -->
-                    <div class="allenamento-header">
-                        <h1 class="allenamento-titolo">
-                            <i class="fas fa-running mr-2" style="color: var(--gymfly-primary);"></i>{$allenamento->getNome()}
-                        </h1>
-                        <div class="allenamento-icon">
-                            <i class="fas fa-dumbbell"></i>
+                <!-- ================= DESKTOP HEADER ================= -->
+                {assign var="headerClass" value="dashboard-header"}
+                {if isset($smarty.session.ruolo_utente)}
+                    {if $smarty.session.ruolo_utente === 'amministratore'}
+                        {assign var="headerClass" value="dashboard-header-admin"}
+                    {elseif $smarty.session.ruolo_utente === 'allenatore'}
+                        {assign var="headerClass" value="dashboard-header-trainer"}
+                    {/if}
+                {/if}
+                <div class="{$headerClass} is-hidden-mobile">
+                    <div class="columns is-vcentered">
+                        <div class="column">
+                            <h1 class="title is-2 has-text-white mb-2">Modifica Allenamento</h1>
+                            <p class="subtitle is-5 has-text-white-ter">Aggiorna ripetizioni, carico e tempi di recupero per ciascun esercizio dell'allenamento "{$allenamento->getNome()}"</p>
+                        </div>
+                        <div class="column is-narrow">
+                            <figure class="image is-96x96">
+                                <span class="icon is-large has-text-white">
+                                    <i class="fas fa-dumbbell fa-5x"></i>
+                                </span>
+                            </figure>
                         </div>
                     </div>
+                </div>
 
-                    <!-- FORM -->
-                    <form action="modifica-dettagli" method="POST">
-                        <input type="hidden" name="id_allenamento" value="{$allenamento->getId()}">
+                <!-- ================= MOBILE HEADER ================= -->
+                <div class="is-flex is-align-items-center mb-5 is-hidden-tablet" style="padding-top: 5px;">
+                    <div style="width: 45px;"></div>
+                    <a href="visualizza-scheda" class="button is-ghost p-0 mr-3" style="color: inherit; height: auto;">
+                        <span class="icon is-medium"><i class="fas fa-arrow-left fa-lg"></i></span>
+                    </a>
+                    <strong class="is-size-4 style-theme-text" style="letter-spacing: 1px; flex-grow: 1;">MODIFICA ALLENAMENTO</strong>
+                </div>
 
-                        <!-- ESERCIZI -->
-                        {if $allenamento->getDettagli()|@count > 0}
-                            {foreach $allenamento->getDettagli() as $dettaglio}
-                                <div class="esercizio-block">
-                                    <!-- TITOLO ESERCIZIO -->
-                                    <div class="esercizio-titolo">
-                                        <span class="esercizio-serie-badge">S{$dettaglio->getSerie()}</span>
-                                        <span>{$dettaglio->getEsercizio()->getNomeEsercizio()}</span>
+                <!-- FORM DI MODIFICA ESTESO -->
+                <div class="columns">
+                    <div class="column is-12">
+                        <div class="box p-5">
+                            <h3 class="title is-5 mb-5 style-theme-text">
+                                <i class="fas fa-edit mr-2" style="color: var(--gymfly-primary);"></i> Dettagli Allenamento
+                            </h3>
+                            
+                            <form action="modifica-dettagli" method="POST">
+                                <input type="hidden" name="id_allenamento" value="{$allenamento->getId()}">
+
+                                <!-- ESERCIZI -->
+                                {if $allenamento->getDettagli()|@count > 0}
+                                    {foreach $allenamento->getDettagli() as $dettaglio}
+                                        <div class="esercizio-block">
+                                            <div class="columns is-mobile is-vcentered">
+                                                {if $dettaglio->getEsercizio()->getImmagine()}
+                                                    <div class="column is-narrow">
+                                                        <figure class="image is-96x96" style="border-radius: 8px; overflow: hidden; border: 1px solid var(--gymfly-accent); background-color: #f5f5f5;">
+                                                            <img src="data:{if $dettaglio->getEsercizio()->getTipoImmagine()}{$dettaglio->getEsercizio()->getTipoImmagine()}{else}image/jpeg{/if};base64,{$dettaglio->getEsercizio()->getImmagine()|base64_encode}" alt="Esercizio" style="object-fit: cover; width: 100%; height: 100%;">
+                                                        </figure>
+                                                    </div>
+                                                {/if}
+                                                <div class="column">
+                                                    <!-- TITOLO ESERCIZIO -->
+                                                    <div class="esercizio-titolo">
+                                                        <span class="esercizio-serie-badge">S{$dettaglio->getSerie()}</span>
+                                                        <span class="has-text-weight-bold">{$dettaglio->getEsercizio()->getNomeEsercizio()}</span>
+                                                    </div>
+
+                                                    <!-- PARAMETRI IN GRID -->
+                                                    {assign var="nomeTipo" value=$dettaglio->getEsercizio()->getTipologia()->getNomeTipologia()|lower}
+                                                    {assign var="isDurata" value=($nomeTipo === 'durata')}
+                                                    <div class="parametri-grid">
+                                                        <!-- RIPETIZIONI -->
+                                                        <div class="parametro-field" {if $isDurata}style="opacity: 0.6;"{/if}>
+                                                            <label class="parametro-label">
+                                                                <i class="fas fa-sync-alt mr-1"></i>Ripetizioni
+                                                            </label>
+                                                            <input 
+                                                                class="input" 
+                                                                type="number" 
+                                                                name="dettagli[{$dettaglio->getId()}][ripetizioni]" 
+                                                                value="{$dettaglio->getRipetizioni()}" 
+                                                                {if !$isDurata}required min="1"{else}disabled{/if}
+                                                                placeholder="Es: 10"
+                                                                style="border-radius: 8px;">
+                                                        </div>
+
+                                                        <!-- CARICO -->
+                                                        <div class="parametro-field">
+                                                            <label class="parametro-label">
+                                                                <i class="fas fa-weight mr-1"></i>Carico (Kg)
+                                                            </label>
+                                                            <input 
+                                                                class="input" 
+                                                                type="number" 
+                                                                step="0.5" 
+                                                                name="dettagli[{$dettaglio->getId()}][carico]" 
+                                                                value="{$dettaglio->getCarico()}" 
+                                                                required 
+                                                                min="0"
+                                                                placeholder="Es: 20"
+                                                                style="border-radius: 8px;">
+                                                        </div>
+
+                                                        <!-- TEMPO -->
+                                                        <div class="parametro-field" {if !$isDurata}style="opacity: 0.6;"{/if}>
+                                                            <label class="parametro-label">
+                                                                <i class="fas fa-stopwatch mr-1"></i>Tempo
+                                                            </label>
+                                                            <input 
+                                                                class="input" 
+                                                                type="text" 
+                                                                name="dettagli[{$dettaglio->getId()}][tempo]" 
+                                                                value="{$dettaglio->getTempo()}" 
+                                                                {if $isDurata}required{else}disabled{/if}
+                                                                placeholder="Es: 90s"
+                                                                style="border-radius: 8px;">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {/foreach}
+                                {else}
+                                    <div class="esercizi-vuoti">
+                                        <div>
+                                            <i class="fas fa-inbox"></i>
+                                        </div>
+                                        <p>Nessun esercizio presente in questo allenamento.</p>
                                     </div>
+                                {/if}
 
-                                    <!-- PARAMETRI IN GRID -->
-                                    {assign var="nomeTipo" value=$dettaglio->getEsercizio()->getTipologia()->getNomeTipologia()|lower}
-                                    {assign var="isDurata" value=($nomeTipo === 'durata' || $nomeTipo === 'tempo/ripetizioni')}
-                                    <div class="parametri-grid">
-                                        <!-- RIPETIZIONI -->
-                                        <div class="parametro-field" {if $isDurata}style="opacity: 0.6;"{/if}>
-                                            <label class="parametro-label">
-                                                <i class="fas fa-sync-alt mr-1"></i>Ripetizioni
-                                            </label>
-                                            <input 
-                                                class="input" 
-                                                type="number" 
-                                                name="dettagli[{$dettaglio->getId()}][ripetizioni]" 
-                                                value="{$dettaglio->getRipetizioni()}" 
-                                                {if !$isDurata}required min="1"{else}disabled{/if}
-                                                placeholder="Es: 10"
-                                                style="border-radius: 8px;">
-                                        </div>
-
-                                        <!-- CARICO -->
-                                        <div class="parametro-field">
-                                            <label class="parametro-label">
-                                                <i class="fas fa-weight mr-1"></i>Carico (Kg)
-                                            </label>
-                                            <input 
-                                                class="input" 
-                                                type="number" 
-                                                step="0.5" 
-                                                name="dettagli[{$dettaglio->getId()}][carico]" 
-                                                value="{$dettaglio->getCarico()}" 
-                                                required 
-                                                min="0"
-                                                placeholder="Es: 20"
-                                                style="border-radius: 8px;">
-                                        </div>
-
-                                        <!-- TEMPO -->
-                                        <div class="parametro-field" {if !$isDurata}style="opacity: 0.6;"{/if}>
-                                            <label class="parametro-label">
-                                                <i class="fas fa-stopwatch mr-1"></i>Tempo
-                                            </label>
-                                            <input 
-                                                class="input" 
-                                                type="text" 
-                                                name="dettagli[{$dettaglio->getId()}][tempo]" 
-                                                value="{$dettaglio->getTempo()}" 
-                                                {if $isDurata}required{else}disabled{/if}
-                                                placeholder="Es: 90s"
-                                                style="border-radius: 8px;">
-                                        </div>
+                                <!-- SUBMIT -->
+                                <div class="field mt-5">
+                                    <div class="control">
+                                        <button type="submit" class="button is-gymfly is-fullwidth">
+                                            <span class="icon"><i class="fas fa-save"></i></span>
+                                            <span>Salva Modifiche</span>
+                                        </button>
                                     </div>
                                 </div>
-                            {/foreach}
-                        {else}
-                            <div class="esercizi-vuoti">
-                                <div>
-                                    <i class="fas fa-inbox"></i>
-                                </div>
-                                <p>Nessun esercizio presente in questo allenamento.</p>
-                            </div>
-                        {/if}
 
-                        <!-- PULSANTE SALVA -->
-                        <button type="submit" class="button is-gymfly is-fullwidth mt-5" style="border-radius: 10px;">
-                            <i class="fas fa-check mr-2"></i>
-                            <span>Salva Modifiche</span>
-                        </button>
-
-                    </form>
+                            </form>
+                        </div>
+                    </div>
                 </div>
 
             </div>

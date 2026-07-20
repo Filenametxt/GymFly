@@ -5,6 +5,7 @@ namespace App\Entity\Repository;
 use App\Entity\Allenatore;
 use App\Entity\Cliente;
 use App\Entity\Scheda;
+use App\Entity\Palestra;
 
 interface SchedaRepositoryInterface
 {
@@ -26,13 +27,10 @@ interface SchedaRepositoryInterface
     // -------------------------------------------------------------------------
 
     /**
-     * Tutte le schede assegnate a un cliente, ordinate per data inizio
-     * discendente (la più recente per prima).
-     * Caso d'uso: storico schede nella vista cliente.
-     *
-     * @return Scheda[]
+     * La scheda assegnata a un cliente.
+     * Restituisce null se il cliente non ha schede associate.
      */
-    public function findByCliente(Cliente $cliente): array;
+    public function findByCliente(Cliente $cliente): ?Scheda;
 
     /**
      * La scheda attualmente attiva per un cliente (data_inizio <= oggi <= data_fine).
@@ -86,12 +84,17 @@ interface SchedaRepositoryInterface
      *
      * @return Scheda[]
      */
-    public function findByPalestra(\App\Entity\Palestra $palestra): array;
+    public function findByPalestra(Palestra $palestra): array;
 
     /**
      * Altre schede attive o storiche dei clienti della palestra escludendo la scheda corrente.
      *
      * @return Scheda[]
      */
-    public function findAltreByPalestra(\App\Entity\Palestra $palestra, int $escludiSchedaId): array;
+    public function findAltreByPalestra(Palestra $palestra, int $escludiSchedaId): array;
+
+    /**
+     * Cerca la scheda con stato 'Pendente' per un determinato cliente.
+     */
+    public function findRichiestaByCliente(Cliente $cliente): ?Scheda;
 }

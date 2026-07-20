@@ -1,126 +1,120 @@
 <?php
 namespace App\Control;
 
-use App\Entity\Amministratore;
-use App\Entity\Palestra;
-use App\Entity\Cliente;
-use App\Entity\AttivitaPianificata;
+use App\Entity\Repository\PalestraRepositoryInterface;
+use App\Entity\Repository\ClienteRepositoryInterface;
+use App\Entity\Repository\AttivitaPianificataRepositoryInterface;
+use App\Entity\Repository\UtenteRepositoryInterface;
+use App\Foundation\Persistence\Repository\DoctrinePalestraRepository;
+use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
+use App\Foundation\Persistence\Repository\DoctrineAttivitaPianificataRepository;
+use App\Foundation\Persistence\Repository\DoctrineUtenteRepository;
 use App\View\Interface\ReportView;
-use App\Infrastructure\Doctrine\EntityManagerFactory;
+use App\View\ReportViewSmarty;
+use App\View\VisualizzazioneViewSmarty;
 use App\Foundation\Session;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 
 class ReportController
 {
-    private \Doctrine\ORM\EntityManagerInterface $entityManager;
+    private EntityManagerInterface $entityManager;
+    private PalestraRepositoryInterface $palestraRepo;
+    private ClienteRepositoryInterface $clienteRepo;
+    private AttivitaPianificataRepositoryInterface $attivitaPianificataRepo;
+    private UtenteRepositoryInterface $utenteRepo;
     private ReportView $view;
 
     public function __construct(
-        \Doctrine\ORM\EntityManagerInterface $entityManager,
+        EntityManagerInterface $entityManager,
         private Session $session
     ) {
         $this->entityManager = $entityManager;
-        $this->view = new \App\View\ReportViewSmarty();
+        $this->palestraRepo = new DoctrinePalestraRepository($this->entityManager);
+        $this->clienteRepo = new DoctrineClienteRepository($this->entityManager);
+        $this->attivitaPianificataRepo = new DoctrineAttivitaPianificataRepository($this->entityManager);
+        $this->utenteRepo = new DoctrineUtenteRepository($this->entityManager);
+        $this->view = new ReportViewSmarty();
     }
 
-    /**
-     * Visualizza i report grafici dell'amministratore (dati 100% reali dal DB, filtrati per mese ed anno)
-     */
-    public function visualizzaReport(): void
+    // =========================================================================
+    // 1. VISUALIZZA REPORT (/report)
+    // =========================================================================
+
+    public function visualizzaReport(): void      //gestisce la richiesta di visualizzazione del report, verificando i permessi dell'utente loggato e calcolando i dati da mostrare nel report
     {
-        $idUtente = $this->session->getLoggedUserId();
-        $ruolo = $this->session->getLoggedUserRole();
-
-        if (!$idUtente || $ruolo !== 'amministratore') {
-            $this->view->mostraErrore("Accesso negato. Solo l'amministratore può visualizzare i report.");
+        $idUt = $this->session->getLoggedUserId();
+        $admin = ($idUt && $this->session->getLoggedUserRole() === 'amministratore') ? $this->utenteRepo->findById($idUt) : null;
+        $palestra = $admin ? $this->palestraRepo->findByAmministratore($admin) : null;
+        if (!$admin || !$palestra) {
+            $this->mostraStatoOperazione(false, "Accesso negato o palestra non associata.");
             return;
         }
+        $mese = isset($_GET['mese']) ? (int)$_GET['mese'] : (int)date('m');
+        $anno = isset($_GET['anno']) ? (int)$_GET['anno'] : (int)date('Y');
+        $giorni = (int)(new \DateTimeImmutable("$anno-$mese-01"))->modify('last day of this month')->format('d');
+        $clienti = $this->clienteRepo->findByPalestra($palestra);
 
-        // Recupera la palestra dell'amministratore loggato
-        $admin = $this->entityManager->find(Amministratore::class, $idUtente);
-        $palestra = $this->entityManager->getRepository(Palestra::class)->findOneBy(['amministratore' => $admin]);
+        $this->view->mostraReport([
+            'utente' => $admin, 'meseSelezionato' => $mese, 'annoSelezionato' => $anno,
+            'mesiNomi' => [1 => 'Gen', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mag', 6 => 'Giu', 7 => 'Lug', 8 => 'Ago', 9 => 'Set', 10 => 'Ott', 11 => 'Nov', 12 => 'Dic'],
+            'abbonamentiDati' => $this->calcolaAbbonamentiDati($clienti, $mese, $anno),
+            'prenotazioniCorsi' => $this->calcolaPrenotazioniCorsi($palestra->getId(), $mese, $anno),
+            'iscrittiGiornalieri' => $this->calcolaIscrittiGiornalieri($clienti, $mese, $anno, $giorni),
+            'giorniMese' => range(1, $giorni), 'anniDisponibili' => [2025, 2026, 2027]
+        ]);
+    }
 
-        if (!$palestra) {
-            $this->view->mostraErrore("Nessuna palestra associata a questo amministratore.");
-            return;
-        }
-
-        // Filtri temporali (default: mese e anno correnti)
-        $meseSelezionato = isset($_GET['mese']) ? (int)$_GET['mese'] : (int)date('m');
-        $annoSelezionato = isset($_GET['anno']) ? (int)$_GET['anno'] : (int)date('Y');
-
-        // Calcola intervalli temporali del mese scelto
-        $primoDelMese = new \DateTimeImmutable("$annoSelezionato-$meseSelezionato-01 00:00:00");
-        $fineDelMese = $primoDelMese->modify('last day of this month 23:59:59');
-        $numeroGiorniMese = (int)$fineDelMese->format('d');
-
-        // Carica tutti i clienti della palestra
-        $clienti = $this->entityManager->getRepository(Cliente::class)->findBy(['palestra' => $palestra]);
-
-        // 1. Tipologia Abbonamento (Iniziati nel mese/anno selezionato)
-        $abbonamentiDati = [];
-        
+    private function calcolaAbbonamentiDati(array $clienti, int $mese, int $anno): array     //grafico a torta
+    {
+        $dati = [];
         foreach ($clienti as $cliente) {
             $abb = $cliente->getAbbonamento();
-            if ($abb) {
-                $start = $abb->getDataInizio();
-                if ((int)$start->format('n') === $meseSelezionato && (int)$start->format('Y') === $annoSelezionato) {
-                    $tipoObj = $abb->getAbbonamento();
-                    if ($tipoObj) {
-                        $tipologiaName = $tipoObj->getTipologia();
-                        $abbonamentiDati[$tipologiaName] = ($abbonamentiDati[$tipologiaName] ?? 0) + 1;
-                    }
+            if ($abb && (int)$abb->getDataInizio()->format('n') === $mese && (int)$abb->getDataInizio()->format('Y') === $anno) {
+                $tipoObj = $abb->getAbbonamento();    // Ottieni l'oggetto Abbonamento associato al cliente
+                if ($tipoObj) {
+                    $name = $tipoObj->getTipologia();
+                    $dati[$name] = ($dati[$name] ?? 0) + 1;    // Incrementa il conteggio per la tipologia di abbonamento
                 }
             }
         }
+        return $dati;
+    }
 
-        // 2. Numero prenotazioni alle attività pianificate (Nel mese/anno selezionato)
-        $tutteAp = $this->entityManager->getRepository(AttivitaPianificata::class)->findAll();
-        $prenotazioniCorsi = [];
-
-        foreach ($tutteAp as $ap) {
-            if ($ap->getSala() && $ap->getSala()->getPalestra() && $ap->getSala()->getPalestra()->getId() === $palestra->getId()) {
-                $giorno = $ap->getGiorno();
-                if ((int)$giorno->format('Y') === $annoSelezionato && (int)$giorno->format('n') === $meseSelezionato) {
-                    $nomeAttivita = $ap->getAttivita()->getNome();
-                    $prenotazioniCorsi[$nomeAttivita] = ($prenotazioniCorsi[$nomeAttivita] ?? 0) + $ap->getPrenotati();
+    private function calcolaPrenotazioniCorsi(int $palestraId, int $mese, int $anno): array
+    {
+        $prenotazioni = [];
+        foreach ($this->attivitaPianificataRepo->findAll() as $ap) {
+            $sala = $ap->getSala();
+            if ($ap->getSala() && $sala->getPalestra()->getId() === $palestraId) {
+                $g = $ap->getGiorno();
+                if ((int)$g->format('Y') === $anno && (int)$g->format('n') === $mese) {
+                    $nome = $ap->getAttivita()->getNome();
+                    $prenotazioni[$nome] = ($prenotazioni[$nome] ?? 0) + $ap->getPrenotati();    
                 }
             }
         }
-        // Ordina per prenotazioni decrescenti
-        arsort($prenotazioniCorsi);
-        $prenotazioniCorsi = array_slice($prenotazioniCorsi, 0, 5);
+        arsort($prenotazioni);      // Ordina in ordine decrescente per numero di prenotazioni
+        return array_slice($prenotazioni, 0, 5);            // Restituisce solo le prime 5 attività con più prenotazioni
+    }
 
-        // 3. Numero iscritti giornalieri nel mese selezionato (1 a N giorni)
-        $iscrittiGiornalieri = array_fill(1, $numeroGiorniMese, 0);
+    private function calcolaIscrittiGiornalieri(array $clienti, int $mese, int $anno, int $giorni): array
+    {
+        $iscritti = array_fill(1, $giorni, 0);   // Inizializza un array con chiavi da 1 a $giorni, tutte impostate a 0
         foreach ($clienti as $cliente) {
             $iscrizione = $cliente->getIscrizione();
             if ($iscrizione) {
                 $dataIni = $iscrizione->getDataInizio();
-                if ((int)$dataIni->format('Y') === $annoSelezionato && (int)$dataIni->format('n') === $meseSelezionato) {
-                    $g = (int)$dataIni->format('d');
-                    $iscrittiGiornalieri[$g]++;
+                if ((int)$dataIni->format('Y') === $anno && (int)$dataIni->format('n') === $mese) {
+                    $iscritti[(int)$dataIni->format('d')]++;
                 }
             }
         }
+        return $iscritti;
+    }
 
-        $mesiNomi = [
-            1 => 'Gen', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mag', 6 => 'Giu',
-            7 => 'Lug', 8 => 'Ago', 9 => 'Set', 10 => 'Ott', 11 => 'Nov', 12 => 'Dic'
-        ];
-
-        $datiView = [
-            'utente' => $admin,
-            'meseSelezionato' => $meseSelezionato,
-            'annoSelezionato' => $annoSelezionato,
-            'mesiNomi' => $mesiNomi,
-            'abbonamentiDati' => $abbonamentiDati,
-            'prenotazioniCorsi' => $prenotazioniCorsi,
-            'iscrittiGiornalieri' => $iscrittiGiornalieri,
-            'giorniMese' => range(1, $numeroGiorniMese),
-            'anniDisponibili' => [2025, 2026, 2027]
-        ];
-
-        $this->view->mostraReport($datiView);
+    private function mostraStatoOperazione(bool $successo, string $messaggio, ?string $ritorno = null, ?string $testoBottone = null): void
+    {
+        $statusView = new VisualizzazioneViewSmarty();
+        $statusView->mostraStatoOperazione($successo, $messaggio, $ritorno, $testoBottone);
     }
 }

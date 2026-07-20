@@ -20,10 +20,8 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 class DoctrineEsercizioRepository implements EsercizioRepositoryInterface
 {
-    public function __construct(
-        private EntityManagerInterface $em  // ← Doctrine entra solo qui
-    ) {}
-
+    public function __construct(private EntityManagerInterface $em) {}  // ← Doctrine entra solo qui
+    
     // -------------------------------------------------------------------------
     // CRUD base
     // -------------------------------------------------------------------------
@@ -84,16 +82,6 @@ class DoctrineEsercizioRepository implements EsercizioRepositoryInterface
             ->from(Esercizio::class, 'e')
             ->where('e.creatore = :creatore')
             ->setParameter('creatore', $allenatore)
-            ->getQuery()
-            ->getResult();
-    }
-
-    public function findSenzaCreatore(): array
-    {
-        return $this->em->createQueryBuilder()
-            ->select('e')
-            ->from(Esercizio::class, 'e')
-            ->where('e.creatore IS NULL')
             ->getQuery()
             ->getResult();
     }

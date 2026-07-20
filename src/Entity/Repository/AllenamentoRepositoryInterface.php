@@ -35,14 +35,6 @@ interface AllenamentoRepositoryInterface
     public function findByScheda(Scheda $scheda): array;
 
     /**
-     * Trova tutti gli allenamenti senza scheda associata.
-     * Caso d'uso: allenamenti "liberi" non ancora assegnati.
-     *
-     * @return Allenamento[]
-     */
-    public function findSenzaScheda(): array;
-
-    /**
      * Verifica se esiste già un allenamento con lo stesso nome in una scheda.
      * Evita duplicati nella stessa scheda.
      */

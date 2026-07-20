@@ -108,7 +108,7 @@
                         </button>
                     </div>
                     <div class="control">
-                        <a href="{$ritorno}" class="button is-danger is-light">
+                        <a href='dashboard-admin' class="button is-danger is-light">
                             Annulla
                         </a>
                     </div>

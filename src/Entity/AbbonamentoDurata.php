@@ -24,7 +24,7 @@ class AbbonamentoDurata extends Abbonamento
 
     public function calcolaDataFine(\DateTimeImmutable $dataInizio): ?\DateTimeImmutable
     {
-        return $dataInizio->modify('+' . $this->durata . ' days');
+        return $dataInizio->modify('+' . $this->durata . ' days'); //data inizio + durata in giorni
     }
 
     public function isScaduto(AbbonamentoAttivo $context): bool

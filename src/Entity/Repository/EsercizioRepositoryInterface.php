@@ -26,17 +26,24 @@ interface EsercizioRepositoryInterface
 
     // --- Metodi specifici del dominio ---
 
-    /** @return Esercizio[] */
+    /** 
+     * Restituisce tutti gli esercizi che utilizzano quel gruppo muscolare
+     * @return Esercizio[] 
+     */
     public function findByGruppoMuscolare(GruppoMuscolare $gruppo): array;
 
-    /** @return Esercizio[] */
+    /**
+     * Restituisce tutti gli esercizi di una determinata tipologia
+     * @return Esercizio[] */
     public function findByTipologia(Tipologia $tipologia): array;
 
-    /** @return Esercizio[] */
+    /**
+     * Restituisce tutti gli esercizi creati da un determinato allenatore
+     * @return Esercizio[] */
     public function findByCreatore(Allenatore $allenatore): array;
 
-    /** @return Esercizio[] esercizi importati da API esterna, senza creatore */
-    public function findSenzaCreatore(): array;
-
+    /**
+     * Controlla se esiste già un esercizio con quel nome
+     */
     public function existsByNome(string $nome): bool;
 }

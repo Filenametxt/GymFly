@@ -50,7 +50,13 @@
                 <strong class="is-size-4 style-theme-text" style="letter-spacing: 1px;">CLIENTI</strong>
             </div>
 
-            {assign var="hasFilters" value=(isset($filtro_certificato) && $filtro_certificato !== null) || (isset($filtro_abbonamento) && $filtro_abbonamento !== null) || (isset($filtro_scheda) && $filtro_scheda !== null)}
+            {assign var="filtro_certificato" value=(isset($smarty.request.filtro_certificato) && $smarty.request.filtro_certificato !== '' ? $smarty.request.filtro_certificato : null)}
+            {assign var="filtro_abbonamento" value=(isset($smarty.request.filtro_abbonamento) && $smarty.request.filtro_abbonamento !== '' ? $smarty.request.filtro_abbonamento : null)}
+            {assign var="filtro_scheda" value=(isset($smarty.request.filtro_scheda) && $smarty.request.filtro_scheda !== '' ? $smarty.request.filtro_scheda : null)}
+            {assign var="ordine" value=(isset($smarty.request.ordine) && $smarty.request.ordine !== '' ? $smarty.request.ordine : null)}
+            {assign var="search_query" value=(isset($smarty.request.search_query) && $smarty.request.search_query !== '' ? $smarty.request.search_query : null)}
+
+            {assign var="hasFilters" value=($filtro_certificato !== null) || ($filtro_abbonamento !== null) || ($filtro_scheda !== null)}
 
             <!-- CONTROLS / TOOLBAR -->
             <div class="is-flex is-justify-content-between is-align-items-center {if $hasFilters}mb-6 pb-2{else}mb-5{/if} is-flex-wrap-wrap" style="gap: 15px;">
@@ -84,8 +90,8 @@
                                 {if isset($filtro_scheda) && $filtro_scheda !== null}
                                     {if $filtro_scheda === 'scadute'}
                                         <span class="tag is-danger font-weight-bold">Scheda Scaduta</span>
-                                    {elseif $filtro_scheda === 'richieste'}
-                                        <span class="tag is-warning font-weight-bold">Scheda Richiesta/Assente</span>
+                                    {elseif $filtro_scheda === 'assenti'}
+                                        <span class="tag is-warning font-weight-bold">Scheda Assente</span>
                                     {elseif $filtro_scheda === 'in_regola'}
                                         <span class="tag is-success font-weight-bold">Scheda in Regola</span>
                                     {/if}
@@ -109,7 +115,7 @@
                                 {if $smarty.session.ruolo_utente === 'allenatore'}
                                     <p class="dropdown-item font-weight-bold" style="font-size: 0.85rem; color: var(--gymfly-primary) !important; margin-bottom: 0;">SCHEDA ALLENAMENTO</p>
                                     <a href="clienti?filtro_scheda=scadute{if isset($ordine)}&ordine={$ordine}{/if}" class="dropdown-item {if isset($filtro_scheda) && $filtro_scheda === 'scadute'}is-active{/if}">Scaduta</a>
-                                    <a href="clienti?filtro_scheda=richieste{if isset($ordine)}&ordine={$ordine}{/if}" class="dropdown-item {if isset($filtro_scheda) && $filtro_scheda === 'richieste'}is-active{/if}">Richiesta / Assente</a>
+                                    <a href="clienti?filtro_scheda=assenti{if isset($ordine)}&ordine={$ordine}{/if}" class="dropdown-item {if isset($filtro_scheda) && $filtro_scheda === 'assenti'}is-active{/if}">Assente</a>
                                     <a href="clienti?filtro_scheda=in_regola{if isset($ordine)}&ordine={$ordine}{/if}" class="dropdown-item {if isset($filtro_scheda) && $filtro_scheda === 'in_regola'}is-active{/if}">In regola</a>
                                 {else}
                                     <p class="dropdown-item font-weight-bold" style="font-size: 0.85rem; color: var(--gymfly-primary) !important; margin-bottom: 0;">CERTIFICATO MEDICO</p>
@@ -174,7 +180,7 @@
                             {if isset($ordine)}<input type="hidden" name="ordine" value="{$ordine}">{/if}
                             <div class="field mb-0">
                                 <div class="control has-icons-left">
-                                    <input class="input" type="text" name="search_query" placeholder="Search" value="{if isset($smarty.post.search_query)}{$smarty.post.search_query}{/if}">
+                                    <input class="input" type="text" name="search_query" placeholder="Search" value="{$search_query}">
                                     <span class="icon is-left">
                                         <i class="fas fa-search"></i>
                                     </span>
@@ -191,10 +197,14 @@
                 {foreach $clienti as $c}
                     <div class="column is-3-desktop is-4-tablet is-12-mobile">
                         <a href="visualizza-profilo?id={$c.id}" class="box customer-card">
-                            <div class="customer-avatar mb-3">
-                                <span class="icon is-large">
-                                    <i class="fas fa-user-circle fa-4x"></i>
-                                </span>
+                            <div class="customer-avatar mb-3" style="width: 96px; height: 96px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                {if isset($c.fotoProfilo) && $c.fotoProfilo !== null}
+                                    <img src="data:{$c.tipoImmagine};base64,{$c.fotoProfilo}" alt="Foto Profilo" style="width: 100%; height: 100%; object-fit: cover;">
+                                {else}
+                                    <span class="icon is-large">
+                                        <i class="fas fa-user-circle fa-4x"></i>
+                                    </span>
+                                {/if}
                             </div>
                             <h3 class="title is-5 mb-2 has-text-centered">{$c.nome} {$c.cognome}</h3>
                             <p class="subtitle is-6 has-text-grey-dark mb-1 has-text-centered" style="word-break: break-all;">{$c.email}</p>
@@ -215,10 +225,14 @@
             <div id="clienti-list" class="is-hidden">
                 {foreach $clienti as $c}
                     <a href="visualizza-profilo?id={$c.id}" class="box customer-list-item mb-3">
-                        <div class="customer-avatar mr-4">
-                            <span class="icon is-medium">
-                                <i class="fas fa-user-circle fa-2x"></i>
-                            </span>
+                        <div class="customer-avatar mr-4" style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            {if isset($c.fotoProfilo) && $c.fotoProfilo !== null}
+                                <img src="data:{$c.tipoImmagine};base64,{$c.fotoProfilo}" alt="Foto Profilo" style="width: 100%; height: 100%; object-fit: cover;">
+                            {else}
+                                <span class="icon is-medium">
+                                    <i class="fas fa-user-circle fa-2x"></i>
+                                </span>
+                            {/if}
                         </div>
                         <div class="is-flex-grow-1">
                             <h3 class="title is-5 mb-1 style-theme-text">{$c.nome} {$c.cognome}</h3>
@@ -244,16 +258,16 @@
     <!-- SCRIPT PER TOGGLE VISUALIZZAZIONE -->
     <script>
         function switchView(viewType) {
-            const gridView = document.getElementById('clienti-grid');
+            const gridView = document.getElementById('clienti-grid');       //visualizzazione
             const listView = document.getElementById('clienti-list');
-            const btnGrid = document.getElementById('btn-grid');
+            const btnGrid = document.getElementById('btn-grid');            //bottone
             const btnList = document.getElementById('btn-list');
 
             if (viewType === 'grid') {
                 gridView.classList.remove('is-hidden');
                 listView.classList.add('is-hidden');
                 
-                btnGrid.classList.add('is-gymfly');
+                btnGrid.classList.add('is-gymfly');               
                 btnGrid.classList.remove('is-light');
                 
                 btnList.classList.remove('is-gymfly');

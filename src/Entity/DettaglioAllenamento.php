@@ -58,14 +58,6 @@ class DettaglioAllenamento
     }
     public function getTempo(): ?string
     {
-        if ($this->tempo === null && isset($this->allenamento)) {
-            // fallback: estrae recupero dalla descrizione se esiste
-            $desc = $this->allenamento->getDescrizione();
-            $rec = \App\View\SchedaAllenamentoViewSmarty::estraiRecupero($desc, $this->esercizio->getNomeEsercizio(), $this->serie, $this->id);
-            if ($rec !== 'Non specificato' && $rec !== '') {
-                return $rec;
-            }
-        }
         return $this->tempo;
     }
     public function getCarico(): float

@@ -57,21 +57,6 @@ class DoctrineSalaRepository implements SalaRepositoryInterface
             ->getResult();
     }
 
-    /** @return Sala[] */
-    public function findByPalestraConCapienzaMinima(Palestra $palestra, int $minPartecipanti): array
-    {
-        return $this->em->createQueryBuilder()
-            ->select('s')
-            ->from(Sala::class, 's')
-            ->where('s.palestra = :palestra')
-            ->andWhere('s.maxPartecipanti >= :min')
-            ->setParameter('palestra', $palestra)
-            ->setParameter('min', $minPartecipanti)
-            ->orderBy('s.maxPartecipanti', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
-
     // -------------------------------------------------------------------------
     // Unicità
     // -------------------------------------------------------------------------

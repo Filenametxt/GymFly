@@ -1,20 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Import dei tag necessari per il mapping di Doctrine -->
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                   xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
                                       https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
 
+    <!--Il tag è "entity"
+    * i parametri sono name, table e inheritance-type
+    * name: il nome completo della classe (namespace + nome)
+    * table: il nome della tabella nel database
+    * inheritance-type: il tipo di ereditarietà SINGLE_TABLE (si accorpa il figlio al padre)
+    -->
     <entity name="App\Entity\Abbonamento" table="Abbonamento" inheritance-type="SINGLE_TABLE">
-        
-        <discriminator-column name="tipo_abbonamento" type="string" length="50"/>
-        <discriminator-map>
-            <discriminator-mapping value="durata" class="App\Entity\AbbonamentoDurata"/>
-            </discriminator-map>
 
+        <!--Discriminator column e map per discriminare le sottoclassi -->
+        <discriminator-column name="tipo_abbonamento" type="string" length="50"/> <!--discrimina il tipo di abbonamento -->
+        <discriminator-map>
+            <discriminator-mapping value="durata" class="App\Entity\AbbonamentoDurata"/> <!--il tipo Abbonamento può avere il valore "durata" e la classe corrispondente è AbbonamentoDurata -->
+        </discriminator-map>
+
+        <!--Id della tabella che viene generato automaticamnte con Doctrine -->
         <id name="id" type="integer" column="id">
             <generator strategy="AUTO"/>
         </id>
 
+        <!--Campi della tabella Abbonamento -->
         <field name="tipologia" type="string" column="tipologia" length="255"/>
         <field name="categoria" type="string" column="categoria" length="255"/>
     </entity>

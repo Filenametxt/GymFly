@@ -14,6 +14,14 @@
         {include file='sidebar.tpl'}
         <main class="app-content">
 
+            <!-- BACK LINK -->
+            <div class="mb-4">
+                <a href="esercizi" class="button is-ghost has-text-grey pl-0">
+                    <span class="icon"><i class="fas fa-chevron-left"></i></span>
+                    <span>Torna a Gestione Esercizi</span>
+                </a>
+            </div>
+
             <!-- ================= DESKTOP HEADER ================= -->
             {assign var="headerClass" value="dashboard-header"}
             {if isset($ruolo_utente)}
@@ -51,7 +59,9 @@
 
             <!-- ================= MOBILE HEADER ================= -->
             <div class="is-flex is-align-items-center mb-5 is-hidden-tablet" style="padding-top: 5px;">
-                <div style="width: 45px;"></div>
+                <a href="esercizi" class="has-text-grey-dark" style="width: 45px; display: flex; align-items: center; justify-content: center;">
+                    <span class="icon is-medium"><i class="fas fa-chevron-left fa-lg"></i></span>
+                </a>
                 <strong class="is-size-4 style-theme-text" style="letter-spacing: 1px; flex-grow: 1;">CREA ESERCIZIO</strong>
             </div>
 
@@ -104,7 +114,7 @@
                                     <span class="file-cta" style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; border: 2px dashed var(--gymfly-primary); border-radius: 12px; background-color: var(--gymfly-card-bg); overflow: hidden; position: relative; padding: 0;">
                                         {if $immagine_preview}
                                             <!-- Preview esistente -->
-                                            <img id="img-preview-tag" src="data:image/jpeg;base64,{$immagine_preview}" style="width: 100%; height: 100%; object-fit: cover;">
+                                            <img id="img-preview-tag" src="data:{if isset($immagine_type)}{$immagine_type}{else}image/jpeg{/if};base64,{$immagine_preview}" style="width: 100%; height: 100%; object-fit: cover;">
                                             <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); color: white; padding: 5px; text-align: center; font-size: 0.8rem;">
                                                 <i class="fas fa-sync-alt mr-1"></i> Cambia Immagine
                                             </div>
@@ -123,7 +133,6 @@
                                     </span>
                                 </label>
                             </div>
-                            <p class="help is-danger is-hidden" id="error-file"></p>
                         </div>
                     </div>
 
@@ -143,28 +152,23 @@
                                         <i class="fas fa-tag"></i>
                                     </span>
                                 </div>
-                                <p class="help is-danger is-hidden" id="error-nome"></p>
-                                <p class="help is-success is-hidden" id="success-nome">Nome disponibile.</p>
                             </div>
 
                             <!-- PRIMA RIGA SELEZIONI (Tipologia e Gruppo Muscolare) -->
                             <div class="columns is-mobile mb-2">
                                 <div class="column is-6">
-                                    <label class="label">Tipologia</label>
+                                    <label class="label">Tipologia *</label>
                                     <div class="select is-fullwidth">
-                                        <select name="tipologia_mock">
-                                            <option value="corpo_libero">CORPO LIBERO</option>
-                                            <option value="cardio">CARDIO</option>
-                                            <option value="macchinario">MACCHINARIO</option>
-                                            <option value="pesi_liberi">PESI LIBERI</option>
-                                            <option value="elastici">ELASTICI</option>
+                                        <select name="tracciamento_carico" id="tracciamento_carico" required>
+                                            <option value="1" {if $tracciamento_carico == 1}selected{/if}>Ripetizioni (Ripetizioni e Carico)</option>
+                                            <option value="0" {if $tracciamento_carico == 0}selected{/if}>Durata (Tempo/Durata e Carico)</option>
                                         </select>
                                     </div>
                                 </div>
                                 <div class="column is-6">
                                     <label class="label">Gruppo Muscolare *</label>
                                     <div class="select is-fullwidth">
-                                        <select name="gruppi_muscolari[]" id="gruppi_muscolari" required onchange="if(this.value === 'nuovo_gruppo') { document.getElementById('container-nuovo-gruppo').classList.remove('is-hidden'); } else { document.getElementById('container-nuovo-gruppo').classList.add('is-hidden'); }">
+                                        <select name="gruppi_muscolari[]" id="gruppi_muscolari" required>
                                             <option value="">-- Seleziona --</option>
                                             {foreach $gruppi_muscolari as $gm}
                                                 <option value="{$gm->getId()}" {if in_array($gm->getId(), $selected_gruppi)}selected{/if}>
@@ -174,40 +178,47 @@
                                             <option value="nuovo_gruppo" {if isset($smarty.post.nuovo_gruppo_nome) && $smarty.post.nuovo_gruppo_nome !== ''}selected{/if}>+ Aggiungi Nuovo Gruppo...</option>
                                         </select>
                                     </div>
-                                    <!-- Input dinamico per nuovo gruppo muscolare (inline-JS Bulma style) -->
-                                    <div id="container-nuovo-gruppo" class="field mt-2 {if !isset($smarty.post.nuovo_gruppo_nome) || $smarty.post.nuovo_gruppo_nome == ''}is-hidden{/if}">
-                                        <div class="control has-icons-left">
-                                            <input class="input" type="text" name="nuovo_gruppo_nome" id="nuovo-gruppo-nome" placeholder="Inserisci nome gruppo" value="{if isset($smarty.post.nuovo_gruppo_nome)}{$smarty.post.nuovo_gruppo_nome|escape}{/if}">
-                                            <span class="icon is-small is-left">
-                                                <i class="fas fa-plus"></i>
-                                            </span>
+                                    <!-- Input dinamico per nuovo gruppo muscolare (coerente con gli altri panel di inserimento) -->
+                                    <div id="container-nuovo-gruppo" class="box p-3 mt-2 {if !isset($smarty.post.nuovo_gruppo_nome) || $smarty.post.nuovo_gruppo_nome == ''}is-hidden{/if}" style="background-color: rgba(255,255,255,0.02); border: 1px dashed var(--gymfly-primary);">
+                                        <h4 class="title is-6 mb-2 style-theme-text">Nuovo Gruppo Muscolare</h4>
+                                        <div class="field">
+                                            <div class="control has-icons-left">
+                                                <input class="input is-small" type="text" name="nuovo_gruppo_nome" id="nuovo-gruppo-nome" placeholder="Es. Bicipiti, Addominali" value="{if isset($smarty.post.nuovo_gruppo_nome)}{$smarty.post.nuovo_gruppo_nome|escape}{/if}">
+                                                <span class="icon is-small is-left">
+                                                    <i class="fas fa-plus"></i>
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- SECONDA RIGA SELEZIONI (Esecuzione/Tracciamento e Attrezzatura) -->
+                            <!-- SECONDA RIGA SELEZIONI (Attrezzatura) -->
                             <div class="columns is-mobile">
-                                <div class="column is-6">
-                                    <label class="label">Esecuzione *</label>
-                                    <div class="select is-fullwidth">
-                                        <select name="tracciamento_carico" id="tracciamento_carico" required>
-                                            <option value="1" {if $tracciamento_carico == 1}selected{/if}>Ripetizioni (Ripetizioni e Carico)</option>
-                                            <option value="0" {if $tracciamento_carico == 0}selected{/if}>Durata (Tempo/Durata e Carico)</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="column is-6">
+                                <div class="column is-12">
                                     <label class="label">Attrezzatura</label>
                                     <div class="select is-fullwidth">
-                                        <select name="attrezzatura_id">
+                                        <select name="attrezzatura_id" id="attrezzatura_id">
                                             <option value="">Corpo Libero (Nessuna)</option>
                                             {foreach $attrezzature as $att}
                                                 <option value="{$att->getId()}" {if $selected_attrezzatura == $att->getId()}selected{/if}>
                                                     {$att->getNomeAttrezzatura()}
                                                 </option>
                                             {/foreach}
+                                            <option value="nuova_attrezzatura" {if isset($smarty.post.nuova_attrezzatura_nome) && $smarty.post.nuova_attrezzatura_nome !== ''}selected{/if}>+ Aggiungi Nuova Attrezzatura...</option>
                                         </select>
+                                    </div>
+                                    <!-- Input dinamico per nuova attrezzatura -->
+                                    <div id="container-nuova-attrezzatura" class="box p-3 mt-2 {if !isset($smarty.post.nuova_attrezzatura_nome) || $smarty.post.nuova_attrezzatura_nome == ''}is-hidden{/if}" style="background-color: rgba(255,255,255,0.02); border: 1px dashed var(--gymfly-primary);">
+                                        <h4 class="title is-6 mb-2 style-theme-text">Nuova Attrezzatura</h4>
+                                        <div class="field">
+                                            <div class="control has-icons-left">
+                                                <input class="input is-small" type="text" name="nuova_attrezzatura_nome" id="nuova-attrezzatura-nome" placeholder="Es. Bilanciere, Manubri" value="{if isset($smarty.post.nuova_attrezzatura_nome)}{$smarty.post.nuova_attrezzatura_nome|escape}{/if}">
+                                                <span class="icon is-small is-left">
+                                                    <i class="fas fa-plus"></i>
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -232,11 +243,6 @@
                             <i class="fas fa-save mr-2"></i> Salva Esercizio
                         </button>
                     </div>
-                    <div class="control">
-                        <a href="elimina-bozza?id={$id_provvisorio}" class="button is-danger is-light">
-                            <i class="fas fa-trash-alt mr-2"></i> Elimina
-                        </a>
-                    </div>
                 </div>
 
             </form>
@@ -246,111 +252,66 @@
 
     <!-- SCRIPT VALIDAZIONE E PREVIEW DIMOSTRATIVA -->
     <script>
+        {literal}
         document.addEventListener('DOMContentLoaded', () => {
+            // Helper per gestire l'inserimento dinamico (mostra/nascondi container e imposta required)
+            const toggleForm = (selectId, containerId, inputId, triggerValue) => {
+                const select = document.getElementById(selectId);
+                const toggle = () => {
+                    const isTrigger = select.value === triggerValue;
+                    document.getElementById(containerId).classList.toggle('is-hidden', !isTrigger);
+                    document.getElementById(inputId).toggleAttribute('required', isTrigger);
+                };
+                select.addEventListener('change', toggle);
+                toggle();
+            };
+            toggleForm('gruppi_muscolari', 'container-nuovo-gruppo', 'nuovo-gruppo-nome', 'nuovo_gruppo');
+            toggleForm('attrezzatura_id', 'container-nuova-attrezzatura', 'nuova-attrezzatura-nome', 'nuova_attrezzatura');
+
+            // Previene l'invio del form premendo Invio sui campi di testo dinamici
+            ['nuovo-gruppo-nome', 'nuova-attrezzatura-nome'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('keydown', e => e.key === 'Enter' && e.preventDefault());
+            });
+
             const nomeInput = document.getElementById('nome-esercizio');
             const fileInput = document.getElementById('immagine-input');
-            const errorNome = document.getElementById('error-nome');
-            const successNome = document.getElementById('success-nome');
-            const errorFile = document.getElementById('error-file');
-            const idProvvisorio = document.getElementById('id_provvisorio').value;
-            const btnSave = document.getElementById('btn-save');
 
-            // 1. Gestione Copia da Esistente (Redirection)
+            // Copia da Esistente con validazione custom per evitare popup bloccanti
             const btnCopia = document.getElementById('btn-copia');
             if (btnCopia) {
-                btnCopia.addEventListener('click', () => {
+                btnCopia.addEventListener('click', (e) => {
+                    e.preventDefault();         //blocca il comportamento predefinito di browser
                     const select = document.getElementById('select-copia');
-                    if (select.value) {
-                        window.location.href = `copia-esercizio?id=${ select.value }`;
+                    const val = select.value;
+                    if (val) {
+                        window.location.href = `copia-esercizio?id=${val}`;
                     } else {
-                        alert('Seleziona un esercizio da copiare.');
+                        select.setCustomValidity('Seleziona un esercizio da copiare.');
+                        select.reportValidity();
                     }
+                });
+                document.getElementById('select-copia').addEventListener('change', (e) => {
+                    e.target.setCustomValidity('');
                 });
             }
 
-            // 2. Anteprima immagine in tempo reale su upload client-side
+            // Anteprima immagine in tempo reale
             fileInput.addEventListener('change', () => {
-                if (fileInput.files.length > 0) {
-                    const file = fileInput.files[0];
+                if (fileInput.files[0]) {
                     const reader = new FileReader();
-                    reader.onload = (e) => {
+                    reader.onload = e => {               //carica l'elemento
                         const imgTag = document.getElementById('img-preview-tag');
+                        imgTag.src = e.target.result; 
+                        imgTag.classList.remove('is-hidden');
                         const placeholder = document.getElementById('img-placeholder');
-                        if (imgTag) {
-                            imgTag.src = e.target.result;
-                            imgTag.classList.remove('is-hidden');
-                        }
-                        if (placeholder) {
-                            placeholder.classList.add('is-hidden');
-                        }
+                        if (placeholder) placeholder.classList.add('is-hidden');
                     };
-                    reader.readAsDataURL(file);
+                    reader.readAsDataURL(fileInput.files[0]);      //converti in un indirizzo web temporaneo
                 }
-                validaDati();
             });
-
-            // 3. Debounce validazione in tempo reale
-            let timeout = null;
-            nomeInput.addEventListener('input', () => {
-                clearTimeout(timeout);
-                timeout = setTimeout(validaDati, 500);
-            });
-
-            function validaDati() {
-                const formData = new FormData();
-                formData.append('nome', nomeInput.value);
-                formData.append('id_provvisorio', idProvvisorio);
-                
-                if (fileInput.files.length > 0) {
-                    formData.append('immagine', fileInput.files[0]);
-                }
-
-                fetch('valida-esercizio', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    // Validazione Nome
-                    if (data.duplicato) {
-                        nomeInput.classList.add('is-danger');
-                        nomeInput.classList.remove('is-success');
-                        errorNome.textContent = data.errore_nome;
-                        errorNome.classList.remove('is-hidden');
-                        successNome.classList.add('is-hidden');
-                    } else if (nomeInput.value.trim() !== '') {
-                        nomeInput.classList.remove('is-danger');
-                        nomeInput.classList.add('is-success');
-                        errorNome.classList.add('is-hidden');
-                        successNome.classList.remove('is-hidden');
-                    } else {
-                        nomeInput.classList.remove('is-danger', 'is-success');
-                        errorNome.classList.add('is-hidden');
-                        successNome.classList.add('is-hidden');
-                    }
-
-                    // Validazione File
-                    if (data.errore_file) {
-                        errorFile.textContent = data.errore_file;
-                        errorFile.classList.remove('is-hidden');
-                        fileInput.classList.add('is-danger');
-                    } else {
-                        errorFile.classList.add('is-hidden');
-                        fileInput.classList.remove('is-danger');
-                    }
-
-                    // Abilita/Disabilita pulsante salvataggio
-                    if (data.success && nomeInput.value.trim() !== '') {
-                        btnSave.disabled = false;
-                    } else if (nomeInput.value.trim() === '') {
-                        btnSave.disabled = false;
-                    } else {
-                        btnSave.disabled = true;
-                    }
-                })
-                .catch(err => console.error('Errore durante la validazione:', err));
-            }
         });
+        {/literal}
     </script>
 </body>
 </html>

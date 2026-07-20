@@ -2,51 +2,70 @@
 namespace App\Control;
 
 use App\View\Interface\AutenticazioneView;
+use App\View\AutenticazioneViewSmarty;
 use App\Foundation\Session;
 use App\Enum\Sesso;
 use App\Entity\Amministratore;
-use App\Entity\Utente;
 use App\Entity\Palestra;
+use App\Entity\Repository\UtenteRepositoryInterface;
+use App\Entity\Repository\AmministratoreRepositoryInterface;
+use App\Entity\Repository\PalestraRepositoryInterface;
+use App\Foundation\Persistence\Repository\DoctrineUtenteRepository;
+use App\Foundation\Persistence\Repository\DoctrineAmministratoreRepository;
+use App\Foundation\Persistence\Repository\DoctrinePalestraRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
 class AutenticazioneController 
 {
     private AutenticazioneView $view;
+    private UtenteRepositoryInterface $utenteRepo;
+    private AmministratoreRepositoryInterface $amministratoreRepo;
+    private PalestraRepositoryInterface $palestraRepo;
 
     public function __construct(
         private EntityManagerInterface $entityManager,
         private Session $session
     ) {
         $this->view = new AutenticazioneViewSmarty();
+        $this->utenteRepo = new DoctrineUtenteRepository($this->entityManager);
+        $this->amministratoreRepo = new DoctrineAmministratoreRepository($this->entityManager);
+        $this->palestraRepo = new DoctrinePalestraRepository($this->entityManager);
     }
 
-    public function login(): void
+    // =========================================================================
+    // 1. LOGIN (/login)
+    // =========================================================================
+
+    public function login(): void   //gestisce la richiesta di login
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {    //mostra il form di login se la richiesta è GET
             $this->view->mostraFormLogin();
             return;
         }
+        $this->eseguiLogin();
+    }
 
-        // Richiede i dati di login alla View
-        $loginData = $this->view->richiediCredenzialiLogin();
+    private function eseguiLogin(): void     //esegue il login dell'utente, controllando le credenziali e impostando la sessione
+    {
+        $loginData = $this->view->richiediCredenzialiLogin();   //richiede le credenziali di login dalla view
         $email = $loginData['email'] ?? '';
         $password = $loginData['password'] ?? '';
         if (empty($email) || empty($password)) {
-            $this->view->mostraStatoOperazione(false, "Tutti i campi sono obbligatori per il login.");
+            $this->view->mostraStatoOperazione(false, "Tutti i campi sono obbligatori per il login.", "login", "Torna al Login");
             return;
         }
-
-        $utente = $this->entityManager->getRepository(Utente::class)->findOneBy(['email' => $email]);
-
-        if ($utente === null || !$utente->verificaPassword($password)) {
-            $this->view->mostraStatoOperazione(false, "Credenziali errate.");
+        $utente = $this->utenteRepo->findByEmail($email);
+        if ($utente === null || !$utente->verificaPassword($password)) {   //verifica se la password in chiaro corrisponde all'hash memorizzato nel database
+            $this->view->mostraStatoOperazione(false, "Credenziali errate.", "login", "Torna al Login");
             return;
         }
-
         $this->session->setUtenteLoggato($utente);
-        $ruolo = $utente->getRuolo();
-        $this->view->reindirizzaDopoLogin($ruolo);
+        $this->view->reindirizzaDopoLogin($utente->getRuolo());
     }
+
+    // =========================================================================
+    // 2. LOGOUT (/logout)
+    // =========================================================================
 
     public function logout(): void 
     {
@@ -54,75 +73,73 @@ class AutenticazioneController
         $this->view->mostraFormLogin();
     }
 
+    // =========================================================================
+    // 3. REGISTRAZIONE AMMINISTRATORE (/registrazione)
+    // =========================================================================
+
     public function registraAmministratore(): void
     {
         if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $this->view->mostraFormRegistrazione();
             return;
         }
+        $this->eseguiRegistrazione();
+    }
 
-        // Richiede i dati di registrazione alla View
+    private function eseguiRegistrazione(): void
+    {
         $dati = $this->view->richiediDatiRegistrazione();
-
-        // Validazione dei campi obbligatori
-        $campiObbligatori = [
-            'nome', 'cognome', 'email', 'cf', 'password', 'indirizzo', 'sesso', // Dati Amministratore
-            'nome_palestra', 'indirizzo_palestra', 'email_palestra', 'telefono_palestra' // Dati Palestra
-        ];
-
-        foreach ($campiObbligatori as $campo) {
-            if (empty($dati[$campo])) {
-                $this->view->mostraStatoOperazione(false, "Tutti i campi sono obbligatori per completare la registrazione.");
-                return;
-            }
+        if (!$this->validaCampiObbligatori($dati)) {        //controlla se tutti i campi obbligatori sono stati compilati
+            $this->view->mostraStatoOperazione(false, "Tutti i campi sono obbligatori per completare la registrazione.");
+            return;
         }
-
-        $existingUser = $this->entityManager->getRepository(Utente::class)->findOneBy(['email' => $dati['email']]);
-        if ($existingUser) {
+        if ($this->utenteRepo->findByEmail($dati['email'] ?? '')) {
             $this->view->mostraStatoOperazione(false, "L'email dell'amministratore è già registrata.");
             return;
         }
+        $this->salvaAmministratoreEPalestra($dati);
+    }
 
+    private function validaCampiObbligatori(array $dati): bool
+    {
+        $campi = [
+            'nome', 'cognome', 'email', 'cf', 'password', 'indirizzo', 'sesso',
+            'nome_palestra', 'indirizzo_palestra', 'email_palestra', 'telefono_palestra'
+        ];
+        foreach ($campi as $campo) {
+            if (empty($dati[$campo])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private function salvaAmministratoreEPalestra(array $dati): void
+    {
         try {
-            $this->entityManager->beginTransaction();
-
-            // Conversione dei dati grezzi nei tipi richiesti dall'entità
-            $sesso = Sesso::from($dati['sesso']);
-
-            $nuovoAmministratore = new Amministratore(
-                $dati['nome'],
-                $dati['cognome'],
-                $dati['email'],
-                $dati['cf'],
-                $dati['indirizzo'],
-                $sesso,
-                $dati['password'],
-                null, // profilePicture
-                $dati['telefono']
+            $this->entityManager->beginTransaction();   //inizia una transazione per salvare sia l'amministratore che la palestra
+            $admin = new Amministratore(
+                $dati['nome'], $dati['cognome'], $dati['email'], $dati['cf'],
+                $dati['indirizzo'], Sesso::from($dati['sesso']), $dati['password'], null, $dati['telefono']
             );
-
-            // 2. Crea la Palestra, passando l'amministratore appena creato
-            $nuovaPalestra = new Palestra(
-                $dati['nome_palestra'],
-                $dati['indirizzo_palestra'],
-                $dati['email_palestra'],
-                $dati['telefono_palestra'],
-                $nuovoAmministratore // Associa l'amministratore
+            $palestra = new Palestra(
+                $dati['nome_palestra'], $dati['indirizzo_palestra'], $dati['email_palestra'], $dati['telefono_palestra'], $admin
             );
-
-            $this->entityManager->persist($nuovoAmministratore);
-            $this->entityManager->persist($nuovaPalestra);
-            $this->entityManager->flush(); // Salva tutto in una singola transazione
-            $this->entityManager->commit();
-
+            $this->amministratoreRepo->save($admin);
+            $this->palestraRepo->save($palestra);
+            $this->entityManager->commit();    //committa la transazione se tutto è andato a buon fine
             $this->view->mostraStatoOperazione(true, "Registrazione di amministratore e palestra effettuata con successo.");
-        } catch (\InvalidArgumentException $e) {
-            // Cattura errori di validazione dalle entità (es. CF malformato)
-            $this->view->mostraStatoOperazione(false, "Dati non validi per la registrazione: " . $e->getMessage());
         } catch (\Throwable $e) {
-            // Cattura altri errori (es. data non valida)
-            $this->view->mostraStatoOperazione(false, "Si è verificato un errore durante la registrazione: " . $e->getMessage());
+            $this->effettuaRollback();
+            $prefix = ($e instanceof \InvalidArgumentException) ? "Dati non validi: " : "Errore: ";   //aggiunge un prefisso al messaggio di errore in base al tipo di eccezione
+            $this->view->mostraStatoOperazione(false, $prefix . $e->getMessage());
         }
     }
 
+    private function effettuaRollback(): void
+    {
+        if ($this->entityManager->getConnection()->isTransactionActive()) {    //controlla se la transazione è attiva prima di effettuare il rollback
+            $this->entityManager->rollback();
+        }
+    }
 }

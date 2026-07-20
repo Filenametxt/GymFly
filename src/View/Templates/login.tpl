@@ -11,34 +11,28 @@
 </head>
 <body>
 
-    <nav class="navbar" role="navigation" aria-label="main navigation">
-        <div class="container">
-            <div class="navbar-brand">
-                <a class="navbar-item" href="{$baseUrl|default:'/'}">
-                    <strong class="is-size-4" style="color: #AFAFE2;">GymFly</strong>
-                </a>
-            </div>
-
-            <div class="navbar-end">
-                <div class="navbar-items is-flex is-align-items-center" style="height: 100%;">
-                    <a class="navbar-item is-tab px-4 py-2 mr-2" href="registrazione">
-                        <span>SIGN IN</span>
-                        <span class="icon is-small ml-2">
-                            <i class="fas fa-user-plus"></i>
-                        </span>
-                    </a>
-                    <a class="navbar-item is-tab is-active-login px-4 py-2" href="login">
-                        <span>LOG IN</span>
-                        <span class="icon is-small ml-2">
-                            <i class="fas fa-user"></i>
-                        </span>
-                    </a>
-                </div>
-            </div>
+    <nav class="gf-navbar">
+        <a href="home" class="gf-navbar-brand" style="display: flex; align-items: center; gap: 6px;">
+            <strong style="color: var(--gymfly-text) !important; font-weight: 800;">GymFly</strong>
+            <div class="gf-logo-icon"></div>
+        </a>
+        <div class="gf-navbar-actions" style="height: 100%; display: flex; align-items: flex-end;">
+            <a class="navbar-item is-tab px-4 mr-2" href="registrazione" style="height: auto; align-self: flex-end;">
+                <span>SIGN IN</span>
+                <span class="icon is-small ml-2">
+                    <i class="fas fa-user-plus"></i>
+                </span>
+            </a>
+            <a class="navbar-item is-tab is-active-login px-4" href="login" style="height: auto; align-self: flex-end;">
+                <span>LOG IN</span>
+                <span class="icon is-small ml-2">
+                    <i class="fas fa-user"></i>
+                </span>
+            </a>
         </div>
     </nav>
 
-    <section class="hero is-fullheight-with-navbar">
+    <section class="hero is-fullheight" style="background: var(--gradient-bottom-right) !important; padding-top: 64px;">
         <div class="hero-body">
             <div class="container">
                 <div class="columns is-centered">
@@ -46,11 +40,11 @@
                         
                         <div class="login-box">
                             
-                            <div class="avatar-container">{if isset($userAvatar) && $userAvatar != ''}<img src="{$userAvatar}" alt="Profile Picture">{else}<i class="fas fa-user-circle"></i>{/if}</div>
+                            <div class="avatar-container"><i class="fas fa-user-circle"></i></div>
 
                             <h3 class="title is-3 has-text-centered mb-5" style="color: #AFAFE2; letter-spacing: 2px;">LOG IN</h3>
 
-                            {if isset($errorMessage) && $errorMessage != ''}
+                            {if isset($errorMessage) && $errorMessage != ''}                             //smarty
                                 <div class="notification is-danger is-light py-2 px-4 mb-4 is-size-7">
                                     <i class="fas fa-exclamation-triangle mr-2"></i> {$errorMessage}
                                 </div>

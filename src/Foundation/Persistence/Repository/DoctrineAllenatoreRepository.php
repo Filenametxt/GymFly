@@ -7,7 +7,7 @@ use App\Entity\Attivita;
 use App\Entity\Palestra;
 use App\Entity\Repository\AllenatoreRepositoryInterface;
 
-class DoctrineAllenatoreRepository extends AbstractDoctrineUtenteRepository
+class DoctrineAllenatoreRepository extends AbstractDoctrineUtenteRepository //prende il costruttore del padre Utente
     implements AllenatoreRepositoryInterface
 {
     protected function getEntityClass(): string
@@ -16,7 +16,7 @@ class DoctrineAllenatoreRepository extends AbstractDoctrineUtenteRepository
     }
 
     // -------------------------------------------------------------------------
-    // CRUD tipizzato
+    // CRUD specifici perchè gli altri li eredita dal padre Utente
     // -------------------------------------------------------------------------
 
     public function findById(int $id): ?Allenatore
@@ -28,7 +28,7 @@ class DoctrineAllenatoreRepository extends AbstractDoctrineUtenteRepository
     // Lookup anagrafico
     // -------------------------------------------------------------------------
 
-    public function findByEmail(string $email): ?Allenatore
+    public function findByEmail(string $email): ?Allenatore //restituisce specificatamente l'allenatore, non un generico utente.
     {
         return $this->em->createQueryBuilder()
             ->select('a')
@@ -67,10 +67,21 @@ class DoctrineAllenatoreRepository extends AbstractDoctrineUtenteRepository
         return $this->em->createQueryBuilder()
             ->select('a')
             ->from(Allenatore::class, 'a')
-            ->join('a.attivitaAbilitate', 'att')
-            ->where('att = :attivita')
+            ->join('a.attivitaAbilitate', 'att') //join tra le attività abilitate per un allenatore e un'attività
+            ->where('att = :attivita') 
             ->setParameter('attivita', $attivita)
             ->getQuery()
             ->getResult();
+    }
+
+    public function findByCF(string $CF): ?Allenatore
+    {
+        return $this->em->createQueryBuilder()
+            ->select('a')
+            ->from(Allenatore::class, 'a')
+            ->where('a.CF = :cf')
+            ->setParameter('cf', $CF)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 }

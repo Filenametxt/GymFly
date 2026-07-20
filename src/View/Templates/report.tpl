@@ -121,7 +121,7 @@
                         </select>
                     </div>
                     <div class="select">
-                        <select name="anno" onchange="this.form.submit()">
+                        <select name="anno" onchange="this.form.submit()">      <!--serve a creare un menu a tendina che invia automaticamente i dati non appena l'utente sceglie un'opzione-->
                             {foreach from=$anniDisponibili item=a}
                                 <option value="{$a}" {if $annoSelezionato === $a}selected{/if}>{$a}</option>
                             {/foreach}
@@ -186,27 +186,30 @@
             </div>
 
         </main>
-    </div>
-
-    <!-- INIZIALIZZAZIONE GRAFICI CHART.JS -->
+    </div>    <!-- INIZIALIZZAZIONE GRAFICI CHART.JS -->
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
+        {literal}
+        document.addEventListener("DOMContentLoaded", function() {       //verifica che la pagina sia completamente caricata
             
             // Impostazioni globali di stile per Chart.js in linea con GymFly
             Chart.defaults.font.family = "'Outfit', 'Inter', 'BlinkMacSystemFont', -apple-system, 'Segoe UI', 'Roboto', sans-serif";
             Chart.defaults.color = "#4B3F72";
+        {/literal}
 
             {if count($abbonamentiDati) > 0}
             // 1. Grafico Tipologie Abbonamento (Pie Chart)
-            const ctxTipologie = document.getElementById('chartTipologie').getContext('2d');
-            const abbonamentiDati = {
-                labels: [
-                    {foreach from=$abbonamentiDati key=tipo item=count} '{$tipo}', {/foreach}
-                ],
-                datasets: [{
-                    data: [
-                        {foreach from=$abbonamentiDati item=count} {$count}, {/foreach}
-                    ],
+            const ctxTipologie = document.getElementById('chartTipologie').getContext('2d');     //recupera tutte le chart tipologie e i posta il 2d
+            
+            {assign var="abbLabels" value=[]}
+            {assign var="abbValues" value=[]}
+            {foreach from=$abbonamentiDati key=tipo item=count}
+                {$abbLabels[] = $tipo}              //array tutte chiavi
+                {$abbValues[] = $count}             //array tutti valori
+            {/foreach}
+            const abbonamentiDati = {ldelim}         //Non toccare questa riga, stampami semplicemente una normale parentesi graffa perché serve a JavaScript
+                labels: {$abbLabels|json_encode},
+                datasets: [{ldelim}
+                    data: {$abbValues|json_encode},
                     backgroundColor: [
                         '#afafe2', // periwinkle (primario)
                         '#99cdea', // baby-blue (secondario)
@@ -217,9 +220,10 @@
                     ],
                     borderWidth: 2,
                     borderColor: '#ffffff'
-                }]
-            };
+                {rdelim}]
+            {rdelim};
 
+            {literal}
             const chartTipologie = new Chart(ctxTipologie, {
                 type: 'pie',
                 data: abbonamentiDati,
@@ -241,18 +245,22 @@
                     }
                 }
             });
+            {/literal}
             {/if}
 
             {if count($prenotazioniCorsi) > 0}
             // 2. Prenotazioni Corsi (Horizontal Bar Chart)
             const ctxCorsi = document.getElementById('chartCorsi').getContext('2d');
-            const labelsCorsi = [];
-            const datiCorsi = [];
+            {assign var="corsiLabels" value=[]}
+            {assign var="corsiValues" value=[]}
             {foreach from=$prenotazioniCorsi key=corso item=prenotati}
-                labelsCorsi.push('{$corso}');
-                datiCorsi.push({$prenotati});
+                {$corsiLabels[] = $corso}
+                {$corsiValues[] = $prenotati}
             {/foreach}
+            const labelsCorsi = {$corsiLabels|json_encode};
+            const datiCorsi = {$corsiValues|json_encode};
 
+            {literal}
             new Chart(ctxCorsi, {
                 type: 'bar',
                 data: {
@@ -283,18 +291,25 @@
                     }
                 }
             });
+            {/literal}
             {/if}
 
             // 3. Registrazioni Giornaliere (Vertical Bar Chart)
             const ctxIscritti = document.getElementById('chartIscritti').getContext('2d');
-            const datiIscritti = [
-                {foreach from=$iscrittiGiornalieri item=val} {$val}, {/foreach}
-            ];
+            {assign var="iscrittiValues" value=[]}
+            {foreach from=$iscrittiGiornalieri item=val}
+                {$iscrittiValues[] = $val}
+            {/foreach}
+            const datiIscritti = {$iscrittiValues|json_encode};
+            
+            {literal}
             new Chart(ctxIscritti, {
                 type: 'bar',
                 data: {
                     labels: [
+            {/literal}
                         {foreach from=$giorniMese item=g} '{$g}', {/foreach}
+            {literal}
                     ],
                     datasets: [{
                         label: 'Iscritti',
@@ -323,6 +338,7 @@
                 }
             });
         });
+        {/literal}
     </script>
 
 </body>

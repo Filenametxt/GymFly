@@ -3,7 +3,7 @@
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                   xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
                                       https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
-    <entity name="App\Entity\AbbonamentoDurata">
-        <field name="durata" type="integer" column="durata" nullable="true"/>
+    <entity name="App\Entity\AbbonamentoDurata"> <!-- dall'xml non capisco se è figlio, è il padre a sapere quali sono i figli, ma il figlio non sa chi è il padre -->
+        <field name="durata" type="integer" column="durata" nullable="true"/> <!-- il figlio ha solo i supi campi perchè eredita quelli del padre -->
     </entity>
 </doctrine-mapping>

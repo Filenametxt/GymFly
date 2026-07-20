@@ -4,7 +4,7 @@
     <meta name="color-scheme" content="light">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GymFly - Profilo Cliente</title>
+    <title>GymFly - Profilo </title>
     <link rel="stylesheet" href="css/bulma.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
@@ -71,7 +71,7 @@
                             <div class="has-text-centered" style="flex-shrink: 0; min-width: 120px; margin: 0 auto;">
                                 <div class="profile-avatar-circle" style="width: 100px !important; height: 100px !important; margin: 0 auto !important;">
                                     {if $fotoProfilo}
-                                        <img src="data:image/jpeg;base64,{$fotoProfilo}" alt="Foto Profilo" style="width: 100%; height: 100%; object-fit: cover;">
+                                        <img src="data:{$tipoImmagine};base64,{$fotoProfilo}" alt="Foto Profilo" style="width: 100%; height: 100%; object-fit: cover;">
                                     {else}
                                         <i class="fas fa-user-circle fa-5x" style="color: var(--gymfly-primary);"></i>
                                     {/if}
@@ -114,9 +114,9 @@
                         <h3 class="title is-5 style-theme-text mb-3">
                             Abbonamento 
                             {if $abbonamento && !$abbonamento->isScaduto()}
-                                <span class="has-text-success">attivo</span>
+                                <span class="has-text-success">ATTIVO</span>
                             {else}
-                                <span class="has-text-danger">scaduto</span>
+                                <span class="has-text-danger">SCADUTO</span>
                             {/if}
                         </h3>
                         
@@ -144,7 +144,7 @@
                     </div>
                     {/if}
 
-                    <!-- ATTIVITÀ ABILITATE (Visibile solo per gli Allenatori) -->
+                    <!-- ATTIVITÀ ABILITATE (Visibile solo per gli Allenatori e Amministratore) -->
                     {if isset($isTrainer) && $isTrainer}
                     <div class="box p-4 mb-4">
                         <h3 class="title is-5 style-theme-text mb-3">
@@ -280,7 +280,7 @@
                         {/if}
 
                         <!-- Modifica Dati -->
-                        {if !($smarty.session.ruolo_utente === 'allenatore' && !$isSelf)}
+                        {if $smarty.session.ruolo_utente === 'amministratore' || $isSelf}
                         <a href="modifica-anagrafica{if !$isSelf}?id={$utente->getId()}{/if}" class="navigation-box-card">
                             <span class="is-flex is-align-items-center">
                                 <span class="icon mr-3 has-text-link"><i class="fas fa-pen fa-lg"></i></span>
@@ -301,7 +301,66 @@
                             </a>
                         {/if}
 
+                        <!-- Elimina Utente (per Amministratore, se non è se stesso) -->
+                        {if $smarty.session.ruolo_utente === 'amministratore' && !$isSelf}
+                            {if $isClient}
+                                <a href="#" onclick="confermaEliminazioneCliente('{$utente->getId()}', '{$utente->getNome()|escape:'javascript'} {$utente->getCognome()|escape:'javascript'}'); return false;" class="navigation-box-card mt-4" style="border: 1px solid #ff3860;">
+                                    <span class="is-flex is-align-items-center">
+                                        <span class="icon mr-3 has-text-danger"><i class="fas fa-trash-alt fa-lg"></i></span>
+                                        <span class="has-text-weight-semibold is-size-5 has-text-danger">Elimina Cliente</span>
+                                    </span>
+                                    <span class="icon has-text-danger"><i class="fas fa-chevron-right fa-lg"></i></span>
+                                </a>
+                            {elseif $isTrainer}
+                                <a href="#" onclick="confermaEliminazioneAllenatore('{$utente->getId()}', '{$utente->getNome()|escape:'javascript'} {$utente->getCognome()|escape:'javascript'}'); return false;" class="navigation-box-card mt-4" style="border: 1px solid #ff3860;">
+                                    <span class="is-flex is-align-items-center">
+                                        <span class="icon mr-3 has-text-danger"><i class="fas fa-trash-alt fa-lg"></i></span>
+                                        <span class="has-text-weight-semibold is-size-5 has-text-danger">Elimina Allenatore</span>
+                                    </span>
+                                    <span class="icon has-text-danger"><i class="fas fa-chevron-right fa-lg"></i></span>
+                                </a>
+                            {/if}
+                        {/if}
+
                     </div>
+
+                    {if $smarty.session.ruolo_utente === 'amministratore' && !$isSelf}
+                    <!-- Modal di conferma eliminazione -->
+                    <div class="modal" id="confirm-delete-modal">
+                        <div class="modal-background" onclick="hideDeleteModal()"></div>
+                        <div class="modal-card" style="border-radius: 12px; overflow: hidden; max-width: 450px; margin: 0 auto; width: 95%;">
+                            <header class="modal-card-head" style="background-color: #f5f5f5; border-bottom: 1px solid #dbdbdb; padding: 15px 20px;">
+                                <p class="modal-card-title has-text-weight-bold" style="color: #363636; font-size: 1.25rem;">Conferma Eliminazione</p>
+                                <button class="delete" aria-label="close" onclick="hideDeleteModal()"></button>
+                            </header>
+                            <section class="modal-card-body" style="background-color: #ffffff; color: #4a4a4a; padding: 20px; font-size: 1rem; line-height: 1.5;">
+                                <p id="delete-modal-text"></p>
+                            </section>
+                            <footer class="modal-card-foot" style="background-color: #f5f5f5; border-top: 1px solid #dbdbdb; padding: 10px 20px; justify-content: flex-end; gap: 10px;">
+                                <button class="button" onclick="hideDeleteModal()" style="border-radius: 8px;">Annulla</button>
+                                <a id="delete-modal-confirm-btn" href="#" class="button is-danger" style="border-radius: 8px;">Elimina</a>
+                            </footer>
+                        </div>
+                    </div>
+
+                    <script>
+                        function confermaEliminazioneCliente(id, nomeCompleto) {
+                            var text = "Sei sicuro di voler eliminare definitivamente il cliente " + nomeCompleto + "? Tutti i dati relativi (misure, abbonamenti, schede) verranno persi. Questa operazione non può essere annullata.";
+                            document.getElementById("delete-modal-text").innerText = text;                                  //elemento nascosto nascosto dove va a inserire il testo
+                            document.getElementById("delete-modal-confirm-btn").href = "rimuovi-cliente?id=" + id;
+                            document.getElementById("confirm-delete-modal").classList.add("is-active");                     //prima viene costruita la finestra poi viene mostrata a schermo
+                        }
+                        function confermaEliminazioneAllenatore(id, nomeCompleto) {
+                            var text = "Sei sicuro di voler eliminare definitivamente l'allenatore " + nomeCompleto + "? Questa operazione non può essere annullata.";
+                            document.getElementById("delete-modal-text").innerText = text;
+                            document.getElementById("delete-modal-confirm-btn").href = "rimuovi-allenatore?id=" + id;
+                            document.getElementById("confirm-delete-modal").classList.add("is-active");
+                        }
+                        function hideDeleteModal() {
+                            document.getElementById("confirm-delete-modal").classList.remove("is-active");                   //rimuove la visualizzazione della finestra
+                        }
+                    </script>
+                    {/if}
 
                 </div>
             </div>

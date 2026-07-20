@@ -36,24 +36,13 @@ class AttivitaPianificataViewSmarty implements AttivitaPianificataView
         }
     }
 
-    public function mostraFormPrenotaSessionePrivata(array $dati): void
-    {
-        header('Content-Type: text/html; charset=utf-8');
-        foreach ($dati as $key => $value) {
-            $this->smarty->assign($key, $value);
-        }
-        $offset = isset($_REQUEST['offset']) ? (int)$_REQUEST['offset'] : 0;
-        $this->smarty->assign('offset', $offset);
-        $this->smarty->assign('ritorno', $this->determinaRitorno());
-        $this->smarty->display('prenota_sessione_privata.tpl');
-    }
-
-    public function mostraStatoOperazione(bool $successo, string $messaggio, ?string $ritorno = null): void
+    public function mostraStatoOperazione(bool $successo, string $messaggio, ?string $ritorno = null, ?string $testoBottone = null): void
     {
         header('Content-Type: text/html; charset=utf-8');
         $this->smarty->assign('successo', $successo);
         $this->smarty->assign('messaggio', $messaggio);
         $this->smarty->assign('ritorno', $ritorno ?? $this->determinaRitorno());
+        $this->smarty->assign('testo_bottone', $testoBottone);
         $this->smarty->display('stato_operazione.tpl');
     }
 }

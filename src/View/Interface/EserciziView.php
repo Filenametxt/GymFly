@@ -17,5 +17,8 @@ interface EserciziView
      * @param string $messaggio
      * @param string|null $ritorno
      */
-    public function mostraStatoOperazione(bool $successo, string $messaggio, ?string $ritorno = null): void;
+    public function mostraStatoOperazione(bool $successo, string $messaggio, ?string $ritorno = null, ?string $testoBottone = null): void;
+    public function mostraListaEsercizi(array $eserciziData): void;
+
+    public function mostraDettaglioEsercizio(array $dati): void;
 }

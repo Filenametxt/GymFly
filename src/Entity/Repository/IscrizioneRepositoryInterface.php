@@ -28,7 +28,6 @@ interface IscrizioneRepositoryInterface
 
     /**
      * Verifica se un cliente ha un'iscrizione attualmente attiva.
-     * Guard leggero usato prima di consentire accessi o prenotazioni.
      */
     public function clienteHaIscrizioneAttiva(Cliente $cliente): bool;
 

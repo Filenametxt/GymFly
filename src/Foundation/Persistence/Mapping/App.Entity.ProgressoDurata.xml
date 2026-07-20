@@ -3,7 +3,7 @@
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                   xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
                                       https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
-    <entity name="App\Entity\ProgressoDurata">
+    <entity name="App\Entity\ProgressoDurata"> <!-- estende Progresso -->
         <field name="nuovaDurata" type="float" column="nuovo_Durata" nullable="true"/>
     </entity>
 </doctrine-mapping>

@@ -142,7 +142,7 @@
             </div>
 
             <!-- ACTION TOOLBAR (Nuova Attività) -->
-            {if isset($smarty.session.ruolo_utente) && ($smarty.session.ruolo_utente === 'amministratore' || $smarty.session.ruolo_utente === 'allenatore')}
+            {if isset($smarty.session.ruolo_utente) && ($smarty.session.ruolo_utente === 'amministratore')}
             <div class="mb-5">
                 <a href="calendario?nuovo=1" class="button is-gymfly" title="+ Nuova Attività" style="border-radius: 10px;">
                     <span class="icon"><i class="fas fa-plus"></i></span>
@@ -186,7 +186,8 @@
                                                             <div class="is-size-7">Sala: {$ap->getSala()->getNome()}</div>
                                                             <div class="is-size-7">PT: {$ap->getAllenatore()->getNome()}</div>
                                                             <div class="is-size-7 is-flex is-justify-content-between">
-                                                                <span><i class="fas fa-users mr-1"></i>{$ap->getPrenotati()}/{$ap->getMaxPartecipanti()}</span>
+                                                                <span class="mr-2"><i class="fas fa-users mr-1"></i>{$ap->getUtenti()|@count}/{$ap->getMaxPartecipanti()}</span>
+                                                                <span><i class="fas fa-clock mr-1"></i>{$codaCounts[$ap->getId()]}</span>
                                                             </div>
                                                         </a>
                                                     {/foreach}
@@ -220,56 +221,91 @@
                                     <p class="mb-3"><i class="fas fa-user-ninja mr-2"></i>Coach: <strong>{$selectedAp->getAllenatore()->getNome()} {$selectedAp->getAllenatore()->getCognome()}</strong></p>
                                     
                                     <div class="mb-2 is-size-7 is-flex is-justify-content-between">
-                                        <span>Prenotati</span>
+                                        <span class="mr-2">Prenotati</span>
                                         <span><strong>{$selectedAp->getPrenotati()}</strong> / {$selectedAp->getMaxPartecipanti()}</span>
                                     </div>
                                     <progress class="progress is-link" value="{$selectedAp->getPrenotati()}" max="{$selectedAp->getMaxPartecipanti()}" style="height: 6px;"></progress>
                                 </div>
-
+                                <!-- LISTA UTENTI-->
                                 <div class="mt-5">
                                     <h3 class="title is-5 style-theme-text mb-3">Lista Iscritti</h3>
                                     {if $selectedAp->getUtenti()|@count === 0}
                                         <p class="is-size-7 has-text-grey mb-4 is-italic">Nessun utente iscritto a questa classe.</p>
                                     {else}
-                                        <ul class="mb-4" style="max-height: 150px; overflow-y: auto; background-color: rgba(0,0,0,0.1); padding: 8px; border-radius: 8px;">
+                                        <ul class="mb-4" style="max-height: 180px; overflow-y: auto; background-color: rgba(0,0,0,0.05); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
                                             {foreach from=$selectedAp->getUtenti() item=ut}
-                                                <li class="is-flex is-justify-content-between is-align-items-center mb-2" style="border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 4px;">
-                                                    <span class="is-size-7">{$ut->getNome()} {$ut->getCognome()}</span>
-                                                    <a href="disdici-prenotazione?id_attivita_pianificata={$selectedAp->getId()}&id_cliente={$ut->getId()}" class="button is-danger is-small is-light" title="Rimuovi iscrizione" style="padding: 2px 6px; height: auto;">
-                                                        <i class="fas fa-trash-alt"></i>
-                                                    </a>
+                                                <li class="mb-2 p-2" style="position: relative; background: rgba(255,255,255,0.05); border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); {if $smarty.session.ruolo_utente === 'amministratore' || $smarty.session.id_utente === $ut->getId()}padding-right: 32px !important;{else}padding-right: 12px !important;{/if} padding-left: 12px !important;">
+                                                    {if $smarty.session.ruolo_utente === 'amministratore' || $smarty.session.id_utente === $ut->getId()}
+                                                        <a href="disdici-prenotazione?id_attivita_pianificata={$selectedAp->getId()}&id_cliente={$ut->getId()}" class="delete is-small" title="Rimuovi iscrizione" style="position: absolute; right: 8px; top: 8px; background-color: #ff3860;"></a>
+                                                    {/if}
+                                                    <span class="is-size-7 style-theme-text" style="display: block; font-weight: 500;">
+                                                        {$ut->getNome()} {$ut->getCognome()}
+                                                        {if $smarty.session.id_utente === $ut->getId()} <span class="tag is-info is-light is-small py-0 px-1 ml-1">Tu</span>{/if}
+                                                    </span>
+                                                </li>
+                                            {/foreach}
+                                        </ul>
+                                    {/if}
+
+                                    <!-- LISTA D'ATTESA -->
+                                    <h3 class="title is-5 style-theme-text mb-3 mt-4">
+                                        <i class="fas fa-hourglass-half mr-2" style="color: var(--gymfly-primary);"></i>Lista d'Attesa
+                                    </h3>
+                                    {if $codaAttesa|@count === 0}
+                                        <p class="is-size-7 has-text-grey mb-4 is-italic">Nessun utente in lista d'attesa.</p>
+                                    {else}
+                                        <ul class="mb-4" style="max-height: 180px; overflow-y: auto; background-color: rgba(0,0,0,0.05); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                                            {foreach from=$codaAttesa item=coda}
+                                                <li class="mb-2 p-2" style="position: relative; background: rgba(255,255,255,0.03); border-radius: 6px; border: 1px dashed rgba(255,255,255,0.1); {if $smarty.session.ruolo_utente === 'amministratore' || $smarty.session.id_utente === $coda->getCliente()->getId()}padding-right: 32px !important;{else}padding-right: 12px !important;{/if} padding-left: 12px !important;">
+                                                    {if $smarty.session.ruolo_utente === 'amministratore' || $smarty.session.id_utente === $coda->getCliente()->getId()}
+                                                        <a href="disdici-prenotazione?id_attivita_pianificata={$selectedAp->getId()}&id_cliente={$coda->getCliente()->getId()}" class="delete is-small" title="Rimuovi dalla lista d'attesa" style="position: absolute; right: 8px; top: 8px; background-color: #ff3860;"></a>
+                                                    {/if}
+                                                    <div style="line-height: 1.2;">
+                                                        <span class="is-size-7 style-theme-text" style="display: block; font-weight: 500;">
+                                                            {$coda->getCliente()->getNome()} {$coda->getCliente()->getCognome()}
+                                                            {if $smarty.session.id_utente === $coda->getCliente()->getId()} <span class="tag is-info is-light is-small py-0 px-1 ml-1">Tu</span>{/if}
+                                                        </span>
+                                                        <span class="is-size-7 has-text-grey" style="font-size: 0.65rem !important;">Inserito il {$coda->getDataInserimento()->format('d/m/Y H:i')}</span>
+                                                    </div>
                                                 </li>
                                             {/foreach}
                                         </ul>
                                     {/if}
 
                                     <!-- ISCRIVI NUOVO CLIENTE DA PARTE DELL'ADMIN -->
-                                    <div class="box p-3 mb-4" style="background-color: rgba(255,255,255,0.02);">
-                                        <form action="prenota-attivita" method="POST">
-                                            <input type="hidden" name="id_attivita_pianificata" value="{$selectedAp->getId()}">
-                                            <div class="field">
-                                                <label class="label is-small style-theme-text">Aggiungi Cliente</label>
-                                                <div class="field has-addons">
-                                                    <div class="control is-expanded">
-                                                        <div class="select is-small is-fullwidth">
-                                                            <select name="id_cliente" required>
-                                                                <option value="">Seleziona cliente...</option>
-                                                                {foreach from=$clienti item=cl}
-                                                                    <option value="{$cl->getId()}">{$cl->getNome()} {$cl->getCognome()}</option>
-                                                                {/foreach}
-                                                            </select>
+                                    {if $isPassata}
+                                        <div class="notification is-warning is-light has-text-centered p-3 is-size-7 mb-4">
+                                            <span class="icon"><i class="fas fa-exclamation-triangle"></i></span>
+                                            <span>L'attività è passata. Non è possibile aggiungere clienti o inserirli in coda.</span>
+                                        </div>
+                                    {else}
+                                        <div class="box p-3 mb-4" style="background-color: rgba(255,255,255,0.02);">
+                                            <form action="prenota-attivita" method="POST">
+                                                <input type="hidden" name="id_attivita_pianificata" value="{$selectedAp->getId()}">
+                                                <div class="field">
+                                                    <label class="label is-small style-theme-text">Aggiungi Cliente</label>
+                                                    <div class="field has-addons">
+                                                        <div class="control is-expanded">
+                                                            <div class="select is-small is-fullwidth">
+                                                                <select name="id_cliente" required>
+                                                                    <option value="">Seleziona cliente...</option>
+                                                                    {foreach from=$clienti item=cl}
+                                                                        <option value="{$cl->getId()}">{$cl->getNome()} {$cl->getCognome()}</option>
+                                                                    {/foreach}
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="control">
+                                                            <button type="submit" class="button is-gymfly is-small">Aggiungi</button>
                                                         </div>
                                                     </div>
-                                                    <div class="control">
-                                                        <button type="submit" class="button is-gymfly is-small">Aggiungi</button>
-                                                    </div>
                                                 </div>
-                                            </div>
-                                        </form>
-                                    </div>
+                                            </form>
+                                        </div>
+                                    {/if}
 
                                     <!-- RIMOZIONE EVENTO -->
-                                    <a href="rimuovi-attivita-pianificata?id_attivita_pianificata={$selectedAp->getId()}" class="button is-danger is-light is-fullwidth mt-4" onclick="return confirm('Sei sicuro di voler rimuovere questa attività pianificata dal calendario? Tutti gli iscritti saranno rimossi.');">
+                                    <a href="rimuovi-attivita-pianificata?id_attivita_pianificata={$selectedAp->getId()}" class="button is-danger is-light is-fullwidth mt-4">
                                         <span class="icon"><i class="fas fa-trash-alt"></i></span>
                                         <span>Elimina Attività Pianificata</span>
                                     </a>
@@ -382,13 +418,13 @@
                                     <div class="field mb-4">
                                         <label class="label is-small style-theme-text">Ripeti settimanalmente nei giorni:</label>
                                         <div class="weekday-checkboxes">
-                                            <label><input type="checkbox" name="ripetizione[]" value="L"><span>L</span></label>
-                                            <label><input type="checkbox" name="ripetizione[]" value="M"><span>M</span></label>
-                                            <label><input type="checkbox" name="ripetizione[]" value="M"><span>M</span></label>
-                                            <label><input type="checkbox" name="ripetizione[]" value="G"><span>G</span></label>
-                                            <label><input type="checkbox" name="ripetizione[]" value="V"><span>V</span></label>
-                                            <label><input type="checkbox" name="ripetizione[]" value="S"><span>S</span></label>
-                                            <label><input type="checkbox" name="ripetizione[]" value="D"><span>D</span></label>
+                                            <label><input type="checkbox" name="ripetizione[]" value="1"><span>L</span></label>
+                                            <label><input type="checkbox" name="ripetizione[]" value="2"><span>M</span></label>
+                                            <label><input type="checkbox" name="ripetizione[]" value="3"><span>M</span></label>
+                                            <label><input type="checkbox" name="ripetizione[]" value="4"><span>G</span></label>
+                                            <label><input type="checkbox" name="ripetizione[]" value="5"><span>V</span></label>
+                                            <label><input type="checkbox" name="ripetizione[]" value="6"><span>S</span></label>
+                                            <label><input type="checkbox" name="ripetizione[]" value="7"><span>D</span></label>
                                         </div>
                                         <p class="help has-text-grey-light">Se selezionate delle ripetizioni, l'evento verrà pianificato per le prossime 4 settimane nei giorni selezionati.</p>
                                     </div>
@@ -426,7 +462,7 @@
                 box.querySelectorAll('input').forEach(input => input.setAttribute('required', 'true'));
             } else {
                 box.style.display = 'none';
-                box.querySelectorAll('input').forEach(input => input.removeAttribute('required'));
+                box.querySelectorAll('input').forEach(input => input.removeAttribute('required'));    //bisogna comppilare la form necessariamente
             }
         }
 

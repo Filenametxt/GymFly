@@ -13,7 +13,7 @@
             .dashboard-header {
                 height: auto !important;
                 min-height: auto !important;
-                padding: 1rem 1.2rem !important; /* Ridotto il padding verticale per rendere la card più corta */
+                padding: 1rem 1.2rem !important; 
                 flex-direction: column !important;
                 align-items: flex-start !important;
                 justify-content: center !important;
@@ -64,11 +64,11 @@
                         
                         {if $utente->getScheda()}
                             <div class="p-4 mb-4" style="background-color: var(--gymfly-bg); border-radius: 12px; border-left: 4px solid var(--gymfly-primary);">
-                                <h4 class="title is-5 style-theme-text mb-2">{$utente->getScheda()->getNome()}</h4>
-                                <p class="is-size-7 has-text-grey-dark">{$utente->getScheda()->getDescrizione()|default:'Nessuna descrizione'}</p>
+                                <h4 class="title is-5 style-theme-text mb-2">{$utente->getScheda()->getNome_scheda()}</h4>
+                                <p class="is-size-7 has-text-grey-dark">{$utente->getScheda()->getObiettivo()|default:'Nessuna descrizione'}</p>
                             </div>
                             <div class="has-text-right">
-                                <a href="#" class="button is-gymfly is-small">
+                                <a href="visualizza-scheda" class="button is-gymfly is-small">
                                     <span>Vedi Esercizi</span>
                                     <span class="icon"><i class="fas fa-arrow-right"></i></span>
                                 </a>
@@ -99,7 +99,6 @@
                                             </span>
                                             <strong class="is-size-5 style-theme-text">{$corso->getAttivita()->getNome()}</strong>
                                         </div>
-                                        <span class="icon has-text-grey"><i class="fas fa-chevron-right"></i></span>
                                     </div>
                                     <div class="mt-3 columns is-mobile is-gapless is-size-7 has-text-grey-dark">
                                         <div class="column">

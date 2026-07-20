@@ -1,24 +1,3 @@
-{*
-    =============================================================================
-    GymFly - Componente Sidebar Riutilizzabile
-    =============================================================================
-    NOTE PER IL TEAMMATE:
-    1. Includi questo file all'inizio del body delle dashboard e pagine principali:
-       {include file='sidebar.tpl'}
-    
-    2. Avvolgi il contenuto della pagina all'interno del layout a due colonne:
-       <div class="app-container">
-           {include file='sidebar.tpl'}
-           <main class="app-content">
-               <!-- Qui va il contenuto specifico della pagina (dashboard, liste, ecc.) -->
-           </main>
-       </div>
-    
-    3. Il menu in basso mostra/nasconde le funzionalità a seconda del ruolo in sessione.
-    =============================================================================
-*}
-
-<!-- STYLE OVERRIDE PER IL BUG DEI TESTI BIANCHI NEI TAG STRONG -->
 <style>
     /* Risolve il bug globale di style.css che forza a bianco tutti i tag strong */
     strong {
@@ -34,10 +13,24 @@
     <i class="fas fa-bars"></i>
 </label>
 
-<aside class="app-sidebar">
+{assign var="is_carica_certificato" value=($smarty.server.REQUEST_URI !== ($smarty.server.REQUEST_URI|replace:'carica-certificato':''))}
+{assign var="is_inserisci_misure" value=($smarty.server.REQUEST_URI !== ($smarty.server.REQUEST_URI|replace:'inserisci-misure':''))}
+{assign var="is_aggiorna_misure" value=($smarty.server.REQUEST_URI !== ($smarty.server.REQUEST_URI|replace:'aggiorna-misure':''))}
+{assign var="is_visualizza_grafico" value=($smarty.server.REQUEST_URI !== ($smarty.server.REQUEST_URI|replace:'visualizza-grafico':''))}
+{assign var="is_gestione_abbonamento" value=($smarty.server.REQUEST_URI !== ($smarty.server.REQUEST_URI|replace:'gestione-abbonamento':''))}
+{assign var="is_gestione_scheda" value=($smarty.server.REQUEST_URI !== ($smarty.server.REQUEST_URI|replace:'gestione-scheda':''))}
+{assign var="is_progressi_cliente" value=($smarty.server.REQUEST_URI !== ($smarty.server.REQUEST_URI|replace:'progressi-cliente':''))}
+
+{assign var="is_client_subpage" value=($is_carica_certificato || $is_inserisci_misure || $is_aggiorna_misure || $is_visualizza_grafico || $is_gestione_abbonamento || $is_gestione_scheda || $is_progressi_cliente)}
+
+<aside class="app-sidebar" 
+       data-is-self="{if isset($isSelf) && !$isSelf}false{elseif isset($smarty.session.ruolo_utente) && $smarty.session.ruolo_utente !== 'cliente' && $is_client_subpage}false{else}true{/if}"
+       data-is-client="{if isset($isClient) && $isClient}true{elseif isset($smarty.session.ruolo_utente) && $smarty.session.ruolo_utente !== 'cliente' && $is_client_subpage}true{else}false{/if}"
+       data-is-trainer="{if isset($isTrainer) && $isTrainer}true{elseif isset($isSelf) && !$isSelf && isset($isClient) && !$isClient}true{else}false{/if}">
     <!-- LOGO / BRANDING -->
-    <div class="has-text-centered mb-6 mt-6">
-        <strong class="is-size-3" style="color: var(--gymfly-text) !important;">GymFly 🏋️‍♂️</strong>
+    <div class="mb-5" style="display: flex; justify-content: flex-start; align-items: center; width: 100%; margin-top: -2.0rem !important; margin-left: 2.2rem !important; gap: 6px; padding: 0.5rem 0;">
+        <strong class="is-size-2" style="color: var(--gymfly-text) !important; font-weight: 800;">GymFly</strong>
+        <div class="gf-logo-icon" style="width: 54px; height: 54px; border-width: 2px;"></div>
     </div>
 
     <!-- LINK DI NAVIGAZIONE -->
@@ -86,9 +79,9 @@
 
         <!-- Voci destinate solo all'Allenatore -->
         {if isset($smarty.session.ruolo_utente) && $smarty.session.ruolo_utente === 'allenatore'}
-            <a href="crea-esercizio" class="sidebar-menu-link">
+            <a href="esercizi" class="sidebar-menu-link">
                 <i class="fas fa-dumbbell"></i>
-                <span>Aggiungi Esercizio</span>
+                <span>Gestione Esercizi</span>
             </a>
         {/if}
 
@@ -125,7 +118,7 @@
     </div>
 
     <!-- PIEDE DELLA SIDEBAR FISSO (LOGOUT) -->
-    <div style="position: sticky; bottom: 0; background-color: var(--gymfly-card-bg); padding: 1rem 0 0 0; margin-top: auto; border-top: 2px solid var(--gymfly-primary); z-index: 10;">
+    <div style="position: sticky; bottom: -2rem; background-color: var(--gymfly-card-bg) !important; padding: 1rem 1.5rem 2rem 1.5rem; margin-top: auto; margin-left: -1.5rem; margin-right: -1.5rem; margin-bottom: -2rem; border-top: 2px solid var(--gymfly-primary); z-index: 10;">
         <a href="logout" class="button is-danger is-light is-fullwidth" style="border-radius: 8px; font-weight: 600;">
             <span class="icon"><i class="fas fa-sign-out-alt"></i></span>
             <span>Log Out</span>
@@ -133,68 +126,4 @@
     </div>
 </aside>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    // Risolve il link "Vedi Esercizi" con href="#" per evitare di modificare dashboard_cliente.tpl
-    const btns = document.querySelectorAll('a.button');
-    btns.forEach(btn => {
-        if (btn.textContent.includes('Vedi Esercizi')) {
-            btn.setAttribute('href', 'visualizza-scheda');
-        }
-    });
-
-    // Uniforma l'altezza e la centratura di tutte le card dei titoli (solo su schermi non-mobile)
-    if (window.innerWidth >= 769) {
-        const headers = document.querySelectorAll('[class*="dashboard-header"]');
-        headers.forEach(h => {
-            h.style.setProperty('height', '180px', 'important');
-            h.style.setProperty('display', 'flex', 'important');
-            h.style.setProperty('align-items', 'center', 'important');
-            h.style.setProperty('padding', '0 2.5rem', 'important');
-            
-            const cols = h.querySelector('.columns');
-            if (cols) {
-                cols.style.setProperty('width', '100%', 'important');
-            }
-        });
-    }
-
-    // Rileva la pagina corrente per evidenziare il pulsante attivo nella sidebar
-    const currentPath = window.location.pathname;
-    const links = document.querySelectorAll('.app-sidebar .sidebar-menu-link');
-    links.forEach(link => {
-        const href = link.getAttribute('href');
-        if (!href) return;
-        
-        // Verifica se l'URL termina con l'href del link
-        if (currentPath.endsWith('/' + href) || currentPath.endsWith(href)) {
-            link.classList.add('is-active');
-        } else {
-            // Gestione dei sottomenu e delle pagine collegate
-            if (href === 'profilo' && (
-                currentPath.includes('modifica-anagrafica') || 
-                currentPath.includes('aggiorna-misure') || 
-                currentPath.includes('inserisci-misure') || 
-                currentPath.includes('carica-certificato') || 
-                currentPath.includes('cambia-password') || 
-                currentPath.includes('visualizza-grafico')
-            )) {
-                link.classList.add('is-active');
-            }
-            if (href === 'visualizza-scheda' && (
-                currentPath.includes('modifica-dettagli') || 
-                currentPath.includes('modifica-scheda') || 
-                currentPath.includes('crea-scheda')
-            )) {
-                link.classList.add('is-active');
-            }
-            if (href === 'clienti' && (
-                currentPath.includes('crea-cliente') || 
-                currentPath.includes('gestione-abbonamento')
-            )) {
-                link.classList.add('is-active');
-            }
-        }
-    });
-});
-</script>
+<script src="js/sidebar.js"></script>

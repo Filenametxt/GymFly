@@ -41,33 +41,17 @@ interface SessionePrivataRepositoryInterface
      */
     public function findByAllenatore(Allenatore $allenatore): array;
 
-    /**
-     * Sessioni future di un allenatore (data >= oggi).
-     * Caso d'uso: agenda prossimi appuntamenti.
-     *
-     * @return SessionePrivata[]
-     */
-    public function findFutureByAllenatore(Allenatore $allenatore): array;
-
     // -------------------------------------------------------------------------
-    // Query per atleta (cliente)
+    // Query per cliente
     // -------------------------------------------------------------------------
 
     /**
-     * Tutte le sessioni di un atleta, ordinate per data e ora inizio.
+     * Tutte le sessioni di un cliente, ordinate per data e ora inizio.
      * Caso d'uso: storico sessioni nella vista cliente.
      *
      * @return SessionePrivata[]
      */
-    public function findByAtleta(Cliente $atleta): array;
-
-    /**
-     * Sessioni future di un atleta (data >= oggi).
-     * Caso d'uso: prossimi appuntamenti nella dashboard cliente.
-     *
-     * @return SessionePrivata[]
-     */
-    public function findFutureByAtleta(Cliente $atleta): array;
+    public function findByCliente(Cliente $cliente): array;
 
     // -------------------------------------------------------------------------
     // Query per data
@@ -98,12 +82,12 @@ interface SessionePrivataRepositoryInterface
     ): bool;
 
     /**
-     * Verifica se un atleta ha già una sessione sovrapposta
+     * Verifica se un cliente ha già una sessione sovrapposta
      * nell'intervallo (oraInizio, oraFine) in una certa data.
      * Caso d'uso: validazione prima di creare/spostare una sessione.
      */
-    public function existsSovrapposizioneAtleta(
-        Cliente            $atleta,
+    public function existsSovrapposizioneCliente(
+        Cliente            $cliente,
         \DateTimeImmutable $data,
         \DateTimeImmutable $oraInizio,
         \DateTimeImmutable $oraFine

@@ -40,31 +40,9 @@
                 <div class="box p-5" style="border: 2px solid var(--gymfly-accent); border-radius: 15px; background-color: var(--gymfly-card-bg); box-shadow: 0 8px 16px rgba(0,0,0,0.02) !important;">
                     <h1 class="title is-4 style-theme-text has-text-centered mb-5">{$titolo}</h1>
 
-                    {if count($punti) > 0}
-                        <div class="chart-container">
-                            <svg viewBox="0 0 450 180" style="display: block; width: 100%; height: auto; max-width: 100%; overflow: hidden;">
-                                <!-- Linee di griglia di sfondo -->
-                                <line x1="40" y1="20" x2="430" y2="20" stroke="#dbdbdb" stroke-dasharray="5,5" />
-                                <line x1="40" y1="70" x2="430" y2="70" stroke="#dbdbdb" stroke-dasharray="5,5" />
-                                <line x1="40" y1="120" x2="430" y2="120" stroke="#dbdbdb" stroke-dasharray="5,5" />
-                                <line x1="40" y1="140" x2="430" y2="140" stroke="var(--gymfly-primary)" stroke-width="2" />
-                                
-                                <!-- Polyline (linea continua dell'andamento) -->
-                                {if count($punti) > 1}
-                                    <polyline points="{foreach $punti as $p}{$p.x},{$p.y} {/foreach}" fill="none" stroke="var(--gymfly-secondary)" stroke-width="3" />
-                                {/if}
-                                
-                                <!-- Punti (Cerchi) e Valori numerici -->
-                                {foreach $punti as $p}
-                                    <circle cx="{$p.x}" cy="{$p.y}" r="5" fill="var(--gymfly-text)" />
-                                    
-                                    <!-- Valore numerico sopra il punto -->
-                                    <text x="{$p.x}" y="{$p.y - 8}" font-size="9" fill="var(--gymfly-text)" text-anchor="middle" font-weight="bold">{$p.valore}</text>
-                                    
-                                    <!-- Data di registrazione sotto l'asse X -->
-                                    <text x="{$p.x}" y="155" font-size="9" fill="var(--gymfly-text)" text-anchor="middle">{$p.data}</text>
-                                {/foreach}
-                            </svg>
+                    {if count($valori) > 0}
+                        <div class="chart-container" style="position: relative; height: 260px; width: 100%;">
+                            <canvas id="chartMisure"></canvas>
                         </div>
                     {else}
                         <div class="notification is-warning is-light has-text-centered py-5">
@@ -78,5 +56,60 @@
         </main>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const ctx = document.getElementById('chartMisure');
+        if (!ctx) return;
+
+        const labels = {$labels|json_encode};
+        const dati = {$valori|json_encode};
+        const chartTitle = '{$titolo}';
+
+        {literal}
+        // Impostazioni globali di stile per Chart.js in linea con GymFly
+        Chart.defaults.font.family = "'Outfit', 'Inter', 'BlinkMacSystemFont', -apple-system, 'Segoe UI', 'Roboto', sans-serif";
+        Chart.defaults.color = "#4B3F72";
+
+        new Chart(ctx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: chartTitle,
+                    data: dati,
+                    borderColor: '#99cdea', // baby-blue (secondario)
+                    backgroundColor: 'rgba(153, 205, 234, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.3,
+                    fill: true,
+                    pointBackgroundColor: '#4B3F72',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        grid: { color: 'rgba(175, 175, 226, 0.15)' },
+                        ticks: { color: '#4B3F72' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#4B3F72' }
+                    }
+                }
+            }
+        });
+        {/literal}
+    });
+    </script>
 </body>
 </html>

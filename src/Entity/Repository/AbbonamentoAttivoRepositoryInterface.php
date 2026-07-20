@@ -51,5 +51,5 @@ interface AbbonamentoAttivoRepositoryInterface
      *
      * @return AbbonamentoAttivo[]
      */
-    public function findSenzaDataFine(): array;
+    
 }

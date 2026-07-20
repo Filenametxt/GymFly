@@ -28,31 +28,37 @@
             <!-- STATS -->
             <div class="columns mb-6">
                 <div class="column">
-                    <div class="stat-card">
-                        <span class="icon is-large mb-2">
-                            <i class="fas fa-users fa-2x" style="color: #AFAFE2 !important;"></i>
-                        </span>
-                        <h3 class="title is-4 mb-1">{$clienti|@count}</h3>
-                        <p class="heading has-text-grey">Clienti Totali</p>
-                    </div>
+                    <a href="clienti" style="display: block; text-decoration: none;">
+                        <div class="stat-card">
+                            <span class="icon is-large mb-2">
+                                <i class="fas fa-users fa-2x" style="color: #AFAFE2 !important;"></i>
+                            </span>
+                            <h3 class="title is-4 mb-1">{$clienti|@count}</h3>
+                            <p class="heading has-text-grey">Clienti Totali</p>
+                        </div>
+                    </a>
                 </div>
                 <div class="column">
-                    <div class="stat-card">
-                        <span class="icon is-large mb-2">
-                            <i class="fas fa-user-tie fa-2x" style="color: #99CDEA !important;"></i>
-                        </span>
-                        <h3 class="title is-4 mb-1">{$allenatori|@count}</h3>
-                        <p class="heading has-text-grey">Allenatori Attivi</p>
-                    </div>
+                    <a href="allenatori" style="display: block; text-decoration: none;">
+                        <div class="stat-card">
+                            <span class="icon is-large mb-2">
+                                <i class="fas fa-user-tie fa-2x" style="color: #99CDEA !important;"></i>
+                            </span>
+                            <h3 class="title is-4 mb-1">{$allenatori|@count}</h3>
+                            <p class="heading has-text-grey">Allenatori Attivi</p>
+                        </div>
+                    </a>
                 </div>
                 <div class="column">
-                    <div class="stat-card">
-                        <span class="icon is-large mb-2">
-                            <i class="fas fa-dumbbell fa-2x" style="color: #AFAFE2 !important;"></i>
-                        </span>
-                        <h3 class="title is-4 mb-1">Attiva</h3>
-                        <p class="heading has-text-grey">Stato Palestra</p>
-                    </div>
+                    <a href="report" style="display: block; text-decoration: none;">
+                        <div class="stat-card">
+                            <span class="icon is-large mb-2">
+                                <i class="fas fa-dumbbell fa-2x" style="color: #AFAFE2 !important;"></i>
+                            </span>
+                            <h3 class="title is-4 mb-1">Attiva</h3>
+                            <p class="heading has-text-grey">Stato Palestra</p>
+                        </div>
+                    </a>
                 </div>
             </div>
 
@@ -177,30 +183,8 @@
                         <h2 class="title is-5 mb-4 style-theme-text">
                             <i class="fas fa-chart-bar mr-2" style="color: #3273dc;"></i> Statistiche Registrazioni Mensili
                         </h2>
-                        <div class="chart-container" style="background-color: var(--gymfly-bg); border-radius: 16px; padding: 1.25rem; border: 1px solid var(--gymfly-primary); flex-grow: 1; display: flex; align-items: center; justify-content: center;">
-                            <svg viewBox="0 0 450 310" style="display: block; width: 100%; height: auto; max-width: 100%; overflow: hidden;">
-                                <defs>
-                                    <linearGradient id="barGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                                        <stop offset="0%" stop-color="#afafe2" />
-                                        <stop offset="100%" stop-color="#99cdea" />
-                                    </linearGradient>
-                                </defs>
-                                <!-- Linee di griglia orizzontali -->
-                                <line x1="30" y1="45" x2="420" y2="45" stroke="#e8e8e8" stroke-dasharray="5,5" />
-                                <line x1="30" y1="100" x2="420" y2="100" stroke="#e8e8e8" stroke-dasharray="5,5" />
-                                <line x1="30" y1="155" x2="420" y2="155" stroke="#e8e8e8" stroke-dasharray="5,5" />
-                                <line x1="30" y1="210" x2="420" y2="210" stroke="#e8e8e8" stroke-dasharray="5,5" />
-                                <line x1="30" y1="265" x2="420" y2="265" stroke="var(--gymfly-primary)" stroke-width="2" />
-                                
-                                <!-- Istogramma (Rettangoli) -->
-                                {foreach $punti_registrazioni as $p}
-                                    <rect x="{$p.x - 15}" y="{$p.y}" width="30" height="{$p.altezza}" rx="5" fill="url(#barGradient)" style="transition: fill 0.3s;" />
-                                    <!-- Valore sopra la barra -->
-                                    <text x="{$p.x}" y="{$p.y - 10}" font-size="12" fill="var(--gymfly-text)" text-anchor="middle" font-weight="bold">{$p.valore}</text>
-                                    <!-- Etichetta mese sotto la barra -->
-                                    <text x="{$p.x}" y="290" font-size="12" fill="var(--gymfly-text)" text-anchor="middle" font-weight="bold">{$p.data}</text>
-                                {/foreach}
-                            </svg>
+                        <div class="chart-container" style="background-color: var(--gymfly-bg); border-radius: 16px; padding: 1.25rem; border: 1px solid var(--gymfly-primary); flex-grow: 1; position: relative; height: 300px; width: 100%;">
+                            <canvas id="chartRegistrazioni"></canvas>
                         </div>
                     </div>
                 </div>
@@ -273,5 +257,58 @@
         </main>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>      <!--importa tutta la libreria chart.js-->
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {     //attesa del caricamento
+        const ctx = document.getElementById('chartRegistrazioni');     //si applica all'elemento con l'id chart registrazioni
+        if (!ctx) return;
+
+        // Impostazioni globali di stile per Chart.js in linea con GymFly (TEMA)
+        Chart.defaults.font.family = "'Outfit', 'Inter', 'BlinkMacSystemFont', -apple-system, 'Segoe UI', 'Roboto', sans-serif";
+        Chart.defaults.color = "#4B3F72";
+
+        const rawData = {$registrazioni|json_encode};       //il server php manda un array con i dati e viene tradotto in json da js
+        const labels = rawData.map(pt => pt.data);          //prende la data delle iscrizioni
+        const dati = rawData.map(pt => pt.valore);          //prende il numero delle iscrizioni
+
+        {literal}
+        new Chart(ctx.getContext('2d'), {          
+            type: 'bar',                         //è un grafico a barre
+            data: {                              
+                labels: labels,                  //imposta le date sull'asse x
+                datasets: [{
+                    label: 'Nuovi Iscritti',
+                    data: dati,                  //imposta i dati sull'asse y
+                    backgroundColor: 'rgba(175, 175, 226, 0.75)', // color: #afafe2
+                    borderColor: '#4B3F72',
+                    borderWidth: 2,
+                    borderRadius: 6,              //quanto sono arrotondati i bordi
+                    borderSkipped: false
+                }]
+            },
+            options: {                         
+                responsive: true,                          //il grafico si allarga/restringe da solo on base alla finestra
+                maintainAspectRatio: false,                //si adatta ll'altezza
+                plugins: {              
+                    legend: { display: false }             //nasconde la legenda
+                },
+                scales: {
+                    y: {
+                        grid: { color: 'rgba(175, 175, 226, 0.15)' },      //griglie orizzonatali quasi trasparenti
+                        ticks: {
+                            color: '#4B3F72',
+                            precision: 0                             
+                        }
+                    },
+                    x: {
+                        grid: { display: false },                           //nasconde linee griglia verticali
+                        ticks: { color: '#4B3F72' }
+                    }
+                }
+            }
+        });
+        {/literal}
+    });
+    </script>
 </body>
 </html>

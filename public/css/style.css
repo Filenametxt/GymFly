@@ -1,7 +1,7 @@
 /* GymFly - Stili e Colori Unificati dell'Applicazione */
 :root {
     color-scheme: light !important;
-    
+
     /* CSS HEX */
     --mint-cream: #f4f9f1ff;
     --baby-blue: #99cdeaff;
@@ -36,10 +36,12 @@
     --gymfly-text: #4B3F72;
     --gymfly-header-gradient: linear-gradient(135deg, var(--periwinkle) 0%, var(--baby-blue) 100%);
     --gymfly-header-gradient-admin: linear-gradient(135deg, var(--periwinkle) 0%, var(--pale-sky) 100%);
+    --gymfly-logo: url('../images/logo.jpeg');
 }
 
 /* Regole Globali di Base */
-html, body {
+html,
+body {
     background-color: var(--gymfly-bg) !important;
     min-height: 100%;
 }
@@ -53,29 +55,42 @@ strong {
 }
 
 /* Stili Globali per Input, Select e Textarea (Forzano lo sfondo panna/chiaro e prevengono il nero del dark mode) */
-.input, .textarea, .select select, select {
+.input,
+.textarea,
+.select select,
+select {
     background-color: var(--gymfly-bg) !important;
     color: var(--gymfly-text) !important;
     border-color: var(--gymfly-primary) !important;
 }
 
-.input::placeholder, .textarea::placeholder {
+.input::placeholder,
+.textarea::placeholder {
     color: #8c85a6 !important;
 }
 
-.input:focus, .textarea:focus, .select select:focus {
+.input:focus,
+.textarea:focus,
+.select select:focus {
     border-color: var(--gymfly-secondary) !important;
     box-shadow: 0 0 0 0.125em rgba(153, 205, 234, 0.25) !important;
 }
 
 /* Evita sfondi scuri ereditati sulle icone all'interno dei form */
-.control.has-icons-left .icon, .control.has-icons-right .icon {
+.control.has-icons-left .icon,
+.control.has-icons-right .icon {
     color: var(--gymfly-text) !important;
     background-color: transparent !important;
 }
 
 /* Evita che le tabelle assumano uno sfondo scuro o nero e garantisce il testo corretto */
-table, thead, tbody, tfoot, tr, th, td {
+table,
+thead,
+tbody,
+tfoot,
+tr,
+th,
+td {
     background-color: transparent !important;
     color: var(--gymfly-text) !important;
 }
@@ -133,7 +148,9 @@ code {
     box-shadow: 0 10px 20px rgba(153, 205, 234, 0.2) !important;
 }
 
-.dashboard-header .columns, .dashboard-header-admin .columns, .dashboard-header-trainer .columns {
+.dashboard-header .columns,
+.dashboard-header-admin .columns,
+.dashboard-header-trainer .columns {
     width: 100% !important;
 }
 
@@ -141,7 +158,7 @@ code {
 .box {
     border: 2px solid var(--gymfly-primary) !important;
     border-radius: 15px !important;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.03) !important;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.03) !important;
     background-color: var(--gymfly-card-bg) !important;
     color: var(--gymfly-text) !important;
 }
@@ -150,7 +167,7 @@ code {
     background-color: var(--gymfly-card-bg) !important;
     border: 2px solid var(--gymfly-primary) !important;
     border-radius: 15px !important;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.03) !important;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.03) !important;
     color: var(--gymfly-text) !important;
 }
 
@@ -159,7 +176,7 @@ code {
     border: 2px solid var(--gymfly-accent) !important;
     border-radius: 20px !important;
     padding: 2rem !important;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.03) !important;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.03) !important;
     margin-bottom: 2rem !important;
     height: 100% !important;
     color: var(--gymfly-text) !important;
@@ -171,14 +188,14 @@ code {
     border-radius: 15px !important;
     padding: 1.5rem !important;
     text-align: center !important;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.02) !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02) !important;
     transition: transform 0.3s ease, box-shadow 0.3s ease !important;
     color: var(--gymfly-text) !important;
 }
 
 .stat-card:hover {
     transform: translateY(-5px) !important;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05) !important;
 }
 
 .trainer-card {
@@ -186,7 +203,7 @@ code {
     border: 2px solid var(--gymfly-secondary) !important;
     border-radius: 15px !important;
     padding: 1.5rem !important;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.02) !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02) !important;
     margin-bottom: 1.5rem !important;
     color: var(--gymfly-text) !important;
 }
@@ -196,7 +213,7 @@ code {
     border: 2px solid var(--gymfly-primary) !important;
     border-radius: 20px !important;
     padding: 2rem !important;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.03) !important;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.03) !important;
     margin-bottom: 2rem !important;
     color: var(--gymfly-text) !important;
 }
@@ -236,8 +253,8 @@ code {
 
 /* Form di Accesso e Registrazione */
 .hero.is-fullheight-with-navbar {
-    background: linear-gradient(rgba(244, 249, 241, 0.85), rgba(244, 249, 241, 0.85)), 
-                url('../assets/img/sfondo-palestra.jpg') no-repeat center center !important;
+    background: linear-gradient(rgba(244, 249, 241, 0.85), rgba(244, 249, 241, 0.85)),
+        url('../assets/img/sfondo-palestra.jpg') no-repeat center center !important;
     background-size: cover !important;
 }
 
@@ -294,7 +311,7 @@ code {
     background-color: var(--gymfly-card-bg) !important;
     border: 2px solid var(--gymfly-primary) !important;
     border-radius: 20px !important;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.05) !important;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05) !important;
     padding: 2.5rem !important;
     color: var(--gymfly-text) !important;
 }
@@ -340,7 +357,7 @@ code {
     background-color: var(--gymfly-card-bg) !important;
     border: 2px solid var(--gymfly-primary) !important;
     border-radius: 20px !important;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.05) !important;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05) !important;
     padding: 2.5rem !important;
     color: var(--gymfly-text) !important;
 }
@@ -386,26 +403,52 @@ code {
         --gymfly-accent: var(--pale-sky) !important;
         --gymfly-text: #4B3F72 !important;
     }
-    
-    html, body {
+
+    html,
+    body {
         background-color: var(--gymfly-bg) !important;
         color: var(--gymfly-text) !important;
     }
 
-    .box, .card, .info-box, .stat-card, .trainer-card, .control-box, .login-box, .register-box {
+    .box,
+    .card,
+    .info-box,
+    .stat-card,
+    .trainer-card,
+    .control-box,
+    .login-box,
+    .register-box {
         background-color: var(--gymfly-card-bg) !important;
         border-color: var(--gymfly-primary) !important;
     }
 
-    .title, .subtitle, .label, p, span, div:not(.navbar-burger), th, td, h1, h2, h3, h4, h5, h6 {
+    .title,
+    .subtitle,
+    .label,
+    p,
+    span,
+    div:not(.navbar-burger),
+    th,
+    td,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
         color: var(--gymfly-text) !important;
     }
 
     /* Manteniamo bianchi i testi all'interno delle intestazioni sfumate (dashboard) */
-    .dashboard-header, .dashboard-header-admin, .dashboard-header-trainer {
+    .dashboard-header,
+    .dashboard-header-admin,
+    .dashboard-header-trainer {
         color: #FFFFFF !important;
     }
-    .dashboard-header *, .dashboard-header-admin *, .dashboard-header-trainer * {
+
+    .dashboard-header *,
+    .dashboard-header-admin *,
+    .dashboard-header-trainer * {
         color: #FFFFFF !important;
     }
 
@@ -414,23 +457,28 @@ code {
         background-color: var(--gymfly-primary) !important;
         color: #FFFFFF !important;
     }
+
     .button.is-danger {
         color: #FFFFFF !important;
     }
 
     /* Input, select e textarea uniformati allo sfondo panna */
-    .input, .select select, .textarea {
+    .input,
+    .select select,
+    .textarea {
         background-color: var(--gymfly-bg) !important;
         color: var(--gymfly-text) !important;
         border-color: var(--gymfly-primary) !important;
     }
 
-    .input::placeholder, .textarea::placeholder {
+    .input::placeholder,
+    .textarea::placeholder {
         color: #8c85a6 !important;
     }
 
     /* Icone all'interno del controllo input */
-    .control.has-icons-left .icon, .control.has-icons-right .icon {
+    .control.has-icons-left .icon,
+    .control.has-icons-right .icon {
         color: var(--gymfly-text) !important;
         background-color: transparent !important;
     }
@@ -467,39 +515,45 @@ code {
 .app-sidebar::-webkit-scrollbar {
     width: 6px;
 }
+
 .app-sidebar::-webkit-scrollbar-track {
     background: transparent;
 }
+
 .app-sidebar::-webkit-scrollbar-thumb {
     background: rgba(175, 175, 226, 0.2);
     border-radius: 3px;
 }
+
 .app-sidebar::-webkit-scrollbar-thumb:hover {
     background: rgba(175, 175, 226, 0.4);
 }
 
-.sidebar-checkbox-state:checked ~ .app-sidebar {
+.sidebar-checkbox-state:checked~.app-sidebar {
     transform: translateX(-280px);
 }
 
 .app-content {
     flex-grow: 1;
-    padding: 2.5rem 2.5rem 2.5rem 300px !important; /* Default padding: lascia 280px di spazio fisso per la sidebar + 20px di margine */
+    padding: 2.5rem 2.5rem 2.5rem 300px !important;
+    /* Default padding: lascia 280px di spazio fisso per la sidebar + 20px di margine */
     background-color: var(--gymfly-bg) !important;
     overflow-y: auto;
     width: 100%;
     transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.sidebar-checkbox-state:checked ~ .app-content {
-    padding: 2.5rem 2.5rem 2.5rem 4.5rem !important; /* Lascia lo spazio solo per il toggle button */
+.sidebar-checkbox-state:checked~.app-content {
+    padding: 2.5rem 2.5rem 2.5rem 4.5rem !important;
+    /* Lascia lo spazio solo per il toggle button */
 }
 
 /* Pulsante Hamburger Piatto */
 .sidebar-toggle-flat {
     position: fixed;
     top: 25px;
-    left: 25px; /* Sempre posizionato nell'angolo in alto a sinistra della viewport */
+    left: 25px;
+    /* Sempre posizionato nell'angolo in alto a sinistra della viewport */
     z-index: 1010;
     background: transparent !important;
     border: none !important;
@@ -525,7 +579,8 @@ code {
     transition: all 0.2s ease;
 }
 
-.sidebar-menu-link:hover, .sidebar-menu-link.is-active {
+.sidebar-menu-link:hover,
+.sidebar-menu-link.is-active {
     background-color: var(--gymfly-accent) !important;
     color: #1e3a8a !important;
 }
@@ -557,6 +612,7 @@ code {
     z-index: 998;
     backdrop-filter: blur(4px);
 }
+
 .sidebar-backdrop.is-active {
     display: block;
 }
@@ -566,6 +622,7 @@ code {
     .app-container {
         flex-direction: column;
     }
+
     .app-sidebar {
         position: fixed;
         top: 0;
@@ -585,28 +642,31 @@ code {
         flex-direction: column;
         overflow-y: auto;
     }
-    
+
     /* Pulsante hamburger in alto a sinistra su mobile */
     .sidebar-toggle-flat {
         z-index: 1030;
         left: 25px;
     }
-    
+
     .app-content {
         padding: 4.5rem 1.2rem 2.5rem 1.2rem !important;
     }
-    
+
     /* Quando spuntato (checked) su mobile, mostriamo la sidebar */
-    .sidebar-checkbox-state:checked ~ .app-sidebar {
+    .sidebar-checkbox-state:checked~.app-sidebar {
         transform: translateX(0);
     }
-    
-    .sidebar-checkbox-state:checked ~ .app-content {
-        padding: 4.5rem 1.2rem 2.5rem 1.2rem !important; /* Conserva il padding fisso senza squeeze */
+
+    .sidebar-checkbox-state:checked~.app-content {
+        padding: 4.5rem 1.2rem 2.5rem 1.2rem !important;
+        /* Conserva il padding fisso senza squeeze */
     }
 
     /* Rendi le intestazioni della dashboard responsive su mobile */
-    .dashboard-header, .dashboard-header-admin, .dashboard-header-trainer {
+    .dashboard-header,
+    .dashboard-header-admin,
+    .dashboard-header-trainer {
         height: auto !important;
         min-height: auto !important;
         padding: 1.5rem 1.2rem !important;
@@ -614,29 +674,41 @@ code {
         align-items: flex-start !important;
         justify-content: center !important;
         margin-bottom: 1.5rem !important;
-        display: flex !important; /* Forza la visualizzazione del riquadro colorato anche su mobile */
+        display: flex !important;
+        /* Forza la visualizzazione del riquadro colorato anche su mobile */
     }
-    
-    .dashboard-header .columns, .dashboard-header-admin .columns, .dashboard-header-trainer .columns {
+
+    .dashboard-header .columns,
+    .dashboard-header-admin .columns,
+    .dashboard-header-trainer .columns {
         margin: 0 !important;
         width: 100% !important;
     }
-    
-    .dashboard-header .column, .dashboard-header-admin .column, .dashboard-header-trainer .column {
+
+    .dashboard-header .column,
+    .dashboard-header-admin .column,
+    .dashboard-header-trainer .column {
         padding: 0 !important;
     }
-    
-    .dashboard-header .title, .dashboard-header-admin .title, .dashboard-header-trainer .title {
+
+    .dashboard-header .title,
+    .dashboard-header-admin .title,
+    .dashboard-header-trainer .title {
         font-size: 1.4rem !important;
         margin-bottom: 0.5rem !important;
     }
-    
-    .dashboard-header .subtitle, .dashboard-header-admin .subtitle, .dashboard-header-trainer .subtitle {
+
+    .dashboard-header .subtitle,
+    .dashboard-header-admin .subtitle,
+    .dashboard-header-trainer .subtitle {
         font-size: 0.85rem !important;
     }
-    
-    .dashboard-header .column.is-narrow, .dashboard-header-admin .column.is-narrow, .dashboard-header-trainer .column.is-narrow {
-        display: none !important; /* Nascondi l'icona gigante su mobile per risparmiare spazio */
+
+    .dashboard-header .column.is-narrow,
+    .dashboard-header-admin .column.is-narrow,
+    .dashboard-header-trainer .column.is-narrow {
+        display: none !important;
+        /* Nascondi l'icona gigante su mobile per risparmiare spazio */
     }
 
     /* Nascondi completamente i vecchi header mobili testuali ridondanti (PROFILO, MESSAGGI, CALENDARIO, ecc.) */
@@ -665,13 +737,13 @@ code {
         justify-content: center !important;
         margin: 0 !important;
     }
-    
+
     .calendar-details-panel .card {
         max-height: 85vh !important;
         width: 100% !important;
         max-width: 420px !important;
         overflow-y: auto !important;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
         border-radius: 15px !important;
     }
 
@@ -681,13 +753,14 @@ code {
         justify-content: space-between !important;
         flex-wrap: nowrap !important;
     }
-    
+
     .calendar-nav-container span {
         margin-right: 0 !important;
-        font-size: 1.1rem !important; /* Ridotto leggermente per far sì che entri anche su schermi strettissimi */
+        font-size: 1.1rem !important;
+        /* Ridotto leggermente per far sì che entri anche su schermi strettissimi */
         white-space: nowrap !important;
     }
-    
+
     .calendar-nav-container .buttons {
         margin-left: auto !important;
     }
@@ -757,7 +830,7 @@ code {
     font-size: 0.85rem !important;
     color: var(--gymfly-text) !important;
     background-color: var(--gymfly-card-bg) !important;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.02) !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02) !important;
 }
 
 .client-calendar-btn {
@@ -805,6 +878,7 @@ code {
     max-width: 500px;
     margin: 0 auto;
 }
+
 .profile-avatar-circle {
     width: 90px !important;
     height: 90px !important;
@@ -817,15 +891,18 @@ code {
     justify-content: center !important;
     background-color: var(--gymfly-bg) !important;
 }
+
 .profile-avatar-circle img {
     width: 100% !important;
     height: 100% !important;
     object-fit: cover !important;
 }
+
 .profile-details-text p {
     margin-bottom: 0.4rem !important;
     font-size: 0.95rem !important;
 }
+
 .navigation-box-card {
     display: flex !important;
     align-items: center !important;
@@ -837,9 +914,10 @@ code {
     transition: transform 0.2s ease, box-shadow 0.2s ease !important;
     margin-bottom: 1rem !important;
 }
+
 .navigation-box-card:hover {
     transform: translateY(-2px) !important;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05) !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05) !important;
 }
 
 /* Landing page GymFly */
@@ -883,23 +961,31 @@ code {
     text-decoration: none;
 }
 
-.gf-navbar-brand .gf-logo-icon,
+.gf-logo-icon,
 .gf-footer-logo {
-    width: 30px;
-    height: 30px;
-    background: transparent;
-    border: 1px solid var(--gymfly-primary);
+    width: 44px;
+    height: 44px;
+    background: var(--gymfly-logo) no-repeat center center;
+    background-size: 112% !important;
+    overflow: hidden;
+    border: 1.5px solid var(--gymfly-primary);
     border-radius: 999px;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: var(--gymfly-primary);
+    color: transparent;
     font-size: 0.9rem;
+    transform: translateY(2px);
+}
+
+.gf-logo-icon i,
+.gf-footer-logo i {
+    display: none !important;
 }
 
 .gf-footer-logo {
-    width: 26px;
-    height: 26px;
+    width: 34px;
+    height: 34px;
     font-size: 0.8rem;
 }
 
@@ -1074,7 +1160,7 @@ code {
 }
 
 .gf-section-soft {
-    background: linear-gradient(180deg, rgba(255,255,255,0.8) 0%, rgba(244,249,241,0.95) 100%);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.8) 0%, rgba(244, 249, 241, 0.95) 100%);
 }
 
 .gf-section-title {
@@ -1163,12 +1249,35 @@ code {
     color: inherit;
 }
 
-.gf-feature-icon.color-1 { background: var(--gymfly-accent); color: var(--gymfly-text); }
-.gf-feature-icon.color-2 { background: rgba(153,205,234,0.2); color: #2d7ab5; }
-.gf-feature-icon.color-3 { background: rgba(197,224,252,0.25); color: #3b7dd8; }
-.gf-feature-icon.color-4 { background: rgba(208,208,245,0.25); color: #5b4fcf; }
-.gf-feature-icon.color-5 { background: rgba(153,205,234,0.15); color: #2980b9; }
-.gf-feature-icon.color-6 { background: rgba(175,175,226,0.2); color: #7b68c8; }
+.gf-feature-icon.color-1 {
+    background: var(--gymfly-accent);
+    color: var(--gymfly-text);
+}
+
+.gf-feature-icon.color-2 {
+    background: rgba(153, 205, 234, 0.2);
+    color: #2d7ab5;
+}
+
+.gf-feature-icon.color-3 {
+    background: rgba(197, 224, 252, 0.25);
+    color: #3b7dd8;
+}
+
+.gf-feature-icon.color-4 {
+    background: rgba(208, 208, 245, 0.25);
+    color: #5b4fcf;
+}
+
+.gf-feature-icon.color-5 {
+    background: rgba(153, 205, 234, 0.15);
+    color: #2980b9;
+}
+
+.gf-feature-icon.color-6 {
+    background: rgba(175, 175, 226, 0.2);
+    color: #7b68c8;
+}
 
 .gf-feature-title {
     font-size: 1.02rem;
@@ -1184,10 +1293,10 @@ code {
 }
 
 .gf-steps {
-    background: linear-gradient(135deg, rgba(175,175,226,0.08) 0%, rgba(153,205,234,0.08) 100%);
+    background: linear-gradient(135deg, rgba(175, 175, 226, 0.08) 0%, rgba(153, 205, 234, 0.08) 100%);
     border-radius: 20px;
     padding: 3.2rem 1.5rem;
-    border: 1px solid rgba(175,175,226,0.2);
+    border: 1px solid rgba(175, 175, 226, 0.2);
 }
 
 .gf-steps-grid {
@@ -1227,7 +1336,7 @@ code {
     font-size: 1.35rem;
     font-weight: 800;
     margin: 0 auto 1rem;
-    box-shadow: 0 6px 16px rgba(175,175,226,0.24);
+    box-shadow: 0 6px 16px rgba(175, 175, 226, 0.24);
     position: relative;
     z-index: 1;
 }
@@ -1251,7 +1360,7 @@ code {
 
 .gf-footer {
     background: white;
-    border-top: 1px solid rgba(175,175,226,0.2);
+    border-top: 1px solid rgba(175, 175, 226, 0.2);
     padding: 2.2rem 1.5rem;
     text-align: center;
 }
@@ -1273,8 +1382,15 @@ code {
 }
 
 @keyframes fadeSlideDown {
-    from { opacity: 0; transform: translateY(-18px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-18px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .animate-on-scroll {
@@ -1317,8 +1433,3 @@ code {
     background-color: var(--gymfly-primary) !important;
     opacity: 0.3 !important;
 }
-
-
-
-
-
