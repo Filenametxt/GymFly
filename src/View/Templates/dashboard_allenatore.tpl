@@ -167,7 +167,7 @@
                 <div class="column is-12-mobile is-5-desktop">
                     <div class="box" style="height: 100%;">
                         <div class="is-flex is-justify-content-between is-align-items-center mb-4">
-                            <h3 class="title is-4 mb-0 style-theme-text">
+                            <h3 class="title is-4 mb-0 style-theme-text is-inline-block mr-3">
                                 <i class="fas fa-calendar-day mr-2" style="color: var(--gymfly-secondary);"></i> Oggi in Palestra
                             </h3>
                             <span class="tag is-link is-light font-weight-bold">({$eventi_oggi|@count} Eventi)</span>
@@ -178,6 +178,7 @@
                                 <div class="p-3 mb-3" style="background-color: var(--gymfly-bg); border-radius: 12px; border-left: 5px solid {$evento.colore};">
                                     <div class="is-flex is-align-items-center is-justify-content-between">
                                         <strong class="is-size-6" style="color: var(--gymfly-text);">{$evento.nome}</strong>
+                                        &nbsp; <!-- aggiunge uno spazio tra il nome dell'evento e l'orario -->
                                         <span class="is-size-7 has-text-grey" style="font-weight: 600;">{$evento.orario}</span>
                                     </div>
                                     <div class="mt-2 is-flex is-align-items-center is-size-7 has-text-grey-dark">
