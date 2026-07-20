@@ -36,6 +36,7 @@ use App\Foundation\Persistence\Repository\DoctrineDettaglioAllenamentoRepository
 use App\View\Interface\SchedaAllenamentoView;
 use App\View\SchedaAllenamentoViewSmarty;
 use App\Foundation\Session;
+use App\Foundation\Utility\HTTPMethods;
 use Doctrine\ORM\EntityManagerInterface;
 
 class SchedaAllenamentoController
@@ -96,7 +97,7 @@ class SchedaAllenamentoController
 
     private function gestisciAzioneRichiesta(Cliente $cliente): void
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        if (HTTPMethods::method() === 'GET') {
             $pal = $cliente->getPalestra();
             $this->view->mostraTemplate('richiedi_scheda.tpl', [
                 'utente' => $cliente, 'allenatori' => $pal ? $this->allenatoreRepo->findByPalestra($pal) : []
@@ -104,9 +105,9 @@ class SchedaAllenamentoController
             return;
         }
         $this->richiestaSchedaAllenatore(
-            trim($_POST['obiettivo'] ?? ''),
-            isset($_POST['n_allenamenti']) ? (int)$_POST['n_allenamenti'] : 3,
-            trim($_POST['cf_allenatore'] ?? '')
+            trim(HTTPMethods::post('obiettivo', '')),
+            HTTPMethods::post('n_allenamenti') !== null ? (int)HTTPMethods::post('n_allenamenti') : 3,
+            trim(HTTPMethods::post('cf_allenatore', ''))
         );
     }
 
@@ -166,12 +167,12 @@ class SchedaAllenamentoController
             $this->view->mostraStatoOperazione(false, "Accesso negato.", "login");
             return;
         }
-        if (isset($_REQUEST['cf'])) {
-            $this->selezionaUtentePerScheda(trim($_REQUEST['cf']));
+        $cf = HTTPMethods::request('cf');
+        if ($cf !== null) {
+            $this->selezionaUtentePerScheda(trim($cf));
             return;
         }
-        header("Location: clienti");
-        exit;
+        $this->view->redirect("clienti");
     }
 
     public function selezionaUtentePerScheda(string $cf): void
@@ -196,41 +197,41 @@ class SchedaAllenamentoController
             $scheda->setNome_scheda("Nuovo Protocollo");
         }
         $this->schedaRepo->save($scheda);
-        header("Location: modifica-scheda?id=" . $scheda->getId() . (isset($_REQUEST['azione_rapida']) ? "&azione_rapida=1" : ""));    // Reindirizza alla pagina di modifica della scheda appena creata o selezionata
-        exit();
+        $azioneRapidaPart = HTTPMethods::request('azione_rapida') !== null ? "&azione_rapida=1" : "";
+        $this->view->redirect("modifica-scheda?id=" . $scheda->getId() . $azioneRapidaPart);
     }
 
     // =========================================================================
     // 3. MODIFICA SCHEDA (/modifica-scheda)
     // =========================================================================
 
-    public function apriFormModificaScheda(): void      //gestisce la richiesta di apertura del form per modificare una scheda esistente, verificando i permessi dell'utente loggato e mostrando il form con i dati della scheda selezionata
+    public function apriFormModificaScheda(): void
     {
-        $idAllenatore = $this->session->getLoggedUserId();
-        $allenatore = $idAllenatore ? $this->allenatoreRepo->findById($idAllenatore) : null;
-        if (!$allenatore || $this->session->getLoggedUserRole() !== 'allenatore') {
+        $idLog = $this->session->getLoggedUserId();
+        $ruolo = $this->session->getLoggedUserRole();
+        if (!$idLog || $ruolo !== 'allenatore') {
             $this->view->mostraStatoOperazione(false, "Accesso negato.", "login");
             return;
         }
-        $idScheda = isset($_GET['id']) ? (int)$_GET['id'] : (int)($_POST['id_scheda'] ?? 0);
-        
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->modificaScheda();
-            return;
-        }
+        $idScheda = HTTPMethods::get('id') ? (int)HTTPMethods::get('id') : (int)HTTPMethods::post('id_scheda', 0);
         $scheda = $this->schedaRepo->findById($idScheda);
-        if ($idScheda <= 0 || !$scheda || $scheda->getAllenatore()->getId() !== $allenatore->getId()) {
+        if (!$scheda || $scheda->getAllenatore()->getId() !== $idLog) {
             $this->view->mostraStatoOperazione(false, "Scheda non trovata o accesso negato.", "dashboard-allenatore");
             return;
         }
-        if (isset($_GET['copia_da'])) {
-            $this->eseguiClonazioneScheda($scheda, (int)$_GET['copia_da']);
+        if (HTTPMethods::method() === 'POST') {
+            $this->salvaModificaScheda($scheda);
+            return;
         }
-        $this->view->mostraTemplate('gestione_scheda.tpl', [
-            'utente' => $allenatore, 'scheda' => $scheda, 'esercizi' => $this->esercizioRepo->findAll(),
-            'altre_schede' => $this->schedaRepo->findAltreByPalestra($allenatore->getPalestra(), $scheda->getId()),
-            'azione_rapida' => isset($_GET['azione_rapida']) ? 1 : 0,
-            'clienti' => $this->clienteRepo->findByPalestra($allenatore->getPalestra())
+        $copiaDa = HTTPMethods::get('copia_da');
+        if ($copiaDa !== null) {
+            $this->eseguiClonazioneScheda($scheda, (int)$copiaDa);
+            return;
+        }
+        $this->view->mostraTemplate('modifica_scheda.tpl', [
+            'scheda' => $scheda, 'eserciziDisponibili' => $this->esercizioRepo->findAll(),
+            'azione_rapida' => HTTPMethods::get('azione_rapida') !== null ? 1 : 0,
+            'schedeClonabili' => $this->schedaRepo->findByAllenatore($scheda->getAllenatore())
         ]);
     }
 
@@ -245,7 +246,6 @@ class SchedaAllenamentoController
             foreach ($sorgente->getAllenamenti() as $srcAll) {
                 $nuovoAll = new Allenamento($srcAll->getNome(), $srcAll->getDescrizione());
                 $scheda->addAllenamento($nuovoAll);
-                /** @var DettaglioAllenamento $srcDet */                   // Copia i dettagli dell'allenamento sorgente nel nuovo allenamento
                 foreach ($srcAll->getDettagli() as $srcDet) {
                     $nuovoAll->addDettaglio(new DettaglioAllenamento(
                         $srcDet->getEsercizio(), $nuovoAll, $srcDet->getSerie(),
@@ -257,42 +257,36 @@ class SchedaAllenamentoController
         }
     }
 
-    public function modificaScheda(): void           //gestisce la richiesta di modifica di una scheda, verificando i permessi dell'utente loggato e aggiornando i dati della scheda selezionata con le informazioni fornei nel form
+    private function salvaModificaScheda(Scheda $scheda): void
     {
-        $all = $this->allenatoreRepo->findById($this->session->getLoggedUserId());
-        $idScheda = (int)($_POST['id_scheda'] ?? 0);
-        $scheda = $this->schedaRepo->findById($idScheda);
-        if (!$scheda || $scheda->getAllenatore()->getId() !== $all->getId()) {
-            $this->view->mostraStatoOperazione(false, "Scheda non trovata o accesso negato.", "dashboard-allenatore");
+        $idScheda = (int)HTTPMethods::post('id_scheda', 0);
+        if ($idScheda <= 0 || $scheda->getId() !== $idScheda) {
+            $this->view->mostraStatoOperazione(false, "ID scheda non valido.", "dashboard-allenatore");
             return;
         }
-        $nome = trim($_POST['nome_scheda'] ?? '');
-        $ini = $_POST['data_inizio'] ?? '';
-        $fine = $_POST['data_fine'] ?? '';
-        if ($nome === '' || $ini === '' || $fine === '') {
-            $azioneRapidaPart = isset($_REQUEST['azione_rapida']) ? "&azione_rapida=1" : "";
-            $this->view->mostraStatoOperazione(false, "Campi obbligatori mancanti.", "modifica-scheda?id=" . $idScheda . $azioneRapidaPart, "Torna alla Modifica");
-            return;
-        }
-        $this->eseguiAggiornamentoScheda($scheda, $nome, $ini, $fine, $idScheda);
-    }
 
-    private function eseguiAggiornamentoScheda(Scheda $scheda, string $nome, string $ini, string $fine, int $idScheda): void
-    {
+        $nome = trim(HTTPMethods::post('nome_scheda', ''));
+        $ini = HTTPMethods::post('data_inizio', '');
+        $fine = HTTPMethods::post('data_fine', '');
+        if ($nome === '' || $ini === '' || $fine === '') {
+            $azioneRapidaPart = HTTPMethods::request('azione_rapida') !== null ? "&azione_rapida=1" : "";
+            $this->view->mostraStatoOperazione(false, "Campi dati scheda incompleti.", "modifica-scheda?id=" . $scheda->getId() . $azioneRapidaPart);
+            return;
+        }
         try {
             $scheda->setNome_scheda($nome);
             $scheda->setData_inizio(new \DateTimeImmutable($ini));
             $scheda->setData_fine(new \DateTimeImmutable($fine));
-            $scheda->setObiettivo(trim($_POST['obiettivo'] ?? ''));
+            $scheda->setObiettivo(trim(HTTPMethods::post('obiettivo', '')));
             foreach ($scheda->getAllenamenti() as $all) 
                 $scheda->removeAllenamento($all);
             $this->schedaRepo->save($scheda);
-            $this->salvaWorkoutData($scheda, $_POST['workouts'] ?? []);
+            $this->salvaWorkoutData($scheda, HTTPMethods::postArray('workouts'));
             $this->schedaRepo->save($scheda);
-            $this->inviaScheda($idScheda);
+            $this->inviaScheda($scheda->getId());
         } catch (\Throwable $e) {
-            $azioneRapidaPart = isset($_REQUEST['azione_rapida']) ? "&azione_rapida=1" : "";
-            $this->view->mostraStatoOperazione(false, "Errore: " . $e->getMessage(), "modifica-scheda?id=" . $idScheda . $azioneRapidaPart, "Torna alla Modifica");
+            $azioneRapidaPart = HTTPMethods::request('azione_rapida') !== null ? "&azione_rapida=1" : "";
+            $this->view->mostraStatoOperazione(false, "Errore salvataggio scheda: " . $e->getMessage(), "modifica-scheda?id=" . $scheda->getId() . $azioneRapidaPart);
         }
     }
 
@@ -335,7 +329,7 @@ class SchedaAllenamentoController
     // 5. ELIMINA SCHEDA / RIMUOVI SCHEDA (/elimina-scheda, /rimuovi-scheda)
     // =========================================================================
 
-    public function eliminaScheda(): void         //gestisce la richiesta di eliminazione di una scheda, verificando i permessi dell'utente loggato e rimuovendo la scheda selezionata dal repository
+    public function eliminaScheda(): void
     {
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
@@ -343,7 +337,7 @@ class SchedaAllenamentoController
             $this->view->mostraStatoOperazione(false, "Accesso negato.", "login");
             return;
         }
-        $scheda = $this->schedaRepo->findById(isset($_GET['id']) ? (int)$_GET['id'] : 0);
+        $scheda = $this->schedaRepo->findById(HTTPMethods::get('id') ? (int)HTTPMethods::get('id') : 0);
         if (!$scheda) {
             $this->view->mostraStatoOperazione(false, "Scheda non trovata.", "dashboard-" . $ruolo);
             return;
@@ -373,49 +367,57 @@ class SchedaAllenamentoController
     // 6. VISUALIZZA SCHEDA DA PARTE DEL CLIENTE (/visualizza-scheda)
     // =========================================================================
 
-    public function visualizzaScheda(): void    //gestisce la richiesta di visualizzazione della scheda da parte del cliente, verificando i permessi dell'utente loggato e mostrando la scheda se disponibile
+    public function visualizzaScheda(): void
     {
-        $id = $this->session->getLoggedUserId();
-        if (!$id || $this->session->getLoggedUserRole() !== 'cliente') {
+        $idLog = $this->session->getLoggedUserId();
+        $ruolo = $this->session->getLoggedUserRole();
+        if (!$idLog) {
             $this->view->mostraStatoOperazione(false, "Accesso negato.", "login");
             return;
         }
-        $cliente = $this->clienteRepo->findById($id);
-        if (!$cliente || !$cliente->getScheda()) {
-            $this->view->mostraStatoOperazione(false, "Scheda non trovata o non attiva.", "dashboard-cliente");
+        $scheda = $this->schedaRepo->findById(HTTPMethods::get('id') ? (int)HTTPMethods::get('id') : 0);
+        if (!$scheda || !$this->validaAccessoScheda($scheda, $idLog, $ruolo)) {
+            $this->view->mostraStatoOperazione(false, "Scheda non trovata o accesso negato.");
             return;
         }
-        $this->view->mostraTemplate('visualizza_scheda.tpl', ['utente' => $cliente, 'scheda' => $cliente->getScheda()]);
+        $this->view->mostraTemplate('visualizza_scheda.tpl', [
+            'scheda' => $scheda, 'ruolo_utente' => $ruolo, 'isSelf' => ($ruolo === 'cliente' && $scheda->getCliente()->getId() === $idLog)
+        ]);
+    }
+
+    private function validaAccessoScheda(Scheda $scheda, int $idLog, string $ruolo): bool
+    {
+        if ($ruolo === 'cliente') return $scheda->getCliente()->getId() === $idLog;
+        if ($ruolo === 'allenatore') return $scheda->getAllenatore()->getId() === $idLog;
+        return false;
     }
 
     // =========================================================================
     // 7. MODIFICA DETTAGLI SCHEDA DA PARTE DEL CLIENTE (/modifica-dettagli)
     // =========================================================================
 
-    public function apriFormModificaSchedaCliente(): void      //gestisce la richiesta di apertura del form per modificare i dettagli della scheda da parte del cliente, verificando i permessi dell'utente loggato e mostrando il form con i dettagli dell'allenamento selezionato
+    public function apriFormModificaSchedaCliente(): void
     {
-        $id = $this->session->getLoggedUserId();
-        $cliente = ($id && $this->session->getLoggedUserRole() === 'cliente') ? $this->clienteRepo->findById($id) : null;
-        if (!$cliente || !$cliente->getScheda()) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato o scheda non attiva.", "login");
+        $idLog = $this->session->getLoggedUserId();
+        $ruolo = $this->session->getLoggedUserRole();
+        if (!$idLog || $ruolo !== 'cliente') {
+            $this->view->mostraStatoOperazione(false, "Accesso negato.", "login");
             return;
         }
-        $scheda = $cliente->getScheda();
-        $all = $this->allenamentoRepo->findById(isset($_REQUEST['id_allenamento']) ? (int)$_REQUEST['id_allenamento'] : 0);
-        if (!$all || $all->getScheda()->getId() !== $scheda->getId()) {
-            $this->view->mostraStatoOperazione(false, "Allenamento non trovato.", "visualizza-scheda", "Torna alla Scheda");
+        $all = $this->allenamentoRepo->findById(HTTPMethods::request('id_allenamento') ? (int)HTTPMethods::request('id_allenamento') : 0);
+        if (!$all || $all->getScheda()->getCliente()->getId() !== $idLog) {
+            $this->view->mostraStatoOperazione(false, "Allenamento non trovato o non autorizzato.");
             return;
         }
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            $this->view->mostraTemplate('modifica_dettagli.tpl', ['utente' => $cliente, 'scheda' => $scheda, 'allenamento' => $all]);
+        if (HTTPMethods::method() === 'GET') {
+            $this->view->mostraTemplate('modifica_dettagli_cliente.tpl', ['allenamento' => $all]);
             return;
         }
-        $this->eseguiSalvataggioDettagliCliente($cliente, $scheda);
+        $this->eseguiSalvataggioDettagliCliente($all, HTTPMethods::postArray('dettagli'));
     }
 
-    private function eseguiSalvataggioDettagliCliente(Cliente $cliente, Scheda $scheda): void
+    private function eseguiSalvataggioDettagliCliente(Allenamento $all, array $dettagliModificati): void
     {
-        $dettagliModificati = $_POST['dettagli'] ?? [];
         $oggi = new \DateTimeImmutable('today');
         foreach ($dettagliModificati as $idDet => $data) {
             $dettaglio = $this->dettaglioAllenamentoRepo->findById((int)$idDet);
@@ -459,7 +461,7 @@ class SchedaAllenamentoController
             $this->view->mostraStatoOperazione(false, "Accesso negato.", "login");
             return;
         }
-        $cli = $this->clienteRepo->findById(isset($_GET['id_cliente']) ? (int)$_GET['id_cliente'] : 0);
+        $cli = $this->clienteRepo->findById(HTTPMethods::get('id_cliente') ? (int)HTTPMethods::get('id_cliente') : 0);
         if (!$cli ||  $cli->getPalestra()->getId() !== $all->getPalestra()->getId()) {
             $this->view->mostraStatoOperazione(false, "Cliente non trovato", "clienti");
             return;

@@ -13,6 +13,7 @@ use App\View\Interface\VisualizzazioneUtentiView;
 use App\View\VisualizzazioneUtentiViewSmarty;
 use App\View\VisualizzazioneViewSmarty;
 use App\Foundation\Session;
+use App\Foundation\Utility\HTTPMethods;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Amministratore;
 use App\Entity\Palestra;
@@ -63,8 +64,8 @@ class VisualizzazioneUtentiController
             return;
         }
         $clienti = $this->clienteRepo->findByPalestra($pal);
-        $clienti = $this->applicaFiltriClienti($clienti, $_POST['search_query'] ?? $_GET['search_query'] ?? null, $_POST['filtro_certificato'] ?? $_GET['filtro_certificato'] ?? null, $_POST['filtro_abbonamento'] ?? $_GET['filtro_abbonamento'] ?? null, $_POST['filtro_scheda'] ?? $_GET['filtro_scheda'] ?? null);
-        $clienti = $this->ordinaClienti($clienti, $_POST['ordine'] ?? $_GET['ordine'] ?? null);
+        $clienti = $this->applicaFiltriClienti($clienti, HTTPMethods::request('search_query'), HTTPMethods::request('filtro_certificato'), HTTPMethods::request('filtro_abbonamento'), HTTPMethods::request('filtro_scheda'));
+        $clienti = $this->ordinaClienti($clienti, HTTPMethods::request('ordine'));
         $this->view->mostraListaClienti($this->mappaClientiPerView($clienti));
     }
 

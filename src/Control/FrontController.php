@@ -3,6 +3,8 @@ namespace App\Control;
 
 use App\Foundation\Persistence\Config\EntityManagerFactory;
 use App\Foundation\Session;
+use App\Foundation\Utility\HTTPMethods;
+use App\View\VisualizzazioneViewSmarty;
 
 class FrontController
 {
@@ -80,9 +82,9 @@ class FrontController
     {
         $route = $this->resolveRoute();
 
-        if (!isset($this->routes[$route])) {                //se la rotta non esiste, allora 404 Not Found
-            header("HTTP/1.0 404 Not Found");
-            echo "<h1>404 Not Found</h1><p>La pagina richiesta non esiste.</p>";
+        if (!isset($this->routes[$route])) {
+            $view = new VisualizzazioneViewSmarty();
+            $view->mostraStatoOperazione(false, "La pagina richiesta non esiste (404 Not Found).", "/", "Torna alla Home");
             return;
         }
 
@@ -93,16 +95,16 @@ class FrontController
         $entityManager = EntityManagerFactory::create();
 
         // Istanziazione ed esecuzione dinamica del Controller
-        $controller = new $controllerClass($entityManager, $session);           //viene richiamato il costruttore della classe $controllerClass
+        $controller = new $controllerClass($entityManager, $session);
         $controller->$method();
     }
 
     /**
      * Risolve il percorso URL per estrarre la rotta pulita tramite query parameter passato da .htaccess.
      */
-    private function resolveRoute(): string    //risolve il percorso URL per estrarre la rotta pulita
+    private function resolveRoute(): string
     {
-        $route = $_GET['route'] ?? '/';
+        $route = HTTPMethods::get('route', '/');
         return '/' . ltrim($route, '/');
     }
 }

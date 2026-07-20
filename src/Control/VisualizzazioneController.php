@@ -75,8 +75,7 @@ class VisualizzazioneController
         $admin = ($id && $this->session->getLoggedUserRole() === 'amministratore') ? $this->utenteRepo->findById($id) : null;
         if (!$admin) {
             $this->session->logout();
-            header("Location: login");
-            exit;
+            $this->view->redirect('login');
         }
         $pal = $this->palestraRepo->findByAmministratore($admin);
         $clienti = $pal ? $this->clienteRepo->findByPalestra($pal) : [];
@@ -155,8 +154,7 @@ class VisualizzazioneController
         $all = ($id && $this->session->getLoggedUserRole() === 'allenatore') ? $this->allenatoreRepo->findById($id) : null;
         if (!$all) {
             $this->session->logout();
-            header("Location: login");
-            exit;
+            $this->view->redirect('login');
         }
         $clienti = $all->getPalestra() ? $this->clienteRepo->findByPalestra($all->getPalestra()) : [];        
         [$scadute, $assenti, $inRegola] = $this->calcolaStatisticheSchede($clienti);
@@ -199,8 +197,7 @@ class VisualizzazioneController
         $cli = ($id && $this->session->getLoggedUserRole() === 'cliente') ? $this->clienteRepo->findById($id) : null;
         if (!$cli) {
             $this->session->logout();
-            header("Location: login");
-            exit;
+            $this->view->redirect('login');
         }
         $attivitaOggi = [];
         $oggiStr = (new DateTimeImmutable('today'))->format('Y-m-d');

@@ -5,6 +5,7 @@ use App\View\Interface\AbbonamentiView;
 use App\View\AbbonamentiViewSmarty;
 use App\View\VisualizzazioneViewSmarty;
 use App\Foundation\Session;
+use App\Foundation\Utility\HTTPMethods;
 use App\Entity\Repository\PalestraRepositoryInterface;
 use App\Entity\Repository\AbbonamentoRepositoryInterface;
 use App\Entity\Repository\ClienteRepositoryInterface;
@@ -53,7 +54,7 @@ class AbbonamentiController
             return;
         }
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {    //se il metodo del server è post, è stata mandata una form e deve essere gestita l'azione del post
+        if (HTTPMethods::method() === 'POST') {    //se il metodo del server è post, è stata mandata una form e deve essere gestita l'azione del post
             $this->gestisciPostAzione($cliente);    //inserire nella form il cliente
             return;
         }
@@ -74,7 +75,7 @@ class AbbonamentiController
             $this->mostraStatoOperazione(false, "Accesso negato. Questa operazione è riservata all'Amministratore.", "login", "Effettua il Login");
             return null;
         }
-        $idCliente = $_GET['id'] ?? $_POST['id_cliente'] ?? null;           //riprende l'id dall'URL, se non c'è lì lo prende dalla form, altrimenti è null
+        $idCliente = HTTPMethods::get('id') ?? HTTPMethods::post('id_cliente');           //riprende l'id dall'URL, se non c'è lì lo prende dalla form, altrimenti è null
         $cliente = $idCliente ? $this->clienteRepo->findById((int)$idCliente) : null;       //Se abbiamo l'ID di un cliente, cercalo nel database tramite il suo Repository. Altrimenti è null
         if (!$cliente) {        //se è null
             $this->mostraStatoOperazione(false, "Cliente non trovato o non specificato.", "clienti", "Torna ai Clienti");
@@ -91,7 +92,7 @@ class AbbonamentiController
 
     private function gestisciPostAzione(Cliente $cliente): void     //gestisce la form
     {
-        $azione = $_POST['azione'] ?? '';       //Se l'utente non ha cliccato nulla (è appena entrato sulla pagina), $azione diventa una stringa vuota
+        $azione = HTTPMethods::post('azione', '');       //Se l'utente non ha cliccato nulla (è appena entrato sulla pagina), $azione diventa una stringa vuota
         if ($azione === 'abbonamento') {
             $this->sottoscriviAbbonamento($cliente);
         } elseif ($azione === 'crea_tipologia') {
@@ -105,13 +106,13 @@ class AbbonamentiController
 
     private function sottoscriviAbbonamento(Cliente $cliente): void     
     {
-        $idPlan = $_POST['abbonamento_id'] ?? null;     
+        $idPlan = HTTPMethods::post('abbonamento_id');     
         $plan = $idPlan ? $this->abbonamentoRepo->findById((int)$idPlan) : null;    
         if (!$plan) {   //se l'id non esiste mostra errore
             $this->mostraStatoOperazione(false, "Piano di abbonamento non valido.", "visualizza-profilo?id=" . $cliente->getId(), "Torna al Profilo");
             return;
         }
-        $start = $this->parseDataInizio($_POST['data_inizio_abbonamento'] ?? '', $cliente); //mette nella variabile start la data di inizio dell'abbonamento scritta in maniera corretta
+        $start = $this->parseDataInizio(HTTPMethods::post('data_inizio_abbonamento', ''), $cliente); //mette nella variabile start la data di inizio dell'abbonamento scritta in maniera corretta
         if (!$start) {
             return;
         }
@@ -145,9 +146,9 @@ class AbbonamentiController
 
     private function creaTipologiaAbbonamento(Cliente $cliente): void
     {
-        $tipologia = $_POST['nuova_tipologia'] ?? '';       //se nella form clicco nuova tipologia
-        $categoria = $_POST['nuova_categoria'] ?? '';
-        $durata = $_POST['nuova_durata'] ?? '';
+        $tipologia = HTTPMethods::post('nuova_tipologia', '');       //se nella form clicco nuova tipologia
+        $categoria = HTTPMethods::post('nuova_categoria', '');
+        $durata = HTTPMethods::post('nuova_durata', '');
         if (empty($tipologia) || empty($categoria) || empty($durata)) {
             $this->mostraStatoOperazione(false, "Campi tipologia incompleti.", "gestione-abbonamento?id=" . $cliente->getId(), "Torna all'Abbonamento");
             return;
@@ -155,8 +156,7 @@ class AbbonamentiController
         try {
             $nuovoPlan = new AbbonamentoDurata($tipologia, $categoria, (int)$durata);       //viene creato un nuovo abbonamento per durata
             $this->abbonamentoRepo->save($nuovoPlan);
-            header('Location: gestione-abbonamento?id=' . $cliente->getId());       //mettendo l'header location il browser ti sposta nella nuova pagina
-            exit();
+            $this->view->redirect('gestione-abbonamento?id=' . $cliente->getId());
         } catch (\Exception $e) {
             $this->mostraStatoOperazione(false, "Errore creazione tipologia: " . $e->getMessage(), "gestione-abbonamento?id=" . $cliente->getId(), "Torna all'Abbonamento");
         }
@@ -164,7 +164,7 @@ class AbbonamentiController
 
     private function aggiornaIscrizioneCliente(Cliente $cliente): void
     {
-        $start = $this->parseDataInizio($_POST['data_inizio_iscrizione'] ?? '', $cliente);
+        $start = $this->parseDataInizio(HTTPMethods::post('data_inizio_iscrizione', ''), $cliente);
         if (!$start) {
             return;
         }

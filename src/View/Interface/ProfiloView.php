@@ -9,4 +9,5 @@ interface ProfiloView {
     public function mostraFormCertificato(array $dati): void;
     public function mostraFormCambioPassword(): void;
     public function mostraGrafico(array $dati): void;
+    public function redirect(string $url): void;
 }

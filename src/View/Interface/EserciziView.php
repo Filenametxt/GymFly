@@ -21,4 +21,6 @@ interface EserciziView
     public function mostraListaEsercizi(array $eserciziData): void;
 
     public function mostraDettaglioEsercizio(array $dati): void;
+
+    public function redirect(string $url): void;
 }

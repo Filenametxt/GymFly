@@ -2,6 +2,7 @@
 namespace App\View;
 
 use App\View\Interface\EserciziView;
+use App\Foundation\Utility\HTTPMethods;
 use Smarty\Smarty;
 
 class EserciziViewSmarty implements EserciziView
@@ -36,7 +37,7 @@ class EserciziViewSmarty implements EserciziView
     {
         header('Content-Type: text/html; charset=utf-8');
         $this->smarty->assign('esercizi', $eserciziData);
-        $this->smarty->assign('search_query', $_POST['search_query'] ?? $_GET['search_query'] ?? null);
+        $this->smarty->assign('search_query', HTTPMethods::request('search_query'));
         $this->smarty->display('lista_esercizi.tpl');
     }
 
@@ -47,5 +48,11 @@ class EserciziViewSmarty implements EserciziView
             $this->smarty->assign($key, $value);
         }
         $this->smarty->display('dettaglio_esercizio.tpl');
+    }
+
+    public function redirect(string $url): void
+    {
+        header('Location: ' . $url);
+        exit;
     }
 }

@@ -33,4 +33,10 @@ class SchedaAllenamentoViewSmarty implements SchedaAllenamentoView
         $this->smarty->assign('testo_bottone', $testoBottone);
         $this->smarty->display('stato_operazione.tpl');
     }
+
+    public function redirect(string $url): void
+    {
+        header('Location: ' . $url);
+        exit;
+    }
 }
