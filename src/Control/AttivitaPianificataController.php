@@ -606,15 +606,16 @@ class AttivitaPianificataController
 
     public function rimuoviAttivitaPianificata(): void
     {
+        $ruolo = $this->session->getLoggedUserRole();
         $palestra = $this->recuperaPalestraUtente();
-        if (!$palestra || $this->session->getLoggedUserRole() !== 'amministratore') {
+        if (!$palestra || $ruolo !== 'amministratore') {
             $this->view->mostraStatoOperazione(false, "Accesso negato.");
             return;
         }
-        $this->eseguiRimozioneAttivitaPianificata($palestra);
+        $this->eseguiRimozioneAttivitaPianificata($palestra, $ruolo);
     }
 
-    private function eseguiRimozioneAttivitaPianificata(Palestra $palestra): void
+    private function eseguiRimozioneAttivitaPianificata(Palestra $palestra, string $ruolo): void
     {
         $id = (int)HTTPMethods::request('id_attivita_pianificata', 0);
         $ap = $id ? $this->attivitaPianificataRepo->findById($id) : null;
@@ -628,6 +629,7 @@ class AttivitaPianificataController
         }
 
         try {
+            $this->inviaNotificaAnnullamentoAp($ap, $ruolo);
             foreach ($ap->getUtenti() as $cliente) {
                 $cliente->cancellaIscrizioneAttivita($ap);
                 $this->clienteRepo->save($cliente);
@@ -636,6 +638,22 @@ class AttivitaPianificataController
             $this->view->mostraStatoOperazione(true, "Attività pianificata rimossa con successo.");
         } catch (\Throwable $e) {
             $this->view->mostraStatoOperazione(false, "Impossibile rimuovere l'attività pianificata.");
+        }
+    }
+
+    private function inviaNotificaAnnullamentoAp(AttivitaPianificata $ap, string $ruolo): void
+    {
+        if ($ruolo === 'amministratore') {
+            $cli = $ap->getUtenti();
+            foreach ($cli as $c){
+                $msg = new Messaggio(
+                    $ap->getAllenatore(),
+                    "Attività Pianificata " . $ap->getAttivita()->getNome() . " Annullata",
+                    "Ciao " . $c->getNome() . ", ho annullato la sessione privata del giorno " . $ap->getGiorno()->format('d/m/Y') . " delle ore " . $ap->getOrario().":00"
+                );
+                $msg->aggiungiDestinatario($c);
+                $this->messaggioRepo->save($msg);
+            }
         }
     }
 
