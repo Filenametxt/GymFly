@@ -327,9 +327,9 @@
                                     {/if}
 
                                     <!-- EXERCISES LIST -->
-                                    {if $allenamento->getDettagli()|@count > 0}
+                                    {if $allenamento->getDettagliOrdinati()|@count > 0}
                                         <div class="exercises-list">
-                                            {foreach $allenamento->getDettagli() as $dettaglio}
+                                            {foreach $allenamento->getDettagliOrdinati() as $dettaglio}
                                                 <div class="exercise-card">
                                                     <div class="columns is-mobile is-vcentered">
                                                         {if $dettaglio->getEsercizio()->getImmagine()}
