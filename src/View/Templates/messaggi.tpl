@@ -87,7 +87,7 @@
 
                     <!-- MESSAGGI INVIATI (Solo se consentito l'invio) -->
                     {if $invioConsentito}
-                        <div class="box {if $ruolo !== 'amministratore'}mt-5{/if}" style="height: calc(100% - 20px); display: flex; flex-direction: column;">
+                        <div class="box {if $ruolo !== 'amministratore'}mt-5{/if}" style="{if $ruolo === 'amministratore'}height: calc(100% - 20px);{/if} display: flex; flex-direction: column;">
                             <h2 class="title is-4 style-theme-text mb-4"><i class="fas fa-paper-plane mr-2"></i> Posta in Uscita</h2>
                             <div style="flex-grow: 1; max-height: 520px; overflow-y: auto; padding-right: 0.5rem;">
                                 {foreach $messaggiInviati as $msg}

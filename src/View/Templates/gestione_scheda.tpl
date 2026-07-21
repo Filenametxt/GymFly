@@ -45,7 +45,7 @@
                     <div class="column is-narrow">
                         <figure class="image is-96x96">
                             <span class="icon is-large has-text-white">
-                                <i class="fas fa-file-medical fa-5x"></i>
+                                <i class="fas fa-clipboard-list fa-5x"></i>
                             </span>
                         </figure>
                     </div>
