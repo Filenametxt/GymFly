@@ -123,8 +123,8 @@ class EserciziController
         if (!in_array($ext, ['gif', 'png', 'jpg', 'jpeg']) || !in_array($type, ['image/gif', 'image/png', 'image/jpeg', 'image/pjpeg'])) {
             return "Formato multimediale non valido. Consentite solo immagini e GIF.";
         }
-        if ($file['size'] > 5 * 1024 * 1024) {
-            return "Dimensione file eccessiva (limite 5 MB).";
+        if ($file['size'] > 16 * 1024 * 1024) {
+            return "Dimensione file eccessiva (limite 16 MB).";
         }
         $content = file_get_contents($file['tmp_name']);
         if ($content !== false && $idProvvisorio !== '') {
@@ -159,6 +159,11 @@ class EserciziController
     {
         $nome = trim(HTTPMethods::post('nome', ''));
         $idProv = trim(HTTPMethods::post('id_provvisorio', ''));
+        $erroreFile = $this->verificaErroreImmagine($idProv);
+        if ($erroreFile) {
+            $this->view->mostraStatoOperazione(false, $erroreFile, "crea-esercizio");
+            return;
+        }
         if ($nome === '' || $this->esercizioRepo->existsByNome($nome)) {
             $this->view->mostraStatoOperazione(false, "Nome non valido o duplicato.", "crea-esercizio");
             return;
