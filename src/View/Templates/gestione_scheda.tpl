@@ -157,7 +157,7 @@
                                                 {assign var="currentExId" value=""}
                                                 {assign var="firstGroup" value=true}
                                                 
-                                                {foreach $allenamento->getDettagli() as $dettaglio}
+                                                {foreach $allenamento->getDettagliOrdinati() as $dettaglio}
                                                     {if $currentExId !== $dettaglio->getEsercizio()->getId()}
                                                         {if !$firstGroup}
                                                                 </tbody>
