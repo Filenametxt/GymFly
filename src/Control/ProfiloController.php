@@ -382,8 +382,20 @@ class ProfiloController
         }
         try {
             $content = file_get_contents($file['tmp_name']);
+            $oldCert = $cliente->getCertificatoMedico();
+            
             $cert = new CertificatoMedico(new \DateTimeImmutable($emissione), trim($medico), $cliente, $content);
+            
+            if ($oldCert) {
+                $cliente->setCertificatoMedico(null);
+                $this->clienteRepo->save($cliente);
+                $this->certificatoRepo->delete($oldCert);
+            }
+            
+            $cliente->setCertificatoMedico($cert);
             $this->certificatoRepo->save($cert);
+            $this->clienteRepo->save($cliente);
+            
             $ritorno = ($ruolo === 'cliente') ? 'profilo' : 'visualizza-profilo?id=' . $cliente->getId();
             $this->mostraStatoOperazione(true, "Certificato caricato con successo!", $ritorno, "Torna al Profilo");
         } catch (\Throwable $e) {

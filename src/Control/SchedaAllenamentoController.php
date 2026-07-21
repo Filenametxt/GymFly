@@ -534,9 +534,23 @@ class SchedaAllenamentoController
         $workoutsData = [];
         foreach ($scheda->getAllenamenti() as $allenamento) {
             $eserciziData = [];
+            $eserciziVisti = [];
             /** @var DettaglioAllenamento $dettaglio */
             foreach ($allenamento->getDettagli() as $dettaglio) {
                 $es = $dettaglio->getEsercizio();
+                $esId = $es->getId();
+                if (in_array($esId, $eserciziVisti)) {
+                    foreach ($eserciziData as &$eData) {
+                        if ($eData['esercizio']->getId() === $esId) {
+                            if ($dettaglio->getSerie() > $eData['serie_max']) {
+                                $eData['serie_max'] = $dettaglio->getSerie();
+                            }
+                        }
+                    }
+                    unset($eData);
+                    continue;
+                }
+                $eserciziVisti[] = $esId;
                 $progressi = array_merge(
                     $this->progressoCaricoRepo->findByClienteAndEsercizio($cli, $es),
                     $this->progressoRipetizioniRepo->findByClienteAndEsercizio($cli, $es),
@@ -548,8 +562,11 @@ class SchedaAllenamentoController
                     'carico' => $d['carico'],
                     'reps' => $d['reps'],
                     'durata' => $d['durata'],
-                    'storico' => $d['storico'], 'hasCarico' => count($d['carico']) > 0,
-                    'hasReps' => count($d['reps']) > 0, 'hasDurata' => count($d['durata']) > 0
+                    'storico' => $d['storico'], 
+                    'hasCarico' => count($d['carico']) > 0,
+                    'hasReps' => count($d['reps']) > 0, 
+                    'hasDurata' => count($d['durata']) > 0,
+                    'serie_max' => $dettaglio->getSerie()
                 ];
             }
             $workoutsData[] = ['allenamento' => $allenamento, 'esercizi' => $eserciziData];
