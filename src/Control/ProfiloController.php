@@ -25,13 +25,13 @@ use App\View\ProfiloViewSmarty;
 use App\View\VisualizzazioneViewSmarty;
 use App\Control\AttivitaPianificataController;
 use App\Foundation\Session;
+use App\Foundation\Utility\HTTPMethods;
 use App\Entity\Parametri;
 use App\Entity\CertificatoMedico;
 use App\Entity\Amministratore;
 use App\Entity\Allenatore;
 use App\Entity\Utente;
 use App\Entity\Cliente;
-use App\Entity\Attivita;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Palestra;
 class ProfiloController 
@@ -97,11 +97,11 @@ class ProfiloController
 
     private function determinaUtenteProfilo(int $idUt, string $ruolo, bool &$isSelf): ?Utente
     {
-        $isSelf = !isset($_GET['id']);     //se c'è un parametro id nella richiesta, significa che l'utente sta visualizzando il profilo di un altro utente, altrimenti sta visualizzando il proprio profilo
+        $targetId = HTTPMethods::get('id') !== null ? (int)HTTPMethods::get('id') : $idUt;
+        $isSelf = ($targetId === $idUt);
         if ($isSelf) {
-            return $this->recuperaUtenteLoggato($this->entityManager, $idUt, $ruolo);
+            return $this->recuperaUtenteLoggato($idUt, $ruolo);
         }
-        $targetId = (int)$_GET['id'];
         $utente = $this->utenteRepo->findById($targetId);
         $targetRuolo=$utente->getRuolo();
         if ($ruolo === 'amministratore' || $ruolo === 'allenatore' && $targetRuolo === 'cliente') {
@@ -171,12 +171,11 @@ class ProfiloController
             return;
         }
         $ruolo = $this->session->getLoggedUserRole();
-        $targetId = isset($_GET['id']) ? (int)$_GET['id'] : (isset($_POST['id']) ? (int)$_POST['id'] : $idUtente);
-        if ($ruolo !== 'amministratore' && ($idUtente  !==  $targetId)) {
+        $targetId = (int)HTTPMethods::request('id', $idUtente);
+        if ($ruolo !== 'amministratore' && ($idUtente !== $targetId)) {
             $this->mostraStatoOperazione(false, "Accesso negato. Non sei autorizzato a modificare l'anagrafica");
             return;
         }
-        
 
         $isSelf = true;
         $utente = $this->determinaUtenteModifica($idUtente, $ruolo, $isSelf);
@@ -184,7 +183,7 @@ class ProfiloController
             $this->mostraStatoOperazione(false, "Profilo non trovato o accesso negato.");
             return;
         }
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        if (HTTPMethods::method() === 'GET') {
             $this->view->mostraFormModifica(['utente' => $utente, 'isClient' => ($utente instanceof Cliente), 'isSelf' => $isSelf, 'ruolo' => $ruolo]);
             return;
         }
@@ -192,12 +191,12 @@ class ProfiloController
         $this->eseguiSalvataggioAnagrafica($utente, $ruolo, $ritorno);
     }
 
-    private function determinaUtenteModifica(int $idUt, string $ruolo, bool &$isSelf): ?Utente       //determina quale utente deve essere modificato in base all'ID dell'utente loggaton enal ruolo
+    private function determinaUtenteModifica(int $idUt, string $ruolo, bool &$isSelf): ?Utente
     {
-        $targetId = isset($_GET['id']) ? (int)$_GET['id'] : (isset($_POST['id']) ? (int)$_POST['id'] : $idUt);
+        $targetId = (int)HTTPMethods::request('id', $idUt);
         $isSelf = ($targetId === $idUt);
         if ($isSelf) {
-            return $this->recuperaUtenteLoggato($this->entityManager, $idUt, $ruolo);     //se devo vedere il mio profilo ho bisogno del mio id
+            return $this->recuperaUtenteLoggato($idUt, $ruolo);
         }
         if ($ruolo !== 'amministratore') {
             return null;
@@ -214,70 +213,96 @@ class ProfiloController
 
     private function eseguiSalvataggioAnagrafica(Utente $ut, string $ruolo, string $rit): void
     {
-        $nome = $_POST['nome'] ?? '';
-        $cognome = $_POST['cognome'] ?? '';
-        $res = $_POST['indirizzo'] ?? '';
-        $pag = $_POST['metodo_pagamento'] ?? '';
+        $nome = HTTPMethods::post('nome', '');
+        $cognome = HTTPMethods::post('cognome', '');
+        $res = HTTPMethods::post('indirizzo', '');
+        $pag = HTTPMethods::post('metodo_pagamento', '');
 
-        $cliente = $this->clienteRepo->findById($ut->getId());
-        $isClient = ($cliente !== null);
-
-        if (empty($nome) || empty($cognome) || empty($res) || ($isClient && $ruolo === 'amministratore' && empty($pag))) {      // controlla se i campi obbligatori sono stati compilati, se manca qualcosa mostra un errore e ritorna alla pagina di modifica
-            $this->mostraStatoOperazione(false, "Campi obbligatori mancanti.", $rit, "Torna al Profilo");
+        if (trim($nome) === '' || trim($cognome) === '' || trim($res) === '') {
+            $this->mostraStatoOperazione(false, "Nome, cognome e residenza sono obbligatori.", $rit, "Torna al Profilo");
             return;
         }
         try {
-            if ($cliente) {
-                $cliente->setNome($nome)->setCognome($cognome)->setIndirizzo($res);
-                $cliente->setIndirizzoDiDomicilio($_POST['indirizzo_domicilio'] ?? '');
-                if ($ruolo === 'amministratore') {
-                    $cliente->setMetodoDiPagamento($pag);
+            $ut->setNome(trim($nome));
+            $ut->setCognome(trim($cognome));
+            $ut->setIndirizzo(trim($res));
+            if ($ut instanceof Cliente) {
+                if (trim($pag) === '') {
+                    $this->mostraStatoOperazione(false, "Il metodo di pagamento è obbligatorio per i clienti.", $rit, "Torna al Profilo");
+                    return;
                 }
-                $this->clienteRepo->save($cliente);
-            } else {
-                $ut->setNome($nome)->setCognome($cognome)->setIndirizzo($res);     // se l'utente non è un cliente, aggiorna solo i dati anagrafici di base
-                $this->utenteRepo->save($ut);
+                $ut->setMetodoDiPagamento(trim($pag));
+                $ut->setIndirizzoDiDomicilio(HTTPMethods::post('indirizzo_domicilio', ''));
+                $this->clienteRepo->save($ut);
+            } elseif ($ut instanceof Allenatore) {
+                $this->allenatoreRepo->save($ut);
+            } elseif ($ut instanceof Amministratore) {
+                $this->amministratoreRepo->save($ut);
             }
-            header('Location: ' . $rit);
-            exit();
-        } catch (\InvalidArgumentException $e) {
-            $this->mostraStatoOperazione(false, "Errore: " . $e->getMessage(), $rit, "Torna al Profilo");
+            $this->view->redirect($rit);
+        } catch (\Throwable $e) {
+            $this->mostraStatoOperazione(false, "Errore salvataggio: " . $e->getMessage(), $rit, "Torna al Profilo");
         }
     }
-
     // =========================================================================
     // 3. AGGIORNA MISURE CORPOREE (/aggiorna-misure)
     // =========================================================================
 
-    public function aggiornaMisureCorporee(): void              //gestisce la richiesta di visualizzazione del form per aggiornare le misure corporee del cliente loggato o di un altro cliente, recuperando i dati del cliente e mostrando la view corrispondente
+    public function aggiornaMisureCorporee(): void
     {
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-        $cliente = $idUt ? $this->recuperaClienteTarget($ruolo, $idUt) : null;    // recupera il cliente target in base al ruolo dell'utente loggato e al suo ID
-        if (!$cliente || $ruolo!== 'cliente') {
-            $this->mostraStatoOperazione(false, "Cliente non trovato o accesso non consentito.");
+        if (!$idUt || $ruolo === 'amministratore') {
+            $this->mostraStatoOperazione(false, "Accesso negato. L'amministratore non può aggiornare le misure del cliente.");
             return;
         }
-        $storico = $this->parametriRepo->findByCliente($cliente);
-        $this->view->mostraFormMisure([
-            'utente' => $cliente,
-            'ultimaMisure' => $this->parametriRepo->findUltimaByCliente($cliente),
-            'storicoMisure' => $storico,
-            'storicoMisureCronologico' => array_reverse($storico),
-            'isSelf' => ($ruolo === 'cliente')
-        ]);
+        $cliente = $this->recuperaClienteTarget($ruolo, $idUt);
+        if (!$cliente) {
+            $this->mostraStatoOperazione(false, "Cliente non trovato o accesso negato.");
+            return;
+        }
+        if (HTTPMethods::method() === 'GET') {
+            $isSelf = ($ruolo === 'cliente' && $cliente->getId() === $idUt);
+            $this->view->mostraFormMisure([
+                'utente' => $cliente,
+                'cliente' => $cliente,
+                'isSelf' => $isSelf,
+                'ultimaMisure' => $this->parametriRepo->findUltimaByCliente($cliente)
+            ]);
+            return;
+        }
+        $this->eseguiAggiornamentoMisure($cliente, $ruolo);
+    }
+
+    private function eseguiAggiornamentoMisure(Cliente $cliente, string $ruolo): void
+    {
+        $peso = HTTPMethods::post('peso') !== null ? (float)HTTPMethods::post('peso') : 0.0;
+        $altezza = HTTPMethods::post('altezza') !== null ? (float)HTTPMethods::post('altezza') : 0.0;
+        if ($peso <= 0 || $altezza <= 0) {
+            $this->mostraStatoOperazione(false, "Peso e altezza devono essere maggiori di zero.");
+            return;
+        }
+
+        $f = fn($key) => HTTPMethods::postFloat($key);
+        try {
+            $p = new Parametri($peso, $altezza, new \DateTimeImmutable(), $cliente, $f('bicipite_destro'), $f('bicipite_sinistro'), $f('tricipite_destro'), $f('tricipite_sinistro'), $f('coscia_destra'), $f('coscia_sinistra'), $f('polpaccio_destro'), $f('polpaccio_sinistro'), $f('misura_petto'), $f('misura_vita'), $f('misura_spalle'), $f('misura_fianchi'));
+            $this->parametriRepo->save($p);
+            $this->view->redirect('aggiorna-misure' . ($ruolo !== 'cliente' ? '?id=' . $cliente->getId() : ''));
+        } catch (\Throwable $e) {
+            $this->mostraStatoOperazione(false, "Errore salvataggio misure: " . $e->getMessage());
+        }
     }
 
     // =========================================================================
     // 4. INSERISCI MISURE CORPOREE (/inserisci-misure)
     // =========================================================================
 
-    public function inserisciMisureCorporee(): void     //gestisce la richiesta di inserimento di nuove misure corporee per il cliente loggato o per un altro cliente, recuperando i dati del cliente e mostrando la view corrispondente
+    public function inserisciMisureCorporee(): void
     {
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-        if (!$idUt || $ruolo !== 'cliente') {
-            $this->mostraStatoOperazione(false, "Azione non consentita.");
+        if (!$idUt || $ruolo === 'amministratore') {
+            $this->mostraStatoOperazione(false, "Accesso negato. L'amministratore non può inserire le misure del cliente.");
             return;
         }
         $cliente = $this->recuperaClienteTarget($ruolo, $idUt);
@@ -285,8 +310,14 @@ class ProfiloController
             $this->mostraStatoOperazione(false, "Cliente non trovato o accesso non consentito.");
             return;
         }
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            $this->view->mostraFormInserimentoMisure(['utente' => $cliente, 'ultimaMisure' => $this->parametriRepo->findUltimaByCliente($cliente)]);
+        $isSelf = ($ruolo === 'cliente' && $cliente->getId() === $idUt);
+        if (HTTPMethods::method() === 'GET') {
+            $this->view->mostraFormInserimentoMisure([
+                'utente' => $cliente,
+                'cliente' => $cliente,
+                'isSelf' => $isSelf,
+                'ultimaMisure' => $this->parametriRepo->findUltimaByCliente($cliente)
+            ]);
             return;
         }
         $this->salvaMisurePost($cliente, $ruolo);
@@ -294,13 +325,13 @@ class ProfiloController
 
     private function salvaMisurePost(Cliente $cliente, string $ruolo): void
     {
-        $peso = isset($_POST['peso']) ? (float)$_POST['peso'] : 0.0;
-        $altezza = isset($_POST['altezza']) ? (float)$_POST['altezza'] : 0.0;
+        $peso = HTTPMethods::post('peso') !== null ? (float)HTTPMethods::post('peso') : 0.0;
+        $altezza = HTTPMethods::post('altezza') !== null ? (float)HTTPMethods::post('altezza') : 0.0;
         if ($peso <= 0 || $altezza <= 0) {
             $this->mostraStatoOperazione(false, "Peso e altezza sono obbligatori.");
             return;
         }
-        $f = fn($key) => !empty($_POST[$key]) ? (float)$_POST[$key] : null;      // funzione anonima per recuperare i valori delle misure corporee dal POST, restituendo null se il campo è vuoto
+        $f = fn($key) => HTTPMethods::postFloat($key);
         try {
             $p = new Parametri(
                 $peso, $altezza, new \DateTimeImmutable(), $cliente,
@@ -308,10 +339,9 @@ class ProfiloController
                 $f('coscia_destra'), $f('coscia_sinistra'), $f('polpaccio_destro'), $f('polpaccio_sinistro'),
                 $f('misura_petto'), $f('misura_vita'), $f('misura_spalle'), $f('misura_fianchi')
             );
-            $this->parametriRepo->salvaMisure($p);
-            header('Location: aggiorna-misure' . ($ruolo !== 'cliente' ? '?id=' . $cliente->getId() : ''));
-            exit();
-        } catch (\InvalidArgumentException $e) {
+            $this->parametriRepo->save($p);
+            $this->view->redirect('aggiorna-misure' . ($ruolo !== 'cliente' ? '?id=' . $cliente->getId() : ''));
+        } catch (\Throwable $e) {
             $this->mostraStatoOperazione(false, "Dati non validi: " . $e->getMessage());
         }
     }
@@ -320,50 +350,60 @@ class ProfiloController
     // 5. CARICA CERTIFICATO MEDICO (/carica-certificato)
     // =========================================================================
 
-    public function caricaCertificato(): void     //gestisce la richiesta di caricamento del certificato medico per il cliente loggato o per un altro cliente, recuperando i dati del cliente e mostrando la view corrispondente
+    public function caricaCertificato(): void
     {
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-        if (!$idUt || $ruolo === 'allenatore') {
+        if (!$idUt || ($ruolo !== 'cliente' && $ruolo !== 'amministratore')) {
             $this->mostraStatoOperazione(false, "Accesso negato.");
             return;
         }
         $cliente = $this->recuperaClienteTarget($ruolo, $idUt);
         if (!$cliente) {
-            $this->mostraStatoOperazione(false, "Cliente non trovato o accesso non consentito.");
+            $this->mostraStatoOperazione(false, "Cliente non trovato o accesso negato.");
             return;
         }
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            $this->view->mostraFormCertificato(['utente' => $cliente]);
+        if (HTTPMethods::method() === 'GET') {
+            $this->view->mostraFormCertificato([
+                'utente' => $cliente,
+                'certificato' => $this->certificatoRepo->findByCliente($cliente)
+            ]);
             return;
         }
-        $rit = ($ruolo === 'cliente') ? 'profilo' : 'visualizza-profilo?id=' . $cliente->getId();
-        $this->eseguiUploadCertificato($cliente, $rit);
+        $this->eseguiCaricamentoCertificato($cliente, $ruolo);
     }
 
-    private function eseguiUploadCertificato(Cliente $cliente, string $rit): void
+    private function eseguiCaricamentoCertificato(Cliente $cliente, string $ruolo): void
     {
-        if (empty($_POST) && empty($_FILES) && isset($_SERVER['CONTENT_LENGTH']) && $_SERVER['CONTENT_LENGTH'] > 0) {     // controlla se la richiesta POST è vuota e se la dimensione del contenuto supera il limite consentito, mostrando un errore se necessario
-            $this->mostraStatoOperazione(false, "File troppo grande.", $rit, "Torna al Profilo");
-            return;
-        }
-        $medico = $_POST['medico'] ?? null;
-        $emissione = $_POST['data_emissione'] ?? null;
-        if (empty($medico) || empty($emissione) || !isset($_FILES['file_certificato']) || $_FILES['file_certificato']['error'] !== UPLOAD_ERR_OK) {
-            $this->mostraStatoOperazione(false, "Dati certificato incompleti o file non valido.", $rit, "Torna al Profilo");
+        $medico = HTTPMethods::post('medico');
+        $emissione = HTTPMethods::post('data_emissione');
+        $file = HTTPMethods::files('file_certificato');
+        if (empty($medico) || empty($emissione) || !$file || $file['error'] !== UPLOAD_ERR_OK) {
+            $rit = ($ruolo === 'cliente') ? 'carica-certificato' : 'carica-certificato?id=' . $cliente->getId();
+            $this->mostraStatoOperazione(false, "Tutti i campi e il file del certificato sono obbligatori.", $rit, "Torna al Form");
             return;
         }
         try {
-            $content = file_get_contents($_FILES['file_certificato']['tmp_name']);     //guarda se il file è stato caricato correttamente e legge il contenuto del file temporaneo
-            $vecchio = $cliente->getCertificatoMedico();
-            $cert = new CertificatoMedico(new \DateTimeImmutable($emissione), $medico, $cliente, $content);
-            $this->certificatoRepo->save($cert);
+            $content = file_get_contents($file['tmp_name']);
+            $oldCert = $cliente->getCertificatoMedico();
+            
+            $cert = new CertificatoMedico(new \DateTimeImmutable($emissione), trim($medico), $cliente, $content);
+            
+            if ($oldCert) {
+                $cliente->setCertificatoMedico(null);
+                $this->clienteRepo->save($cliente);
+                $this->certificatoRepo->delete($oldCert);
+            }
+            
             $cliente->setCertificatoMedico($cert);
+            $this->certificatoRepo->save($cert);
             $this->clienteRepo->save($cliente);
-            if ($vecchio) $this->certificatoRepo->delete($vecchio);
-            $this->mostraStatoOperazione(true, "Certificato medico caricato correttamente.", $rit, "Torna al Profilo");
-        } catch (\Exception $e) {
-            $this->mostraStatoOperazione(false, "Errore: " . $e->getMessage(), $rit, "Torna al Profilo");
+            
+            $ritorno = ($ruolo === 'cliente') ? 'profilo' : 'visualizza-profilo?id=' . $cliente->getId();
+            $this->mostraStatoOperazione(true, "Certificato caricato con successo!", $ritorno, "Torna al Profilo");
+        } catch (\Throwable $e) {
+            $rit = ($ruolo === 'cliente') ? 'carica-certificato' : 'carica-certificato?id=' . $cliente->getId();
+            $this->mostraStatoOperazione(false, "Errore caricamento certificato: " . $e->getMessage(), $rit, "Torna al Form");
         }
     }
 
@@ -371,45 +411,69 @@ class ProfiloController
     // 6. CAMBIA PASSWORD (/cambia-password)
     // =========================================================================
 
-    public function cambiaPassword(): void   //gestisce la richiesta di cambio password per l'utente loggato, mostrando il form di cambio password o eseguendo il salvataggio della nuova password
+    public function cambiaPassword(): void
     {
         $idUt = $this->session->getLoggedUserId();
+        $ruolo = $this->session->getLoggedUserRole();
         if (!$idUt) {
-            $this->mostraStatoOperazione(false, "Sessione scaduta o non valida.");
+            $this->mostraStatoOperazione(false, "Accesso negato.");
             return;
         }
-        $targetId = isset($_GET['id']) ? (int)$_GET['id'] : (isset($_POST['id']) ? (int)$_POST['id'] : $idUt);
+
+        $targetId = HTTPMethods::get('id') !== null ? (int)HTTPMethods::get('id') : $idUt;
         if ($targetId !== $idUt) {
-            $this->mostraStatoOperazione(false, "Accesso negato. Il cambio password è strettamente personale.");
+            $this->mostraStatoOperazione(false, "Accesso negato. Non è consentito modificare la password degli altri utenti.");
             return;
         }
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+
+        $ut = $this->recuperaUtenteLoggato($idUt, $ruolo);
+        if (!$ut) {
+            $this->mostraStatoOperazione(false, "Utente non trovato o accesso negato.");
+            return;
+        }
+        if (HTTPMethods::method() === 'GET') {
             $this->view->mostraFormCambioPassword();
             return;
         }
-        $old = $_POST['vecchia_password'] ?? '';
-        $new = $_POST['nuova_password'] ?? '';
-        $conf = $_POST['conferma_password'] ?? '';
-        if ($old === '' || $new === '' || $conf === '' || $new !== $conf) {
-            $this->mostraStatoOperazione(false, "Campi vuoti o password non coincidenti.", "profilo", "Torna al Profilo");
-            return;
-        }
-        $this->eseguiCambioPassword($idUt, $this->session->getLoggedUserRole(), $old, $new);
+        $this->eseguiCambioPassword($ut);
     }
 
-    private function eseguiCambioPassword(int $idUt, string $ruolo, string $old, string $new): void
+    private function eseguiCambioPassword(Utente $ut): void
     {
-        $ut = $this->recuperaUtenteLoggato($this->entityManager, $idUt, $ruolo);
-        if (!$ut || !$ut->verificaPassword($old)) {
-            $this->mostraStatoOperazione(false, "Utente non trovato o password errata.", "profilo", "Torna al Profilo");
+        $old = HTTPMethods::post('vecchia_password', '');
+        $new = HTTPMethods::post('nuova_password', '');
+        $conf = HTTPMethods::post('conferma_password', '');
+        if (empty($old) || empty($new) || empty($conf)) {
+            $this->mostraStatoOperazione(false, "Tutti i campi password sono obbligatori.", "cambia-password", "Riprova");
+            return;
+        }
+        if ($new !== $conf) {
+            $this->mostraStatoOperazione(false, "La nuova password e la conferma non coincidono.", "cambia-password", "Riprova");
+            return;
+        }
+        if (!$ut->verificaPassword($old)) {
+            $this->mostraStatoOperazione(false, "La vecchia password non è corretta.", "cambia-password", "Riprova");
             return;
         }
         try {
             $ut->setPassword($new);
+            $this->salvaUtenteGenerico($ut);
+            $this->mostraStatoOperazione(true, "Password aggiornata con successo!", "profilo", "Torna al Profilo");
+        } catch (\Throwable $e) {
+            $this->mostraStatoOperazione(false, "Errore durante il cambio password: " . $e->getMessage(), "cambia-password", "Riprova");
+        }
+    }
+
+    private function salvaUtenteGenerico(Utente $ut): void
+    {
+        if ($ut instanceof Cliente) {
+            $this->clienteRepo->save($ut);
+        } elseif ($ut instanceof Allenatore) {
+            $this->allenatoreRepo->save($ut);
+        } elseif ($ut instanceof Amministratore) {
+            $this->amministratoreRepo->save($ut);
+        } else {
             $this->utenteRepo->save($ut);
-            $this->mostraStatoOperazione(true, "Password aggiornata con successo.", "profilo", "Torna al Profilo");
-        } catch (\InvalidArgumentException $e) {
-            $this->mostraStatoOperazione(false, "Errore: " . $e->getMessage(), "profilo", "Torna al Profilo");
         }
     }
 
@@ -417,16 +481,16 @@ class ProfiloController
     // 7. VISUALIZZA GRAFICO (/visualizza-grafico)
     // =========================================================================
 
-    public function visualizzaGrafico(): void   //gestisce la richiesta di visualizzazione del grafico delle misure corporee del cliente loggato o di un altro cliente, recuperando i dati del cliente e mostrando la view corrispondente
+    public function visualizzaGrafico(): void
     {
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-        $cliente = $idUt ? $this->recuperaClienteTarget($ruolo, $idUt) : null;
+        $cliente = $this->recuperaClienteTarget($ruolo, $idUt);
         if (!$cliente) {
-            $this->mostraStatoOperazione(false, "Cliente non trovato o accesso non consentito.");
+            $this->mostraStatoOperazione(false, "Cliente non trovato o accesso negato.");
             return;
         }
-        $tipo = $_GET['tipo'] ?? 'peso';                                             // indica il tipo di grafico da visualizzare (peso, superiore o inferiore), con un valore predefinito di "peso" se non specificato
+        $tipo = HTTPMethods::get('tipo', 'peso');
         if (!in_array($tipo, ['peso', 'superiore', 'inferiore'])) $tipo = 'peso';
         $storico = array_reverse($this->parametriRepo->findByCliente($cliente));
         $valori = $this->mappaValoriGrafico($storico, $tipo);
@@ -463,48 +527,47 @@ class ProfiloController
 
 
 
-    // =========================================================================
-    // 8. CARICA FOTO PROFILO (/carica-foto)
-    // =========================================================================
-
-    public function caricaFotoProfilo(): void                  //gestisce la richiesta di caricamento della foto del profilo per l'utente loggato, recuperando i dati dell'utente e mostrando la view corrispondente
+    public function caricaFotoProfilo(): void
     {
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-        $ut = $idUt ? $this->recuperaUtenteLoggato($this->entityManager, $idUt, $ruolo) : null;       // recupera l'oggetto utente loggato in base al suo ID e al ruolo
+        $ut = ($idUt && $ruolo) ? $this->utenteRepo->findById($idUt) : null;
         if (!$ut) {
-            $this->mostraStatoOperazione(false, "Profilo non trovato.");
+            $this->mostraStatoOperazione(false, "Utente non trovato.");
             return;
         }
-        if (isset($_FILES['foto_profilo']) && in_array($_FILES['foto_profilo']['error'], [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE])) {   //gli errori UPLOAD_ERR_INI_SIZE e UPLOAD_ERR_FORM_SIZE indicano che la dimensione del file caricato supera il limite consentito dal server o dal form HTML, quindi viene mostrato un messaggio di errore appropriato
-            $this->mostraStatoOperazione(false, "Dimensione file eccessiva.", "profilo", "Torna al Profilo");
-            return;
-        }
-        if (!isset($_FILES['foto_profilo']) || $_FILES['foto_profilo']['error'] !== UPLOAD_ERR_OK) {
-            $this->mostraStatoOperazione(false, "File non valido.", "profilo", "Torna al Profilo");
-            return;
-        }
-        $this->eseguiCaricamentoFoto($ut);
-    }
 
-    private function eseguiCaricamentoFoto(Utente $ut): void
-    {
-        $tmp = $_FILES['foto_profilo']['tmp_name'];               // recupera il percorso del file temporaneo caricato sul server
-        if ($_FILES['foto_profilo']['size'] > 16 * 1024 * 1024) {        
-            $this->mostraStatoOperazione(false, "La dimensione supera i 16 MB.", "profilo", "Torna al Profilo");
+        $file = HTTPMethods::files('foto_profilo');
+        if ($file && in_array($file['error'], [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE])) {
+            $this->mostraStatoOperazione(false, "La foto profilo supera la dimensione massima consentita dal server PHP (limite 16MB).", "visualizza-profilo", "Torna al Profilo");
             return;
         }
-        $info = @getimagesize($tmp);                     // recupera le informazioni sull'immagine, come tipo e dimensioni, e restituisce false se il file non è un'immagine valida
-        if ($info === false || !in_array($info[2], [IMAGETYPE_JPEG, IMAGETYPE_PNG])) {     // controlla se il file è un'immagine valida e se il tipo di immagine è consentito (JPG o PNG), mostrando un messaggio di errore se non lo è
-            $this->mostraStatoOperazione(false, "Formato non consentito (ammessi solo JPG/PNG).", "profilo", "Torna al Profilo");
+        if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
+            $this->mostraStatoOperazione(false, "Nessun file selezionato o errore durante il caricamento.", "visualizza-profilo", "Torna al Profilo");
             return;
         }
-        $content = file_get_contents($tmp);       // legge il contenuto del file temporaneo e lo memorizza in una variabile, restituendo false se non riesce a leggere il file
-        if ($content !== false) {
-            $ut->setProfilePicture($content);
-            $ut->setTipoImmagine($info['mime'] ?? 'image/jpeg');
-            $this->utenteRepo->save($ut);
-            $this->mostraStatoOperazione(true, "Foto profilo aggiornata con successo.", "profilo", "Torna al Profilo");
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        if (!in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+            $this->mostraStatoOperazione(false, "Formato file non supportato. Formati consentiti: JPG, PNG, GIF, WEBP.", "visualizza-profilo", "Torna al Profilo");
+            return;
+        }
+        $tmp = $file['tmp_name'];
+        if ($file['size'] > 16 * 1024 * 1024) {
+            $this->mostraStatoOperazione(false, "La foto profilo non può superare i 16 MB.", "visualizza-profilo", "Torna al Profilo");
+            return;
+        }
+        $mime = mime_content_type($tmp);
+        if (!$mime || !str_starts_with($mime, 'image/')) {
+            $this->mostraStatoOperazione(false, "Il file caricato non è un'immagine valida.", "visualizza-profilo", "Torna al Profilo");
+            return;
+        }
+        try {
+            $ut->setProfilePicture(file_get_contents($tmp));
+            $ut->setTipoImmagine($mime);
+            $this->salvaUtenteGenerico($ut);
+            $this->mostraStatoOperazione(true, "Foto profilo aggiornata con successo!", "visualizza-profilo", "Torna al Profilo");
+        } catch (\Throwable $e) {
+            $this->mostraStatoOperazione(false, "Errore salvataggio foto: " . $e->getMessage(), "visualizza-profilo", "Torna al Profilo");
         }
     }
 
@@ -522,7 +585,7 @@ class ProfiloController
             $this->mostraStatoOperazione(false, "Azione non consentita.");
             return;
         }
-        $idAll = isset($_POST['id_allenatore']) ? (int)$_POST['id_allenatore'] : 0;
+        $idAll = (int)HTTPMethods::post('id_allenatore', 0);
         if ($idAll <= 0 || ($ruolo !== 'amministratore' && $idAll !== $idLog)) {
             $this->mostraStatoOperazione(false, "Dati non validi o non autorizzato.");
             return;
@@ -532,13 +595,13 @@ class ProfiloController
             $this->mostraStatoOperazione(false, "Allenatore non trovato o non appartenente alla palestra.");
             return;
         }
-        $this->eseguiAggiornamentoAbilitazioniInBlocco($allenatore, $_POST['attivita'] ?? [], $idLog);
+        $this->eseguiAggiornamentoAbilitazioniInBlocco($allenatore, HTTPMethods::postArray('attivita'), $idLog);
     }
 
     private function eseguiAggiornamentoAbilitazioniInBlocco(Allenatore $allenatore, array $sel, int $idLog): void
     {
         try {
-            foreach ($allenatore->getAttivitaAbilitate() as $c) {    // rimuove tutte le abilitazioni esistenti dell'allenatore prima di aggiungere le nuove selezionate, in modo da aggiornare completamente le attività abilitate
+            foreach ($allenatore->getAttivitaAbilitate() as $c) {
                 $allenatore->removeAbilitazione($c);
             }
             $this->utenteRepo->save($allenatore);
@@ -548,8 +611,7 @@ class ProfiloController
             }
             $this->utenteRepo->save($allenatore);
             $loc = ($allenatore->getId() === $idLog) ? 'profilo' : 'visualizza-profilo?id=' . $allenatore->getId();
-            header('Location: ' . $loc);
-            exit();
+            $this->view->redirect($loc);
         } catch (\Throwable $e) {
             $this->mostraStatoOperazione(false, "Impossibile aggiornare abilitazioni: " . $e->getMessage());
         }
@@ -575,7 +637,7 @@ class ProfiloController
     {
         $targetId = $idUtente;
         if ($ruolo === 'amministratore' || $ruolo === 'allenatore') {
-            $targetId = isset($_GET['id']) ? (int)$_GET['id'] : (isset($_POST['id']) ? (int)$_POST['id'] : null);
+            $targetId = (int)HTTPMethods::request('id', 0);
             if (!$targetId) return null;
         }
         $cliente = $this->clienteRepo->findById($targetId);
@@ -608,7 +670,7 @@ class ProfiloController
         return null;
     }
 
-    private function recuperaUtenteLoggato(EntityManagerInterface $entityManager, int $idUtente, ?string $ruolo): ?Utente
+    private function recuperaUtenteLoggato(int $idUtente, ?string $ruolo): ?Utente
     {
         if ($ruolo === 'cliente') {
             return $this->clienteRepo->findById($idUtente);

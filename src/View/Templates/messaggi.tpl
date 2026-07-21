@@ -87,23 +87,19 @@
 
                     <!-- MESSAGGI INVIATI (Solo se consentito l'invio) -->
                     {if $invioConsentito}
-                        <div class="box {if $ruolo !== 'amministratore'}mt-5{/if}" style="height: calc(100% - 20px); display: flex; flex-direction: column;">
+                        <div class="box {if $ruolo !== 'amministratore'}mt-5{/if}" style="{if $ruolo === 'amministratore'}height: calc(100% - 20px);{/if} display: flex; flex-direction: column;">
                             <h2 class="title is-4 style-theme-text mb-4"><i class="fas fa-paper-plane mr-2"></i> Posta in Uscita</h2>
                             <div style="flex-grow: 1; max-height: 520px; overflow-y: auto; padding-right: 0.5rem;">
                                 {foreach $messaggiInviati as $msg}
                                     <div class="box message-card message-sent-card mb-3 p-4">
-                                        <div class="level mb-2">
-                                            <div class="level-left">
-                                                <div>
-                                                    <p class="is-size-7 has-text-grey">
-                                                        A: 
-                                                        {foreach $msg->getDestinatari() as $dest}
-                                                            <strong>{$dest->getNome()} {$dest->getCognome()}</strong> ({$dest->getRuolo()}){if !$dest@last}, {/if}
-                                                        {/foreach}
-                                                    </p>
-                                                    <h4 class="title is-5 mt-1 mb-0">{$msg->getOggetto()}</h4>
-                                                </div>
-                                            </div>
+                                        <div class="mb-2">
+                                            <p class="is-size-7 has-text-grey" style="word-break: break-word;">
+                                                A: 
+                                                {foreach $msg->getDestinatari() as $dest}
+                                                    <strong>{$dest->getNome()} {$dest->getCognome()}</strong> ({$dest->getRuolo()}){if !$dest@last}, {/if}
+                                                {/foreach}
+                                            </p>
+                                            <h4 class="title is-5 mt-1 mb-0">{$msg->getOggetto()}</h4>
                                         </div>
                                         <p class="has-text-grey-dark" style="white-space: pre-line;">{$msg->getContenuto()}</p>
                                     </div>

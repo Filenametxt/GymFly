@@ -9,4 +9,5 @@ interface VisualizzazioneView
     public function mostraDashboardCliente(array $dati): void;
     public function mostraStatoOperazione(bool $successo, string $messaggio, ?string $ritorno = null, ?string $testoBottone = null): void;
     public function reindirizzaDopoLogin(string $ruolo): void;
+    public function redirect(string $url): void;
 }

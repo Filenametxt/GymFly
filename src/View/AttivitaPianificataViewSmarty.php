@@ -2,6 +2,7 @@
 namespace App\View;
 
 use App\View\Interface\AttivitaPianificataView;
+use App\Foundation\Utility\HTTPMethods;
 use Smarty\Smarty;
 
 class AttivitaPianificataViewSmarty implements AttivitaPianificataView
@@ -15,7 +16,7 @@ class AttivitaPianificataViewSmarty implements AttivitaPianificataView
 
     private function determinaRitorno(): string
     {
-        $offset = isset($_REQUEST['offset']) ? (int)$_REQUEST['offset'] : 0;
+        $offset = HTTPMethods::request('offset') !== null ? (int)HTTPMethods::request('offset') : 0;
         return $offset !== 0 ? 'calendario?offset=' . $offset : 'calendario';
     }
 
@@ -25,7 +26,7 @@ class AttivitaPianificataViewSmarty implements AttivitaPianificataView
         foreach ($dati as $key => $value) {
             $this->smarty->assign($key, $value);
         }
-        $offset = isset($_REQUEST['offset']) ? (int)$_REQUEST['offset'] : 0;
+        $offset = HTTPMethods::request('offset') !== null ? (int)HTTPMethods::request('offset') : 0;
         $this->smarty->assign('offset', $offset);
         $this->smarty->assign('ritorno', $this->determinaRitorno());
         
@@ -44,5 +45,11 @@ class AttivitaPianificataViewSmarty implements AttivitaPianificataView
         $this->smarty->assign('ritorno', $ritorno ?? $this->determinaRitorno());
         $this->smarty->assign('testo_bottone', $testoBottone);
         $this->smarty->display('stato_operazione.tpl');
+    }
+
+    public function redirect(string $url): void
+    {
+        header('Location: ' . $url);
+        exit;
     }
 }

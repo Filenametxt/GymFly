@@ -106,7 +106,7 @@
                     <div class="column is-12-mobile is-4-desktop">
                         <div class="box" style="height: 100%; display: flex; flex-direction: column;">
                             <h3 class="title is-5 mb-3 style-theme-text">Immagine Esecuzione</h3>
-                            <p class="is-size-7 has-text-grey-dark mb-4">Carica una foto o una GIF (Max: 5 MB).</p>
+                            <p class="is-size-7 has-text-grey-dark mb-4">Carica una foto o una GIF (Max: 16 MB).</p>
                             
                             <div class="file is-boxed is-centered is-fullwidth" id="file-upload" style="flex-grow: 1; display: flex; flex-direction: column; min-height: 250px;">
                                 <label class="file-label" style="height: 100%; width: 100%; display: flex; flex-direction: column;">

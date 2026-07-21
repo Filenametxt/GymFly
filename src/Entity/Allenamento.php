@@ -58,6 +58,9 @@ class Allenamento
         return $this;
     }
 
+    /**
+     * @return Collection<int, DettaglioAllenamento>
+     */
     public function getDettagli(): Collection
     {
         return $this->dettagli;

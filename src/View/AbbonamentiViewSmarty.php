@@ -21,4 +21,10 @@ class AbbonamentiViewSmarty implements AbbonamentiView
         }
         $this->smarty->display('gestione_abbonamento.tpl');         //visualizza il template Smarty per la gestione dell'abbonamento
     }
+
+    public function redirect(string $url): void
+    {
+        header('Location: ' . $url);
+        exit;
+    }
 }

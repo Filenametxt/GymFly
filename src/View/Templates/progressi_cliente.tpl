@@ -301,7 +301,7 @@
                                                 <span class="style-theme-text">{$eData.esercizio->getNomeEsercizio()}</span>
                                                 <div class="is-flex" style="gap: 5px; flex-wrap: wrap;">
                                                     <span class="target-badge">
-                                                        Serie: {$eData.dettaglio->getSerie()}
+                                                        Serie: {$eData.serie_max}
                                                     </span>
                                                     {if $eData.dettaglio->getRipetizioni()}
                                                         <span class="target-badge">
@@ -336,7 +336,7 @@
                                                             </li>
                                                         {/if}
                                                         {if $eData.hasDurata}
-                                                            <li class="{if !$eData.hasCarico && !$eData.hasReps}is-active{/if}" onclick="switchExerciseTab(this, 'durata', '{$eData.esercizio->getId()}')">
+                                                            <li class="{if !$eData.hasCarico && !$eData.hasReps}is-active{/if}" style="pointer-events: none;">
                                                                 <a><i class="fas fa-stopwatch mr-2"></i>Tempo / Durata</a>
                                                             </li>
                                                         {/if}

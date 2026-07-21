@@ -8,3 +8,4 @@
     # Altrimenti devia tutte le richieste a index.php passando la rotta in GET
     RewriteRule ^(.*)$ index.php?route=$1 [QSA,L]
 </IfModule>
+#sovrascrive le impostazioni di accesso al server

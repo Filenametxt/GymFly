@@ -11,6 +11,9 @@ use App\Entity\Repository\SessionePrivataRepositoryInterface;
 use App\Entity\Repository\ParametriRepositoryInterface;
 use App\Entity\Repository\SchedaRepositoryInterface;
 use App\Entity\Repository\PalestraRepositoryInterface;
+use App\Entity\Repository\CertificatoMedicoRepositoryInterface;
+use App\Entity\Repository\AbbonamentoAttivoRepositoryInterface;
+use App\Entity\Repository\IscrizioneRepositoryInterface;
 use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
 use App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository;
 use App\Foundation\Persistence\Repository\DoctrineAttivitaRepository;
@@ -20,10 +23,14 @@ use App\Foundation\Persistence\Repository\DoctrineSessionePrivataRepository;
 use App\Foundation\Persistence\Repository\DoctrineParametriRepository;
 use App\Foundation\Persistence\Repository\DoctrineSchedaRepository;
 use App\Foundation\Persistence\Repository\DoctrinePalestraRepository;
+use App\Foundation\Persistence\Repository\DoctrineCertificatoMedicoRepository;
+use App\Foundation\Persistence\Repository\DoctrineAbbonamentoAttivoRepository;
+use App\Foundation\Persistence\Repository\DoctrineIscrizioneRepository;
 use App\View\Interface\AmministratoreView;
 use App\View\AmministratoreViewSmarty;
 use App\View\VisualizzazioneViewSmarty;
 use App\Foundation\Session;
+use App\Foundation\Utility\HTTPMethods;
 use App\Enum\Sesso;
 use App\Entity\Allenatore;
 use App\Entity\Cliente;
@@ -48,6 +55,9 @@ class AmministratoreController
     private SchedaRepositoryInterface $schedaRepo;
     private PalestraRepositoryInterface $palestraRepo;
     private MessaggioRepositoryInterface $messaggioRepo;
+    private CertificatoMedicoRepositoryInterface $certificatoRepo;
+    private AbbonamentoAttivoRepositoryInterface $abbonamentoAttivoRepo;
+    private IscrizioneRepositoryInterface $iscrizioneRepo;
     private AmministratoreView $view;
 
     public function __construct(
@@ -65,6 +75,9 @@ class AmministratoreController
         $this->palestraRepo = new DoctrinePalestraRepository($this->entityManager);
         $this->view = new AmministratoreViewSmarty();
         $this->messaggioRepo = new DoctrineMessaggioRepository($this->entityManager);
+        $this->certificatoRepo = new DoctrineCertificatoMedicoRepository($this->entityManager);
+        $this->abbonamentoAttivoRepo = new DoctrineAbbonamentoAttivoRepository($this->entityManager);
+        $this->iscrizioneRepo = new DoctrineIscrizioneRepository($this->entityManager);
     }
 
     // =========================================================================
@@ -78,7 +91,7 @@ class AmministratoreController
             $this->mostraStatoOperazione(false, "Accesso negato. Nessuna palestra associata all'utente.", "login", "Torna al Login");
             return;
         }
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        if (HTTPMethods::method() === 'GET') {
             $this->view->mostraFormCreaCliente([]);
             return;
         }
@@ -102,17 +115,17 @@ class AmministratoreController
     private function estraiDatiClientePost(): array     //ritorna tutte le infrormazioni inviate con il POST
     {
         return [
-            'nome' => !empty($_POST['nome']) ? trim($_POST['nome']) : '',
-            'cognome' => !empty($_POST['cognome']) ? trim($_POST['cognome']) : '',
-            'email' => !empty($_POST['email']) ? trim($_POST['email']) : '',
-            'cf' => !empty($_POST['cf']) ? trim($_POST['cf']) : '',
-            'indirizzo' => !empty($_POST['indirizzo']) ? trim($_POST['indirizzo']) : '',
-            'sessoVal' => !empty($_POST['sesso']) ? trim($_POST['sesso']) : '',
-            'dataNascitaStr' => !empty($_POST['data_nascita']) ? trim($_POST['data_nascita']) : '',
-            'luogoNascita' => !empty($_POST['luogo_nascita']) ? trim($_POST['luogo_nascita']) : '',
-            'metodoPagamento' => !empty($_POST['metodo_pagamento']) ? trim($_POST['metodo_pagamento']) : '',
-            'telefono' => !empty($_POST['telefono']) ? trim($_POST['telefono']) : null,
-            'indirizzoDomicilio' => !empty($_POST['indirizzo_domicilio']) ? trim($_POST['indirizzo_domicilio']) : null,
+            'nome' => trim(HTTPMethods::post('nome', '')),
+            'cognome' => trim(HTTPMethods::post('cognome', '')),
+            'email' => trim(HTTPMethods::post('email', '')),
+            'cf' => trim(HTTPMethods::post('cf', '')),
+            'indirizzo' => trim(HTTPMethods::post('indirizzo', '')),
+            'sessoVal' => trim(HTTPMethods::post('sesso', '')),
+            'dataNascitaStr' => trim(HTTPMethods::post('data_nascita', '')),
+            'luogoNascita' => trim(HTTPMethods::post('luogo_nascita', '')),
+            'metodoPagamento' => trim(HTTPMethods::post('metodo_pagamento', '')),
+            'telefono' => HTTPMethods::post('telefono') ? trim(HTTPMethods::post('telefono')) : null,
+            'indirizzoDomicilio' => HTTPMethods::post('indirizzo_domicilio') ? trim(HTTPMethods::post('indirizzo_domicilio')) : null,
         ];
     }
 
@@ -147,7 +160,7 @@ class AmministratoreController
             $this->mostraStatoOperazione(false, "Accesso negato. Nessuna palestra associata all'utente.", "login", "Torna al Login");
             return;
         }
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        if (HTTPMethods::method() === 'GET') {
             $this->view->mostraFormCreaAllenatore([]);
             return;
         }
@@ -156,13 +169,13 @@ class AmministratoreController
 
     private function eseguiCreazioneAllenatore(Palestra $palestra): void
     {
-        $nome = !empty($_POST['nome']) ? trim($_POST['nome']) : '';             //se il nome è vuoto allora ritorna stringa vuota, altrimenti ritorna il nome senza spazi
-        $cognome = !empty($_POST['cognome']) ? trim($_POST['cognome']) : '';
-        $email = !empty($_POST['email']) ? trim($_POST['email']) : '';
-        $cf = !empty($_POST['cf']) ? trim($_POST['cf']) : '';
-        $indirizzo = !empty($_POST['indirizzo']) ? trim($_POST['indirizzo']) : '';
-        $sessoVal = !empty($_POST['sesso']) ? trim($_POST['sesso']) : '';
-        $telefono = !empty($_POST['telefono']) ? trim($_POST['telefono']) : null;
+        $nome = trim(HTTPMethods::post('nome', ''));
+        $cognome = trim(HTTPMethods::post('cognome', ''));
+        $email = trim(HTTPMethods::post('email', ''));
+        $cf = trim(HTTPMethods::post('cf', ''));
+        $indirizzo = trim(HTTPMethods::post('indirizzo', ''));
+        $sessoVal = trim(HTTPMethods::post('sesso', ''));
+        $telefono = HTTPMethods::post('telefono') ? trim(HTTPMethods::post('telefono')) : null;
 
         if ($nome === '' || $cognome === '' || $email === '' || $cf === '' || $indirizzo === '' || $sessoVal === '') {
             $this->mostraStatoOperazione(false, "Campi obbligatori mancanti.", "allenatori", "Torna a Gestione Allenatori");
@@ -200,7 +213,7 @@ class AmministratoreController
             $this->mostraStatoOperazione(false, "Accesso negato. Nessuna palestra associata all'utente.", "login", "Torna al Login");
             return;
         }
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        if (HTTPMethods::method() === 'GET') {
             $this->view->mostraFormCreaAttivita([]);
             return;
         }
@@ -209,9 +222,9 @@ class AmministratoreController
 
     private function eseguiCreazioneAttivita(): void  //esegue la creazione dell'attività, validando i dati e salvando 
     {
-        $nome = !empty($_POST['nome']) ? trim($_POST['nome']) : '';
-        $descrizione = !empty($_POST['descrizione']) ? trim($_POST['descrizione']) : '';
-        $maxPartecipanti = isset($_POST['max_partecipanti']) ? (int)$_POST['max_partecipanti'] : 0;
+        $nome = trim(HTTPMethods::post('nome', ''));
+        $descrizione = trim(HTTPMethods::post('descrizione', ''));
+        $maxPartecipanti = HTTPMethods::post('max_partecipanti') !== null ? (int)HTTPMethods::post('max_partecipanti') : 0;
 
         if ($nome === '' || $descrizione === '' || $maxPartecipanti <= 0) {
             $this->mostraStatoOperazione(false, "Tutti i campi sono obbligatori e partecipanti > 0.", "crea-attivita", "Torna all'Attività");
@@ -247,7 +260,7 @@ class AmministratoreController
             $this->mostraStatoOperazione(false, "Accesso negato. Nessuna palestra associata all'utente.", "login", "Torna al Login");
             return;
         }
-        $idCliente = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $idCliente = HTTPMethods::get('id') ? (int)HTTPMethods::get('id') : 0;
         $cliente = $this->clienteRepo->findById($idCliente);
         if (!$cliente) {
             $this->mostraStatoOperazione(false, "Cliente non trovato.", "clienti", "Torna a Gestione Clienti");
@@ -320,21 +333,20 @@ class AmministratoreController
         if ($isc) {
             $cliente->setIscrizione(null);
         }
-        $this->entityManager->flush();
+        $this->clienteRepo->save($cliente);
     }
 
     private function rimuoviEntitaOrfane(?CertificatoMedico $cert, ?AbbonamentoAttivo $abb, ?Iscrizione $isc): void
     {
         if ($cert) {
-            $this->entityManager->remove($cert);
+            $this->certificatoRepo->delete($cert);
         }
         if ($abb) {
-            $this->entityManager->remove($abb);
+            $this->abbonamentoAttivoRepo->delete($abb);
         }
         if ($isc) {
-            $this->entityManager->remove($isc);
+            $this->iscrizioneRepo->delete($isc);
         }
-        $this->entityManager->flush();
     }
 
     // =========================================================================
@@ -348,7 +360,7 @@ class AmministratoreController
             $this->mostraStatoOperazione(false, "Accesso negato. Nessuna palestra associata all'utente.", "login", "Torna al Login");
             return;
         }
-        $idAllenatore = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $idAllenatore = HTTPMethods::get('id') ? (int)HTTPMethods::get('id') : 0;
         $allenatore = $this->allenatoreRepo->findById($idAllenatore);
         if (!$allenatore) {
             $this->mostraStatoOperazione(false, "Allenatore non trovato.", "allenatori", "Torna a Gestione Allenatori");

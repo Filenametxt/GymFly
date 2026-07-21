@@ -5,6 +5,7 @@ use App\View\Interface\MessaggiView;
 use App\View\MessaggiViewSmarty;
 use App\View\VisualizzazioneViewSmarty;
 use App\Foundation\Session;
+use App\Foundation\Utility\HTTPMethods;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Cliente;
 use App\Entity\Allenatore;
@@ -102,13 +103,13 @@ class MessaggiController
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
         $utente = ($idUt && $ruolo) ? $this->utenteRepo->findById($idUt) : null;
-        if (!$utente || !$utente->mssAllowed() || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+        if (!$utente || !$utente->mssAllowed() || HTTPMethods::method() !== 'POST') {
             $this->mostraStatoOperazione(false, "Azione non autorizzata o richiesta non valida.", "messaggi", "Torna alla Bacheca");
             return;
         }
         $palestra = $this->recuperaPalestraMessaggi($utente, $ruolo);
-        $oggetto = trim($_POST['oggetto'] ?? '');
-        $contenuto = trim($_POST['contenuto'] ?? '');
+        $oggetto = trim(HTTPMethods::post('oggetto', ''));
+        $contenuto = trim(HTTPMethods::post('contenuto', ''));
         if (!$palestra || $oggetto === '' || $contenuto === '') {
             $this->mostraStatoOperazione(false, "Dati del messaggio o palestra non trovati.", "messaggi", "Torna alla Bacheca");
             return;
@@ -138,11 +139,11 @@ class MessaggiController
     private function recuperaDestinatari(Utente $ut, string $ruolo, Palestra $pal): array
     {
         $recipients = [];
-        $destinatariTipo = $_POST['destinatari_tipo'] ?? 'selezionati';     // recupera il tipo di destinatari selezionato dall'utente (selezionati o gruppo)
+        $destinatariTipo = HTTPMethods::post('destinatari_tipo', 'selezionati');     // recupera il tipo di destinatari selezionato dall'utente (selezionati o gruppo)
         if ($destinatariTipo === 'selezionati') {
-            $this->filtraDestinatariSelezionati($_POST['destinatari_ids'] ?? [], $pal, $recipients);
+            $this->filtraDestinatariSelezionati(HTTPMethods::postArray('destinatari_ids'), $pal, $recipients);
         } else {
-            $this->raccogliDestinatariGruppo($_POST['gruppo_tipo'] ?? '', $ruolo, $pal, $recipients);
+            $this->raccogliDestinatariGruppo(HTTPMethods::post('gruppo_tipo', ''), $ruolo, $pal, $recipients);
         }
         return array_filter($recipients, fn($r) => $r->getId() !== $ut->getId());       // filtra i destinatari per escludere l'utente mittente stesso
     }

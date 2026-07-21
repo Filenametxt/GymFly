@@ -37,6 +37,7 @@ use App\Entity\Messaggio;
 use App\View\Interface\AttivitaPianificataView;
 use App\View\AttivitaPianificataViewSmarty;
 use App\Foundation\Session;
+use App\Foundation\Utility\HTTPMethods;
 use Doctrine\ORM\EntityManagerInterface;
 
 class AttivitaPianificataController
@@ -85,7 +86,7 @@ class AttivitaPianificataController
         }
         $ruolo = $this->session->getLoggedUserRole();
         $idUt = $this->session->getLoggedUserId();
-        [$lun, $giorni, $dateStr] = $this->calcolaSettimana($_GET['data'] ?? 'today');
+        [$lun, $giorni, $dateStr] = $this->calcolaSettimana(HTTPMethods::get('data', 'today'));
         $apList = $this->caricaAttivitaPianificate($palestra, $ruolo, $idUt);
         $spList = $this->caricaSessioniPrivate($ruolo, $idUt, $dateStr);
         $selAp = $this->recuperaApSelezionata($palestra, $ruolo, $idUt);            //QUELLA SELEZIONATA
@@ -119,8 +120,8 @@ class AttivitaPianificataController
             'selectedSp' => $this->recuperaSpSelezionata($ruolo, $idUt), 
             'codaCounts' => $codaCounts,
             'isPassata' => $isPassata,
-            'nuovo' => isset($_GET['nuovo']) ? 1 : 0,       //se è stato passato il parametro nuovo nella query string, allora mostra il form per creare una nuova attività pianificata
-            'nuova_sessione' => isset($_GET['nuova_sessione']) ? 1 : 0
+            'nuovo' => HTTPMethods::get('nuovo') !== null ? 1 : 0,       //se è stato passato il parametro nuovo nella query string, allora mostra il form per creare una nuova attività pianificata
+            'nuova_sessione' => HTTPMethods::get('nuova_sessione') !== null ? 1 : 0
         ];
         if ($ruolo === 'cliente') {
             $this->arricchisciDatiCliente($idUt, $apList, $datiView);
@@ -212,25 +213,22 @@ class AttivitaPianificataController
 
     private function recuperaApSelezionata(Palestra $palestra, string $ruolo, int $idUtente): ?AttivitaPianificata
     {
-        $idAp = isset($_GET['id_ap']) ? (int)$_GET['id_ap'] : 0;    //recupera l'id dell'attività pianificata selezionata dalla query string
-        if ($idAp <= 0)     //best practice
-            return null;        
-        $selectedAp = $this->attivitaPianificataRepo->findById($idAp);
-        if ($selectedAp) {
-            $belongsToPalestra = $selectedAp->getSala()->getPalestra()->getId() === $palestra->getId();     //se quell'ap appart
-            $isTrainerCourse = ($ruolo === 'allenatore') ? ($selectedAp->getAllenatore()->getId() === $idUtente) : true;    //se l'utente loggato è un allenatore, controlla se l'attività pianificata selezionata appartiene a quell'allenatore
-            if ($belongsToPalestra && $isTrainerCourse) {
-                return $selectedAp;     //se sei amministratore o allenatore vedi tutte le attività pianificate della palestra, altrimenti se sei allenatore vedi solo le tue attività pianificate
-            }
+        $idAp = HTTPMethods::get('id_ap') ? (int)HTTPMethods::get('id_ap') : 0;
+        if ($idAp <= 0) {
+            return null;
+        }
+        $ap = $this->attivitaPianificataRepo->findById($idAp);
+        if ($ap && $ap->getAllenatore()->getPalestra()->getId() === $palestra->getId()) {
+            return $ap;
         }
         return null;
     }
 
-    private function recuperaSpSelezionata(string $ruolo, int $idUtente): ?SessionePrivata
+    private function recuperaSpSelezionata(string $ruolo, int $idUt): ?SessionePrivata
     {
-        $selAllenatoreId = isset($_GET['sel_allenatore']) ? (int)$_GET['sel_allenatore'] : 0;
-        $selOraInizio = isset($_GET['sel_ora_inizio']) ? trim($_GET['sel_ora_inizio']) : '';
-        $selOraFine = isset($_GET['sel_ora_fine']) ? trim($_GET['sel_ora_fine']) : '';
+        $selAllenatoreId = HTTPMethods::get('sel_allenatore') ? (int)HTTPMethods::get('sel_allenatore') : 0;
+        $selOraInizio = trim(HTTPMethods::get('sel_ora_inizio', ''));
+        $selOraFine = trim(HTTPMethods::get('sel_ora_fine', ''));
         if ($selAllenatoreId <= 0 || $selOraInizio === '' || $selOraFine === '') {
             return null;
         }
@@ -239,7 +237,7 @@ class AttivitaPianificataController
         try {
             $sp = $this->sessionePrivataRepo->findByChiave($selAllenatore, new DateTimeImmutableStringable($selOraInizio), new DateTimeImmutableStringable($selOraFine));
             if ($sp) {
-                $isAuth = ($ruolo === 'allenatore' && $idUtente === $sp->getAllenatore()->getId()) || ($ruolo === 'cliente' && $idUtente === $sp->getAtleta()->getId());
+                $isAuth = ($ruolo === 'allenatore' && $idUt === $sp->getAllenatore()->getId()) || ($ruolo === 'cliente' && $idUt === $sp->getAtleta()->getId());
                 return $isAuth ? $sp : null;
             }
         } catch (\Throwable $e) {}
@@ -251,16 +249,16 @@ class AttivitaPianificataController
         $cliente = $this->clienteRepo->findById($idUtente);
         if (!$cliente) 
             return;
-        $datiView['cliente'] = $cliente;   //aggiunge l'oggetto cliente ai dati della vista, in modo da poter accedere alle informazioni del cliente nella vista del calendario
-        $iscrittoMap = [];                 //mappa che associa l'id dell'attività pianificata al valore booleano che indica se il cliente è iscritto o meno a quell'attività
-        $inQueueMap = [];                  //mappa che associa l'id dell'attività pianificata al valore booleano che indica se il cliente è in coda di attesa o meno per quell'attività
+        $datiView['cliente'] = $cliente;
+        $iscrittoMap = [];
+        $inQueueMap = [];
         foreach ($apList as $ap) {
             $iscrittoMap[$ap->getId()] = $this->clienteRepo->isIscrittoAAttivita($cliente, $ap);
             $inQueueMap[$ap->getId()] = $this->codaAttesaRepo->existsInCoda($cliente, $ap);
         }
-        $datiView['iscrittoMap'] = $iscrittoMap;        //aggiunge la mappa iscrittoMap ai dati della vista, in modo da poter accedere alle informazioni di iscrizione del cliente nella vista del calendario
+        $datiView['iscrittoMap'] = $iscrittoMap;
         $datiView['inQueueMap'] = $inQueueMap;
-        $datiView['puoPrenotare'] = $cliente->puoPrenotareAttivita();       //aggiunge il valore booleano che indica se il cliente può prenotare attività ai dati della vista, in modo da poter accedere a questa informazione nella vista del calendario
+        $datiView['puoPrenotare'] = $cliente->puoPrenotareAttivita();
     }
 
     // =========================================================================
@@ -274,13 +272,13 @@ class AttivitaPianificataController
             $this->view->mostraStatoOperazione(false, "Accesso negato. Nessuna palestra associata all'utente.", "login", "Torna al Login");
             return;
         }
-        $idAp = (int)($_REQUEST['id_attivita_pianificata'] ?? 0);      //recupera l'id dell'attività pianificata dalla query string; REQUEST è un array che contiene i dati della richiesta HTTP, sia GET che POST
+        $idAp = (int)HTTPMethods::request('id_attivita_pianificata', 0);
         $ap = $this->attivitaPianificataRepo->findById($idAp);
         if (!$ap || $ap->getSala()->getPalestra()->getId() !== $palestra->getId()) {
             $this->view->mostraStatoOperazione(false, "Attività non trovata.", "calendario", "Torna al Calendario");
             return;
         }
-        $rit = "calendario?data=" . $ap->getGiorno()->format('Y-m-d');        //calendario?data=2024-06-01, in modo da tornare alla settimana corretta dopo la prenotazione
+        $rit = "calendario?data=" . $ap->getGiorno()->format('Y-m-d');
         
         $dataAttivita = $ap->getGiorno()->setTime($ap->getOrario(), 0, 0);
         if ($dataAttivita < new \DateTimeImmutable()) {
@@ -294,10 +292,10 @@ class AttivitaPianificataController
         }
     }
 
-    private function recuperaClientePrenotazione(Palestra $palestra, string $ritorno): ?Cliente     //recupera il cliente da prenotare, controllando se l'utente loggato è un cliente o un allenatore/amministratore che sta prenotando per un cliente specifico
+    private function recuperaClientePrenotazione(Palestra $palestra, string $ritorno): ?Cliente
     {
         $ruolo = $this->session->getLoggedUserRole();
-        $id = ($ruolo === 'cliente') ? $this->session->getLoggedUserId() : (int)($_POST['id_cliente'] ?? $_GET['id_cliente'] ?? 0);       //se l'utente loggato è un cliente, recupera il suo id dalla sessione, altrimenti recupera l'id del cliente selezionato dal form di prenotazione
+        $id = ($ruolo === 'cliente') ? $this->session->getLoggedUserId() : (int)HTTPMethods::request('id_cliente', 0);
         $cliente = $this->clienteRepo->findById($id);
         if (!$cliente || $cliente->getPalestra()->getId() !== $palestra->getId()) {
             $this->view->mostraStatoOperazione(false, "Cliente non valido.", $ritorno, "Torna al Calendario");
@@ -323,7 +321,7 @@ class AttivitaPianificataController
         try {
             $cliente->iscriviAAttivita($ap);
             $ap->setPrenotati($ap->getPrenotati() + 1);
-            $this->clienteRepo->save($cliente);                         //salva il cliente con l'iscrizione aggiornata e l'attività pianificata con il numero di prenotati aggiornato
+            $this->clienteRepo->save($cliente);
             $this->view->mostraStatoOperazione(true, "Iscrizione registrata con successo.", $ritorno, "Torna al Calendario");
         } catch (\Throwable $e) {
             $this->view->mostraStatoOperazione(false, "Errore: " . $e->getMessage(), $ritorno, "Torna al Calendario");
@@ -352,30 +350,39 @@ class AttivitaPianificataController
     {
         $palestra = $this->recuperaPalestraUtente();
         if (!$palestra) {
-            $this->view->mostraStatoOperazione(false, "Accesso negato. Nessuna palestra associata all'utente.", "login", "Torna al Login");
+            $this->view->mostraStatoOperazione(false, "Accesso negato.", "login");
             return;
         }
-        $idAp = (int)($_REQUEST['id_attivita_pianificata'] ?? 0);      //recupera l'id dell'attività pianificata dalla query string; REQUEST è un array che contiene i dati della richiesta HTTP, sia GET che POST
-        $ap = $this->attivitaPianificataRepo->findById($idAp);
-        if (!$ap || $ap->getSala()->getPalestra()->getId() !== $palestra->getId()) {
-            $this->view->mostraStatoOperazione(false, "Attività non trovata.", "calendario", "Torna al Calendario");
+        $ruolo = $this->session->getLoggedUserRole();
+        $idAp = (int)HTTPMethods::request('id_attivita_pianificata', 0);
+        $ap = $idAp ? $this->attivitaPianificataRepo->findById($idAp) : null;
+        if (!$ap) {
+            $this->view->mostraStatoOperazione(false, "Attività non trovata.");
             return;
         }
-        $rit = "calendario?data=" . $ap->getGiorno()->format('Y-m-d');
-        $cliente = $this->recuperaClientePrenotazione($palestra, $rit);
-        if ($cliente) {
-            $this->eseguiDisdetta($cliente, $ap, $rit);
+
+        $cliente = $this->recuperaClientePerDisdetta($ruolo);
+        if (!$cliente) {
+            return;
         }
+        $this->eseguiDisdetta($ap, $cliente);
     }
 
-    private function eseguiDisdetta(Cliente $cliente, AttivitaPianificata $ap, string $ritorno): void
+    private function recuperaClientePerDisdetta(string $ruolo): ?Cliente
     {
-        $inQueue = $this->codaAttesaRepo->findOneByClienteAndAttivita($cliente, $ap);   //controlla se il cliente è in coda di attesa per quell'attività pianificata
+        $id = ($ruolo === 'cliente') ? $this->session->getLoggedUserId() : (int)HTTPMethods::request('id_cliente', 0);
+        return $this->clienteRepo->findById($id);
+    }
+
+    private function eseguiDisdetta(AttivitaPianificata $ap, Cliente $cliente): void
+    {
+        $rit = "calendario?data=" . $ap->getGiorno()->format('Y-m-d');
+        $inQueue = $this->codaAttesaRepo->findOneByClienteAndAttivita($cliente, $ap);
         if (!$this->clienteRepo->isIscrittoAAttivita($cliente, $ap)) {
             if ($inQueue) {
-                $this->rimuoviDaCoda($inQueue, $ritorno);
+                $this->rimuoviDaCoda($inQueue, $rit);
             } else {
-                $this->view->mostraStatoOperazione(false, "Il cliente non risulta iscritto o in coda.", $ritorno, "Torna al Calendario");
+                $this->view->mostraStatoOperazione(false, "Il cliente non risulta iscritto o in coda.", $rit, "Torna al Calendario");
             }
             return;
         }
@@ -384,9 +391,9 @@ class AttivitaPianificataController
             $ap->setPrenotati(max(0, $ap->getPrenotati() - 1));
             $this->clienteRepo->save($cliente);
             self::scorriCodaEnotifica($ap, $this->codaAttesaRepo, $this->clienteRepo, $this->messaggioRepo);
-            $this->view->mostraStatoOperazione(true, "Iscrizione cancellata con successo.", $ritorno, "Torna al Calendario");
+            $this->view->mostraStatoOperazione(true, "Iscrizione cancellata con successo.", $rit, "Torna al Calendario");
         } catch (\Throwable $e) {
-            $this->view->mostraStatoOperazione(false, "Errore disdetta: " . $e->getMessage(), $ritorno, "Torna al Calendario");
+            $this->view->mostraStatoOperazione(false, "Errore disdetta: " . $e->getMessage(), $rit, "Torna al Calendario");
         }
     }
 
@@ -425,48 +432,49 @@ class AttivitaPianificataController
     public function prenotaSessionePrivata(): void
     {
         $palestra = $this->recuperaPalestraUtente();
-        if (!$palestra || $this->session->getLoggedUserRole() !== 'allenatore') {
-            $this->view->mostraStatoOperazione(false, "Accesso negato.");
+        if (!$palestra) {
+            $this->view->mostraStatoOperazione(false, "Accesso negato.", "login");
             return;
         }
-        $idAllenatore = $this->session->getLoggedUserId();
-        $allenatore = $this->allenatoreRepo->findById($idAllenatore);
-        if (!$allenatore) {
-            $this->view->mostraStatoOperazione(false, "Allenatore non trovato.", "calendario", "Torna al Calendario");
+        if (HTTPMethods::method() === 'GET') {
+            $this->view->redirect('calendario');
             return;
         }
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            header('Location: calendario');
-            exit();
-        }
-        $this->eseguiPrenotazioneSp($allenatore, $palestra);
+        $this->eseguiPrenotazioneSessionePrivata($palestra);
     }
 
-    private function eseguiPrenotazioneSp(Allenatore $all, Palestra $pal): void
+    private function eseguiPrenotazioneSessionePrivata(Palestra $palestra): void
     {
-        $idCliente = (int)($_POST['id_cliente'] ?? 0);
-        $dataStr = trim($_POST['data'] ?? '');
+        $idCliente = (int)HTTPMethods::post('id_cliente', 0);
+        $dataStr = trim(HTTPMethods::post('data', ''));
+        $oraIn = trim(HTTPMethods::post('ora_inizio', ''));
+        $oraFi = trim(HTTPMethods::post('ora_fine', ''));
         $rit = ($dataStr !== '') ? "calendario?data=" . $dataStr : "calendario";
-        $oraIn = trim($_POST['ora_inizio'] ?? '');
-        $oraFi = trim($_POST['ora_fine'] ?? '');
 
         if ($idCliente <= 0 || $dataStr === '' || $oraIn === '' || $oraFi === '') {
             $this->view->mostraStatoOperazione(false, "Campi obbligatori mancanti.", $rit, "Torna al Calendario");
             return;
         }
         $cliente = $this->clienteRepo->findById($idCliente);
-        if (!$cliente || $cliente->getPalestra()->getId() !== $pal->getId()) {
+        if (!$cliente || $cliente->getPalestra()->getId() !== $palestra->getId()) {
             $this->view->mostraStatoOperazione(false, "Cliente non valido.", $rit, "Torna al Calendario");
             return;
         }
-        $this->salvaSpEInviaMessaggio($cliente, $all, $dataStr, $oraIn, $oraFi, $rit);
+
+        if ($oraIn<8 || $oraFi>21 ){
+            $this->view->mostraStatoOperazione(false, "Selezionare una fascia di orario valida.", $rit, "Torna al Calendario");
+            return;
+        }
+        $idAllenatore = $this->session->getLoggedUserId();
+        $allenatore = $this->allenatoreRepo->findById($idAllenatore);
+        $this->salvaSpEInviaMessaggio($cliente, $allenatore, $dataStr, $oraIn, $oraFi, $rit);
     }
 
     private function salvaSpEInviaMessaggio(Cliente $cli, Allenatore $all, string $dataStr, string $oraIn, string $oraFi, string $rit): void
     {
         try {
             $dataObj = new \DateTimeImmutable($dataStr);
-            $oraInObj = new DateTimeImmutableStringable($dataStr . ' ' . $oraIn);      //crea un oggetto DateTimeImmutableStringable per l'ora di inizio della sessione privata, combinando la data e l'ora di inizio
+            $oraInObj = new DateTimeImmutableStringable($dataStr . ' ' . $oraIn);
             $oraFiObj = new DateTimeImmutableStringable($dataStr . ' ' . $oraFi);
             if ($oraInObj >= $oraFiObj) {
                 $this->view->mostraStatoOperazione(false, "L'ora di inizio deve precedere la fine.", $rit, "Torna al Calendario");
@@ -497,36 +505,45 @@ class AttivitaPianificataController
             $this->view->mostraStatoOperazione(false, "Accesso negato. Solo l'amministratore può pianificare corsi.");
             return;
         }
-        $dataStr = trim($_POST['data'] ?? '');
-        $orario = (int)($_POST['orario'] ?? 0);
-        $idAllenatore = (int)($_POST['id_allenatore'] ?? 0);
+        $dataStr = trim(HTTPMethods::post('data', ''));
         $ritorno = ($dataStr !== '') ? "calendario?data=" . $dataStr : "calendario";
-        if ($dataStr === '' || $orario < 8 || $orario > 20 || $idAllenatore <= 0) {
-            $this->view->mostraStatoOperazione(false, "Dati incompleti o orario non valido (8-20).", $ritorno, "Torna al Calendario");
+        $this->eseguiCreazionePianificata($palestra, $ritorno);
+    }
+
+    private function eseguiCreazionePianificata(Palestra $palestra, string $ritorno): void
+    {
+        $dataStr = trim(HTTPMethods::post('data', ''));
+        $orario = (int)HTTPMethods::post('orario', 8);
+        $idAllenatore = (int)HTTPMethods::post('id_allenatore', 0);
+        $allenatore = $this->allenatoreRepo->findById($idAllenatore);
+
+        if (!$allenatore || $allenatore->getPalestra()->getId() !== $palestra->getId()) {
+            $this->view->mostraStatoOperazione(false, "Allenatore non valido o non appartenente alla palestra.", $ritorno);
             return;
         }
-        $attivita = $this->ottieniOCreaAttivita((int)($_POST['id_attivita'] ?? 0), $ritorno);
-        $sala = $attivita ? $this->ottieniOCreaSala((int)($_POST['id_sala'] ?? 0), $palestra, $ritorno) : null;
-        $allenatore = $sala ? $this->allenatoreRepo->findById($idAllenatore) : null;
-        if (!$allenatore || $sala->getPalestra()->getId() !== $palestra->getId() || $allenatore->getPalestra()->getId() !== $palestra->getId()) {
-            $this->view->mostraStatoOperazione(false, "Allenatore non trovato o risorse esterne alla palestra.", $ritorno, "Torna al Calendario");
+        if ($orario< 8 || $orario>20){
+            $this->view->mostraStatoOperazione(false, "Selezionare una fascia di orario valida.", $ritorno);
             return;
         }
-        $this->salvaPianificazioni(new \DateTime($dataStr), $_POST['ripetizione'] ?? [], $orario, $sala, $allenatore, $attivita, $ritorno);
+
+        $attivita = $this->ottieniOCreaAttivita((int)HTTPMethods::post('id_attivita', 0), $ritorno);
+        $sala = $attivita ? $this->ottieniOCreaSala((int)HTTPMethods::post('id_sala', 0), $palestra, $ritorno) : null;
+        if (!$attivita || !$sala) {
+            return;
+        }
+
+        $ripetizione = HTTPMethods::postArray('ripetizione');
+        $this->salvaPianificazioni(new \DateTime($dataStr), $ripetizione, $orario, $sala, $allenatore, $attivita, $ritorno);
     }
 
     private function ottieniOCreaAttivita(int $idAttivita, string $ritorno): ?Attivita
     {
-        if ($idAttivita <= 0) {
-            $nome = trim($_POST['nuova_attivita_nome'] ?? '');
-            $desc = trim($_POST['nuova_attivita_desc'] ?? '');
-            $max = (int)($_POST['nuova_attivita_max'] ?? 0);
+        if ($idAttivita === 0) { // Nuova attività
+            $nome = trim(HTTPMethods::post('nuova_attivita_nome', ''));
+            $desc = trim(HTTPMethods::post('nuova_attivita_desc', ''));
+            $max = (int)HTTPMethods::post('nuova_attivita_max', 0);
             if ($nome === '' || $max <= 0) {
-                $this->view->mostraStatoOperazione(false, "Nome e limite partecipanti validi obbligatori.", $ritorno, "Torna al Calendario");
-                return null;
-            }
-            if ($this->attivitaRepo->existsByNome($nome)) {
-                $this->view->mostraStatoOperazione(false, "Attività già esistente nel catalogo.", $ritorno, "Torna al Calendario");
+                $this->view->mostraStatoOperazione(false, "Dati nuova attività non validi (Nome obbligatorio, Max > 0).", $ritorno);
                 return null;
             }
             $attivita = new Attivita($nome, $desc, $max);
@@ -539,14 +556,14 @@ class AttivitaPianificataController
     private function ottieniOCreaSala(int $idSala, Palestra $palestra, string $ritorno): ?Sala
     {
         if ($idSala <= 0) {
-            $nome = trim($_POST['nuova_sala_nome'] ?? '');
-            $max = (int)($_POST['nuova_sala_max'] ?? 0);
+            $nome = trim(HTTPMethods::post('nuova_sala_nome', ''));
+            $max = (int)HTTPMethods::post('nuova_sala_max', 0);
             if ($nome === '' || $max <= 0) {
-                $this->view->mostraStatoOperazione(false, "Nome e capienza massima validi obbligatori.", $ritorno, "Torna al Calendario");
+                $this->view->mostraStatoOperazione(false, "Nome e capienza massima validi obbligatori.", $ritorno);
                 return null;
             }
             if ($this->salaRepo->existsByNomeAndPalestra($nome, $palestra)) {
-                $this->view->mostraStatoOperazione(false, "La sala esiste già nella tua palestra.", $ritorno, "Torna al Calendario");
+                $this->view->mostraStatoOperazione(false, "La sala esiste già nella tua palestra.", $ritorno);
                 return null;
             }
             $sala = new Sala($nome, $max, $palestra);
@@ -562,15 +579,15 @@ class AttivitaPianificataController
             if (!empty($rip)) {
                 for ($i = 0; $i < 28; $i++) {
                     $current = (clone $startDate)->modify("+$i days");
-                    if (in_array((string)$current->format('N'), $rip)) {      //controlla se il giorno corrente della settimana (1-7) è presente nell'array dei giorni selezionati per la ripetizione
-                        $giornoImm = \DateTimeImmutable::createFromMutable($current);      //crea un oggetto DateTimeImmutable a partire dall'oggetto DateTime corrente, in modo da avere una data immutabile per la pianificazione dell'attività
-                        if (!$this->attivitaPianificataRepo->findOneByGiornoOrarioAndSala($giornoImm, $orario, $sala)) {    //controlla se esiste già un'attività pianificata per quel giorno, orario e sala; se non esiste, crea una nuova attività pianificata
+                    if (in_array((string)$current->format('N'), $rip)) {
+                        $giornoImm = \DateTimeImmutable::createFromMutable($current);
+                        if (!$this->attivitaPianificataRepo->findOneByGiornoOrarioAndSala($giornoImm, $orario, $sala)) {
                             $this->attivitaPianificataRepo->save(new AttivitaPianificata($giornoImm, $orario, $sala, $all, $att));
                         }
                     }
                 }
             } else {
-                $giornoImm = \DateTimeImmutable::createFromMutable($startDate);        //crea un oggetto DateTimeImmutable a partire dall'oggetto DateTime passato come parametro, in modo da avere una data immutabile per la pianificazione dell'attività
+                $giornoImm = \DateTimeImmutable::createFromMutable($startDate);
                 if ($this->attivitaPianificataRepo->findOneByGiornoOrarioAndSala($giornoImm, $orario, $sala)) {
                     $this->view->mostraStatoOperazione(false, "Sala occupata.", $rit, "Torna al Calendario");
                     return;
@@ -587,51 +604,78 @@ class AttivitaPianificataController
     // 6. RIMUOVI ATTIVITÀ PIANIFICATA (/rimuovi-attivita-pianificata)
     // =========================================================================
 
-    public function rimuoviAttivitaPianificata(): void          //gestisce la richiesta di rimozione di un'attività pianificata; controlla se l'utente loggato è un amministratore e se l'attività pianificata appartiene alla palestra dell'utente; se sì, chiama il metodo eseguiRimozioneAp per rimuovere l'attività pianificata
+    public function rimuoviAttivitaPianificata(): void
     {
+        $ruolo = $this->session->getLoggedUserRole();
         $palestra = $this->recuperaPalestraUtente();
-        if (!$palestra || $this->session->getLoggedUserRole() !== 'amministratore') {
+        if (!$palestra || $ruolo !== 'amministratore') {
             $this->view->mostraStatoOperazione(false, "Accesso negato.");
             return;
         }
-        $id = (int)($_REQUEST['id_attivita_pianificata'] ?? 0); //recupera l'id dell'attività pianificata dalla query string; REQUEST è un array che contiene i dati della richiesta HTTP, sia GET che POST
-        $ap = $this->attivitaPianificataRepo->findById($id);
-        if (!$ap || $ap->getSala()->getPalestra()->getId() !== $palestra->getId()) {
-            $this->view->mostraStatoOperazione(false, "Attività non trovata o accesso negato.", "calendario", "Torna al Calendario");
-            return;
-        }
-        $this->eseguiRimozioneAp($ap);
+        $this->eseguiRimozioneAttivitaPianificata($palestra, $ruolo);
     }
 
-    private function eseguiRimozioneAp(AttivitaPianificata $ap): void
+    private function eseguiRimozioneAttivitaPianificata(Palestra $palestra, string $ruolo): void
     {
+        $id = (int)HTTPMethods::request('id_attivita_pianificata', 0);
+        $ap = $id ? $this->attivitaPianificataRepo->findById($id) : null;
+        if (!$ap) {
+            $this->view->mostraStatoOperazione(false, "Attività pianificata non trovata.");
+            return;
+        }
+        if ($ap->getAllenatore()->getPalestra()->getId() !== $palestra->getId()) {
+            $this->view->mostraStatoOperazione(false, "Accesso negato. L'attività appartiene a un'altra palestra.");
+            return;
+        }
+
         try {
-            $rit = "calendario?data=" . $ap->getGiorno()->format('Y-m-d');   //ritorna alla settimana corretta dopo la rimozione dell'attività pianificata
+            $this->inviaNotificaAnnullamentoAp($ap, $ruolo);
             foreach ($ap->getUtenti() as $cliente) {
                 $cliente->cancellaIscrizioneAttivita($ap);
                 $this->clienteRepo->save($cliente);
             }
-            $this->attivitaPianificataRepo->delete($ap);    //rimuove l'attività pianificata dal repository
-            $this->view->mostraStatoOperazione(true, "Attività pianificata rimossa.", $rit, "Torna al Calendario");
+            $this->attivitaPianificataRepo->delete($ap);
+            $this->view->mostraStatoOperazione(true, "Attività pianificata rimossa con successo.");
         } catch (\Throwable $e) {
-            $this->view->mostraStatoOperazione(false, "Errore: " . $e->getMessage(), "calendario", "Torna al Calendario");
+            $this->view->mostraStatoOperazione(false, "Impossibile rimuovere l'attività pianificata.");
+        }
+    }
+
+    private function inviaNotificaAnnullamentoAp(AttivitaPianificata $ap, string $ruolo): void
+    {
+        if ($ruolo === 'amministratore') {
+            $cli = $ap->getUtenti();
+            foreach ($cli as $c){
+                $msg = new Messaggio(
+                    $ap->getAllenatore(),
+                    "Attività Pianificata " . $ap->getAttivita()->getNome() . " Annullata",
+                    "Ciao " . $c->getNome() . ", ho annullato la sessione privata del giorno " . $ap->getGiorno()->format('d/m/Y') . " delle ore " . $ap->getOrario().":00"
+                );
+                $msg->aggiungiDestinatario($c);
+                $this->messaggioRepo->save($msg);
+            }
         }
     }
 
     // =========================================================================
-    // 7. DISDICI SESSIONE PRIVATA (/disdici-sessione-privata)
+    // 6. DISDICI SESSIONE PRIVATA (/disdici-sessione-privata)
     // =========================================================================
 
-    public function disdiciSessionePrivata(): void      //gestisce la richiesta di disdetta di una sessione privata
+    public function disdiciSessionePrivata(): void
     {
         $palestra = $this->recuperaPalestraUtente();
-        if (!$palestra || $this->session->getLoggedUserRole() === 'amministratore') {   //controlla se l'utente loggato è un cliente o un allenatore; se no, mostra un messaggio di accesso negato
-            $this->view->mostraStatoOperazione(false, "Accesso negato.");
+        if (!$palestra) {
+            $this->view->mostraStatoOperazione(false, "Accesso negato.", "login");
             return;
         }
-        $idAllenatore = (int)($_REQUEST['id_allenatore'] ?? 0);     //recupera l'id dell'allenatore dalla query string;
-        $oraInStr = trim($_REQUEST['ora_inizio'] ?? '');
-        $oraFiStr = trim($_REQUEST['ora_fine'] ?? '');
+        $this->eseguiDisdettaSessionePrivata($palestra);
+    }
+
+    private function eseguiDisdettaSessionePrivata(Palestra $palestra): void
+    {
+        $idAllenatore = (int)HTTPMethods::request('id_allenatore', 0);
+        $oraInStr = trim(HTTPMethods::request('ora_inizio', ''));
+        $oraFiStr = trim(HTTPMethods::request('ora_fine', ''));
         if ($idAllenatore <= 0 || $oraInStr === '' || $oraFiStr === '') {
             $this->view->mostraStatoOperazione(false, "Dati identificativi della sessione non validi.", "calendario", "Torna al Calendario");
             return;

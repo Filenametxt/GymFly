@@ -13,6 +13,7 @@ use App\View\Interface\ReportView;
 use App\View\ReportViewSmarty;
 use App\View\VisualizzazioneViewSmarty;
 use App\Foundation\Session;
+use App\Foundation\Utility\HTTPMethods;
 use Doctrine\ORM\EntityManagerInterface;
 
 class ReportController
@@ -49,8 +50,8 @@ class ReportController
             $this->mostraStatoOperazione(false, "Accesso negato o palestra non associata.");
             return;
         }
-        $mese = isset($_GET['mese']) ? (int)$_GET['mese'] : (int)date('m');
-        $anno = isset($_GET['anno']) ? (int)$_GET['anno'] : (int)date('Y');
+        $mese = HTTPMethods::get('mese') ? (int)HTTPMethods::get('mese') : (int)date('m');
+        $anno = HTTPMethods::get('anno') ? (int)HTTPMethods::get('anno') : (int)date('Y');
         $giorni = (int)(new \DateTimeImmutable("$anno-$mese-01"))->modify('last day of this month')->format('d');
         $clienti = $this->clienteRepo->findByPalestra($palestra);
 
