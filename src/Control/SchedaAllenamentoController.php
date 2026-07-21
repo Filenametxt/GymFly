@@ -320,19 +320,29 @@ class SchedaAllenamentoController
     // 4. INVIA SCHEDA (/invia-scheda)
     // =========================================================================
 
-    public function inviaScheda(int $idScheda): void
+    public function inviaScheda(?int $idSchedaParam = null): void
     {
-        $scheda = $this->schedaRepo->findById($idScheda);
-        if ($scheda) {
-            $scheda->getCliente()->setScheda($scheda);
-            $this->clienteRepo->save($scheda->getCliente());
-            $this->schedaRepo->save($scheda);
-            
-            $msg = new Messaggio($scheda->getAllenatore(), "Nuova Scheda di Allenamento", "Ciao " . $scheda->getCliente()->getNome() . ", ho realizzato la tua nuova scheda: '" . $scheda->getNome_scheda() . "'. Puoi consultarla nella sezione dedicata.");
-            $msg->aggiungiDestinatario($scheda->getCliente());
-            $this->messaggioRepo->save($msg);
-            $this->view->mostraStatoOperazione(true, "Scheda salvata e inviata al cliente con successo.", "clienti", "Torna a Gestione Clienti");
+        $idLog = $this->session->getLoggedUserId();
+        $ruolo = $this->session->getLoggedUserRole();
+        if (!$idLog || $ruolo !== 'allenatore') {
+            $this->view->mostraStatoOperazione(false, "Accesso negato.", "login");
+            return;
         }
+        $idScheda = $idSchedaParam ?? (int)HTTPMethods::request('id', HTTPMethods::request('id_scheda', 0));
+        $scheda = $this->schedaRepo->findById($idScheda);
+        if (!$scheda || $scheda->getAllenatore()->getId() !== $idLog) {
+            $this->view->mostraStatoOperazione(false, "Scheda non trovata o non autorizzato.", "dashboard-allenatore");
+            return;
+        }
+
+        $scheda->getCliente()->setScheda($scheda);
+        $this->clienteRepo->save($scheda->getCliente());
+        $this->schedaRepo->save($scheda);
+        
+        $msg = new Messaggio($scheda->getAllenatore(), "Nuova Scheda di Allenamento", "Ciao " . $scheda->getCliente()->getNome() . ", ho realizzato la tua nuova scheda: '" . $scheda->getNome_scheda() . "'. Puoi consultarla nella sezione dedicata.");
+        $msg->aggiungiDestinatario($scheda->getCliente());
+        $this->messaggioRepo->save($msg);
+        $this->view->mostraStatoOperazione(true, "Scheda salvata e inviata al cliente con successo.", "clienti", "Torna a Gestione Clienti");
     }
 
     // =========================================================================
