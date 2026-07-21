@@ -6,7 +6,6 @@ use App\Entity\Allenamento;
 use App\Entity\DettaglioAllenamento;
 use App\Entity\Cliente;
 use App\Entity\Allenatore;
-use App\Entity\Esercizio;
 use App\Entity\Messaggio;
 use App\Entity\ProgressoCarico;
 use App\Entity\ProgressoRipetizioni;

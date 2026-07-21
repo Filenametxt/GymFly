@@ -460,6 +460,11 @@ class AttivitaPianificataController
             $this->view->mostraStatoOperazione(false, "Cliente non valido.", $rit, "Torna al Calendario");
             return;
         }
+
+        if ($oraIn<8 || $oraFi>21 ){
+            $this->view->mostraStatoOperazione(false, "Selezionare una fascia di orario valida.", $rit, "Torna al Calendario");
+            return;
+        }
         $idAllenatore = $this->session->getLoggedUserId();
         $allenatore = $this->allenatoreRepo->findById($idAllenatore);
         $this->salvaSpEInviaMessaggio($cliente, $allenatore, $dataStr, $oraIn, $oraFi, $rit);
@@ -508,12 +513,16 @@ class AttivitaPianificataController
     private function eseguiCreazionePianificata(Palestra $palestra, string $ritorno): void
     {
         $dataStr = trim(HTTPMethods::post('data', ''));
-        $orario = (int)HTTPMethods::post('orario', 0);
+        $orario = (int)HTTPMethods::post('orario', 8);
         $idAllenatore = (int)HTTPMethods::post('id_allenatore', 0);
         $allenatore = $this->allenatoreRepo->findById($idAllenatore);
 
         if (!$allenatore || $allenatore->getPalestra()->getId() !== $palestra->getId()) {
             $this->view->mostraStatoOperazione(false, "Allenatore non valido o non appartenente alla palestra.", $ritorno);
+            return;
+        }
+        if ($orario< 8 || $orario>20){
+            $this->view->mostraStatoOperazione(false, "Selezionare una fascia di orario valida.", $ritorno);
             return;
         }
 

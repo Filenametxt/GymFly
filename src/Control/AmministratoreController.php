@@ -11,6 +11,9 @@ use App\Entity\Repository\SessionePrivataRepositoryInterface;
 use App\Entity\Repository\ParametriRepositoryInterface;
 use App\Entity\Repository\SchedaRepositoryInterface;
 use App\Entity\Repository\PalestraRepositoryInterface;
+use App\Entity\Repository\CertificatoMedicoRepositoryInterface;
+use App\Entity\Repository\AbbonamentoAttivoRepositoryInterface;
+use App\Entity\Repository\IscrizioneRepositoryInterface;
 use App\Foundation\Persistence\Repository\DoctrineClienteRepository;
 use App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository;
 use App\Foundation\Persistence\Repository\DoctrineAttivitaRepository;
@@ -20,6 +23,9 @@ use App\Foundation\Persistence\Repository\DoctrineSessionePrivataRepository;
 use App\Foundation\Persistence\Repository\DoctrineParametriRepository;
 use App\Foundation\Persistence\Repository\DoctrineSchedaRepository;
 use App\Foundation\Persistence\Repository\DoctrinePalestraRepository;
+use App\Foundation\Persistence\Repository\DoctrineCertificatoMedicoRepository;
+use App\Foundation\Persistence\Repository\DoctrineAbbonamentoAttivoRepository;
+use App\Foundation\Persistence\Repository\DoctrineIscrizioneRepository;
 use App\View\Interface\AmministratoreView;
 use App\View\AmministratoreViewSmarty;
 use App\View\VisualizzazioneViewSmarty;
@@ -49,6 +55,9 @@ class AmministratoreController
     private SchedaRepositoryInterface $schedaRepo;
     private PalestraRepositoryInterface $palestraRepo;
     private MessaggioRepositoryInterface $messaggioRepo;
+    private CertificatoMedicoRepositoryInterface $certificatoRepo;
+    private AbbonamentoAttivoRepositoryInterface $abbonamentoAttivoRepo;
+    private IscrizioneRepositoryInterface $iscrizioneRepo;
     private AmministratoreView $view;
 
     public function __construct(
@@ -66,6 +75,9 @@ class AmministratoreController
         $this->palestraRepo = new DoctrinePalestraRepository($this->entityManager);
         $this->view = new AmministratoreViewSmarty();
         $this->messaggioRepo = new DoctrineMessaggioRepository($this->entityManager);
+        $this->certificatoRepo = new DoctrineCertificatoMedicoRepository($this->entityManager);
+        $this->abbonamentoAttivoRepo = new DoctrineAbbonamentoAttivoRepository($this->entityManager);
+        $this->iscrizioneRepo = new DoctrineIscrizioneRepository($this->entityManager);
     }
 
     // =========================================================================
@@ -321,21 +333,20 @@ class AmministratoreController
         if ($isc) {
             $cliente->setIscrizione(null);
         }
-        $this->entityManager->flush();
+        $this->clienteRepo->save($cliente);
     }
 
     private function rimuoviEntitaOrfane(?CertificatoMedico $cert, ?AbbonamentoAttivo $abb, ?Iscrizione $isc): void
     {
         if ($cert) {
-            $this->entityManager->remove($cert);
+            $this->certificatoRepo->delete($cert);
         }
         if ($abb) {
-            $this->entityManager->remove($abb);
+            $this->abbonamentoAttivoRepo->delete($abb);
         }
         if ($isc) {
-            $this->entityManager->remove($isc);
+            $this->iscrizioneRepo->delete($isc);
         }
-        $this->entityManager->flush();
     }
 
     // =========================================================================

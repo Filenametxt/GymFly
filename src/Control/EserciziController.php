@@ -10,10 +10,12 @@ use App\Entity\Repository\EsercizioRepositoryInterface;
 use App\Entity\Repository\GruppoMuscolareRepositoryInterface;
 use App\Entity\Repository\AttrezzaturaRepositoryInterface;
 use App\Entity\Repository\TipologiaRepositoryInterface;
+use App\Entity\Repository\AllenatoreRepositoryInterface;
 use App\Foundation\Persistence\Repository\DoctrineEsercizioRepository;
 use App\Foundation\Persistence\Repository\DoctrineGruppoMuscolareRepository;
 use App\Foundation\Persistence\Repository\DoctrineAttrezzaturaRepository;
 use App\Foundation\Persistence\Repository\DoctrineTipologiaRepository;
+use App\Foundation\Persistence\Repository\DoctrineAllenatoreRepository;
 use App\View\Interface\EserciziView;
 use App\View\EserciziViewSmarty;
 use App\Foundation\Session;
@@ -26,6 +28,7 @@ class EserciziController
     private GruppoMuscolareRepositoryInterface $gruppoMuscolareRepo;
     private AttrezzaturaRepositoryInterface $attrezzaturaRepo;
     private TipologiaRepositoryInterface $tipologiaRepo;
+    private AllenatoreRepositoryInterface $allenatoreRepo;
     private EserciziView $view;
 
     public function __construct(
@@ -36,6 +39,7 @@ class EserciziController
         $this->gruppoMuscolareRepo = new DoctrineGruppoMuscolareRepository($this->entityManager);
         $this->attrezzaturaRepo = new DoctrineAttrezzaturaRepository($this->entityManager);
         $this->tipologiaRepo = new DoctrineTipologiaRepository($this->entityManager);
+        $this->allenatoreRepo = new DoctrineAllenatoreRepository($this->entityManager);
         $this->view = new EserciziViewSmarty();
     }
 
@@ -162,7 +166,7 @@ class EserciziController
         $att = $this->recuperaAttrezzatura(HTTPMethods::post('attrezzatura_id', ''), trim(HTTPMethods::post('nuova_attrezzatura_nome', '')));
         $tracciamento = HTTPMethods::post('tracciamento_carico');
         $tip = $this->recuperaTipologia($tracciamento !== null ? (int)$tracciamento : 1);
-        $all = $this->entityManager->find(Allenatore::class, $idAllenatore);
+        $all = $this->allenatoreRepo->findById($idAllenatore);
         $immagineType = null;
         $immagineBin = $this->recuperaImmagine($idProv, $immagineType);
         $es = new Esercizio($nome, trim(HTTPMethods::post('descrizione', '')), $tip, $att, $all, $immagineBin, $immagineType);

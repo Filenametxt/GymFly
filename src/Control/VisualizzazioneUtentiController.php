@@ -15,7 +15,6 @@ use App\View\VisualizzazioneViewSmarty;
 use App\Foundation\Session;
 use App\Foundation\Utility\HTTPMethods;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Entity\Amministratore;
 use App\Entity\Palestra;
 use App\Entity\Repository\UtenteRepositoryInterface;
 use App\Foundation\Persistence\Repository\DoctrineUtenteRepository;

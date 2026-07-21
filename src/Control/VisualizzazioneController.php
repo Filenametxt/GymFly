@@ -21,8 +21,6 @@ use App\Foundation\Persistence\Repository\DoctrineUtenteRepository;
 use App\Foundation\Persistence\Repository\DoctrineAttivitaRepository;
 use App\Foundation\Persistence\Repository\DoctrineEsercizioRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Entity\Cliente;
-use App\Entity\Allenatore;
 use App\Foundation\Persistence\Repository\DoctrineMessaggioRepository;
 use App\Foundation\Persistence\Repository\DoctrineAttivitaPianificataRepository;
 use DateTimeImmutable;

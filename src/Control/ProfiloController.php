@@ -32,7 +32,6 @@ use App\Entity\Amministratore;
 use App\Entity\Allenatore;
 use App\Entity\Utente;
 use App\Entity\Cliente;
-use App\Entity\Attivita;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Palestra;
 class ProfiloController 
@@ -101,7 +100,7 @@ class ProfiloController
         $targetId = HTTPMethods::get('id') !== null ? (int)HTTPMethods::get('id') : $idUt;
         $isSelf = ($targetId === $idUt);
         if ($isSelf) {
-            return $this->recuperaUtenteLoggato($this->entityManager, $idUt, $ruolo);
+            return $this->recuperaUtenteLoggato($idUt, $ruolo);
         }
         $utente = $this->utenteRepo->findById($targetId);
         $targetRuolo=$utente->getRuolo();
@@ -197,7 +196,7 @@ class ProfiloController
         $targetId = (int)HTTPMethods::request('id', $idUt);
         $isSelf = ($targetId === $idUt);
         if ($isSelf) {
-            return $this->recuperaUtenteLoggato($this->entityManager, $idUt, $ruolo);
+            return $this->recuperaUtenteLoggato($idUt, $ruolo);
         }
         if ($ruolo !== 'amministratore') {
             return null;
@@ -663,7 +662,7 @@ class ProfiloController
         return null;
     }
 
-    private function recuperaUtenteLoggato(EntityManagerInterface $entityManager, int $idUtente, ?string $ruolo): ?Utente
+    private function recuperaUtenteLoggato(int $idUtente, ?string $ruolo): ?Utente
     {
         if ($ruolo === 'cliente') {
             return $this->clienteRepo->findById($idUtente);
