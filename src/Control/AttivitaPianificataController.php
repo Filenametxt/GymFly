@@ -532,6 +532,11 @@ class AttivitaPianificataController
             return;
         }
 
+        if (!$allenatore->getAttivitaAbilitate()->contains($attivita)) {
+            $this->view->mostraStatoOperazione(false, "L'allenatore selezionato non è abilitato a svolgere questa attività.", $ritorno);
+            return;
+        }
+
         $ripetizione = HTTPMethods::postArray('ripetizione');
         $this->salvaPianificazioni(new \DateTime($dataStr), $ripetizione, $orario, $sala, $allenatore, $attivita, $ritorno);
     }
