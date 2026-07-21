@@ -121,7 +121,18 @@
                                  <div class="field mb-5">
                                      <label class="label">Metodo di Pagamento</label>
                                      <div class="control has-icons-left">
-                                         <input class="input" type="text" name="metodo_pagamento" value="{$utente->getMetodoDiPagamento()|escape}" required placeholder="Carta di Credito, Paypal, Contanti, ecc." {if $ruolo !== 'amministratore'}readonly style="background-color: #f5f5f5; color: #7a7a7a; cursor: not-allowed;"{/if}>
+                                         {if $ruolo === 'amministratore'}
+                                             <div class="select is-fullwidth">
+                                                 <select name="metodo_pagamento" required>
+                                                     <option value="" disabled {if !$utente->getMetodoDiPagamento()}selected{/if}>Scegli il metodo di pagamento</option>
+                                                     <option value="Contanti" {if $utente->getMetodoDiPagamento() === 'Contanti'}selected{/if}>Contanti</option>
+                                                     <option value="Carta di Credito" {if $utente->getMetodoDiPagamento() === 'Carta di Credito'}selected{/if}>Carta di Credito</option>
+                                                     <option value="Bonifico Bancario" {if $utente->getMetodoDiPagamento() === 'Bonifico Bancario'}selected{/if}>Bonifico Bancario</option>
+                                                 </select>
+                                             </div>
+                                         {else}
+                                             <input class="input" type="text" name="metodo_pagamento" value="{$utente->getMetodoDiPagamento()|escape}" readonly style="background-color: #f5f5f5; color: #7a7a7a; cursor: not-allowed;">
+                                         {/if}
                                          <span class="icon is-small is-left">
                                              <i class="fas fa-credit-card" style="color: var(--gymfly-primary);"></i>
                                          </span>

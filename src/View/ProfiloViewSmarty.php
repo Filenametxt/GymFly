@@ -85,4 +85,10 @@ class ProfiloViewSmarty implements ProfiloView
         }
         $this->smarty->display('visualizza_grafico.tpl');
     }
+
+    public function redirect(string $url): void
+    {
+        header('Location: ' . $url);
+        exit;
+    }
 }

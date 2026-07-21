@@ -4,6 +4,7 @@ namespace App\Control;
 use App\View\Interface\AutenticazioneView;
 use App\View\AutenticazioneViewSmarty;
 use App\Foundation\Session;
+use App\Foundation\Utility\HTTPMethods;
 use App\Enum\Sesso;
 use App\Entity\Amministratore;
 use App\Entity\Palestra;
@@ -38,7 +39,7 @@ class AutenticazioneController
 
     public function login(): void   //gestisce la richiesta di login
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {    //mostra il form di login se la richiesta è GET
+        if (HTTPMethods::method() === 'GET') {    //mostra il form di login se la richiesta è GET
             $this->view->mostraFormLogin();
             return;
         }
@@ -79,7 +80,7 @@ class AutenticazioneController
 
     public function registraAmministratore(): void
     {
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        if (HTTPMethods::method() === 'GET') {
             $this->view->mostraFormRegistrazione();
             return;
         }

@@ -144,8 +144,8 @@
                                 <input type="hidden" name="id_allenamento" value="{$allenamento->getId()}">
 
                                 <!-- ESERCIZI -->
-                                {if $allenamento->getDettagli()|@count > 0}
-                                    {foreach $allenamento->getDettagli() as $dettaglio}
+                                {if $allenamento->getDettagliOrdinati()|@count > 0}
+                                    {foreach $allenamento->getDettagliOrdinati() as $dettaglio}
                                         <div class="esercizio-block">
                                             <div class="columns is-mobile is-vcentered">
                                                 {if $dettaglio->getEsercizio()->getImmagine()}

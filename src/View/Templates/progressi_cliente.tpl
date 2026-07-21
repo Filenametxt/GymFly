@@ -301,7 +301,7 @@
                                                 <span class="style-theme-text">{$eData.esercizio->getNomeEsercizio()}</span>
                                                 <div class="is-flex" style="gap: 5px; flex-wrap: wrap;">
                                                     <span class="target-badge">
-                                                        Serie: {$eData.dettaglio->getSerie()}
+                                                        Serie: {$eData.serie_max}
                                                     </span>
                                                     {if $eData.dettaglio->getRipetizioni()}
                                                         <span class="target-badge">
@@ -449,9 +449,24 @@
     <!-- SCRIPT PER ACCORDION, TABS E GRAFICI CHART.JS -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        function resizeChartsInContainer(container) {
+            const canvases = container.querySelectorAll('.exercise-chart');
+            canvases.forEach(canvas => {
+                const chart = Chart.getChart(canvas);
+                if (chart) {
+                    chart.resize();
+                }
+            });
+        }
+
         function toggleAccordion(headerElement) {     //menu a scomparsa
             const accordionItem = headerElement.parentElement;
-            accordionItem.classList.toggle('active');
+            const isActive = accordionItem.classList.toggle('active');
+            if (isActive) {
+                setTimeout(() => {
+                    resizeChartsInContainer(accordionItem);
+                }, 50);
+            }
         }
 
         function switchExerciseTab(clickedTab, tabType, exerciseId) {
@@ -472,6 +487,15 @@
             const activeContent = document.querySelector('.tab-content-' + exerciseId + '.tab-content-' + tabType);
             if (activeContent) {
                 activeContent.classList.remove('is-hidden');
+                const canvas = activeContent.querySelector('.exercise-chart');
+                if (canvas) {
+                    const chart = Chart.getChart(canvas);
+                    if (chart) {
+                        setTimeout(() => {
+                            chart.resize();
+                        }, 50);
+                    }
+                }
             }
         }
 

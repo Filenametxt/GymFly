@@ -2,6 +2,7 @@
 namespace App\View;
 
 use App\View\Interface\AutenticazioneView;
+use App\Foundation\Utility\HTTPMethods;
 use Smarty\Smarty;
 
 class AutenticazioneViewSmarty implements AutenticazioneView
@@ -28,29 +29,29 @@ class AutenticazioneViewSmarty implements AutenticazioneView
     public function richiediCredenzialiLogin(): array
     {
         return [
-            'email' => $_POST['email'] ?? '',
-            'password' => $_POST['password'] ?? ''
+            'email' => HTTPMethods::post('email', ''),
+            'password' => HTTPMethods::post('password', '')
         ];
     }
 
     public function richiediDatiRegistrazione(): array
     {
         return [
-            'nome' => $_POST['nome'] ?? null,
-            'cognome' => $_POST['cognome'] ?? null,
-            'email' => $_POST['email'] ?? null,
-            'cf' => $_POST['cf'] ?? null,
-            'password' => $_POST['password'] ?? null,
-            'indirizzo' => $_POST['indirizzo'] ?? null,
-            'data_nascita' => $_POST['data_nascita'] ?? null,
-            'luogo_nascita' => $_POST['luogo_nascita'] ?? null,
-            'sesso' => $_POST['sesso'] ?? null,
-            'telefono' => $_POST['telefono'] ?? null,
+            'nome' => HTTPMethods::post('nome'),
+            'cognome' => HTTPMethods::post('cognome'),
+            'email' => HTTPMethods::post('email'),
+            'cf' => HTTPMethods::post('cf'),
+            'password' => HTTPMethods::post('password'),
+            'indirizzo' => HTTPMethods::post('indirizzo'),
+            'data_nascita' => HTTPMethods::post('data_nascita'),
+            'luogo_nascita' => HTTPMethods::post('luogo_nascita'),
+            'sesso' => HTTPMethods::post('sesso'),
+            'telefono' => HTTPMethods::post('telefono'),
             // Campi aggiuntivi per la palestra
-            'nome_palestra' => $_POST['nome_palestra'] ?? null,
-            'indirizzo_palestra' => $_POST['indirizzo_palestra'] ?? null,
-            'email_palestra' => $_POST['email_palestra'] ?? null,
-            'telefono_palestra' => $_POST['telefono_palestra'] ?? null,
+            'nome_palestra' => HTTPMethods::post('nome_palestra'),
+            'indirizzo_palestra' => HTTPMethods::post('indirizzo_palestra'),
+            'email_palestra' => HTTPMethods::post('email_palestra'),
+            'telefono_palestra' => HTTPMethods::post('telefono_palestra'),
         ];
     }
 

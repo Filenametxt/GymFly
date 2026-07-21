@@ -58,9 +58,24 @@ class Allenamento
         return $this;
     }
 
+    /**
+     * @return Collection<int, DettaglioAllenamento>
+     */
     public function getDettagli(): Collection
     {
         return $this->dettagli;
+    }
+
+    /**
+     * @return DettaglioAllenamento[]
+     */
+    public function getDettagliOrdinati(): array
+    {
+        $arr = $this->dettagli->toArray();
+        usort($arr, function($a, $b) {
+            return ($a->getId() ?? 0) <=> ($b->getId() ?? 0);
+        });
+        return $arr;
     }
 
     public function addDettaglio(DettaglioAllenamento $dettaglio): self
