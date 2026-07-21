@@ -396,15 +396,26 @@ class SchedaAllenamentoController
             return;
         }
 
+        if ($ruolo === 'amministratore') {
+            $this->view->mostraStatoOperazione(false, "Accesso negato. L'amministratore non è autorizzato a visualizzare le schede di allenamento.", "dashboard-admin");
+            return;
+        }
+
         $idScheda = (int)HTTPMethods::request('id', HTTPMethods::request('id_scheda', 0));
         $scheda = null;
-        if ($idScheda > 0) {
-            $scheda = $this->schedaRepo->findById($idScheda);
-        }
-        if (!$scheda && $ruolo === 'cliente') {
+
+        if ($ruolo === 'cliente') {
             $cliente = $this->clienteRepo->findById($idLog);
             if ($cliente) {
                 $scheda = $this->schedaRepo->findAttivaByCliente($cliente) ?? $this->schedaRepo->findByCliente($cliente) ?? $cliente->getScheda();
+            }
+            if ($idScheda > 0 && $scheda && $scheda->getId() !== $idScheda) {
+                $this->view->mostraStatoOperazione(false, "Accesso negato. Non sei autorizzato a visualizzare le schede degli altri clienti.", "dashboard-cliente");
+                return;
+            }
+        } elseif ($ruolo === 'allenatore') {
+            if ($idScheda > 0) {
+                $scheda = $this->schedaRepo->findById($idScheda);
             }
         }
 
@@ -427,7 +438,7 @@ class SchedaAllenamentoController
         $this->view->mostraTemplate('visualizza_scheda.tpl', [
             'scheda' => $scheda,
             'ruolo_utente' => $ruolo,
-            'isSelf' => ($ruolo === 'cliente' && $scheda->getCliente() && $scheda->getCliente()->getId() === $idLog)
+            'isSelf' => ($ruolo === 'cliente')
         ]);
     }
 
@@ -442,12 +453,6 @@ class SchedaAllenamentoController
             $palScheda = $scheda->getCliente() ? $scheda->getCliente()->getPalestra() : null;
             return ($scheda->getAllenatore() && $scheda->getAllenatore()->getId() === $idLog) ||
                    ($palTrainer && $palScheda && $palTrainer->getId() === $palScheda->getId());
-        }
-        if ($ruolo === 'amministratore') {
-            $admin = $this->amministratoreRepo->findById($idLog);
-            $palAdmin = $admin ? $this->palestraRepo->findByAmministratore($admin) : null;
-            $palScheda = $scheda->getCliente() ? $scheda->getCliente()->getPalestra() : null;
-            return $palAdmin && $palScheda && $palAdmin->getId() === $palScheda->getId();
         }
         return false;
     }
