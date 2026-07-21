@@ -40,7 +40,7 @@ class FrontController
             
             '/clienti' => [VisualizzazioneUtentiController::class, 'visualizzaClienti'],
             '/allenatori' => [VisualizzazioneUtentiController::class, 'visualizzaAllenatori'],
-            '/abbonamento' => [AbbonamentiController::class, 'visualizzaAbbonamenti'],
+            '/abbonamento' => [AbbonamentiController::class, 'gestisciAbbonamento'],
             '/gestione-abbonamento' => [AbbonamentiController::class, 'gestisciAbbonamento'],
             
             '/crea-cliente' => [AmministratoreController::class, 'creaCliente'],

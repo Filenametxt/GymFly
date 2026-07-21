@@ -252,6 +252,10 @@ class ProfiloController
     {
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
+        if (!$idUt || $ruolo === 'amministratore') {
+            $this->mostraStatoOperazione(false, "Accesso negato. L'amministratore non può aggiornare le misure del cliente.");
+            return;
+        }
         $cliente = $this->recuperaClienteTarget($ruolo, $idUt);
         if (!$cliente) {
             $this->mostraStatoOperazione(false, "Cliente non trovato o accesso negato.");
@@ -297,8 +301,8 @@ class ProfiloController
     {
         $idUt = $this->session->getLoggedUserId();
         $ruolo = $this->session->getLoggedUserRole();
-        if (!$idUt || ($ruolo !== 'cliente' && $ruolo !== 'amministratore')) {
-            $this->mostraStatoOperazione(false, "Azione non consentita.");
+        if (!$idUt || $ruolo === 'amministratore') {
+            $this->mostraStatoOperazione(false, "Accesso negato. L'amministratore non può inserire le misure del cliente.");
             return;
         }
         $cliente = $this->recuperaClienteTarget($ruolo, $idUt);
@@ -415,8 +419,14 @@ class ProfiloController
             $this->mostraStatoOperazione(false, "Accesso negato.");
             return;
         }
-        $isSelf = true;
-        $ut = $this->determinaUtenteModifica($idUt, $ruolo, $isSelf);
+
+        $targetId = HTTPMethods::get('id') !== null ? (int)HTTPMethods::get('id') : $idUt;
+        if ($targetId !== $idUt) {
+            $this->mostraStatoOperazione(false, "Accesso negato. Non è consentito modificare la password degli altri utenti.");
+            return;
+        }
+
+        $ut = $this->recuperaUtenteLoggato($idUt, $ruolo);
         if (!$ut) {
             $this->mostraStatoOperazione(false, "Utente non trovato o accesso negato.");
             return;
@@ -448,9 +458,7 @@ class ProfiloController
         try {
             $ut->setPassword($new);
             $this->salvaUtenteGenerico($ut);
-            $idUt = $this->session->getLoggedUserId();
-            $ritorno = ($ut->getId() === $idUt) ? 'profilo' : 'visualizza-profilo?id=' . $ut->getId();
-            $this->mostraStatoOperazione(true, "Password aggiornata con successo!", $ritorno, "Torna al Profilo");
+            $this->mostraStatoOperazione(true, "Password aggiornata con successo!", "profilo", "Torna al Profilo");
         } catch (\Throwable $e) {
             $this->mostraStatoOperazione(false, "Errore durante il cambio password: " . $e->getMessage(), "cambia-password", "Riprova");
         }
