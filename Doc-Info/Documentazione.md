@@ -4,7 +4,7 @@ Questa guida illustra la configurazione, l'installazione e l'avvio dell'applicaz
 
 Il repository `GymFly` è strutturato su due branch separati in base all'ambiente desiderato:
 - **`main` (Ambiente Primario Raccomandato)**: Configurazione standard pensata per l'esecuzione in locale tramite lo stack tradizionale **XAMPP (Apache + MySQL)**.
-- **`Test_server` (Deploy Cloud & Container Opzionale)**: Configurazione per ambienti cloud e container **Docker**, utilizzata per il deploy su **Render** con database PostgreSQL ospitato su **Aiven Cloud**.
+- **`Test_server` (Deploy Cloud & Container Opzionale)**: Configurazione per ambienti cloud e container **Docker**, utilizzata per il deploy su **Render**, dove sono ospitati sia il server web sia il database **PostgreSQL**.
 
 > 🌐 **Istanza Live Dimostrativa (Senza Installazione)**
 > Se si desidera valutare o provare immediatamente l'applicazione senza eseguire alcuna installazione locale, la web app è già attiva e funzionante su cloud:
@@ -91,26 +91,26 @@ Questa è la modalità di riferimento e raccomandata per l'esecuzione del proget
 
 ---
 
-## 2. Deploy Cloud tramite Render & Aiven Cloud (Branch `Test_server`)
+## 2. Deploy Cloud tramite Render (Branch `Test_server`)
 
-Questa sezione illustra la configurazione per la messa online del progetto. Per evitare di dover installare e configurare manualmente PostgreSQL in locale, l'infrastruttura di test è stata realizzata con servizi cloud gestiti:
+Questa sezione illustra la configurazione per la messa online del progetto. Per centralizzare l'infrastruttura ed evitare qualsiasi installazione locale di PostgreSQL, l'intero stack applicativo è ospitato direttamente su **Render** ([render.com](https://render.com)):
 
-* **Render** ([render.com](https://render.com)): Hosting del Web Service containerizzato via Docker.
-* **Aiven Cloud** ([aiven.io](https://aiven.io)): Database PostgreSQL gestito in cloud con connessione sicura SSL.
+* **Web Service (Render)**: Hosting dell'applicazione GymFly containerizzata tramite Docker.
+* **PostgreSQL Database (Render)**: Database relazionale gestito centralizzato sulla stessa piattaforma.
 
 ### Come è Strutturato il Deploy (Panoramica della Configurazione)
 
-1. **Database PostgreSQL su Aiven:**
-   - È stato creato un servizio PostgreSQL gestito gratuito su Aiven.
-   - Aiven fornisce la stringa di connessione (*Service URI*) nel formato:
-     `postgres://utente:password@host:porta/nomedatabase?sslmode=require`
+1. **Database PostgreSQL su Render:**
+   - Su Render è stato creato un nuovo servizio **PostgreSQL Database** gestito.
+   - Render fornisce automaticamente l'URL di connessione interno ed esterno (*Internal Database URL* / *External Connection String*):
+     `postgresql://utente:password@host/nomedatabase`
 
 2. **Web Service su Render:**
-   - Su Render è stato creato un nuovo **Web Service** collegato al repository GitHub `GymFly`.
+   - Su Render è stato creato un **Web Service** collegato al repository GitHub `GymFly`.
    - **Branch selezionato**: `Test_server` (che contiene il [`Dockerfile`](../Dockerfile) e lo script [`entrypoint.sh`](../entrypoint.sh)).
    - **Ambiente di Runtime**: *Docker*.
-   - **Variabile d'Ambiente**: Nelle impostazioni del servizio è stata definita la variabile:
-     - `DATABASE_URL` = `<Service URI di Aiven>`
+   - **Variabile d'Ambiente**: Nelle impostazioni del Web Service è stata definita la variabile:
+     - `DATABASE_URL` = `<Internal Database URL>` (fornito dal database Render).
 
 3. **Build e Avvio Automatico del Container:**
    - Render esegue la build dell'immagine Docker partendo da `php:8.2-apache` e installando le librerie necessarie (`pdo_pgsql`, `zip`, ecc.).
@@ -118,18 +118,18 @@ Questa sezione illustra la configurazione per la messa online del progetto. Per 
    - `EntityManagerFactory.php` rileva automaticamente la variabile `DATABASE_URL`: se presente, adotta il driver `pdo_pgsql` per Render; se assente, ricade sul driver locale `pdo_mysql` per XAMPP.
 
 4. **Popolamento delle Fixtures su Cloud:**
-   - Dal terminale (*Shell*) di Render è sufficiente digitare:
+   - Per popolare il database remoto con i dati dimostrativi, è possibile eseguire lo script passando come variabile `DATABASE_URL` la stringa di connessione esterna fornita da Render:
      ```bash
-     php popola_db_interfacce.php
+     DATABASE_URL="la_tua_connection_string_esterna_render" php popola_db_interfacce.php
      ```
 
 ### (Opzionale) Esecuzione Docker in Locale con Database Remoto
-Se si desidera avviare il container Docker in locale collegandosi al database cloud (o a una propria istanza PostgreSQL):
+Se si desidera avviare il container Docker in locale collegandosi al database cloud di Render:
 ```bash
 git checkout Test_server
 docker build -t gymfly .
 docker run -d -p 8080:80 \
-  -e DATABASE_URL="postgres://utente:password@host:porta/nomedatabase?sslmode=require" \
+  -e DATABASE_URL="la_tua_connection_string_esterna_render" \
   --name gymfly_app gymfly
 ```
 L'applicazione sarà accessibile all'indirizzo:
