@@ -1,7 +1,5 @@
 # Documentazione di Installazione e Configurazione - Web App 'GymFly'
 
-Questa guida illustra la configurazione, l'installazione e l'avvio dell'applicazione web **GymFly**.
-
 Il repository `GymFly` è strutturato su due branch separati in base all'ambiente desiderato:
 - **`main` (Ambiente Primario Raccomandato)**: Configurazione standard pensata per l'esecuzione in locale tramite lo stack tradizionale **XAMPP (Apache + MySQL)**.
 - **`Test_server` (Deploy Cloud & Container Opzionale)**: Configurazione per ambienti cloud e container **Docker**, utilizzata per il deploy su **Render**, dove sono ospitati sia il server web sia il database **PostgreSQL**.
