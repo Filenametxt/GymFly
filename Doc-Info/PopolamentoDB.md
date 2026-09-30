@@ -1,7 +1,4 @@
-# Guida al Popolamento del Database (Fixtures) - GymFly
-
-Questa guida descrive il funzionamento dello script `popola_db_interfacce.php` utilizzato per popolare la base dati di **GymFly** con i dati dimostrativi di test per le presentazioni e il collaudo del sistema.
-
+# Guida al Popolamento del Database (Valori di test) - GymFly
 ---
 
 ## 1. Come Eseguire lo Script
