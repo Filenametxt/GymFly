@@ -43,18 +43,42 @@ echo "Inizio popolamento del database con dati Dummy...\n\n";
 var_dump(preg_match('/^[a-zA-ZàèéìòùÀÈÉÌÒÙ\s\']+$/u', 'Mario'));
 
 try {
-    // Pulizia preventiva per rendere lo script completamente re-runnable
-    echo "[DEBUG] Pulizia preventiva database...\n";
-    $conn = $entityManager->getConnection();
-    $conn->executeStatement('SET FOREIGN_KEY_CHECKS = 0');
-    
-    $tables = ['Progresso', 'DettaglioAllenamento', 'Allenamento', 'Scheda', 'Iscrizione', 'AbbonamentoAttivo', 'Abbonamento', 'Messaggio', 'CertificatoMedico', 'AttivitaPianificata', 'Attivita', 'Utente', 'Palestra', 'Tipologia', 'Esercizio', 'Iscritto', 'Abilitazione', 'Allena', 'Riceve'];
-    foreach ($tables as $t) {
-        $conn->executeStatement("DELETE FROM `$t`");
+    // Pulizia preventiva tramite entità Doctrine ORM (100% DB-agnostic, senza query SQL grezze)
+    echo "[DEBUG] Pulizia preventiva database tramite Doctrine ORM...\n";
+    $entityClasses = [
+        \App\Entity\Progresso::class,
+        \App\Entity\DettaglioAllenamento::class,
+        \App\Entity\Allenamento::class,
+        \App\Entity\Scheda::class,
+        \App\Entity\SessionePrivata::class,
+        \App\Entity\CodaAttesa::class,
+        \App\Entity\AttivitaPianificata::class,
+        \App\Entity\Attivita::class,
+        \App\Entity\Iscrizione::class,
+        \App\Entity\AbbonamentoAttivo::class,
+        \App\Entity\CertificatoMedico::class,
+        \App\Entity\Messaggio::class,
+        \App\Entity\Cliente::class,
+        \App\Entity\Allenatore::class,
+        \App\Entity\Palestra::class,
+        \App\Entity\Amministratore::class,
+        \App\Entity\Utente::class,
+        \App\Entity\Esercizio::class,
+        \App\Entity\Tipologia::class,
+        \App\Entity\AbbonamentoDurata::class,
+        \App\Entity\Abbonamento::class,
+    ];
+
+    foreach ($entityClasses as $class) {
+        $repo = $entityManager->getRepository($class);
+        $entities = $repo->findAll();
+        foreach ($entities as $e) {
+            $entityManager->remove($e);
+        }
+        $entityManager->flush();
     }
-    
-    $conn->executeStatement('SET FOREIGN_KEY_CHECKS = 1');
-    echo "[OK] Database pulito con successo.\n";
+    $entityManager->clear();
+    echo "[OK] Database pulito con successo tramite Doctrine ORM.\n";
 
     // 1. Creazione Amministratore (Entità indipendente)
     echo "[DEBUG] 4. Creazione Amministratore...\n";
