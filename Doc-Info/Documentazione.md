@@ -72,7 +72,7 @@ Questa è la modalità di riferimento e raccomandata per l'esecuzione del proget
    php bin/console orm:info
    ```
 
-6. **Popolamento del Database con Dati Dimostrativi (Fixtures):**
+6. **Popolamento del Database con Dati Dimostrativi:**
    Per popolare rapidamente il database con utenti di prova, palestra, schede ed esercizi, importare lo script dal branch `Test_server` ed eseguirlo:
    ```bash
    git checkout origin/Test_server -- popola_db_interfacce.php
