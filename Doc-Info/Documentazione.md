@@ -12,7 +12,7 @@ Il repository `GymFly` è strutturato su due branch separati in base all'ambient
 
 ## 1. Installazione Standard tramite XAMPP (Branch `main`)
 
-Questa è la modalità di riferimento e raccomandata per l'esecuzione del progetto sul computer locale o di valutazione.
+Questa è la modalità di riferimento e raccomandata per l'esecuzione del progetto sul computer locale.
 
 ### Requisiti Preliminari
 * **XAMPP** installato con i moduli **Apache** e **MySQL** avviati.
