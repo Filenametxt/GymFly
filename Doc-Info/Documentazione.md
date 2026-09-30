@@ -147,10 +147,6 @@ Dopo aver eseguito lo script di popolamento (o per consultare gli account di pro
 | :--- | :--- | :--- | :--- | :--- |
 | **Amministratore** | Mario Rossi | `admin@gymfly.com` | `PasswordSicura123!` | Gestore della palestra, controllo abbonamenti e report |
 | **Allenatore** | Luigi Verdi | `luigi.verdi@gymfly.com` | `AllenatorePass88!` | Gestione schede tecniche ed esercizi |
-| **Allenatore** | Marco Neri | `marco.neri@gymfly.com` | `MarcoCoach99!` | Personal trainer della struttura |
 | **Cliente** | Chiara Bianchi | `chiara.bianchi@gymfly.com` | `ClientePass123!` | Consultazione scheda e monitoraggio progressi |
-| **Cliente** | Alessia Gialli | `alessia.gialli@gymfly.com` | `AlessiaPass456!` | Account cliente |
-| **Cliente** | Davide Viola | `davide.viola@gymfly.com` | `DavidePass789!` | Account cliente |
-| **Cliente** | Elena Verde | `elena.verde@gymfly.com` | `ElenaPass999!` | Account cliente |
 
 Per ulteriori dettagli sulla struttura dei dati e sulle entità simulate, fare riferimento alla [Guida al Popolamento del Database](PopolamentoDB.md).
