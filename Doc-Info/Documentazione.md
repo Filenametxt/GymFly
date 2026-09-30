@@ -2,142 +2,155 @@
 
 Questa guida illustra la configurazione, l'installazione e l'avvio dell'applicazione web **GymFly**.
 
-Il repository `GymFly` è strutturato principalmente su due branch a seconda dell'ambiente di deploy/esecuzione desiderato:
-- **`main`**: Configurazione standard per ambiente locale tradizionale basato su **XAMPP (Apache + MySQL)**.
-- **`Test_server`**: Configurazione per **Docker** e ambienti cloud/web service (es. **Render**), con supporto a **PostgreSQL** tramite variabile d'ambiente `DATABASE_URL` e script di avvio automatico.
+Il repository `GymFly` è strutturato su due branch separati in base all'ambiente desiderato:
+- **`main` (Ambiente Primario Raccomandato)**: Configurazione standard pensata per l'esecuzione in locale tramite lo stack tradizionale **XAMPP (Apache + MySQL)**.
+- **`Test_server` (Deploy Cloud & Container Opzionale)**: Configurazione per ambienti cloud e container **Docker**, utilizzata per il deploy su **Render** con database PostgreSQL ospitato su **Aiven Cloud**.
+
+> 🌐 **Istanza Live Dimostrativa (Senza Installazione)**
+> Se si desidera valutare o provare immediatamente l'applicazione senza eseguire alcuna installazione locale, la web app è già attiva e funzionante su cloud:
+> 👉 **[https://gymfly.onrender.com/](https://gymfly.onrender.com/)**
 
 ---
 
 ## 1. Installazione Standard tramite XAMPP (Branch `main`)
 
-Questa modalità è ideale per lo sviluppo o l'esecuzione in locale utilizzando lo stack XAMPP con database MySQL.
+Questa è la modalità di riferimento e raccomandata per l'esecuzione del progetto sul computer locale o di valutazione.
 
 ### Requisiti Preliminari
 * **XAMPP** installato con i moduli **Apache** e **MySQL** avviati.
-* **PHP >= 8.2** installato e configurato nelle variabili d'ambiente di sistema (`PATH`) con estensioni `pdo_mysql` e `zip` abilitate.
+* **PHP >= 8.2** configurato nel `PATH` di sistema con le estensioni `pdo_mysql` e `zip` abilitate (standard in XAMPP).
 * **Composer** installato a livello di sistema.
-* **Git** per la gestione dei branch.
+* **Git** installato.
 
 ### Procedura di Installazione
 
-1. **Posizionamento dei file e selezione del branch:**
-   * Clonare o posizionare la cartella del progetto all'interno della directory `htdocs` di XAMPP:
-     - Su Windows: `C:\xampp\htdocs\GymFly`
-     - Su Linux: `/opt/lampp/htdocs/GymFly`
-   * Aprire il terminale all'interno della cartella del progetto `GymFly` e assicurarsi di essere sul branch `main`:
+1. **Posizionamento e Clonazione del Repository:**
+   Posizionarsi all'interno della directory `htdocs` di XAMPP e clonare il repository:
+   * Su Linux:
      ```bash
-     git checkout main
+     cd /opt/lampp/htdocs
+     git clone https://github.com/Filenametxt/GymFly.git
+     cd GymFly
      ```
+   * Su Windows:
+     ```bash
+     cd C:\xampp\htdocs
+     git clone https://github.com/Filenametxt/GymFly.git
+     cd GymFly
+     ```
+   Assicurarsi di essere sul branch principale:
+   ```bash
+   git checkout main
+   ```
 
 2. **Creazione del Database MySQL:**
-   * L'applicazione si connette al database locale con nome `gymfly` (utente `root`, password vuota, porta standard `3306`), come configurato in `src/Foundation/Persistence/Config/EntityManagerFactory.php`.
-   * Creare il database tramite terminale MySQL nel seguente modo:
+   L'applicazione si connette al database locale denominato `gymfly` (utente `root`, password vuota, porta standard `3306`), configurato in `src/Foundation/Persistence/Config/EntityManagerFactory.php`.
+   * Tramite terminale:
      ```bash
      mysql -h 127.0.0.1 -u root -e "CREATE DATABASE IF NOT EXISTS gymfly CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
      ```
-   * *In alternativa*, aprire **phpMyAdmin** (`http://localhost/phpmyadmin`) e creare manualmente un nuovo database vuoto denominato `gymfly`.
+   * *In alternativa*, aprire **phpMyAdmin** (`http://localhost/phpmyadmin`) e creare un nuovo database vuoto chiamato `gymfly`.
 
-3. **Installazione delle dipendenze:**
-   * Eseguire da terminale nella root del progetto:
-     ```bash
-     composer install
-     ```
+3. **Installazione delle Dipendenze:**
+   Eseguire nella root del progetto:
+   ```bash
+   composer install
+   ```
 
-4. **Configurazione permessi di scrittura (Solo per Linux/macOS):**
-   * Il motore di template Smarty necessita dei permessi di scrittura per compilare le viste. Aprire il terminale ed eseguire:
-     ```bash
-     sudo mkdir -p src/View/Templates_c
-     sudo chmod -R 777 src/View/Templates_c
-     ```
+4. **Configurazione Permessi di Scrittura (Solo per Linux/macOS):**
+   Il template engine Smarty necessita dei permessi di scrittura nella cartella di cache per compilare le viste:
+   ```bash
+   mkdir -p src/View/Templates_c
+   chmod -R 777 src/View/Templates_c
+   ```
 
 5. **Inizializzazione dello Schema del Database (Doctrine ORM):**
-   * Generare la struttura delle tabelle eseguendo:
-     ```bash
-     php bin/console orm:schema-tool:create
-     ```
-   * *(Opzionale)* Per verificare il corretto mapping delle entità:
-     ```bash
-     php bin/console orm:info
-     ```
+   Generare le tabelle tramite la CLI di Doctrine:
+   ```bash
+   php bin/console orm:schema-tool:create
+   ```
+   *(Opzionale)* Per verificare che tutte le 28 entità siano mappate correttamente:
+   ```bash
+   php bin/console orm:info
+   ```
 
-6. **Popolamento del Database con Dati Dimostrativi (Facoltativo):**
-   * Se si desidera popolare rapidamente il database con utenti di prova e schede dimostrative, importare lo script dal branch `Test_server` ed eseguirlo:
-     ```bash
-     git checkout Test_server -- popola_db_interfacce.php
-     php popola_db_interfacce.php
-     ```
-   * Per maggiori dettagli sui dati inseriti, consultare la [Guida al Popolamento del Database](PopolamentoDB.md).
+6. **Popolamento del Database con Dati Dimostrativi (Fixtures):**
+   Per popolare rapidamente il database con utenti di prova, palestra, schede ed esercizi, importare lo script dal branch `Test_server` ed eseguirlo:
+   ```bash
+   git checkout origin/Test_server -- popola_db_interfacce.php
+   php popola_db_interfacce.php
+   ```
+   Per maggiori dettagli sui dati generati, consultare la [Guida al Popolamento del Database](PopolamentoDB.md).
 
-7. **Accesso all'applicazione:**
-   * Aprire il browser web e collegarsi al seguente URL:
-     ```text
-     http://localhost/GymFly/public
-     ```
-   *(Nota: Il routing dell'applicazione è gestito da `public/.htaccess`, assicurarsi che il modulo `mod_rewrite` di Apache sia abilitato, come di default in XAMPP).*
+7. **Accesso all'Applicazione:**
+   Aprire il browser e collegarsi all'indirizzo:
+   ```text
+   http://localhost/GymFly/public
+   ```
+   *(Nota: Il routing è gestito da `public/.htaccess`, verificare che il modulo `mod_rewrite` di Apache sia abilitato, come da default in XAMPP).*
 
 ---
 
-## 2. Installazione e Avvio tramite Docker (Branch `Test_server`)
+## 2. Deploy Cloud tramite Render & Aiven Cloud (Branch `Test_server`)
 
-Questa modalità è concepita per l'esecuzione containerizzata con Docker o per il deploy su piattaforme cloud (es. Render). L'applicazione richiede un database **PostgreSQL** collegato tramite la variabile d'ambiente `DATABASE_URL`.
+Questa sezione illustra la configurazione per la messa online del progetto. Per evitare di dover installare e configurare manualmente PostgreSQL in locale, l'infrastruttura di test è stata realizzata con servizi cloud gestiti:
 
-### Requisiti Preliminari
-* **Docker** (o Podman) installato e in esecuzione.
-* **Un'istanza di PostgreSQL attiva e raggiungibile** (in locale, tramite container Docker separato, o su cloud database come Render, Neon o Supabase).
-* **Git** per selezionare il branch.
+* **Render** ([render.com](https://render.com)): Hosting del Web Service containerizzato via Docker.
+* **Aiven Cloud** ([aiven.io](https://aiven.io)): Database PostgreSQL gestito in cloud con connessione sicura SSL.
 
-### Procedura di Avvio
+### Come è Strutturato il Deploy (Panoramica della Configurazione)
 
-1. **Selezione del branch:**
-   Nel terminale, all'interno della cartella del progetto `GymFly`, passare al branch con la configurazione Docker:
-   ```bash
-   git checkout Test_server
-   ```
+1. **Database PostgreSQL su Aiven:**
+   - È stato creato un servizio PostgreSQL gestito gratuito su Aiven.
+   - Aiven fornisce la stringa di connessione (*Service URI*) nel formato:
+     `postgres://utente:password@host:porta/nomedatabase?sslmode=require`
 
-2. **Costruzione dell'immagine Docker:**
-   ```bash
-   docker build -t gymfly .
-   ```
+2. **Web Service su Render:**
+   - Su Render è stato creato un nuovo **Web Service** collegato al repository GitHub `GymFly`.
+   - **Branch selezionato**: `Test_server` (che contiene il [`Dockerfile`](../Dockerfile) e lo script [`entrypoint.sh`](../entrypoint.sh)).
+   - **Ambiente di Runtime**: *Docker*.
+   - **Variabile d'Ambiente**: Nelle impostazioni del servizio è stata definita la variabile:
+     - `DATABASE_URL` = `<Service URI di Aiven>`
 
-3. **Avvio del container con connessione al Database:**
-   Avviare il container passando la stringa di connessione della propria istanza PostgreSQL tramite il flag `-e DATABASE_URL`:
-   ```bash
-   docker run -d -p 8080:80 \
-     -e DATABASE_URL="postgres://utente:password@host:5432/nomedatabase" \
-     --name gymfly_app gymfly
-   ```
-   *(Nota: sostituire i valori segnaposto con le credenziali reali del proprio database PostgreSQL nel formato `postgres://utente:password@host:porta/nomedatabase`, oppure incollare direttamente l'URL di connessione fornito dal provider cloud).*
+3. **Build e Avvio Automatico del Container:**
+   - Render esegue la build dell'immagine Docker partendo da `php:8.2-apache` e installando le librerie necessarie (`pdo_pgsql`, `zip`, ecc.).
+   - All'avvio, lo script `entrypoint.sh` rileva la presenza di `DATABASE_URL`, verifica la connessione a PostgreSQL ed esegue automaticamente `php bin/console orm:schema-tool:create` prima di lanciare Apache.
+   - `EntityManagerFactory.php` rileva automaticamente la variabile `DATABASE_URL`: se presente, adotta il driver `pdo_pgsql` per Render; se assente, ricade sul driver locale `pdo_mysql` per XAMPP.
 
-   *Nota sull'avvio:* Lo script `entrypoint.sh` configurato nell'immagine esegue automaticamente `php bin/console orm:schema-tool:create` prima di avviare il server Apache.
+4. **Popolamento delle Fixtures su Cloud:**
+   - Dal terminale (*Shell*) di Render è sufficiente digitare:
+     ```bash
+     php popola_db_interfacce.php
+     ```
 
-4. **Popolamento del Database nel Container Docker (Facoltativo):**
-   A container avviato, eseguire lo script di seeding per inserire i dati dimostrativi:
-   ```bash
-   docker exec -it gymfly_app php popola_db_interfacce.php
-   ```
-   *Per approfondire i dati generati, consultare la [Guida al Popolamento del Database](PopolamentoDB.md).*
-
-5. **Accesso all'applicazione:**
-   Aprire il browser all'indirizzo:
-   ```text
-   http://localhost:8080
-   ```
-   *(Nota: Nel container Docker la DocumentRoot di Apache punta direttamente a `/public`, pertanto non è necessario includere `/GymFly/public` nel path dell'URL).**
+### (Opzionale) Esecuzione Docker in Locale con Database Remoto
+Se si desidera avviare il container Docker in locale collegandosi al database cloud (o a una propria istanza PostgreSQL):
+```bash
+git checkout Test_server
+docker build -t gymfly .
+docker run -d -p 8080:80 \
+  -e DATABASE_URL="postgres://utente:password@host:porta/nomedatabase?sslmode=require" \
+  --name gymfly_app gymfly
+```
+L'applicazione sarà accessibile all'indirizzo:
+```text
+http://localhost:8080
+```
 
 ---
 
 ## 3. Credenziali Predefinite di Test
 
-Nel caso in cui sia stato eseguito il popolamento del database (o per consultare gli account dimostrativi previsti in `GymFly/Doc-Info/credenziali.csv`), di seguito sono riportate le credenziali di accesso:
+Dopo aver eseguito lo script di popolamento (o per consultare gli account di prova già presenti sull'istanza online), utilizzare le seguenti credenziali per l'accesso:
 
-| Ruolo | Nome e Cognome | Email | Password |
-| :--- | :--- | :--- | :--- |
-| **Amministratore** | Mario Rossi | `admin@gymfly.com` | `PasswordSicura123!` |
-| **Allenatore** | Luigi Verdi | `luigi.verdi@gymfly.com` | `AllenatorePass88!` |
-| **Allenatore** | Marco Neri | `marco.neri@gymfly.com` | `MarcoCoach99!` |
-| **Cliente** | Chiara Bianchi | `chiara.bianchi@gymfly.com` | `ClientePass123!` |
-| **Cliente** | Alessia Gialli | `alessia.gialli@gymfly.com` | `AlessiaPass456!` |
-| **Cliente** | Davide Viola | `davide.viola@gymfly.com` | `DavidePass789!` |
-| **Cliente** | Elena Verde | `elena.verde@gymfly.com` | `ElenaPass999!` |
+| Ruolo | Nome e Cognome | Email | Password | Note |
+| :--- | :--- | :--- | :--- | :--- |
+| **Amministratore** | Mario Rossi | `admin@gymfly.com` | `PasswordSicura123!` | Gestore della palestra, controllo abbonamenti e report |
+| **Allenatore** | Luigi Verdi | `luigi.verdi@gymfly.com` | `AllenatorePass88!` | Gestione schede tecniche ed esercizi |
+| **Allenatore** | Marco Neri | `marco.neri@gymfly.com` | `MarcoCoach99!` | Personal trainer della struttura |
+| **Cliente** | Chiara Bianchi | `chiara.bianchi@gymfly.com` | `ClientePass123!` | Consultazione scheda e monitoraggio progressi |
+| **Cliente** | Alessia Gialli | `alessia.gialli@gymfly.com` | `AlessiaPass456!` | Account cliente |
+| **Cliente** | Davide Viola | `davide.viola@gymfly.com` | `DavidePass789!` | Account cliente |
+| **Cliente** | Elena Verde | `elena.verde@gymfly.com` | `ElenaPass999!` | Account cliente |
 
-Per tutti i dettagli sulla struttura delle fixture e sui dati simulati, fare riferimento a [PopolamentoDB.md](PopolamentoDB.md).
+Per ulteriori dettagli sulla struttura dei dati e sulle entità simulate, fare riferimento alla [Guida al Popolamento del Database](PopolamentoDB.md).
