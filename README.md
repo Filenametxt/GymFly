@@ -75,3 +75,14 @@ Il Cliente è l'utente finale del servizio associato a una determinata palestra.
   <img src="assets/Dashboard_cliente.png" alt="Dashboard del cliente" width="1000"><br>
   <span style="font-size: 16px; font-weight: 600; display: inline-block; margin-top: 8px;">Dashboard del cliente</span>
 </p>
+
+---
+
+## 🚀 Installazione e Configurazione
+
+Per la guida dettagliata passo-passo sull'installazione e l'avvio del progetto nei diversi ambienti supportati, consulta la documentazione dedicata:
+
+* 📖 **[Guida all'Installazione e Configurazione](Doc-Info/Documentazione.md)**:
+  * **Branch `main`**: Installazione standard per ambiente locale tradizionale basato su **XAMPP (Apache + MySQL)**.
+  * **Branch `Test_server`**: Configurazione containerizzata con **Docker** e ambienti cloud/web service (**PostgreSQL**).
+* 🗄️ **[Guida al Popolamento del Database](Doc-Info/PopolamentoDB.md)**: Istruzioni per generare dati dimostrativi (fixtures) e consultare le credenziali di test per la presentazione.
